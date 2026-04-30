@@ -20,7 +20,8 @@
             "input": "apps/shop/public"
           }
         ],
-        "styles": ["apps/shop/src/styles.css"],
+        "styles": ["apps/shop/src/styles.scss"],
+        "inlineStyleLanguage": "scss",
         "server": "apps/shop/src/main.server.ts",
         "ssr": {
           "entry": "apps/shop/src/server.ts"
