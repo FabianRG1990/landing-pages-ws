@@ -17,6 +17,6 @@ COPY dist .
 # You can remove this install step if you build with `--bundle` option.
 # The bundled output will include external dependencies.
 
-RUN npm --omit=dev -f install
+RUN corepack enable && yarn install
 
 CMD [ "node", "main.js" ]

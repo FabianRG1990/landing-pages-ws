@@ -36,33 +36,32 @@ git clone <your-fork-url>
 cd <your-repository-name>
 
 # Install dependencies
-# (Note: You may need --legacy-peer-deps)
-npm install
+yarn install
 
 # Serve the Angular shop application (this will simultaneously serve the API backend)
-npx nx serve shop
+yarn nx serve shop
 
 # ...or you can serve the API separately
-npx nx serve api
+yarn nx serve api
 
 # Build all projects
-npx nx run-many -t build
+yarn nx run-many -t build
 
 # Run tests
-npx nx run-many -t test
+yarn nx run-many -t test
 
 # Lint all projects
-npx nx run-many -t lint
+yarn nx run-many -t lint
 
 # Run e2e tests
-npx nx e2e shop-e2e
+yarn nx e2e shop-e2e
 
 # Run tasks in parallel
 
-npx nx run-many -t lint test build e2e --parallel=3
+yarn nx run-many -t lint test build e2e --parallel=3
 
 # Visualize the project graph
-npx nx graph
+yarn nx graph
 ```
 
 ## ⭐ Featured Nx Capabilities
@@ -84,10 +83,10 @@ Enforces architectural constraints using tags. Each project has specific depende
 
 ```bash
 # See the current project graph and boundaries
-npx nx graph
+yarn nx graph
 
 # View a specific project's details
-npx nx show project shop --web
+yarn nx show project shop --web
 ```
 
 [Learn more about module boundaries →](https://nx.dev/features/enforce-module-boundaries)
@@ -98,13 +97,13 @@ The API project includes Docker support with automated targets and release manag
 
 ```bash
 # Build Docker image
-npx nx docker:build api
+yarn nx docker:build api
 
 # Run Docker container
-npx nx docker:run api
+yarn nx docker:run api
 
 # Release with automatic Docker image versioning
-npx nx release
+yarn nx release
 ```
 
 **Nx Release for Docker:** The repository is configured to use Nx Release for managing Docker image versioning and publishing. When running `nx release`, Docker images for the API project are automatically versioned and published based on the release configuration in `nx.json`. This integrates seamlessly with semantic versioning and changelog generation.
@@ -117,10 +116,10 @@ End-to-end testing with Playwright is pre-configured:
 
 ```bash
 # Run e2e tests
-npx nx e2e shop-e2e
+yarn nx e2e shop-e2e
 
 # Run e2e tests in CI mode
-npx nx e2e-ci shop-e2e
+yarn nx e2e-ci shop-e2e
 ```
 
 [Learn more about E2E testing →](https://nx.dev/technologies/test-tools/playwright/introduction#e2e-testing)
@@ -131,10 +130,10 @@ Fast unit testing with Vite for Angular libraries:
 
 ```bash
 # Test a specific library
-npx nx test data
+yarn nx test data
 
 # Test all projects
-npx nx run-many -t test
+yarn nx run-many -t test
 ```
 
 [Learn more about Vite testing →](https://nx.dev/recipes/vite)
@@ -145,7 +144,7 @@ The CI pipeline includes `nx fix-ci` which automatically identifies and suggests
 
 ```bash
 # In CI, this command provides automated fixes
-npx nx fix-ci
+yarn nx fix-ci
 ```
 
 This feature helps maintain a healthy CI pipeline by automatically detecting and suggesting solutions for:
@@ -195,29 +194,29 @@ This repository uses tags to enforce module boundaries:
 
 ```bash
 # Project exploration
-npx nx graph                                    # Interactive dependency graph
-npx nx list                                     # List installed plugins
-npx nx show project shop --web                 # View project details
+yarn nx graph                                    # Interactive dependency graph
+yarn nx list                                     # List installed plugins
+yarn nx show project shop --web                 # View project details
 
 # Development
-npx nx serve shop                              # Serve Angular app
-npx nx serve api                               # Serve backend API
-npx nx build shop                              # Build Angular app
-npx nx test data                               # Test a specific library
-npx nx lint feature-products                   # Lint a specific library
+yarn nx serve shop                              # Serve Angular app
+yarn nx serve api                               # Serve backend API
+yarn nx build shop                              # Build Angular app
+yarn nx test data                               # Test a specific library
+yarn nx lint feature-products                   # Lint a specific library
 
 # Running multiple tasks
-npx nx run-many -t build                       # Build all projects
-npx nx run-many -t test --parallel=3          # Test in parallel
-npx nx run-many -t lint test build            # Run multiple targets
+yarn nx run-many -t build                       # Build all projects
+yarn nx run-many -t test --parallel=3          # Test in parallel
+yarn nx run-many -t lint test build            # Run multiple targets
 
 # Affected commands (great for CI)
-npx nx affected -t build                       # Build only affected projects
-npx nx affected -t test                        # Test only affected projects
+yarn nx affected -t build                       # Build only affected projects
+yarn nx affected -t test                        # Test only affected projects
 
 # Docker operations
-npx nx docker:build api                        # Build Docker image
-npx nx docker:run api                          # Run Docker container
+yarn nx docker:build api                        # Build Docker image
+yarn nx docker:run api                          # Run Docker container
 ```
 
 ## 🎯 Adding New Features
@@ -225,28 +224,28 @@ npx nx docker:run api                          # Run Docker container
 ### Generate a new Angular application:
 
 ```bash
-npx nx g @nx/angular:app my-app
+yarn nx g @nx/angular:app my-app
 ```
 
 ### Generate a new Angular library:
 
 ```bash
-npx nx g @nx/angular:lib my-lib
+yarn nx g @nx/angular:lib my-lib
 ```
 
 ### Generate a new Angular component:
 
 ```bash
-npx nx g @nx/angular:component my-component --project=my-lib
+yarn nx g @nx/angular:component my-component --project=my-lib
 ```
 
 ### Generate a new API library:
 
 ```bash
-npx nx g @nx/node:lib my-api-lib
+yarn nx g @nx/node:lib my-api-lib
 ```
 
-You can use `npx nx list` to see all available plugins and `npx nx list <plugin-name>` to see all generators for a specific plugin.
+You can use `yarn nx list` to see all available plugins and `yarn nx list <plugin-name>` to see all generators for a specific plugin.
 
 ## Nx Cloud
 
