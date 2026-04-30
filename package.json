@@ -60,7 +60,7 @@
     "jiti": "2.4.2",
     "jsdom": "~22.1.0",
     "jsonc-eslint-parser": "^2.1.0",
-    "nx": "22.7.0",
+    "nx": "patch:nx@npm%3A22.7.0#~/.yarn/patches/nx-npm-22.7.0-93822c10a7.patch",
     "prettier": "^3.8.1",
     "supertest": "^7.1.4",
     "ts-node": "10.9.1",
@@ -69,5 +69,8 @@
     "typescript-eslint": "^8.40.0",
     "vite": "^7.3.2",
     "vitest": "4.0.9"
+  },
+  "resolutions": {
+    "nx@npm:22.7.0": "patch:nx@npm%3A22.7.0#~/.yarn/patches/nx-npm-22.7.0-93822c10a7.patch"
   }
 }
