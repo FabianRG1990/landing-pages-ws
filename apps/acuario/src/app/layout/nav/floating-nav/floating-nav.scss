@@ -3,6 +3,13 @@
 // =============================================================================
 
 // ─── Header ──────────────────────────────────────────────────────────────────
+// IMPORTANT: el contenedor `.floating-nav` NO debe tener transform (ni siquiera
+// animation que termine en translateY(0)). Cualquier transform en el ancestor
+// crea un containing block que rompe `backdrop-filter` en Chrome para los
+// descendientes — el blur intentaría samplear lo que hay dentro del header en
+// vez de la página detrás. Firefox lo tolera; Chrome no. La animación de
+// entrada se mueve a cada hijo (brand, pill, burger), aplicada sobre el mismo
+// elemento con backdrop-filter — eso sí funciona en ambos navegadores.
 .floating-nav {
   position: fixed;
   left: 0;
@@ -16,10 +23,6 @@
   align-items: center;
   justify-content: space-between;
   padding-inline: 1.5rem;
-
-  // Mount: y -28 → 0, opacity 0 → 1, delay 0.3s, dur 0.9s — equivalente a
-  // motion.header initial/animate del original.
-  animation: floating-nav-mount 0.9s var(--ease-fluid) 0.3s both;
 
   @media (min-width: 1024px) {
     top: 1.5rem;
@@ -43,6 +46,9 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  // Mount sobre el propio elemento (no el header) — transform aquí no afecta
+  // a ningún descendiente con backdrop-filter.
+  animation: floating-nav-mount 0.9s var(--ease-fluid) 0.3s both;
 }
 
 .floating-nav__brand-wordmark {
@@ -68,8 +74,11 @@
   border-radius: 9999px;
   padding: 0.5rem;
 
-  // Scale anim al hacer scroll — sustituye `animate={{ scale: scrolled ? 0.97 : 1 }}`
-  transform: scale(1);
+  // Mount + scroll-scale. Transform aquí está OK aunque este mismo elemento
+  // tenga `backdrop-filter` (clase .glass-nav-shell): Chrome solo se rompe
+  // cuando un ANCESTRO tiene transform, no cuando el propio elemento lo tiene.
+  // Default sin transform → cuando .is-scrolled aparece → scale(0.97).
+  animation: floating-nav-mount 0.9s var(--ease-fluid) 0.3s both;
   transition: transform 600ms var(--ease-fluid);
 
   &.is-scrolled {
@@ -101,15 +110,24 @@
   }
 }
 
-// Indicador del link activo. Reusa .glass-bubble-icon (design system).
-// Visualmente: fade-in al activarse — equivalente práctico al `layoutId`
-// shared element de framer-motion.
+// Indicador del link activo. Variante sutil — NO usa .glass-bubble-icon porque
+// ese trae un catchlight blanco al 65% y un ring claro pensados para botones,
+// no para ribbon de nav. Aquí solo un wash apenas perceptible: linear gradient
+// muy bajo + hairline ring foam, sin highlight superior brillante.
 .floating-nav__link-indicator {
   position: absolute;
   inset: 0;
   border-radius: 9999px;
   opacity: 0;
   transition: opacity 500ms var(--ease-fluid);
+  background: linear-gradient(
+    180deg,
+    rgb(245 241 232 / 0.07) 0%,
+    rgb(245 241 232 / 0.015) 100%
+  );
+  box-shadow:
+    inset 0 0 0 1px rgb(245 241 232 / 0.08),
+    inset 0 1px 0 rgb(245 241 232 / 0.10);
 
   .floating-nav__link.is-active & {
     opacity: 1;
@@ -130,6 +148,7 @@
   justify-content: center;
   border-radius: 9999px;
   color: rgb(var(--foam));
+  animation: floating-nav-mount 0.9s var(--ease-fluid) 0.3s both;
 
   @media (min-width: 1024px) {
     display: none;
