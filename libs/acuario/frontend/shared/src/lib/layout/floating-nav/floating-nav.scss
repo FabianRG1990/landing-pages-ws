@@ -56,13 +56,25 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  // Cuando el wordmark se colapsa al hacer scroll, el gap también se
+  // cierra para que el emblema no quede con un "hueco" a su derecha.
+  transition: gap 500ms var(--ease-fluid);
+
+  .floating-nav.is-scrolled & {
+    gap: 0;
+  }
 }
 
-// Wordmark: siempre visible. Antes el gate era min-width:640px, lo que daba
-// la sensación de que "el logo aparecía/desaparecía" entre phone y phone-grande
-// — la marca cambiaba al cruzar el breakpoint. Con la palabra siempre presente
-// la marca se siente ESTÁTICA en todos los anchos. El font-size sí escala con
-// clamp() para no tragar espacio en phones extra-chicos.
+// Wordmark: visible al tope, se oculta al hacer scroll para evitar que
+// se solape con el eyebrow / título de la página interna que aparece a
+// la misma altura ("ESPECIES BAJO CUIDADO", "CONTACTO · ESTAMOS AQUÍ",
+// etc.). El emblema queda como anchor visual; al volver al tope, el
+// wordmark vuelve. Antes era siempre visible — la palabra "Aquarium" se
+// pisaba con las letras del eyebrow al hacer scroll en mobile.
+//
+// Anim: opacity (fade) + max-width (colapso de ancho real) para que la
+// columna 1 del grid se ajuste y el emblema se mueva hacia el extremo.
+// `overflow: hidden` recorta el texto mientras `max-width` baja a 0.
 .floating-nav__brand-wordmark {
   display: inline-block;
   font-family: var(--font-display);
@@ -72,6 +84,17 @@
   letter-spacing: var(--tracking-tight);
   color: rgb(var(--foam));
   white-space: nowrap;
+  overflow: hidden;
+  max-width: 12ch;
+  opacity: 1;
+  transition:
+    opacity 350ms var(--ease-fluid),
+    max-width 500ms var(--ease-fluid);
+
+  .floating-nav.is-scrolled & {
+    opacity: 0;
+    max-width: 0;
+  }
 }
 
 // ─── Pill desktop / tablet ──────────────────────────────────────────────────

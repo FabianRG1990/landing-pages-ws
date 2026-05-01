@@ -55,27 +55,35 @@
   margin-top: 5rem;
   // Comportamiento bifurcado por capacidad de input:
   //
-  //  • TOUCH (mobile/tablet): scroll horizontal nativo con snap. El usuario
-  //    barre las cards con el dedo. Sin animación automática — en pantalla
-  //    chica el marquee de 50s solo movía 1-2 cards demasiado lento para
-  //    ser útil; preferimos darle control directo al usuario.
+  //  • TOUCH (mobile/tablet) o viewport <1024: scroll horizontal nativo
+  //    con snap. El usuario barre las cards con el dedo. Sin animación
+  //    automática — en pantalla chica el marquee de 50s solo movía 1-2
+  //    cards demasiado lento para ser útil.
   //
-  //  • HOVER (desktop con mouse/trackpad): contenedor `clip` + animación
-  //    automática infinita. Sin scroll nativo — el feed de tipos del cursor
-  //    es el lift visual.
+  //  • HOVER (desktop con mouse/trackpad) y viewport ≥1024: contenedor
+  //    `clip` + animación automática infinita.
   //
-  // El scroll horizontal está aislado dentro de este wrapper: la página
+  // La media query combina input + width: el OR garantiza que se active
+  // por capacidad de input (preferido) o por ancho (fallback en teléfonos
+  // que reportan `hover: hover` por bugs de Chromium / WebView). El
+  // scroll horizontal está aislado dentro de este wrapper: la página
   // sigue protegida por `html { overflow-x: clip }` global.
   overflow-x: hidden;
   overflow-x: clip;
 
-  @media (hover: none) and (pointer: coarse) {
+  @media (hover: none) and (pointer: coarse), (max-width: 1023.98px) {
     overflow-x: auto;
     scroll-snap-type: x mandatory;
     scroll-padding-inline: var(--container-px);
     -webkit-overflow-scrolling: touch;
     overscroll-behavior-x: contain;
     scrollbar-width: none;
+    // CRÍTICO en iOS Safari: sin `touch-action: pan-x`, un swipe con
+    // mínima componente vertical es tomado por el page-scroll y este
+    // contenedor nunca recibe el gesto — el usuario ve el marquee inerte
+    // y solo se mueve la página verticalmente. `pinch-zoom` se mantiene
+    // para no romper el zoom de accesibilidad.
+    touch-action: pan-x pinch-zoom;
 
     &::-webkit-scrollbar {
       display: none;
@@ -109,16 +117,22 @@
   // Override del default `animate-marquee 50s linear infinite` (en
   // _keyframes.scss). 50s era percibido como demasiado lento incluso en
   // desktop wide; 32s mantiene la sensación de fluidez sin sentirse
-  // apresurado. Cubic-bezier muy suave en lugar de linear para que la
-  // velocidad se sienta orgánica (no de cinta industrial).
+  // apresurado. En viewports estrechos (<768px) el ancho visible es
+  // menor y 32s se siente arrastrado — bajamos a 18s para que, si en
+  // algún edge case la animación cae aquí (caso un dev tools mode que no
+  // matchea hover/pointer), el ritmo se sienta natural.
   &.animate-marquee {
     animation-duration: 32s;
+
+    @media (max-width: 768px) {
+      animation-duration: 18s;
+    }
   }
 
-  // En touch desactivamos la animación auto-marquee — el usuario maneja el
-  // scroll. En desktop la conservamos pero con padding inicial para que la
-  // primera card no quede pegada al borde izquierdo.
-  @media (hover: none) and (pointer: coarse) {
+  // En touch (o viewport <1024) desactivamos la animación auto-marquee —
+  // el usuario maneja el scroll. En desktop la conservamos pero con
+  // padding inicial para que la primera card no quede pegada al borde.
+  @media (hover: none) and (pointer: coarse), (max-width: 1023.98px) {
     &.animate-marquee {
       animation: none;
     }
@@ -126,10 +140,10 @@
   }
 }
 
-// Cards: en touch usan scroll-snap para que cada swipe centre una card en
-// el viewport — patrón nativo iOS/Android.
+// Cards: en touch (o viewport <1024) usan scroll-snap para que cada swipe
+// centre una card en el viewport — patrón nativo iOS/Android.
 .species-card {
-  @media (hover: none) and (pointer: coarse) {
+  @media (hover: none) and (pointer: coarse), (max-width: 1023.98px) {
     scroll-snap-align: center;
     scroll-snap-stop: always;
   }
