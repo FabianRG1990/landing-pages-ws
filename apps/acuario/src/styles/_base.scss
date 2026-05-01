@@ -18,7 +18,12 @@ html {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
-  scroll-behavior: smooth;
+  // No `scroll-behavior: smooth` global. Si se setea, el `window.scrollTo(0,0)`
+  // que el router de Angular invoca en cada NavigationEnd se convierte en una
+  // animación de scroll que el usuario percibe como "la página sube" cuando
+  // realmente debería empezar arriba al instante. El handler de logo/Inicio
+  // (misma ruta) ya usa `behavior: 'smooth'` explícito en JS, así que el
+  // suave del nav sigue funcionando sin este CSS.
   height: 100%;
 }
 

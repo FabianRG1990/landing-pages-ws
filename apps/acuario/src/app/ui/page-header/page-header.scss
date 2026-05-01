@@ -1,0 +1,124 @@
+// =============================================================================
+// PageHeader — wrapper editorial de las páginas internas. Replica
+// `bg-mesh-deep` + caustic + bubbles + dos columnas (left/right) con stagger
+// de reveal por bloque.
+// =============================================================================
+
+.page-header {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  padding-top: 11rem; // pt-44
+  padding-bottom: 5rem; // pb-20
+
+  @media (min-width: 1024px) {
+    padding-top: 14rem; // lg:pt-56
+    padding-bottom: 7rem; // lg:pb-28
+  }
+}
+
+.page-header__bubbles {
+  opacity: 0.5;
+}
+
+// Fade inferior — gradient que funde a #061826 puro.
+.page-header__fade {
+  pointer-events: none;
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  z-index: 3;
+  height: 11rem;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgb(6 24 38 / 0.55) 45%,
+    #061826 100%
+  );
+}
+
+.page-header__container {
+  position: relative;
+  z-index: 10;
+  margin-inline: auto;
+  max-width: 80rem;
+  padding-inline: 1.5rem;
+
+  @media (min-width: 1024px) {
+    padding-inline: 2rem;
+  }
+}
+
+.page-header__grid {
+  display: grid;
+  gap: 3rem;
+
+  @media (min-width: 1024px) {
+    grid-template-columns: 0.45fr 1fr;
+    align-items: end;
+  }
+}
+
+// ─── Columna izquierda — eyebrow + capítulo + sello ────────────────────────
+.page-header__capitulo {
+  margin-top: 1.5rem;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-eyebrow);
+  color: rgb(var(--foam) / 0.45);
+}
+
+.page-header__stamp {
+  display: none;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 3rem;
+
+  @media (min-width: 1024px) {
+    display: flex;
+  }
+}
+
+.page-header__stamp-text {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-eyebrow);
+  color: rgb(var(--foam) / 0.4);
+}
+
+// ─── Columna derecha — título grande + descripción ─────────────────────────
+.page-header__title {
+  text-wrap: balance;
+  font-family: var(--font-display);
+  font-size: 3rem; // text-5xl
+  font-weight: 500;
+  line-height: 0.95;
+  letter-spacing: var(--tracking-tight);
+
+  @media (min-width: 768px) {
+    font-size: 4.5rem; // md:text-7xl
+  }
+
+  @media (min-width: 1024px) {
+    font-size: 96px;
+  }
+}
+
+.page-header__title-italic {
+  font-family: var(--font-editorial);
+  font-style: italic;
+  font-weight: 300;
+  color: rgb(var(--foam) / 0.8);
+}
+
+.page-header__description {
+  margin-top: 2rem;
+  max-width: 60ch;
+  text-wrap: pretty;
+  color: rgb(var(--foam) / 0.7);
+  line-height: 1.625;
+
+  @media (min-width: 768px) {
+    font-size: 1.125rem; // md:text-lg
+  }
+}

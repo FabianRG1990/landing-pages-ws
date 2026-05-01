@@ -4,6 +4,7 @@ import { NgIcon, provideIcons } from '@ng-icons/core';
 import { phosphorArrowUpRightBold } from '@ng-icons/phosphor-icons/bold';
 
 import { Exhibit, exhibits } from '../../data/data';
+import { ImgFadeDirective } from '../../ui/img-fade/img-fade.directive';
 import { RevealDirective } from '../../ui/reveal/reveal.directive';
 import { SectionHeading } from '../../ui/section-heading/section-heading';
 
@@ -13,7 +14,7 @@ import { SectionHeading } from '../../ui/section-heading/section-heading';
  */
 @Component({
   selector: 'app-featured-exhibits',
-  imports: [RouterLink, NgIcon, RevealDirective, SectionHeading],
+  imports: [RouterLink, NgIcon, ImgFadeDirective, RevealDirective, SectionHeading],
   providers: [provideIcons({ phosphorArrowUpRightBold })],
   templateUrl: './featured-exhibits.html',
   styleUrl: './featured-exhibits.scss',

@@ -94,25 +94,60 @@
   letter-spacing: var(--tracking-eyebrow);
 }
 
+// ---- Img-fade — usado por la directiva [appImgFade] -----------------------
+// Fade-in cuando la imagen termina de cargar. SSR-safe: el estado por defecto
+// es visible (sin opacity 0) para no romper SEO ni FCP. Solo cuando la
+// directiva (cliente) marca .img-fade--pending la imagen se oculta hasta
+// disparar `load` y entrar a .img-fade--loaded.
+.img-fade {
+  transition: opacity 700ms var(--ease-fluid);
+
+  &--pending {
+    opacity: 0;
+  }
+
+  &--loaded {
+    opacity: 1;
+  }
+}
+
 // ---- Reveal — usado por la directiva [appReveal] (UI atom Reveal). ------
 // Estado inicial: oculto + traslado abajo + blur. Cuando el directive recibe
 // el pulso del IntersectionObserver añade `.is-visible` y se ejecuta la
 // transición que iguala lo que framer-motion hacía con whileInView.
-.reveal {
-  opacity: 0;
-  transform: translateY(28px);
-  filter: blur(8px);
-  transition:
-    opacity 900ms var(--ease-fluid),
-    transform 900ms var(--ease-fluid),
-    filter 900ms var(--ease-fluid);
-  transition-delay: var(--reveal-delay, 0s);
-  will-change: opacity, transform, filter;
-
-  &.is-visible {
+// Reveal vía CSS `animation` (no `transition`). Una transition se omite
+// silenciosamente cuando el browser detecta que initial-state y final-state
+// se aplicaron en el mismo frame — bug típico al renderizar un componente
+// nuevo en SPA y agregar `.is-visible` casi de inmediato. Una animation, en
+// cambio, SIEMPRE corre desde su keyframe `from` cuando el `animation-name`
+// se activa, sin importar el estado previo. Bulletproof.
+@keyframes reveal-in {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+    filter: blur(8px);
+  }
+  to {
     opacity: 1;
     transform: translateY(0);
     filter: blur(0);
+  }
+}
+
+.reveal {
+  // Estado oculto inicial — se mantiene mientras el elemento espera entrar
+  // al viewport. Sin `.is-visible` la animación nunca corre y el elemento
+  // permanece invisible.
+  opacity: 0;
+  transform: translateY(28px);
+  filter: blur(8px);
+  will-change: opacity, transform, filter;
+
+  &.is-visible {
+    // forwards: el end-state del keyframe (opacity 1, sin blur, sin
+    // translate) persiste al terminar — el elemento se queda visible.
+    animation: reveal-in 1100ms var(--ease-fluid) var(--reveal-delay, 0s)
+      forwards;
   }
 }
 

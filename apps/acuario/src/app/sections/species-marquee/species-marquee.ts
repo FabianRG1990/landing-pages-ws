@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed } from '@angular/core';
 import { Species, SpeciesStatus, species } from '../../data/data';
 import { Eyebrow } from '../../ui/eyebrow/eyebrow';
+import { ImgFadeDirective } from '../../ui/img-fade/img-fade.directive';
 import { RevealDirective } from '../../ui/reveal/reveal.directive';
 
 const STATUS_TONES: Record<SpeciesStatus, string> = {
@@ -21,7 +22,7 @@ interface ReelItem extends Species {
  */
 @Component({
   selector: 'app-species-marquee',
-  imports: [Eyebrow, RevealDirective],
+  imports: [Eyebrow, ImgFadeDirective, RevealDirective],
   templateUrl: './species-marquee.html',
   styleUrl: './species-marquee.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

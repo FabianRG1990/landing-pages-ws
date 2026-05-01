@@ -33,8 +33,12 @@ export class RevealDirective {
   /** Delay en segundos antes de iniciar la transición. */
   readonly delay = input(0);
 
-  /** Porcentaje del elemento visible necesario para disparar (0..1). */
-  readonly amount = input(0.4);
+  /** Porcentaje del elemento visible necesario para disparar (0..1). El
+   *  default es 0.15 (no 0.4 como framer-motion) porque IntersectionObserver
+   *  trata el threshold como ratio estricto: para elementos más altos que
+   *  el viewport, 0.4 jamás se alcanza y el reveal nunca dispara. 0.15 da
+   *  un trigger temprano y consistente sin importar el alto del elemento. */
+  readonly amount = input(0.15);
 
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly platformId = inject(PLATFORM_ID);
@@ -60,6 +64,10 @@ export class RevealDirective {
       const observer = new IntersectionObserver(
         ([entry]) => {
           if (entry.isIntersecting) {
+            // Sin rAF defer: ahora `.reveal` usa CSS `animation` (no
+            // `transition`), y las animations sí corren incluso si la
+            // clase `.is-visible` se aplica en el mismo frame que el
+            // mount del componente.
             el.classList.add('is-visible');
             observer.disconnect();
           }

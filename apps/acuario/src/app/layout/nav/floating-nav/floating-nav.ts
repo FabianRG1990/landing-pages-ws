@@ -83,6 +83,22 @@ export class FloatingNav {
     return link.href === '/' ? url === '/' : url.startsWith(link.href);
   }
 
+  /**
+   * Click handler para el brand y los links del nav. Si el destino es la
+   * misma ruta donde ya estás, hace scroll-to-top suave (replica el
+   * comportamiento del original: logo o "Inicio" siempre te devuelven al
+   * hero, aunque ya estés en `/`). Si la ruta es distinta, deja que
+   * RouterLink navegue normalmente — el `scrollPositionRestoration: 'top'`
+   * del router config se encarga del reset.
+   */
+  protected onLinkClick(href: string, event: MouseEvent): void {
+    if (!this.isBrowser) return;
+    if (this.router.url === href || (href === '/' && this.router.url === '/')) {
+      event.preventDefault();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
+
   constructor() {
     // Cursor spotlight — escribe variables CSS sobre el pill directamente,
     // sin re-renders. El estilo del spotlight (`::after`) lo hidrata el CSS

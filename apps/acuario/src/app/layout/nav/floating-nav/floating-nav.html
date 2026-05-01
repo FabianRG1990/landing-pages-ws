@@ -1,6 +1,11 @@
 <header class="floating-nav">
   <!-- LEFT — brand: emblema + wordmark. Sin glass; la marca respira. -->
-  <a routerLink="/" class="floating-nav__brand" aria-label="Aquarium · Inicio">
+  <a
+    routerLink="/"
+    class="floating-nav__brand"
+    aria-label="Aquarium · Inicio"
+    (click)="onLinkClick('/', $event)"
+  >
     <app-emblem-mark [size]="56" />
     <span class="floating-nav__brand-wordmark">Aquarium</span>
   </a>
@@ -20,6 +25,7 @@
         [routerLink]="link.href"
         class="floating-nav__link"
         [class.is-active]="isActive(link)"
+        (click)="onLinkClick(link.href, $event)"
       >
         <span class="floating-nav__link-indicator" aria-hidden="true"></span>
         <span class="floating-nav__link-text">{{ link.label }}</span>

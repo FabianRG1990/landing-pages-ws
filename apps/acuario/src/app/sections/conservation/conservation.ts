@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { conservationStats } from '../../data/data';
+import { ImgFadeDirective } from '../../ui/img-fade/img-fade.directive';
 import { PillButton } from '../../ui/pill-button/pill-button';
 import { RevealDirective } from '../../ui/reveal/reveal.directive';
 import { SectionHeading } from '../../ui/section-heading/section-heading';
@@ -10,7 +11,7 @@ import { SectionHeading } from '../../ui/section-heading/section-heading';
  */
 @Component({
   selector: 'app-conservation',
-  imports: [PillButton, RevealDirective, SectionHeading],
+  imports: [ImgFadeDirective, PillButton, RevealDirective, SectionHeading],
   templateUrl: './conservation.html',
   styleUrl: './conservation.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

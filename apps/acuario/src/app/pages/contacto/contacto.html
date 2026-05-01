@@ -1,0 +1,329 @@
+<app-page-header
+  eyebrow="Contacto · Estamos aquí"
+  capitulo="Capítulo 04 / 04 · Contáctenos"
+  title="Hablemos."
+  italic="El océano nos une."
+  description="Tres formas de llegar al instituto, una sola misión: que cualquier persona —investigadora, visitante, prensa, escuela— pueda encontrarnos sin fricción."
+/>
+<app-depth-transition />
+
+<!-- ──── 1: Tres canales principales ──── -->
+<section class="contacto">
+  <div class="contacto__container">
+    <div class="contacto__channels">
+      @for (c of channels; track c.label; let i = $index) {
+        <a
+          appReveal
+          [delay]="0.05 * i"
+          [href]="c.href"
+          class="channel-card glass-shell glass-shell-hover"
+        >
+          <div class="channel-card__inner glass-core">
+            <div class="channel-card__top">
+              <span
+                class="channel-card__badge"
+                [attr.data-accent]="c.accent"
+              >
+                <ng-icon [name]="c.iconName" size="20" />
+              </span>
+              <ng-icon
+                name="phosphorArrowUpRightBold"
+                size="14"
+                class="channel-card__arrow"
+              />
+            </div>
+            <p class="channel-card__label">{{ c.label }}</p>
+            <p class="channel-card__value">{{ c.value }}</p>
+            <p class="channel-card__helper">{{ c.helper }}</p>
+          </div>
+        </a>
+      }
+    </div>
+  </div>
+</section>
+
+<!-- ──── 2: Form + Horarios ──── -->
+<section class="contacto-form">
+  <div class="contacto-form__container">
+    <div class="contacto-form__grid">
+      <!-- Formulario -->
+      <div appReveal class="form-block glass-shell">
+        <div class="form-block__inner glass-core">
+          <p class="form-block__eyebrow">Mensaje directo</p>
+          <h2 class="form-block__title">
+            Contanos qué necesitás.
+            <span class="form-block__title-italic">Te leemos pronto.</span>
+          </h2>
+
+          <form class="form-block__form" (submit)="$event.preventDefault()">
+            <div class="form-block__row">
+              <label class="form-field">
+                <span class="form-field__label">Nombre</span>
+                <input
+                  type="text"
+                  name="name"
+                  placeholder="Tu nombre"
+                  class="form-field__input form-field__input--pill"
+                />
+              </label>
+              <label class="form-field">
+                <span class="form-field__label">Email</span>
+                <input
+                  type="email"
+                  name="email"
+                  placeholder="tu@correo.com"
+                  class="form-field__input form-field__input--pill"
+                />
+              </label>
+            </div>
+            <label class="form-field">
+              <span class="form-field__label">Asunto</span>
+              <input
+                type="text"
+                name="subject"
+                placeholder="¿De qué nos querés hablar?"
+                class="form-field__input form-field__input--pill"
+              />
+            </label>
+            <label class="form-field">
+              <span class="form-field__label">Mensaje</span>
+              <textarea
+                name="message"
+                rows="5"
+                placeholder="Escribinos lo que necesités. Sin formalidades."
+                class="form-field__input form-field__input--block"
+              ></textarea>
+            </label>
+
+            <div class="form-block__footer">
+              <p class="form-block__legal">
+                Al enviar, aceptás nuestra política de privacidad. No
+                compartimos correos ni los usamos para marketing externo.
+              </p>
+              <button type="submit" class="form-block__submit glass-bubble">
+                <span class="form-block__submit-label">Enviar mensaje</span>
+                <span class="form-block__submit-icon glass-bubble-icon">
+                  <ng-icon name="phosphorPaperPlaneTiltBold" size="14" />
+                </span>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Sidebar -->
+      <div appReveal [delay]="0.1" class="contacto-form__sidebar">
+        <div class="hours-card glass-shell">
+          <div class="hours-card__inner glass-core">
+            <div class="hours-card__head">
+              <span class="hours-card__icon">
+                <ng-icon name="phosphorClockDuotone" size="16" />
+              </span>
+              <h3 class="hours-card__title">Horarios de atención</h3>
+            </div>
+            <ul class="hours-card__list">
+              @for (h of hours; track h.day) {
+                <li class="hours-card__item">
+                  <span class="hours-card__day">{{ h.day }}</span>
+                  <span class="hours-card__hours">{{ h.hours }}</span>
+                </li>
+              }
+            </ul>
+            <p class="hours-card__note">
+              Última admisión 60 min antes del cierre
+            </p>
+          </div>
+        </div>
+
+        <div class="response-card glass-shell">
+          <div class="response-card__inner glass-core">
+            <p class="response-card__label">Tiempo de respuesta</p>
+            <p class="response-card__value">
+              14<span class="response-card__unit">min</span>
+            </p>
+            <p class="response-card__copy">
+              Mediana de respuesta de nuestro equipo humano —no bots— durante
+              el horario de atención.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ──── 3: Departamentos ──── -->
+<section class="contacto-depts">
+  <div class="contacto-depts__container">
+    <div class="contacto-depts__head">
+      <span class="contacto-depts__chip" appReveal>
+        <span class="contacto-depts__chip-dot" aria-hidden="true"></span>
+        Equipos especializados
+      </span>
+      <h2 class="contacto-depts__title" appReveal [delay]="0.06">
+        Cuatro equipos.
+        <span class="contacto-depts__title-italic">
+          Cada uno con su correo directo.
+        </span>
+      </h2>
+      <p class="contacto-depts__copy" appReveal [delay]="0.14">
+        Si sabés exactamente con quién hablar, escribinos directo al equipo
+        correspondiente. Las respuestas son más rápidas.
+      </p>
+    </div>
+
+    <div class="contacto-depts__grid">
+      @for (d of departments; track d.code; let i = $index) {
+        <a
+          appReveal
+          [delay]="0.05 * i"
+          [href]="'mailto:' + d.contact"
+          class="dept-card glass-shell glass-shell-hover"
+        >
+          <div class="dept-card__inner glass-core">
+            <div class="dept-card__top">
+              <p class="dept-card__code">{{ d.code }}</p>
+              <ng-icon
+                name="phosphorArrowUpRightBold"
+                size="14"
+                class="dept-card__arrow"
+              />
+            </div>
+            <h3 class="dept-card__title">{{ d.title }}</h3>
+            <p class="dept-card__body">{{ d.body }}</p>
+            <p class="dept-card__contact">{{ d.contact }}</p>
+          </div>
+        </a>
+      }
+    </div>
+  </div>
+</section>
+
+<!-- ──── 4: Mapa ──── -->
+<section id="mapa" class="contacto-map">
+  <div class="contacto-map__container">
+    <div class="map-block glass-shell">
+      <div class="map-block__inner glass-core">
+        <div appReveal class="map-block__copy">
+          <p class="map-block__eyebrow">Cómo llegar</p>
+          <h2 class="map-block__title">
+            Paseo Marítimo 1492.
+            <span class="map-block__title-italic">A 12 minutos del centro.</span>
+          </h2>
+          <ul class="map-block__list">
+            <li class="map-block__item">
+              <span class="map-block__label">Tren</span>
+              <span class="map-block__value">Línea Costa · estación Marítimo</span>
+            </li>
+            <li class="map-block__item">
+              <span class="map-block__label">Bus</span>
+              <span class="map-block__value">14 · 22 · 81</span>
+            </li>
+            <li class="map-block__item">
+              <span class="map-block__label">Bici</span>
+              <span class="map-block__value">6 estaciones a 400 m</span>
+            </li>
+            <li class="map-block__item map-block__item--last">
+              <span class="map-block__label">Auto</span>
+              <span class="map-block__value">2.150 plazas subterráneas</span>
+            </li>
+          </ul>
+          <p class="map-block__coords">
+            09°56'N · 84°08'W · San José, Costa Rica
+          </p>
+        </div>
+
+        <div appReveal [delay]="0.1" class="map-block__svg-wrap">
+          <svg
+            viewBox="0 0 800 600"
+            xmlns="http://www.w3.org/2000/svg"
+            class="map-block__svg"
+            aria-label="Mapa esquemático de Acuario"
+          >
+            <defs>
+              <radialGradient id="map-g1" cx="62%" cy="42%" r="60%">
+                <stop offset="0%" stop-color="#5EC4D1" stop-opacity="0.20" />
+                <stop offset="100%" stop-color="#103349" stop-opacity="0" />
+              </radialGradient>
+              <pattern
+                id="map-grid"
+                width="36"
+                height="36"
+                patternUnits="userSpaceOnUse"
+              >
+                <path
+                  d="M36 0H0V36"
+                  fill="none"
+                  stroke="#F5F1E8"
+                  stroke-opacity="0.05"
+                />
+              </pattern>
+            </defs>
+            <rect width="800" height="600" fill="#0B2235" />
+            <rect width="800" height="600" fill="url(#map-grid)" />
+            <rect width="800" height="600" fill="url(#map-g1)" />
+            <path
+              d="M0,400 Q200,330 420,380 T800,360 L800,600 L0,600 Z"
+              fill="#5EC4D1"
+              fill-opacity="0.10"
+            />
+            <path
+              d="M0,440 Q220,370 440,410 T800,390"
+              fill="none"
+              stroke="#5EC4D1"
+              stroke-opacity="0.4"
+              stroke-width="1"
+            />
+            <circle cx="500" cy="300" r="9" fill="#F5F1E8" />
+            <circle
+              cx="500"
+              cy="300"
+              r="22"
+              fill="none"
+              stroke="#F5F1E8"
+              stroke-opacity="0.5"
+            />
+            <circle
+              cx="500"
+              cy="300"
+              r="44"
+              fill="none"
+              stroke="#F5F1E8"
+              stroke-opacity="0.20"
+            />
+            <circle
+              cx="500"
+              cy="300"
+              r="68"
+              fill="none"
+              stroke="#5EC4D1"
+              stroke-opacity="0.15"
+            />
+            <text
+              x="525"
+              y="284"
+              fill="#F5F1E8"
+              font-family="monospace"
+              font-size="11"
+              letter-spacing="3"
+              opacity="0.72"
+            >
+              ACUARIO
+            </text>
+            <text
+              x="525"
+              y="302"
+              fill="#F5F1E8"
+              font-family="monospace"
+              font-size="9"
+              letter-spacing="2"
+              opacity="0.45"
+            >
+              09°56'N · 84°08'W
+            </text>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

@@ -662,7 +662,7 @@ export class HeroFishCanvas {
 
     const pointer = { x: w * 0.55, y: h * 0.55, active: false };
     const target = { x: pointer.x, y: pointer.y };
-    let lastPoke = { x: pointer.x, y: pointer.y, valid: false };
+    const lastPoke = { x: pointer.x, y: pointer.y, valid: false };
     let pointerVel = 0;
 
     const onMove = (e: PointerEvent): void => {
