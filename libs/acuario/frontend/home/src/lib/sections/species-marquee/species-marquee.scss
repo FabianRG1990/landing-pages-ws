@@ -53,6 +53,14 @@
 .species-marquee__reel-wrap {
   position: relative;
   margin-top: 5rem;
+  // CRÍTICO: contiene la cinta del marquee (~4700px de ancho) dentro del
+  // viewport. Sin esto la cinta desbordaba el body y, como `html` no tenía
+  // overflow-x: clip, el overflow se filtraba al elemento raíz haciendo
+  // scrollable la página de lado en mobile (~320-414px). `clip` (en lugar
+  // de `hidden`) garantiza que ni siquiera scrollLeft programático abra
+  // ese eje. `hidden` en la primera línea es fallback para Safari <16.
+  overflow-x: hidden;
+  overflow-x: clip;
 }
 
 .species-marquee__edge {
