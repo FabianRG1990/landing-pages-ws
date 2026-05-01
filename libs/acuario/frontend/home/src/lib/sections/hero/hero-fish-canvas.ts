@@ -683,13 +683,13 @@ export class HeroFishCanvas {
         lastPoke.valid = false;
       }
     };
-    const onResize = (): void => resize();
 
     window.addEventListener('pointermove', onMove, { passive: true });
-    window.addEventListener('resize', onResize);
 
-    // Hero fish
-    const heroScale = Math.max(7, Math.min(12, w / 130));
+    // Hero fish — escala con el ancho del viewport. ResizeObserver de abajo
+    // re-asigna heroScale/segLen para que el pez no se vea ridículo en
+    // phones (donde antes salía con bodyScale ~12 dejándolo enorme).
+    let heroScale = Math.max(7, Math.min(12, w / 130));
     const hero = new Fish(
       { x: w * 0.55, y: h * 0.55 },
       {
@@ -708,18 +708,29 @@ export class HeroFishCanvas {
       },
     );
 
-    const ambientCount = w < 720 ? 3 : 5;
-    const ambients: Fish[] = [];
+    // Density por área para los peces ambientales: ~1 pez por cada 280 000 px²
+    // (clampeado entre 2 y 6). Antes era step `w<720?3:5` que dejaba phones
+    // saturados y desktops vacíos. Ahora se reflowea por área en cada resize.
+    const ambientCountForArea = (cw: number, ch: number): number =>
+      Math.max(2, Math.min(6, Math.round((cw * ch) / 280_000)));
+
+    let ambients: Fish[] = [];
+    let ambientTargets: Array<{
+      cx: number; cy: number; rx: number; ry: number;
+      phase: number; speed: number; offset: number;
+    }> = [];
     const palette = [
       { fill: '#9dbac4', rim: '#5EC4D1', belly: '#2c4a58', fin: '#7FE3D6', eye: '#061826' },
       { fill: '#a5b4a9', rim: '#7FE3D6', belly: '#34514a', fin: '#4A6B5C', eye: '#061826' },
       { fill: '#d8b8a8', rim: '#D87060', belly: '#7a4a44', fin: '#D87060', eye: '#061826' },
     ];
-    for (let i = 0; i < ambientCount; i++) {
-      const sc = 4 + Math.random() * 3.5;
-      ambients.push(
-        new Fish(
-          { x: Math.random() * w, y: 60 + Math.random() * (h - 120) },
+
+    const reflowAmbients = (): void => {
+      const targetCount = ambientCountForArea(w, h);
+      ambients = Array.from({ length: targetCount }, (_, i) => {
+        const sc = 4 + Math.random() * 3.5;
+        return new Fish(
+          { x: Math.random() * w, y: 60 + Math.random() * Math.max(60, h - 120) },
           {
             segments: 14,
             segLen: sc * 1.05,
@@ -728,23 +739,46 @@ export class HeroFishCanvas {
             isHero: false,
             color: palette[i % palette.length],
           },
-        ),
-      );
-    }
-    const ambientTargets = ambients.map((_, i) => ({
-      cx: w * (0.2 + Math.random() * 0.6),
-      cy: h * (0.25 + Math.random() * 0.5),
-      rx: w * (0.15 + Math.random() * 0.2),
-      ry: h * (0.15 + Math.random() * 0.2),
-      phase: Math.random() * Math.PI * 2,
-      speed: 0.12 + Math.random() * 0.14,
-      offset: i,
-    }));
+        );
+      });
+      ambientTargets = ambients.map((_, i) => ({
+        cx: w * (0.2 + Math.random() * 0.6),
+        cy: h * (0.25 + Math.random() * 0.5),
+        rx: w * (0.15 + Math.random() * 0.2),
+        ry: h * (0.15 + Math.random() * 0.2),
+        phase: Math.random() * Math.PI * 2,
+        speed: 0.12 + Math.random() * 0.14,
+        offset: i,
+      }));
+    };
+    reflowAmbients();
 
-    const motes = Array.from({ length: 38 }, () => new HeroMote(w, h));
+    // Motes: density por área (1 cada ~16 000 px²). Mantiene el plancton
+    // visualmente igual de denso en cualquier viewport.
+    let motes: HeroMote[] = Array.from(
+      { length: Math.max(20, Math.round((w * h) / 16_000)) },
+      () => new HeroMote(w, h),
+    );
 
     const waves = new WaveField(w, h);
-    const onResizeWave = (): void => waves.resize(w, h);
+
+    // ResizeObserver — reflowea TODO el cast (no solo redimensiona el canvas):
+    // ambient fish + sus orbits, motes, escala del hero, wave grid. El layout
+    // se rearma proporcional al área del nuevo viewport. Esto reemplaza el
+    // window.resize listener que solo estiraba el canvas (zoom).
+    const ro = new ResizeObserver(() => {
+      resize();
+      heroScale = Math.max(7, Math.min(12, w / 130));
+      hero.bodyScale = heroScale;
+      hero.segLen = heroScale * 1.0;
+      reflowAmbients();
+      motes = Array.from(
+        { length: Math.max(20, Math.round((w * h) / 16_000)) },
+        () => new HeroMote(w, h),
+      );
+      waves.resize(w, h);
+    });
+    ro.observe(container);
 
     let idlePhase = 0;
     let raf = 0;
@@ -756,7 +790,6 @@ export class HeroFishCanvas {
       const dt = Math.min(0.05, (now - lastT) / 1000);
       lastT = now;
       idlePhase += dt * 0.5;
-      onResizeWave();
 
       if (pointer.active) {
         const speed = pointerVel;
@@ -830,7 +863,7 @@ export class HeroFishCanvas {
     return () => {
       cancelAnimationFrame(raf);
       window.removeEventListener('pointermove', onMove);
-      window.removeEventListener('resize', onResize);
+      ro.disconnect();
     };
   }
 }

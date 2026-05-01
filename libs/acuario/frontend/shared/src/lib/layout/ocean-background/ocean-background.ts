@@ -298,6 +298,36 @@ export class OceanBackground {
     let h = window.innerHeight;
     let dpr = Math.min(window.devicePixelRatio || 1, 2);
 
+    // Density por área (no lineal por width). En widescreen 1440×900 el peso
+    // base es 1.0; en phone 360×640 baja a ~0.4 → menos peces, más respiro.
+    // Esto evita el caso de "phone saturado" o "widescreen vacío".
+    const fishCountForArea = (cw: number, ch: number): number => {
+      const ratio = Math.sqrt((cw * ch) / (1440 * 900));
+      return Math.max(3, Math.round(9 * ratio));
+    };
+
+    let fish: ShadowFish[] = [];
+    let motes: Mote[] = [];
+
+    const reflowEntities = (): void => {
+      // Recompone el cast de peces por densidad. No solo redimensiona el
+      // canvas: redistribuye spawn positions y ajusta cuántos peces caben
+      // proporcional al área. Mismo principio para los motes (plancton).
+      const targetFishCount = fishCountForArea(w, h);
+      fish = Array.from({ length: targetFishCount }, (_, i) => {
+        const depth = i / Math.max(1, targetFishCount - 1);
+        return new ShadowFish(
+          { x: Math.random() * w, y: Math.random() * h },
+          w,
+          h,
+          depth,
+        );
+      });
+      // Plancton: 1 mota cada ~25 000 px² (rate constante por área).
+      const targetMoteCount = Math.max(12, Math.round((w * h) / 25_000));
+      motes = Array.from({ length: targetMoteCount }, () => new Mote(w, h));
+    };
+
     const resize = (): void => {
       w = window.innerWidth;
       h = window.innerHeight;
@@ -307,22 +337,9 @@ export class OceanBackground {
       canvas.style.width = `${w}px`;
       canvas.style.height = `${h}px`;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      reflowEntities();
     };
     resize();
-
-    // Fish at varying depths — sorted later for back-to-front render
-    const count = w < 720 ? 5 : w < 1280 ? 7 : 9;
-    const fish: ShadowFish[] = Array.from({ length: count }, (_, i) => {
-      const depth = i / Math.max(1, count - 1);
-      return new ShadowFish(
-        { x: Math.random() * w, y: Math.random() * h },
-        w,
-        h,
-        depth,
-      );
-    });
-
-    const motes = Array.from({ length: 32 }, () => new Mote(w, h));
 
     let raf = 0;
     let lastT = performance.now();
