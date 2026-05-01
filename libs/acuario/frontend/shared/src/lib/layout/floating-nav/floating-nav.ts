@@ -64,6 +64,12 @@ export class FloatingNav {
   protected readonly links = LINKS;
   protected readonly scrolled = signal(false);
   protected readonly menuOpen = signal(false);
+  // pillVisible: refleja si el pill desktop/tablet está realmente en pantalla
+  // (≥880px, breakpoint del SCSS). Se usa para gatear el `<app-glass-pill-canvas>`
+  // — sin esto el canvas Three.js + WebGL context se monta y corre RAF aún
+  // cuando el pill es display:none en mobile, gastando GPU innecesariamente.
+  // matchMedia es estable, no hace polling.
+  protected readonly pillVisible = signal(false);
 
   private readonly navRef =
     viewChild<ElementRef<HTMLElement>>('navRef');
@@ -100,6 +106,18 @@ export class FloatingNav {
   }
 
   constructor() {
+    // Sondeo de matchMedia para gatear el canvas WebGL del pill. El listener
+    // se enchufa solo en browser (afterNextRender) y se limpia con DestroyRef.
+    afterNextRender(() => {
+      const mql = window.matchMedia('(min-width: 880px)');
+      this.pillVisible.set(mql.matches);
+      const onMqlChange = (e: MediaQueryListEvent): void => {
+        this.pillVisible.set(e.matches);
+      };
+      mql.addEventListener('change', onMqlChange);
+      this.destroyRef.onDestroy(() => mql.removeEventListener('change', onMqlChange));
+    });
+
     // Cursor spotlight — escribe variables CSS sobre el pill directamente,
     // sin re-renders. El estilo del spotlight (`::after`) lo hidrata el CSS
     // del design system (variables consumidas por `.glass-nav` aunque aquí

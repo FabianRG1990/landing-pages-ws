@@ -214,9 +214,13 @@
   // que cuando se abra el sheet el nav siga visible y el botón X se pueda
   // tocar para cerrar.
   z-index: 65;
-  background: rgb(var(--abyss) / 0.85);
-  -webkit-backdrop-filter: blur(40px);
-  backdrop-filter: blur(40px);
+  // Background opacity 0.92 (antes 0.85) compensa la pérdida visual de
+  // bajar el blur — la legibilidad del overlay no se degrada. blur(20px)
+  // (antes 40px) corta el peso GPU del compositor a la mitad. El sheet
+  // cubre el viewport entero, así que cada pixel del blur es caro.
+  background: rgb(var(--abyss) / 0.92);
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
 
   // El sheet se queda en el DOM; toggleamos con clase para que las
   // animaciones CSS de salida también se vean.

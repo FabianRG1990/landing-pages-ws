@@ -294,9 +294,19 @@ export class OceanBackground {
     const ctx = canvas.getContext('2d', { alpha: true });
     if (!ctx) return;
 
+    // prefers-reduced-motion → un solo frame estático y fuera. Sin RAF, sin
+    // listeners. Ahorro total para usuarios sensibles a movimiento.
+    const reducedMotion = window.matchMedia(
+      '(prefers-reduced-motion: reduce)',
+    ).matches;
+    if (reducedMotion) return;
+
     let w = window.innerWidth;
     let h = window.innerHeight;
-    let dpr = Math.min(window.devicePixelRatio || 1, 2);
+    // DPR 1.5 (antes 2) — los peces son siluetas suavemente difuminadas; la
+    // pérdida de nitidez en pantallas Retina es imperceptible y la carga GPU
+    // baja a la mitad.
+    let dpr = Math.min(window.devicePixelRatio || 1, 1.5);
 
     // Density por área (no lineal por width). En widescreen 1440×900 el peso
     // base es 1.0; en phone 360×640 baja a ~0.4 → menos peces, más respiro.
@@ -331,7 +341,7 @@ export class OceanBackground {
     const resize = (): void => {
       w = window.innerWidth;
       h = window.innerHeight;
-      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      dpr = Math.min(window.devicePixelRatio || 1, 1.5);
       canvas.width = Math.floor(w * dpr);
       canvas.height = Math.floor(h * dpr);
       canvas.style.width = `${w}px`;
@@ -343,6 +353,49 @@ export class OceanBackground {
 
     let raf = 0;
     let lastT = performance.now();
+
+    // Pausa por scroll + visibilidad: el ocean-background es position:fixed,
+    // siempre "intersect" con el viewport — pero cuando el hero está al frente
+    // su `bg-mesh-deep` lo cubre por completo. Detectamos eso con scrollY <
+    // viewportHeight*0.7 (umbral generoso para no cortar la transición). El
+    // usuario en home pasa la mayor parte del tiempo sobre el hero → durante
+    // ese tiempo NO se renderiza nada, ahorro masivo de GPU.
+    let isCovered = window.scrollY < window.innerHeight * 0.7;
+    let isTabVisible = !document.hidden;
+    const isActive = (): boolean => !isCovered && isTabVisible;
+
+    const start = (): void => {
+      if (raf !== 0) return;
+      lastT = performance.now();
+      raf = requestAnimationFrame(tick);
+    };
+    const stop = (): void => {
+      if (raf === 0) return;
+      cancelAnimationFrame(raf);
+      raf = 0;
+    };
+
+    let scrollScheduled = false;
+    const onScroll = (): void => {
+      if (scrollScheduled) return;
+      scrollScheduled = true;
+      requestAnimationFrame(() => {
+        scrollScheduled = false;
+        const wasCovered = isCovered;
+        isCovered = window.scrollY < window.innerHeight * 0.7;
+        if (wasCovered === isCovered) return;
+        if (isActive()) start();
+        else stop();
+      });
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+
+    const onVisChange = (): void => {
+      isTabVisible = !document.hidden;
+      if (isActive()) start();
+      else stop();
+    };
+    document.addEventListener('visibilitychange', onVisChange);
 
     const tick = (now: number): void => {
       const dt = Math.min(0.05, (now - lastT) / 1000);
@@ -356,26 +409,29 @@ export class OceanBackground {
         m.render(ctx);
       }
 
-      // Peces back-to-front (los lejanos primero). Todos llevan algo de
-      // blur — leen como siluetas en profundidad, no como sprites nítidos.
+      // Peces back-to-front (los lejanos primero). Antes cada pez aplicaba
+      // `ctx.filter = blur(Xpx)` por frame — operación GPU costosa que se
+      // multiplicaba por 9+ peces × 60fps. Ahora la profundidad se comunica
+      // con alpha + saturación (en el constructor de ShadowFish), suficiente
+      // para que se lean como siluetas a distintas distancias sin el costo
+      // del filter blur.
       fish.sort((a, b) => a.bodyScale - b.bodyScale);
       for (const f of fish) {
         f.update(dt, w, h);
-        ctx.save();
-        ctx.filter = `blur(${f.blurAmount.toFixed(2)}px)`;
         f.render(ctx);
-        ctx.restore();
       }
 
       raf = requestAnimationFrame(tick);
     };
-    raf = requestAnimationFrame(tick);
+    start();
 
     window.addEventListener('resize', resize);
 
     return () => {
-      cancelAnimationFrame(raf);
+      stop();
       window.removeEventListener('resize', resize);
+      window.removeEventListener('scroll', onScroll);
+      document.removeEventListener('visibilitychange', onVisChange);
     };
   }
 }

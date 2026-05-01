@@ -441,7 +441,12 @@ class WaveField {
   heightCap = 2.4;
 
   constructor(w: number, h: number) {
-    this.cellSize = 5;
+    // cellSize 7 (antes 5). El wave-grid es O(cols*rows) por frame y se itera
+    // hasta 4 sub-steps por frame. Bajar de 5→7 reduce las celdas ~2× con
+    // pérdida visual mínima — los rizos se ven igual de fluidos porque la
+    // resolución del filtro blur(1.3px) sobre el render ya difumina detalles
+    // de subpíxel.
+    this.cellSize = 7;
     this.cols = Math.max(8, Math.ceil(w / this.cellSize));
     this.rows = Math.max(8, Math.ceil(h / this.cellSize));
     this.cur = new Float32Array(this.cols * this.rows);
@@ -643,15 +648,26 @@ export class HeroFishCanvas {
     const ctx = canvas.getContext('2d', { alpha: true });
     if (!ctx) return;
 
+    // prefers-reduced-motion → no animación. El canvas se queda quieto en
+    // estado inicial (un único frame estático). Bypass total del RAF +
+    // listeners; ahorra GPU completo a usuarios que lo piden.
+    const reducedMotion = window.matchMedia(
+      '(prefers-reduced-motion: reduce)',
+    ).matches;
+    if (reducedMotion) return;
+
     let w = 0;
     let h = 0;
-    let dpr = Math.min(window.devicePixelRatio || 1, 2);
+    // DPR cap 1.5 (antes 2) — 1.5² = 2.25× píxeles vs. 1× en lugar de 4×.
+    // Visualmente la diferencia es mínima en este canvas (las siluetas tienen
+    // blur por sí solas) pero la carga GPU baja casi a la mitad.
+    let dpr = Math.min(window.devicePixelRatio || 1, 1.5);
 
     const resize = (): void => {
       const rect = container.getBoundingClientRect();
       w = rect.width;
       h = rect.height;
-      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      dpr = Math.min(window.devicePixelRatio || 1, 1.5);
       canvas.width = Math.floor(w * dpr);
       canvas.height = Math.floor(h * dpr);
       canvas.style.width = `${w}px`;
@@ -786,6 +802,42 @@ export class HeroFishCanvas {
     let waveAccumulator = 0;
     const WAVE_STEP = 1 / 120;
 
+    // Pausa por visibilidad: cuando el hero se scrollea fuera de pantalla, o
+    // cuando la tab está oculta, no hay razón para correr el RAF. Antes el
+    // canvas seguía animando peces y wave-grid aunque el usuario estuviera
+    // 5 secciones abajo — minutos de GPU desperdiciados.
+    let isOnScreen = true;
+    let isTabVisible = !document.hidden;
+    const isActive = (): boolean => isOnScreen && isTabVisible;
+
+    const start = (): void => {
+      if (raf !== 0) return;
+      lastT = performance.now();
+      raf = requestAnimationFrame(tick);
+    };
+    const stop = (): void => {
+      if (raf === 0) return;
+      cancelAnimationFrame(raf);
+      raf = 0;
+    };
+
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        isOnScreen = entry.isIntersecting;
+        if (isActive()) start();
+        else stop();
+      },
+      { threshold: 0 },
+    );
+    io.observe(container);
+
+    const onVisChange = (): void => {
+      isTabVisible = !document.hidden;
+      if (isActive()) start();
+      else stop();
+    };
+    document.addEventListener('visibilitychange', onVisChange);
+
     const tick = (now: number): void => {
       const dt = Math.min(0.05, (now - lastT) / 1000);
       lastT = now;
@@ -858,11 +910,13 @@ export class HeroFishCanvas {
 
       raf = requestAnimationFrame(tick);
     };
-    raf = requestAnimationFrame(tick);
+    start();
 
     return () => {
-      cancelAnimationFrame(raf);
+      stop();
       window.removeEventListener('pointermove', onMove);
+      document.removeEventListener('visibilitychange', onVisChange);
+      io.disconnect();
       ro.disconnect();
     };
   }

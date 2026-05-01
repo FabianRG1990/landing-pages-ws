@@ -49,14 +49,25 @@ export class GlassPillCanvas {
     const container = this.containerRef().nativeElement;
     const canvas = this.canvasRef().nativeElement;
 
+    // prefers-reduced-motion → no canvas WebGL. Estado pill plano puro CSS.
+    const reducedMotion = window.matchMedia(
+      '(prefers-reduced-motion: reduce)',
+    ).matches;
+    if (reducedMotion) return;
+
     // ─── Renderer ────────────────────────────────────────────────
+    // antialias: false (antes true). MSAA es muy costoso en GPU. El pill es
+    // una geometría pequeña con sólo highlights — los bordes apenas se notan
+    // sin antialias gracias al fragment-discard del shader.
     const renderer = new THREE.WebGLRenderer({
       canvas,
       alpha: true,
-      antialias: true,
+      antialias: false,
       premultipliedAlpha: false,
+      powerPreference: 'low-power',
     });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    // DPR 1.5 (antes 2). Pill chico, diferencia visual mínima.
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.setClearColor(0x000000, 0);
 
@@ -182,20 +193,82 @@ export class GlassPillCanvas {
     container.addEventListener('pointerleave', onLeave);
 
     // ─── Render loop ─────────────────────────────────────────────
+    // Pausa cuando la tab está oculta. Adicionalmente, solo redibuja cuando
+    // el pill todavía está animando (rotación hacia targetRot* > epsilon) o
+    // cuando el cursor lo está manipulando. Estado quieto = 0 frames GPU.
     let raf = 0;
-    const tick = (): void => {
-      pill.rotation.x += (targetRotX - pill.rotation.x) * 0.08;
-      pill.rotation.y += (targetRotY - pill.rotation.y) * 0.08;
-      renderer.render(scene, camera);
+    let isTabVisible = !document.hidden;
+
+    const start = (): void => {
+      if (raf !== 0) return;
       raf = requestAnimationFrame(tick);
     };
-    tick();
+    const stop = (): void => {
+      if (raf === 0) return;
+      cancelAnimationFrame(raf);
+      raf = 0;
+    };
+
+    const onVisChange = (): void => {
+      isTabVisible = !document.hidden;
+      if (isTabVisible) start();
+      else stop();
+    };
+    document.addEventListener('visibilitychange', onVisChange);
+
+    const tick = (): void => {
+      const dx = targetRotX - pill.rotation.x;
+      const dy = targetRotY - pill.rotation.y;
+      pill.rotation.x += dx * 0.08;
+      pill.rotation.y += dy * 0.08;
+      renderer.render(scene, camera);
+
+      // Si el pill ya está sentado en el target y no hay interacción, deja
+      // de pedir frames. Se reanuda solo cuando onMove vuelva a cambiar el
+      // target (y onMove llama start() abajo).
+      const settled =
+        Math.abs(dx) < 0.0005 &&
+        Math.abs(dy) < 0.0005 &&
+        Math.abs(targetRotX) < 0.001 &&
+        Math.abs(targetRotY) < 0.001;
+      if (settled) {
+        raf = 0;
+        return;
+      }
+      raf = requestAnimationFrame(tick);
+    };
+
+    // Reaviva el RAF cuando llegan eventos (o el ResizeObserver dispara).
+    const onMoveWithWake = (e: PointerEvent): void => {
+      onMove(e);
+      if (isTabVisible) start();
+    };
+    const onLeaveWithWake = (): void => {
+      onLeave();
+      if (isTabVisible) start();
+    };
+    container.removeEventListener('pointermove', onMove);
+    container.removeEventListener('pointerleave', onLeave);
+    container.addEventListener('pointermove', onMoveWithWake);
+    container.addEventListener('pointerleave', onLeaveWithWake);
+
+    // Reanuda render tras un resize (geometry cambió → necesita un repaint).
+    const updateSizeWithWake = (): void => {
+      updateSize();
+      if (isTabVisible) start();
+    };
+    ro.disconnect();
+    const ro2 = new ResizeObserver(updateSizeWithWake);
+    ro2.observe(container);
+
+    start();
 
     return () => {
-      cancelAnimationFrame(raf);
-      ro.disconnect();
-      container.removeEventListener('pointermove', onMove);
-      container.removeEventListener('pointerleave', onLeave);
+      stop();
+      ro2.disconnect();
+      document.removeEventListener('visibilitychange', onVisChange);
+      container.removeEventListener('pointermove', onMoveWithWake);
+      container.removeEventListener('pointerleave', onLeaveWithWake);
       geometry.dispose();
       material.dispose();
       renderer.dispose();
