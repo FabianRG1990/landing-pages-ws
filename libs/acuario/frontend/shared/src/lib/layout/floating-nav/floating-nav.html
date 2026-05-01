@@ -1,4 +1,4 @@
-<header class="floating-nav">
+<header class="floating-nav" [class.is-scrolled]="scrolled()">
   <!-- LEFT — brand: emblema + wordmark. Sin glass; la marca respira. -->
   <a
     routerLink="/"
@@ -6,7 +6,7 @@
     aria-label="Aquarium · Inicio"
     (click)="onLinkClick('/', $event)"
   >
-    <app-emblem-mark [size]="56" />
+    <app-emblem-mark [size]="48" />
     <span class="floating-nav__brand-wordmark">Aquarium</span>
   </a>
 
@@ -14,7 +14,6 @@
   <nav
     #navRef
     class="floating-nav__pill glass-nav-shell"
-    [class.is-scrolled]="scrolled()"
     [class.glass-nav-shell-scrolled]="scrolled()"
     aria-label="Navegación principal"
   >

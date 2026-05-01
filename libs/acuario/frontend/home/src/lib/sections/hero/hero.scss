@@ -121,6 +121,12 @@
   align-items: flex-start;
 }
 
+// Badge — adapta su contenido por breakpoint en lugar de solo escalar.
+//   • <360px: oculto entero (libera espacio para el título — competía
+//     visualmente contra el h1 en phones extra-chicos).
+//   • 360-479px: solo "Bioluminiscencia" + ícono.
+//   • 480-639px: "Bioluminiscencia abisal" (sin prefijo "Temporada · ").
+//   • ≥640px: cadena completa "Temporada · Bioluminiscencia abisal".
 .hero__badge {
   display: inline-flex;
   align-items: center;
@@ -136,10 +142,30 @@
   color: rgb(var(--foam) / 0.8);
   -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
+
+  @media (max-width: 359.98px) {
+    display: none;
+  }
 }
 
 .hero__badge-icon {
   color: rgb(var(--lagoon));
+}
+
+.hero__badge-prefix {
+  display: none;
+
+  @media (min-width: 640px) {
+    display: inline;
+  }
+}
+
+.hero__badge-suffix {
+  display: none;
+
+  @media (min-width: 480px) {
+    display: inline;
+  }
 }
 
 .hero__title {

@@ -10,6 +10,12 @@
 // vez de la página detrás. Firefox lo tolera; Chrome no. La animación de
 // entrada se mueve a cada hijo (brand, pill, burger), aplicada sobre el mismo
 // elemento con backdrop-filter — eso sí funciona en ambos navegadores.
+//
+// Layout: GRID de 3 columnas (`auto 1fr auto`). La marca queda anclada a la
+// columna 1 con `justify-self: start` SIEMPRE — aunque pill o burger se
+// muestren u oculten, la marca nunca se mueve. Esto reemplaza el anterior
+// `flex + justify-content: space-between`, que dejaba la marca "viajando"
+// cuando el orden o visibilidad de los siblings cambiaba.
 .floating-nav {
   position: fixed;
   left: 0;
@@ -20,16 +26,18 @@
   // (donde el hero tiene gradient layers) al punto de hacerlo invisible.
   z-index: 70;
   margin-inline: auto;
-  display: flex;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
   width: 100%;
   max-width: 80rem;
-  align-items: center;
-  justify-content: space-between;
-  padding-inline: 1.5rem;
+  // Padding fluido — alineado al `.hero__container` para que la marca quede
+  // a la misma X que el título. Antes era 1.5rem fijo, lo que en phones con
+  // viewport <360px sentía la marca "pegada" al borde.
+  padding-inline: var(--container-px);
 
   @media (min-width: 1024px) {
     top: 1.5rem;
-    padding-inline: 2rem;
   }
 }
 
@@ -46,6 +54,8 @@
 
 // ─── Brand: emblema + wordmark ───────────────────────────────────────────────
 .floating-nav__brand {
+  grid-column: 1;
+  justify-self: start;
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -54,22 +64,32 @@
   animation: floating-nav-mount 0.9s var(--ease-fluid) 0.3s both;
 }
 
+// Wordmark: siempre visible. Antes el gate era min-width:640px, lo que daba
+// la sensación de que "el logo aparecía/desaparecía" entre phone y phone-grande
+// — la marca cambiaba al cruzar el breakpoint. Con la palabra siempre presente
+// la marca se siente ESTÁTICA en todos los anchos. El font-size sí escala con
+// clamp() para no tragar espacio en phones extra-chicos.
 .floating-nav__brand-wordmark {
-  display: none;
+  display: inline-block;
   font-family: var(--font-display);
-  font-size: 22px;
+  font-size: clamp(1.0625rem, 0.95rem + 0.5vw, 1.375rem);
   font-weight: 500;
   line-height: 1;
   letter-spacing: var(--tracking-tight);
   color: rgb(var(--foam));
-
-  @media (min-width: 640px) {
-    display: inline-block;
-  }
+  white-space: nowrap;
 }
 
-// ─── Pill desktop ───────────────────────────────────────────────────────────
+// ─── Pill desktop / tablet ──────────────────────────────────────────────────
+// Breakpoints:
+//   • <880px (phone): pill oculto → burger visible
+//   • 880-1023px (tablet): pill visible al tope; cuando .is-scrolled, se
+//     oculta y aparece el burger en su lugar (libera el ancho para que el
+//     contenido respire mientras el usuario lee).
+//   • ≥1024px (desktop): pill siempre visible; burger siempre oculto.
 .floating-nav__pill {
+  grid-column: 3;
+  justify-self: end;
   position: relative;
   display: none;
   align-items: center;
@@ -80,16 +100,26 @@
   // Mount + scroll-scale. Transform aquí está OK aunque este mismo elemento
   // tenga `backdrop-filter` (clase .glass-nav-shell): Chrome solo se rompe
   // cuando un ANCESTRO tiene transform, no cuando el propio elemento lo tiene.
-  // Default sin transform → cuando .is-scrolled aparece → scale(0.97).
   animation: floating-nav-mount 0.9s var(--ease-fluid) 0.3s both;
   transition: transform 600ms var(--ease-fluid);
 
-  &.is-scrolled {
-    transform: scale(0.97);
+  @media (min-width: 880px) {
+    display: flex;
+  }
+
+  // Tablet: oculto cuando se hace scroll para que el burger aparezca y libere
+  // espacio horizontal sobre el contenido.
+  @media (min-width: 880px) and (max-width: 1023.98px) {
+    .floating-nav.is-scrolled & {
+      display: none;
+    }
   }
 
   @media (min-width: 1024px) {
-    display: flex;
+    // Desktop: solo escala suave — pill siempre visible.
+    .floating-nav.is-scrolled & {
+      transform: scale(0.97);
+    }
   }
 }
 
@@ -141,12 +171,13 @@
   position: relative;
 }
 
-// ─── Burger móvil ────────────────────────────────────────────────────────────
+// ─── Burger móvil / tablet-scroll ───────────────────────────────────────────
 .floating-nav__burger {
+  grid-column: 3;
+  justify-self: end;
   position: relative;
   display: flex;
   // 44×44 px = mínimo táctil de Apple HIG / WCAG 2.2 SC 2.5.8 (Target Size).
-  // Antes 40×40 — tap accuracy pobre en dedos grandes.
   width: 2.75rem;
   height: 2.75rem;
   align-items: center;
@@ -156,6 +187,17 @@
   animation: floating-nav-mount 0.9s var(--ease-fluid) 0.3s both;
   touch-action: manipulation;
 
+  // Tablet: oculto al tope, aparece SOLO cuando se hace scroll (reemplaza al
+  // pill que se ocultó).
+  @media (min-width: 880px) and (max-width: 1023.98px) {
+    display: none;
+
+    .floating-nav.is-scrolled & {
+      display: flex;
+    }
+  }
+
+  // Desktop: nunca aparece — el pill ya cubre la navegación.
   @media (min-width: 1024px) {
     display: none;
   }
@@ -187,6 +229,9 @@
     pointer-events: auto;
   }
 
+  // El sheet móvil puede aparecer hasta el desktop: en tablet (880-1023) el
+  // burger sí existe (cuando scrollado) y debe poder abrir el menú. Solo en
+  // desktop (≥1024) se oculta porque ahí no hay burger.
   @media (min-width: 1024px) {
     display: none;
   }
