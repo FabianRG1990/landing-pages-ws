@@ -41,27 +41,21 @@
   }
 }
 
-@keyframes floating-nav-mount {
-  from {
-    opacity: 0;
-    transform: translateY(-28px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 // ─── Brand: emblema + wordmark ───────────────────────────────────────────────
+// IMPORTANT: SIN animation. La animación de entrada con `animation-fill-mode:
+// both` + delay de 0.3s dejaba la marca con `opacity: 0` durante esos primeros
+// 300ms — el usuario lo percibía como "el logo desaparece" cada vez que el
+// browser re-aplicaba estilos (HMR del dev-server, toggle de DevTools device
+// mode, hot-reload de CSS, navegación SPA con re-mount de animation). Se
+// quitó del todo: la marca debe estar visible desde el primer paint, sin
+// excepciones. La aparición sutil del nav ya está cubierta por el contraste
+// natural del cristal sobre el océano.
 .floating-nav__brand {
   grid-column: 1;
   justify-self: start;
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  // Mount sobre el propio elemento (no el header) — transform aquí no afecta
-  // a ningún descendiente con backdrop-filter.
-  animation: floating-nav-mount 0.9s var(--ease-fluid) 0.3s both;
 }
 
 // Wordmark: siempre visible. Antes el gate era min-width:640px, lo que daba
@@ -97,10 +91,8 @@
   border-radius: 9999px;
   padding: 0.5rem;
 
-  // Mount + scroll-scale. Transform aquí está OK aunque este mismo elemento
-  // tenga `backdrop-filter` (clase .glass-nav-shell): Chrome solo se rompe
-  // cuando un ANCESTRO tiene transform, no cuando el propio elemento lo tiene.
-  animation: floating-nav-mount 0.9s var(--ease-fluid) 0.3s both;
+  // Sin entrance animation — ver nota en `.floating-nav__brand`. El pill
+  // debe ser visible desde frame 1.
   transition: transform 600ms var(--ease-fluid);
 
   @media (min-width: 880px) {
@@ -184,7 +176,10 @@
   justify-content: center;
   border-radius: 9999px;
   color: rgb(var(--foam));
-  animation: floating-nav-mount 0.9s var(--ease-fluid) 0.3s both;
+  // Sin animation — ver nota en `.floating-nav__brand`. Crítico aquí: el
+  // burger se reinsertaba en el DOM cuando el viewport cruzaba 880px o 1024px
+  // (display: none ↔ flex), reactivando la animación y dejándolo invisible
+  // 300ms. Quitada, el burger es estable durante resize.
   touch-action: manipulation;
 
   // Tablet: oculto al tope, aparece SOLO cuando se hace scroll (reemplaza al
