@@ -338,16 +338,39 @@ export class OceanBackground {
       motes = Array.from({ length: targetMoteCount }, () => new Mote(w, h));
     };
 
+    // Track dimensiones reales para distinguir resize "real" de un toggle de
+    // address bar móvil. En iOS Safari y Chrome Android, scrollear hacia abajo
+    // colapsa la barra de URL → window.innerHeight crece ~80-150px →
+    // dispara `resize`. Si rebuilteamos los peces en cada uno de esos eventos,
+    // el usuario ve los peces "saltar" a posiciones aleatorias cada vez que
+    // cambia la dirección de scroll. Por eso reflujamos SOLO cuando el width
+    // cambia o cuando el height cambia significativamente (>200px), no por
+    // el típico vaivén del address bar.
+    let lastReflowW = 0;
+    let lastReflowH = 0;
+
     const resize = (): void => {
       w = window.innerWidth;
       h = window.innerHeight;
       dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+      // Canvas dimensions sí se actualizan siempre — necesario para que el
+      // canvas cubra el viewport actual (incluso con address bar colapsado).
       canvas.width = Math.floor(w * dpr);
       canvas.height = Math.floor(h * dpr);
       canvas.style.width = `${w}px`;
       canvas.style.height = `${h}px`;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-      reflowEntities();
+
+      // Reflujo SOLO cuando la geometría cambió de verdad (rotación, redimensión
+      // de ventana en desktop, navegación entre rutas). Los peces conservan sus
+      // posiciones acumuladas durante el scroll vertical en mobile.
+      const widthChanged = Math.abs(w - lastReflowW) > 1;
+      const heightChangedSignificantly = Math.abs(h - lastReflowH) > 200;
+      if (widthChanged || heightChangedSignificantly) {
+        reflowEntities();
+        lastReflowW = w;
+        lastReflowH = h;
+      }
     };
     resize();
 

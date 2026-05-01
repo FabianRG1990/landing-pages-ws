@@ -4,6 +4,28 @@
   min-height: 200px;
   width: 100%;
   overflow: hidden;
+
+  // Top fade — espeja el bottom fade del page-header. Crea continuidad: el
+  // page-header termina disolviéndose en oscuridad, y aquí mismo arranca
+  // disolviéndose desde oscuridad → transparente, dejando ver gradualmente
+  // los peces del ocean-background sin un corte abrupto. La banda está
+  // anclada al top y se desborda 2rem hacia arriba (`top: -2rem`) para
+  // entrelazarse con el fade del header.
+  &::before {
+    content: '';
+    pointer-events: none;
+    position: absolute;
+    inset-inline: 0;
+    top: -2rem;
+    height: 9rem;
+    z-index: 1;
+    background: linear-gradient(
+      180deg,
+      rgb(6 24 38 / 0.85) 0%,
+      rgb(6 24 38 / 0.4) 50%,
+      transparent 100%
+    );
+  }
 }
 
 .depth-transition__rays,

@@ -53,14 +53,34 @@
 .species-marquee__reel-wrap {
   position: relative;
   margin-top: 5rem;
-  // CRÍTICO: contiene la cinta del marquee (~4700px de ancho) dentro del
-  // viewport. Sin esto la cinta desbordaba el body y, como `html` no tenía
-  // overflow-x: clip, el overflow se filtraba al elemento raíz haciendo
-  // scrollable la página de lado en mobile (~320-414px). `clip` (en lugar
-  // de `hidden`) garantiza que ni siquiera scrollLeft programático abra
-  // ese eje. `hidden` en la primera línea es fallback para Safari <16.
+  // Comportamiento bifurcado por capacidad de input:
+  //
+  //  • TOUCH (mobile/tablet): scroll horizontal nativo con snap. El usuario
+  //    barre las cards con el dedo. Sin animación automática — en pantalla
+  //    chica el marquee de 50s solo movía 1-2 cards demasiado lento para
+  //    ser útil; preferimos darle control directo al usuario.
+  //
+  //  • HOVER (desktop con mouse/trackpad): contenedor `clip` + animación
+  //    automática infinita. Sin scroll nativo — el feed de tipos del cursor
+  //    es el lift visual.
+  //
+  // El scroll horizontal está aislado dentro de este wrapper: la página
+  // sigue protegida por `html { overflow-x: clip }` global.
   overflow-x: hidden;
   overflow-x: clip;
+
+  @media (hover: none) and (pointer: coarse) {
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: var(--container-px);
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
 }
 
 .species-marquee__edge {
@@ -85,6 +105,34 @@
 .species-marquee__reel {
   display: flex;
   will-change: transform;
+
+  // Override del default `animate-marquee 50s linear infinite` (en
+  // _keyframes.scss). 50s era percibido como demasiado lento incluso en
+  // desktop wide; 32s mantiene la sensación de fluidez sin sentirse
+  // apresurado. Cubic-bezier muy suave en lugar de linear para que la
+  // velocidad se sienta orgánica (no de cinta industrial).
+  &.animate-marquee {
+    animation-duration: 32s;
+  }
+
+  // En touch desactivamos la animación auto-marquee — el usuario maneja el
+  // scroll. En desktop la conservamos pero con padding inicial para que la
+  // primera card no quede pegada al borde izquierdo.
+  @media (hover: none) and (pointer: coarse) {
+    &.animate-marquee {
+      animation: none;
+    }
+    padding-inline: var(--container-px);
+  }
+}
+
+// Cards: en touch usan scroll-snap para que cada swipe centre una card en
+// el viewport — patrón nativo iOS/Android.
+.species-card {
+  @media (hover: none) and (pointer: coarse) {
+    scroll-snap-align: center;
+    scroll-snap-stop: always;
+  }
 }
 
 // =============================================================================
