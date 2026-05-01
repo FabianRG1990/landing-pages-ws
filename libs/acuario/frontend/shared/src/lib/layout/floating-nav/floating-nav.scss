@@ -142,13 +142,16 @@
 .floating-nav__burger {
   position: relative;
   display: flex;
-  width: 2.5rem;
-  height: 2.5rem;
+  // 44×44 px = mínimo táctil de Apple HIG / WCAG 2.2 SC 2.5.8 (Target Size).
+  // Antes 40×40 — tap accuracy pobre en dedos grandes.
+  width: 2.75rem;
+  height: 2.75rem;
   align-items: center;
   justify-content: center;
   border-radius: 9999px;
   color: rgb(var(--foam));
   animation: floating-nav-mount 0.9s var(--ease-fluid) 0.3s both;
+  touch-action: manipulation;
 
   @media (min-width: 1024px) {
     display: none;
