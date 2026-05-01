@@ -11,11 +11,7 @@
   position: relative;
   margin-inline: auto;
   max-width: 80rem;
-  padding-inline: 1.5rem;
-
-  @media (min-width: 1024px) {
-    padding-inline: 2rem;
-  }
+  padding-inline: var(--container-px);
 }
 
 .membership__head {
@@ -36,14 +32,10 @@
   max-width: 48rem;
   text-wrap: balance;
   font-family: var(--font-display);
-  font-size: 2.25rem;
+  font-size: var(--type-h2-lg);
   font-weight: 500;
   line-height: 1;
   letter-spacing: var(--tracking-tight);
-
-  @media (min-width: 768px) {
-    font-size: 3.75rem;
-  }
 }
 
 .membership__title-italic {
@@ -192,14 +184,14 @@
 
 .ticket-card__price {
   font-family: var(--font-mono);
-  font-size: 3rem; // text-5xl
+  font-size: var(--type-mono-xl);
   letter-spacing: var(--tracking-tight);
   color: rgb(var(--foam));
   font-variant-numeric: tabular-nums;
 }
 
 .ticket-card--highlight .ticket-card__price {
-  font-size: 3.75rem; // text-6xl
+  font-size: var(--type-mono-display);
   color: rgb(var(--lagoon));
 }
 

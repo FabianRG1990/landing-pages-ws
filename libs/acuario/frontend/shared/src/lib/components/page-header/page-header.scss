@@ -8,13 +8,10 @@
   position: relative;
   isolation: isolate;
   overflow: hidden;
-  padding-top: 11rem; // pt-44
-  padding-bottom: 5rem; // pb-20
-
-  @media (min-width: 1024px) {
-    padding-top: 14rem; // lg:pt-56
-    padding-bottom: 7rem; // lg:pb-28
-  }
+  // Padding fluido sin step-functions: phone (~360px) → 8rem top, desktop
+  // (1440px) → 14rem. Bottom escala 4→7rem. El nav respira sin dejar huecos.
+  padding-top: clamp(8rem, 5rem + 9vw, 14rem);
+  padding-bottom: clamp(4rem, 2.5rem + 4vw, 7rem);
 }
 
 .page-header__bubbles {
@@ -42,11 +39,7 @@
   z-index: 10;
   margin-inline: auto;
   max-width: 80rem;
-  padding-inline: 1.5rem;
-
-  @media (min-width: 1024px) {
-    padding-inline: 2rem;
-  }
+  padding-inline: var(--container-px);
 }
 
 .page-header__grid {
@@ -62,7 +55,7 @@
 // ─── Columna izquierda — eyebrow + capítulo + sello ────────────────────────
 .page-header__capitulo {
   margin-top: 1.5rem;
-  font-size: 11px;
+  font-size: var(--type-label-sm);
   text-transform: uppercase;
   letter-spacing: var(--tracking-eyebrow);
   color: rgb(var(--foam) / 0.45);
@@ -80,7 +73,7 @@
 }
 
 .page-header__stamp-text {
-  font-size: 10px;
+  font-size: var(--type-label-xs);
   text-transform: uppercase;
   letter-spacing: var(--tracking-eyebrow);
   color: rgb(var(--foam) / 0.4);
@@ -90,18 +83,11 @@
 .page-header__title {
   text-wrap: balance;
   font-family: var(--font-display);
-  font-size: 3rem; // text-5xl
+  // Fluido 44→96px en una línea — antes 3 declaraciones step (3rem→4.5rem→96px).
+  font-size: var(--type-h1);
   font-weight: 500;
   line-height: 0.95;
   letter-spacing: var(--tracking-tight);
-
-  @media (min-width: 768px) {
-    font-size: 4.5rem; // md:text-7xl
-  }
-
-  @media (min-width: 1024px) {
-    font-size: 96px;
-  }
 }
 
 .page-header__title-italic {
@@ -117,8 +103,5 @@
   text-wrap: pretty;
   color: rgb(var(--foam) / 0.7);
   line-height: 1.625;
-
-  @media (min-width: 768px) {
-    font-size: 1.125rem; // md:text-lg
-  }
+  font-size: var(--type-body-lg);
 }

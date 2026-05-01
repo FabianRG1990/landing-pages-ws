@@ -66,8 +66,42 @@
 
   // ---- Layout -------------------------------------------------------------
   --container-max: 80rem;     // max-w-7xl
-  --container-px: 1.5rem;     // px-6
-  --container-px-lg: 2rem;    // px-8 a partir de lg
+  // Padding fluido: 1rem (16px) en phones de 360px, escala suavemente a 2rem
+  // (32px) en desktop. Reemplaza el step-function `1.5rem → @media → 2rem`
+  // que dejaba el contenido demasiado pegado a los bordes en phones chicos.
+  --container-px: clamp(1rem, 4vw, 2rem);
+
+  // ---- Tipografía fluida (clamp-based) -----------------------------------
+  // Fórmulas tipo Utopia: rem-floor para accesibilidad (WCAG 1.4.4 zoom),
+  // vw-driven para escalar sin step-functions, rem-cap para no romper en
+  // ultra-wide. Min asume viewport 360px; max asume viewport 1440px.
+  // Convertí cada `font-size` con dos breakpoints en una sola línea fluida.
+
+  // Body / párrafos
+  --type-body: clamp(1rem, 0.95rem + 0.25vw, 1.125rem);                   // 16→18
+  --type-body-lg: clamp(1.0625rem, 1rem + 0.4vw, 1.25rem);                // 17→20
+
+  // Eyebrows / labels — quedan chicos, escala mínima
+  --type-label-xs: 0.625rem;                                              // 10px constante
+  --type-label-sm: clamp(0.625rem, 0.6rem + 0.1vw, 0.6875rem);            // 10→11
+  --type-label-md: clamp(0.75rem, 0.7rem + 0.2vw, 0.875rem);              // 12→14
+
+  // Botones
+  --type-button: clamp(0.8125rem, 0.78rem + 0.15vw, 0.875rem);            // 13→14
+
+  // Headings — niveles editorial
+  --type-h4: clamp(1.125rem, 1rem + 0.6vw, 1.5rem);                       // 18→24
+  --type-h3: clamp(1.25rem, 1.05rem + 0.85vw, 1.875rem);                  // 20→30
+  --type-h3-lg: clamp(1.5rem, 1.2rem + 1.3vw, 2.25rem);                   // 24→36
+  --type-h2: clamp(1.875rem, 1.4rem + 2vw, 3.75rem);                      // 30→60
+  --type-h2-lg: clamp(2.25rem, 1.6rem + 2.7vw, 4.5rem);                   // 36→72
+  --type-h1: clamp(2.75rem, 1.85rem + 3.8vw, 6rem);                       // 44→96
+  --type-h1-hero: clamp(2.75rem, 1.5rem + 5.5vw, 7rem);                   // 44→112
+
+  // Mono / numéricos grandes (stats, conteos)
+  --type-mono-lg: clamp(1.5rem, 1.2rem + 1.3vw, 2.25rem);                 // 24→36
+  --type-mono-xl: clamp(1.875rem, 1.4rem + 2vw, 3.75rem);                 // 30→60
+  --type-mono-display: clamp(2.5rem, 1.8rem + 3vw, 5rem);                 // 40→80
 }
 
 // SCSS variables (mismas tokens, reutilizables desde mixins) -----------------

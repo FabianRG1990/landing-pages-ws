@@ -10,11 +10,7 @@
 .timeline__container {
   margin-inline: auto;
   max-width: 80rem;
-  padding-inline: 1.5rem;
-
-  @media (min-width: 1024px) {
-    padding-inline: 2rem;
-  }
+  padding-inline: var(--container-px);
 }
 
 .timeline__head {
@@ -35,15 +31,11 @@
   max-width: 48rem;
   text-wrap: balance;
   font-family: var(--font-display);
-  font-size: 2.25rem;
+  font-size: var(--type-h2-lg);
   font-weight: 500;
   line-height: 1;
   letter-spacing: var(--tracking-tight);
   color: rgb(var(--foam));
-
-  @media (min-width: 768px) {
-    font-size: 3.75rem;
-  }
 }
 
 .timeline__title-italic {
@@ -90,15 +82,11 @@
 
 .timeline__year {
   font-family: var(--font-mono);
-  font-size: 2.25rem;
+  font-size: var(--type-mono-xl);
   line-height: 1;
   letter-spacing: var(--tracking-tight);
   color: rgb(var(--foam));
   font-variant-numeric: tabular-nums;
-
-  @media (min-width: 768px) {
-    font-size: 3rem;
-  }
 }
 
 .timeline__index {

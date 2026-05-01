@@ -10,11 +10,7 @@
 .species-marquee__container {
   margin-inline: auto;
   max-width: 80rem;
-  padding-inline: 1.5rem;
-
-  @media (min-width: 1024px) {
-    padding-inline: 2rem;
-  }
+  padding-inline: var(--container-px);
 }
 
 .species-marquee__head {
@@ -38,14 +34,10 @@
 .species-marquee__title {
   text-wrap: balance;
   font-family: var(--font-display);
-  font-size: 2.25rem;
+  font-size: var(--type-h2-lg);
   font-weight: 500;
   line-height: 1;
   letter-spacing: var(--tracking-tight);
-
-  @media (min-width: 768px) {
-    font-size: 3.75rem;
-  }
 }
 
 .species-marquee__title-italic {
