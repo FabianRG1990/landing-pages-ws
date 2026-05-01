@@ -5,18 +5,12 @@
   width: 100%;
   overflow: hidden;
 
-  // En tablet y mobile (≤1023px) la zona ornamental sobra: el detalle de
-  // rayos + sedimento se vuelve ruido visual y los 200px de altura inflan
-  // un espacio vacío que se siente abandonado en pantallas chicas. Se oculta
-  // por completo y la transición la maneja únicamente el fade-bottom del
-  // page-header (más corto, también gateado a desktop).
-  @media (max-width: 1023.98px) {
-    display: none;
-  }
-
-  // Top fade SOLO en desktop — espeja el bottom fade del page-header.
-  // Disuelve oscuridad → transparente para que los peces del ocean-bg
-  // aparezcan progresivamente sin corte horizontal.
+  // Top fade — espeja el bottom fade del page-header. Crea continuidad: el
+  // page-header termina disolviéndose en oscuridad, y aquí mismo arranca
+  // disolviéndose desde oscuridad → transparente, dejando ver gradualmente
+  // los peces del ocean-background sin un corte abrupto. La banda está
+  // anclada al top y se desborda 2rem hacia arriba (`top: -2rem`) para
+  // entrelazarse con el fade del header.
   &::before {
     content: '';
     pointer-events: none;
@@ -31,6 +25,22 @@
       rgb(6 24 38 / 0.4) 50%,
       transparent 100%
     );
+  }
+
+  // En tablet/mobile (≤1023px) los efectos decorativos (top fade oscuro +
+  // god-rays con blend `screen` y blur + sedimento) se perciben como un
+  // rectángulo iluminado entre secciones — una franja con corte en lugar
+  // de una transición. Se preserva la altura (espaciado entre segmentos)
+  // pero se silencia todo lo visual: queda el body abyss continuo.
+  @media (max-width: 1023.98px) {
+    &::before {
+      display: none;
+    }
+
+    .depth-transition__rays,
+    .depth-transition__motes {
+      display: none;
+    }
   }
 }
 
