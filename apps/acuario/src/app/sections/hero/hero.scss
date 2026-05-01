@@ -1,0 +1,301 @@
+@use '../../../styles/mixins' as m;
+
+// =============================================================================
+// Hero — capítulo de apertura. Las clases globales `bg-mesh-deep` y
+// `caustic-overlay` ya están en _utilities.scss / _glass.scss.
+// =============================================================================
+
+.hero {
+  position: relative;
+  isolation: isolate;
+  min-height: 100dvh;
+  overflow: hidden;
+  background-image:
+    radial-gradient(60% 50% at 20% 10%, rgb(94 196 209 / 0.15), transparent 60%),
+    radial-gradient(45% 40% at 90% 20%, rgb(127 227 214 / 0.10), transparent 65%),
+    radial-gradient(50% 60% at 50% 100%, rgb(74 107 92 / 0.10), transparent 60%),
+    linear-gradient(180deg, #061826 0%, #08213b 35%, #082238 60%, #061826 100%);
+}
+
+.hero__bubbles {
+  z-index: 1;
+  opacity: 0.7;
+}
+
+// Cierre inferior — degradado al abismo puro (sin costura entre Hero y next).
+.hero__seam {
+  pointer-events: none;
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  z-index: 3;
+  height: 11rem; // h-44
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgb(6 24 38 / 0.55) 45%,
+    #061826 100%
+  );
+}
+
+// ─── Telemetría superior ─────────────────────────────────────────────────────
+.hero__telemetry {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 7rem; // top-28
+  z-index: 10;
+  margin-inline: auto;
+  display: flex;
+  max-width: 80rem;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding-inline: 1.5rem;
+
+  @media (min-width: 1024px) {
+    top: 8rem; // lg:top-32
+    padding-inline: 2rem;
+  }
+}
+
+.hero__telemetry-col {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-eyebrow);
+  color: rgb(var(--foam) / 0.55);
+}
+
+.hero__telemetry-col--right {
+  display: none;
+
+  @media (min-width: 640px) {
+    display: flex;
+    align-items: flex-end;
+  }
+}
+
+.hero__telemetry-secondary {
+  display: none;
+
+  @media (min-width: 640px) {
+    display: inline;
+  }
+}
+
+// ─── Capa principal ──────────────────────────────────────────────────────────
+.hero__container {
+  position: relative;
+  z-index: 10;
+  margin-inline: auto;
+  display: flex;
+  min-height: 100dvh;
+  max-width: 80rem;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 12rem 1.5rem 5rem; // pt-48 px-6 pb-20
+
+  @media (min-width: 1024px) {
+    padding: 14rem 2rem 8rem; // lg:pt-56 lg:px-8 lg:pb-32
+  }
+}
+
+.hero__grid {
+  display: grid;
+  gap: 3rem;
+
+  @media (min-width: 1024px) {
+    grid-template-columns: 1.5fr 1fr;
+    align-items: end;
+  }
+}
+
+// ─── Lead column (badge + título + copy + CTA) ───────────────────────────────
+.hero__lead {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.hero__badge {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 0.5rem;
+  border-radius: 9999px;
+  border: 1px solid rgb(var(--foam) / 0.15);
+  background: rgb(var(--foam) / 0.04);
+  padding: 0.25rem 0.75rem;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-eyebrow);
+  color: rgb(var(--foam) / 0.8);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+}
+
+.hero__badge-icon {
+  color: rgb(var(--lagoon));
+}
+
+.hero__title {
+  margin-top: 2rem;
+  max-width: 16ch;
+  text-wrap: balance;
+  font-family: var(--font-display);
+  font-size: 44px;
+  font-weight: 500;
+  line-height: 0.92;
+  letter-spacing: var(--tracking-tight);
+  color: rgb(var(--foam));
+
+  @media (min-width: 768px) {
+    font-size: 88px;
+  }
+
+  @media (min-width: 1024px) {
+    font-size: 112px;
+  }
+}
+
+.hero__title-italic {
+  font-family: var(--font-editorial);
+  font-style: italic;
+  font-weight: 300;
+  color: rgb(var(--foam) / 0.8);
+}
+
+.hero__copy {
+  margin-top: 2rem;
+  max-width: 52ch;
+  text-wrap: pretty;
+  color: rgb(var(--foam) / 0.7);
+  line-height: 1.625;
+
+  @media (min-width: 768px) {
+    font-size: 1.125rem;
+  }
+}
+
+.hero__cta {
+  margin-top: 2.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
+}
+
+// ─── Aside column (ola card + scroll hint) ───────────────────────────────────
+.hero__aside {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.hero__wave-card {
+  border-radius: var(--radius-squircle);
+  padding: 0.5rem;
+}
+
+.hero__wave-core {
+  border-radius: calc(var(--radius-squircle) - 0.5rem);
+  padding: 1.5rem;
+}
+
+.hero__wave-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.hero__wave-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-eyebrow);
+  color: rgb(var(--foam) / 0.55);
+}
+
+.hero__wave-pulse {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 9999px;
+  background: rgb(var(--bioluminescent));
+  box-shadow: 0 0 12px 2px rgb(127 227 214 / 0.6);
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.hero__wave-time {
+  margin-top: 1rem;
+  font-family: var(--font-display);
+  font-size: 1.875rem; // text-3xl
+  letter-spacing: var(--tracking-tight);
+  color: rgb(var(--foam));
+}
+
+.hero__wave-context {
+  margin-top: 0.25rem;
+  color: rgb(var(--foam) / 0.65);
+}
+
+.hero__wave-stats {
+  margin-top: 1.5rem;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+  border-top: 1px solid rgb(var(--foam) / 0.1);
+  padding-top: 1.25rem;
+}
+
+.hero__stat-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-eyebrow);
+  color: rgb(var(--foam) / 0.45);
+}
+
+.hero__stat-value {
+  margin-top: 0.25rem;
+  font-family: var(--font-display);
+  font-size: 1.25rem; // text-xl
+  letter-spacing: var(--tracking-tight);
+  color: rgb(var(--foam));
+}
+
+// ─── Scroll hint (solo visible en lg+) ───────────────────────────────────────
+.hero__scroll-hint {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  color: rgb(var(--foam) / 0.55);
+
+  @media (min-width: 1024px) {
+    display: flex;
+  }
+}
+
+.hero__scroll-cue {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-eyebrow);
+}
+
+.hero__scroll-icon {
+  display: flex;
+  width: 2rem;
+  height: 2rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  box-shadow: inset 0 0 0 1px rgb(var(--foam) / 0.15);
+}
+
+.hero__pagination {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: var(--tracking-eyebrow);
+}

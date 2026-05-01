@@ -1,0 +1,39 @@
+.caustic-bg {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.caustic-bg__orb {
+  position: absolute;
+  border-radius: 9999px;
+  filter: blur(120px);
+}
+
+.caustic-bg__orb--lagoon {
+  left: -25%;
+  top: 0;
+  width: 60vh;
+  height: 60vh;
+  background: rgb(var(--lagoon) / 0.15);
+}
+
+.caustic-bg__orb--bio {
+  right: 0;
+  top: 33.333%;
+  width: 50vh;
+  height: 50vh;
+  background: rgb(var(--bioluminescent) / 0.1);
+  filter: blur(140px);
+  animation-delay: -7s;
+}
+
+.caustic-bg__orb--kelp {
+  bottom: 0;
+  left: 33.333%;
+  width: 45vh;
+  height: 45vh;
+  background: rgb(var(--kelp) / 0.15);
+  animation-delay: -3s;
+}

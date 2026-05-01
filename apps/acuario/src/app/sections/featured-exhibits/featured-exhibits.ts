@@ -1,0 +1,24 @@
+import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { RouterLink } from '@angular/router';
+import { NgIcon, provideIcons } from '@ng-icons/core';
+import { phosphorArrowUpRightBold } from '@ng-icons/phosphor-icons/bold';
+
+import { Exhibit, exhibits } from '../../data/data';
+import { RevealDirective } from '../../ui/reveal/reveal.directive';
+import { SectionHeading } from '../../ui/section-heading/section-heading';
+
+/**
+ * FeaturedExhibits — primer capítulo del manifiesto. SectionHeading + CTA al
+ * lado, y bento asimétrico de 5 cards (1 XL + 4 medianas) con los biomas.
+ */
+@Component({
+  selector: 'app-featured-exhibits',
+  imports: [RouterLink, NgIcon, RevealDirective, SectionHeading],
+  providers: [provideIcons({ phosphorArrowUpRightBold })],
+  templateUrl: './featured-exhibits.html',
+  styleUrl: './featured-exhibits.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+})
+export class FeaturedExhibits {
+  protected readonly featured: ReadonlyArray<Exhibit> = exhibits.slice(0, 5);
+}

@@ -1,0 +1,128 @@
+// =============================================================================
+// Utilities — capa de utilidades globales propias del proyecto Acuario,
+// equivalentes al @layer utilities del globals.css original.
+// =============================================================================
+
+// ---- Text wrapping ---------------------------------------------------------
+
+.text-balance {
+  text-wrap: balance;
+}
+
+.text-pretty {
+  text-wrap: pretty;
+}
+
+// ---- Grano fílmico — pelícuala fija sobre toda la página ------------------
+// El SVG inline dibuja ruido fractal y se aplica con mix-blend-mode overlay
+// para sumar microtextura sin teñir.
+.grain::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+  opacity: 0.05;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 1.5 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+}
+
+// ---- Mesh backgrounds ------------------------------------------------------
+
+.bg-mesh-deep {
+  background-image:
+    radial-gradient(60% 50% at 20% 10%, rgb(94 196 209 / 0.15), transparent 60%),
+    radial-gradient(45% 40% at 90% 20%, rgb(127 227 214 / 0.10), transparent 65%),
+    radial-gradient(50% 60% at 50% 100%, rgb(74 107 92 / 0.10), transparent 60%),
+    linear-gradient(180deg, #061826 0%, #08213b 35%, #082238 60%, #061826 100%);
+}
+
+.bg-mesh-foam {
+  background-image:
+    radial-gradient(60% 50% at 80% 0%, rgb(94 196 209 / 0.18), transparent 60%),
+    radial-gradient(40% 50% at 0% 100%, rgb(216 112 96 / 0.10), transparent 60%),
+    linear-gradient(180deg, #f5f1e8 0%, #ede5d2 100%);
+}
+
+// ---- Hairline — línea capilar interior con sombra inset multi-capa --------
+
+.hairline {
+  position: relative;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    box-shadow:
+      inset 0 1px 0 rgb(245 241 232 / 0.12),
+      inset 0 -1px 0 rgb(245 241 232 / 0.02),
+      inset 0 0 0 1px rgb(245 241 232 / 0.06);
+  }
+}
+
+// ---- Caustic overlay — lentes de luz acuosa (usado sobre el HeroFishCanvas)
+.caustic-overlay {
+  background:
+    radial-gradient(ellipse at 30% 20%, rgb(127 227 214 / 0.18) 0%, transparent 45%),
+    radial-gradient(ellipse at 70% 60%, rgb(94 196 209 / 0.14) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 90%, rgb(245 241 232 / 0.06) 0%, transparent 50%);
+  filter: blur(40px);
+}
+
+// ---- Squircle mask — recorte radial simple --------------------------------
+
+.squircle-mask {
+  -webkit-mask-image: radial-gradient(black, black);
+  mask-image: radial-gradient(black, black);
+}
+
+// ---- Scrollbar oculto (manteniendo scroll funcional) ----------------------
+
+.scrollbar-none {
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+// ---- Eyebrow tracking ------------------------------------------------------
+// Helper semántico — equivalente a `tracking-eyebrow` del original.
+.tracking-eyebrow {
+  letter-spacing: var(--tracking-eyebrow);
+}
+
+// ---- Reveal — usado por la directiva [appReveal] (UI atom Reveal). ------
+// Estado inicial: oculto + traslado abajo + blur. Cuando el directive recibe
+// el pulso del IntersectionObserver añade `.is-visible` y se ejecuta la
+// transición que iguala lo que framer-motion hacía con whileInView.
+.reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  filter: blur(8px);
+  transition:
+    opacity 900ms var(--ease-fluid),
+    transform 900ms var(--ease-fluid),
+    filter 900ms var(--ease-fluid);
+  transition-delay: var(--reveal-delay, 0s);
+  will-change: opacity, transform, filter;
+
+  &.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+// Si el usuario prefiere movimiento reducido — sin transición. Estado final
+// directo (visible).
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+    filter: none;
+    transition: none;
+  }
+}

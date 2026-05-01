@@ -1,0 +1,12 @@
+// =============================================================================
+// Globals — orquesta todos los partials del design system.
+// Orden importa: tokens → typography → keyframes → base → utilities → glass.
+// =============================================================================
+
+@use 'tokens';
+@use 'typography';
+@use 'mixins';
+@use 'keyframes';
+@use 'base';
+@use 'utilities';
+@use 'glass';
