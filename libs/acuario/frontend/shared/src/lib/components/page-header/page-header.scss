@@ -20,31 +20,31 @@
 
 // Fade inferior — disuelve el bottom del header en el océano.
 //
-// Antes 11rem terminando en #061826 opaco. El problema: aunque body es del
-// mismo color, el header tiene bubbles + caustic-bg + radial gradients
-// que crean CONTENIDO visual; al terminar abruptamente contra el
-// depth-transition + ocean-background (con peces y rayos), se percibía
-// un corte horizontal claro ("franja").
+// El header tiene bubbles + caustic-bg + radial gradients que crean
+// CONTENIDO visual sobre el bg-mesh-deep. Si la opacidad no llega al 100%
+// en el borde, ese contenido (sumado al gradient radial verde anclado al
+// 50% / 100% del mesh) se percibe como una franja sobre el body abyss.
 //
-// Ahora 16rem y se desborda 4rem hacia abajo (`bottom: -4rem`) para que el
-// fade entre en la siguiente sección. La curva del gradient se acelera al
-// final con un stop intermedio fuerte para que la opacidad llegue casi al
-// 100% antes de salir del header — esconde el contenido del header sin
-// crear el corte sharp contra los peces.
+// El fade vive ENTERO dentro del header (`bottom: 0`) — no se desborda en
+// la siguiente sección, así no roba espacio visual al primer bloque (en
+// mobile el depth-transition está oculto y el header empalma directo con
+// el contenido). La curva acumula opacidad en la primera mitad y aterriza
+// en `#061826` opaco — exactamente el color del body — para que el
+// empalme con la siguiente sección sea un único color continuo.
 .page-header__fade {
   pointer-events: none;
   position: absolute;
   inset-inline: 0;
-  bottom: -4rem;
+  bottom: 0;
   z-index: 3;
   height: 16rem;
   background: linear-gradient(
     180deg,
     transparent 0%,
     rgb(6 24 38 / 0.35) 25%,
-    rgb(6 24 38 / 0.78) 55%,
-    rgb(6 24 38 / 0.95) 80%,
-    rgb(6 24 38 / 0.6) 100%
+    rgb(6 24 38 / 0.7) 55%,
+    rgb(6 24 38 / 0.92) 80%,
+    #061826 100%
   );
 }
 
