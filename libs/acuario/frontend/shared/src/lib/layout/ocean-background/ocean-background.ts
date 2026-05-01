@@ -7,6 +7,9 @@ import {
   inject,
   viewChild,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { NavigationEnd, Router } from '@angular/router';
+import { filter } from 'rxjs/operators';
 
 /**
  * OceanBackground
@@ -281,6 +284,7 @@ export class OceanBackground {
   private readonly canvasRef =
     viewChild.required<ElementRef<HTMLCanvasElement>>('canvas');
   private readonly destroyRef = inject(DestroyRef);
+  private readonly router = inject(Router);
 
   constructor() {
     afterNextRender(() => {
@@ -377,13 +381,17 @@ export class OceanBackground {
     let raf = 0;
     let lastT = performance.now();
 
-    // Pausa por scroll + visibilidad: el ocean-background es position:fixed,
-    // siempre "intersect" con el viewport — pero cuando el hero está al frente
-    // su `bg-mesh-deep` lo cubre por completo. Detectamos eso con scrollY <
-    // viewportHeight*0.7 (umbral generoso para no cortar la transición). El
-    // usuario en home pasa la mayor parte del tiempo sobre el hero → durante
-    // ese tiempo NO se renderiza nada, ahorro masivo de GPU.
-    let isCovered = window.scrollY < window.innerHeight * 0.7;
+    // Pausa por scroll + visibilidad. La regla `cubierto por hero` SOLO aplica
+    // en home: el hero tiene bg-mesh-deep opaco y los peces NO se ven mientras
+    // el usuario lee el primer pliegue → pausamos para ahorrar GPU. En las
+    // demás rutas el page-header solo cubre los primeros ~500px y abajo del
+    // header los peces son visibles desde el primer scroll-Y, así que el
+    // canvas debe estar animando desde el momento en que la página carga —
+    // si pausamos hasta `scrollY > 0.7vh`, el usuario ve los peces congelados
+    // en la zona del depth-transition y siente que es una imagen estática.
+    // La fluidez del background es prioridad sobre el ahorro GPU en internas.
+    let isHomePage = this.router.url === '/' || this.router.url.startsWith('/?');
+    let isCovered = isHomePage && window.scrollY < window.innerHeight * 0.7;
     let isTabVisible = !document.hidden;
     const isActive = (): boolean => !isCovered && isTabVisible;
 
@@ -398,8 +406,29 @@ export class OceanBackground {
       raf = 0;
     };
 
+    // Suscripción a NavigationEnd para reevaluar isHomePage al cambiar de
+    // ruta. El OceanBackground es global (vive en el app shell), no se
+    // recrea entre navegaciones — por eso necesitamos el observable activo.
+    this.router.events
+      .pipe(
+        filter((e): e is NavigationEnd => e instanceof NavigationEnd),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((event) => {
+        const url = event.urlAfterRedirects;
+        isHomePage = url === '/' || url.startsWith('/?');
+        // Reevaluar covered: en internas nunca está covered; en home depende
+        // del scrollY actual.
+        isCovered = isHomePage && window.scrollY < window.innerHeight * 0.7;
+        if (isActive()) start();
+        else stop();
+      });
+
     let scrollScheduled = false;
     const onScroll = (): void => {
+      // En rutas internas no hay nada que pausar por scroll — el canvas debe
+      // animar siempre. Salimos temprano para ahorrar el rAF de coalescing.
+      if (!isHomePage) return;
       if (scrollScheduled) return;
       scrollScheduled = true;
       requestAnimationFrame(() => {
