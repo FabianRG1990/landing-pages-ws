@@ -17,9 +17,11 @@ interface ReelItem extends Species {
 }
 
 /**
- * SpeciesMarquee — capítulo 02 del manifiesto. Marquee horizontal infinito
- * con todas las especies (duplicadas dos veces para el loop sin costura).
- * Anima vía `animate-marquee` (definida en _keyframes.scss).
+ * SpeciesMarquee — capítulo 02. Carrusel CSS infinito de las 8 especies. La
+ * lista se duplica para que el keyframe `translateX(0% → -50%)` recorra las
+ * 8 únicas y al volver a 0% la mitad inicial del reel coincida con la
+ * duplicada — loop seamless sin saltos. Velocidad y composición viven en
+ * SCSS / `_keyframes.scss`.
  */
 @Component({
   selector: 'app-species-marquee',
