@@ -13,11 +13,14 @@
   isolation: isolate;
   min-height: 100dvh;
   overflow: hidden;
+  // Réplica del bg-mesh-deep refinado: dos radiales muy diluidas + linear
+  // neutralizado. En pantallas de alta resolución antes se notaban los
+  // aros y el conjunto se sentía "videojuego"; ahora la profundidad viene
+  // del color del abismo, no de luces añadidas.
   background-image:
-    radial-gradient(60% 50% at 20% 10%, rgb(94 196 209 / 0.15), transparent 60%),
-    radial-gradient(45% 40% at 90% 20%, rgb(127 227 214 / 0.10), transparent 65%),
-    radial-gradient(50% 60% at 50% 100%, rgb(74 107 92 / 0.10), transparent 60%),
-    linear-gradient(180deg, #061826 0%, #08213b 35%, #082238 60%, #061826 100%);
+    radial-gradient(80% 60% at 25% 0%, rgb(94 196 209 / 0.07), transparent 70%),
+    radial-gradient(60% 50% at 90% 25%, rgb(127 227 214 / 0.04), transparent 75%),
+    linear-gradient(180deg, #061826 0%, #07203a 40%, #061f37 70%, #061826 100%);
 }
 
 .hero__bubbles {

@@ -28,13 +28,23 @@
 }
 
 // ---- Mesh backgrounds ------------------------------------------------------
-
+//
+// Versión refinada (premium): bajamos significativamente las opacidades de
+// las radiales superiores, ampliamos su spread (más difuso → en pantallas de
+// alta densidad de pixel no se ven los aros del gradient) y removimos la
+// radial-kelp del fondo (creaba un tinte verdoso visible en el borde con
+// secciones contiguas + sumaba "ruido" de color sobre el abismo).
+//
+// Antes: 3 radiales saturadas (lagoon 0.15 + teal 0.10 + kelp 0.10) sobre
+// linear con tintes #08213b/#082238. En 4K se distinguían los aros y el
+// conjunto se leía "videojuego".
+// Ahora: 2 radiales muy diluidas (0.07 + 0.04) sobre linear más neutro
+// — la profundidad viene del color, no de "luces" añadidas.
 .bg-mesh-deep {
   background-image:
-    radial-gradient(60% 50% at 20% 10%, rgb(94 196 209 / 0.15), transparent 60%),
-    radial-gradient(45% 40% at 90% 20%, rgb(127 227 214 / 0.10), transparent 65%),
-    radial-gradient(50% 60% at 50% 100%, rgb(74 107 92 / 0.10), transparent 60%),
-    linear-gradient(180deg, #061826 0%, #08213b 35%, #082238 60%, #061826 100%);
+    radial-gradient(80% 60% at 25% 0%, rgb(94 196 209 / 0.07), transparent 70%),
+    radial-gradient(60% 50% at 90% 25%, rgb(127 227 214 / 0.04), transparent 75%),
+    linear-gradient(180deg, #061826 0%, #07203a 40%, #061f37 70%, #061826 100%);
 }
 
 .bg-mesh-foam {
@@ -63,12 +73,16 @@
 }
 
 // ---- Caustic overlay — lentes de luz acuosa (usado sobre el HeroFishCanvas)
+//
+// Opacidades bajadas de 0.18/0.14/0.06 → 0.08/0.06/0.04 y blur ampliado a
+// 60px. En pantallas de alta resolución antes se notaban manchas teal
+// definidas; ahora son caustics atmosféricos sutiles.
 .caustic-overlay {
   background:
-    radial-gradient(ellipse at 30% 20%, rgb(127 227 214 / 0.18) 0%, transparent 45%),
-    radial-gradient(ellipse at 70% 60%, rgb(94 196 209 / 0.14) 0%, transparent 50%),
-    radial-gradient(ellipse at 50% 90%, rgb(245 241 232 / 0.06) 0%, transparent 50%);
-  filter: blur(40px);
+    radial-gradient(ellipse at 30% 20%, rgb(127 227 214 / 0.08) 0%, transparent 45%),
+    radial-gradient(ellipse at 70% 60%, rgb(94 196 209 / 0.06) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 90%, rgb(245 241 232 / 0.04) 0%, transparent 50%);
+  filter: blur(60px);
 }
 
 // ---- Squircle mask — recorte radial simple --------------------------------

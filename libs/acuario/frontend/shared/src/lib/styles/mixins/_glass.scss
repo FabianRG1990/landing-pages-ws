@@ -9,10 +9,17 @@
 // ---- glass-shell ----------------------------------------------------------
 // Pared exterior — usar emparejada con .glass-core en el interior.
 // Vive sobre fondos abismales (deep).
+//
+// Tinte superior neutralizado: antes era teal `rgb(127 227 214 / 0.07)` que
+// en pantallas de alta resolución se leía como un "halo celeste" sobre cada
+// card — efecto videojuego. Ahora es foam `rgb(245 241 232 / 0.05)`: la
+// reflexión sigue ahí (lectura de cristal real), pero sin saturación de
+// color que delate el efecto. El spread se amplía (130% vs 120%) para
+// difuminar el borde de la radial.
 .glass-shell {
   position: relative;
   background:
-    radial-gradient(ellipse 120% 60% at 50% -8%, rgb(127 227 214 / 0.07) 0%, transparent 65%),
+    radial-gradient(ellipse 130% 70% at 50% -10%, rgb(245 241 232 / 0.05) 0%, transparent 70%),
     linear-gradient(180deg, rgb(245 241 232 / 0.085) 0%, rgb(245 241 232 / 0.02) 100%);
   // Mobile: 14px (antes 28px). Cada glass-shell es una capa GPU adicional;
   // en mobile hay muchas tarjetas (ticket-cards, exhibits) y el costo se
@@ -39,8 +46,10 @@
 .glass-core {
   position: relative;
   overflow: hidden;
+  // Top reflection neutralizado igual que glass-shell — foam en vez de teal,
+  // opacidad bajada y spread ampliado.
   background:
-    radial-gradient(ellipse 110% 65% at 50% -5%, rgb(127 227 214 / 0.055) 0%, transparent 60%),
+    radial-gradient(ellipse 120% 70% at 50% -10%, rgb(245 241 232 / 0.04) 0%, transparent 65%),
     linear-gradient(180deg, rgb(11 34 53 / 0.55) 0%, rgb(6 24 38 / 0.80) 100%);
   box-shadow:
     inset 0 1px 0 rgb(245 241 232 / 0.12),
@@ -74,9 +83,13 @@
   @media (hover: hover) and (pointer: fine) {
     &:hover {
       transform: translateY(-2px);
+      // Ring de hover: antes teal saturado (0.18) que se leía como "neon
+      // outline" en alta resolución. Ahora foam neutro a opacidad menor
+      // — la card se siente "lifted" por la sombra + el inset, no por un
+      // contorno cyan.
       box-shadow:
         0 48px 96px -28px rgb(6 24 38 / 0.85),
-        0 0 0 1px rgb(127 227 214 / 0.18),
+        0 0 0 1px rgb(245 241 232 / 0.14),
         inset 0 1px 0 rgb(245 241 232 / 0.28),
         inset 0 -1px 0 rgb(6 24 38 / 0.48),
         inset 1px 0 0 rgb(245 241 232 / 0.06),
@@ -115,13 +128,16 @@
 // refracción cyan inferior + ring de tensión superficial.
 .glass-bubble {
   position: relative;
+  // Refracción cyan inferior bajada de 0.10 → 0.05: el efecto de "burbuja
+  // refractada" sigue presente (es premium si se nota apenas), pero ya no
+  // se lee como acento de color contra el contenido.
   background:
     // Catchlight principal
     radial-gradient(ellipse 26% 24% at 32% 14%, rgb(255 255 255 / 0.55) 0%, rgb(255 255 255 / 0.14) 42%, transparent 72%),
     // Glow secundario
     radial-gradient(ellipse 95% 55% at 50% -18%, rgb(245 241 232 / 0.22) 0%, rgb(245 241 232 / 0.04) 40%, transparent 60%),
-    // Refracción inferior cyan
-    radial-gradient(ellipse 75% 38% at 50% 112%, rgb(127 227 214 / 0.10) 0%, transparent 55%),
+    // Refracción inferior cyan — diluida
+    radial-gradient(ellipse 75% 38% at 50% 112%, rgb(127 227 214 / 0.05) 0%, transparent 55%),
     // Base translúcida
     linear-gradient(180deg, rgb(245 241 232 / 0.10) 0%, rgb(245 241 232 / 0.02) 52%, rgb(245 241 232 / 0.07) 100%);
   // Mobile: 14px (antes 26px). El gradient + box-shadow ya carga el look
@@ -158,15 +174,19 @@
   @media (hover: hover) and (pointer: fine) {
     &:hover {
       transform: translateY(-1px);
+      // Hover: refracción cyan diluida (0.16 → 0.08) y ring teal del
+      // box-shadow neutralizado a foam (0.26 → 0.18 foam) — el lift se
+      // siente por la sombra y el catchlight más brillante, no por un
+      // halo cyan saturado.
       background:
         radial-gradient(ellipse 26% 24% at 32% 14%, rgb(255 255 255 / 0.65) 0%, rgb(255 255 255 / 0.18) 42%, transparent 72%),
         radial-gradient(ellipse 95% 55% at 50% -18%, rgb(245 241 232 / 0.30) 0%, rgb(245 241 232 / 0.06) 40%, transparent 60%),
-        radial-gradient(ellipse 75% 38% at 50% 112%, rgb(127 227 214 / 0.16) 0%, transparent 55%),
+        radial-gradient(ellipse 75% 38% at 50% 112%, rgb(127 227 214 / 0.08) 0%, transparent 55%),
         linear-gradient(180deg, rgb(245 241 232 / 0.14) 0%, rgb(245 241 232 / 0.04) 52%, rgb(245 241 232 / 0.10) 100%);
       box-shadow:
         0 38px 84px -18px rgb(6 24 38 / 0.72),
         0 14px 28px -10px rgb(6 24 38 / 0.52),
-        0 0 0 1px rgb(127 227 214 / 0.26),
+        0 0 0 1px rgb(245 241 232 / 0.18),
         inset 0 1.5px 0 rgb(255 255 255 / 0.70),
         inset 0 8px 18px -6px rgb(255 255 255 / 0.28),
         inset 0 -3px 10px -3px rgb(0 0 0 / 0.30),
@@ -187,9 +207,12 @@
 // Versión interior tipo esfera concentrada — usada dentro de pill-buttons.
 .glass-bubble-icon {
   position: relative;
+  // Refracción cyan inferior bajada de 0.14 → 0.07 — el icon-pill mantiene
+  // su lectura de cristal con catchlight blanco, sin que el cyan delate
+  // el efecto en pantallas de alta densidad.
   background:
     radial-gradient(circle at 32% 22%, rgb(255 255 255 / 0.60) 0%, rgb(255 255 255 / 0.12) 38%, transparent 68%),
-    radial-gradient(circle at 50% 105%, rgb(127 227 214 / 0.14) 0%, transparent 55%),
+    radial-gradient(circle at 50% 105%, rgb(127 227 214 / 0.07) 0%, transparent 55%),
     linear-gradient(180deg, rgb(245 241 232 / 0.16) 0%, rgb(245 241 232 / 0.04) 100%);
   box-shadow:
     inset 0 1.5px 0 rgb(255 255 255 / 0.65),
