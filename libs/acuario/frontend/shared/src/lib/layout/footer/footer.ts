@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { BrandLockup } from '../../components/brand-mark/brand-lockup';
+import { EmblemMark } from '../../components/brand-mark/emblem-mark';
 
 interface NavLink {
   readonly label: string;
@@ -8,13 +8,14 @@ interface NavLink {
 }
 
 /**
- * Footer — pieza inferior fija del shell. Contiene la marca completa
- * (BrandLockup), tagline editorial, columna de navegación secundaria y la
- * barra legal con copyright + enlaces meta.
+ * Footer — shell inferior compacto. Brand reducido a emblema + meta inline,
+ * nav horizontal y bottom bar de una línea (en desktop). Antes usaba el
+ * BrandLockup 150×180 — sumaba ~180px de altura solo por la marca; el
+ * emblema 36px transmite la misma identidad ocupando 5× menos espacio.
  */
 @Component({
   selector: 'app-footer',
-  imports: [RouterLink, BrandLockup],
+  imports: [RouterLink, EmblemMark],
   templateUrl: './footer.html',
   styleUrl: './footer.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

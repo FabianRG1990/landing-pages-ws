@@ -11,8 +11,9 @@
   isolation: isolate;
   overflow: hidden;
 
-  // Réplica del mesh-deep del page-header sin caustic ni bubbles para
-  // preservar la estética sin sumar componentes que pesen verticalmente.
+  // Réplica del mesh-deep del page-header sin caustic ni bubbles. La
+  // radial inferior tintea con kelp; sin contramedida deja una franja
+  // verdosa donde la sección termina contra el footer abyss → corte.
   background-image:
     radial-gradient(60% 50% at 20% 10%, rgb(94 196 209 / 0.15), transparent 60%),
     radial-gradient(45% 40% at 90% 20%, rgb(127 227 214 / 0.10), transparent 65%),
@@ -33,9 +34,37 @@
     align-items: center;
     padding-block: 6.5rem 2.5rem;
   }
+
+  // Fade inferior — disuelve el mesh (con su tinte kelp) en `#061826`
+  // puro antes de tocar el footer (mismo color del `--abyss`). Sin esto
+  // se ve un corte horizontal entre el verde tenue del contacto y el
+  // abyss del footer. El gradient acumula opacidad rápido y aterriza
+  // 100% sólido en el borde inferior — el píxel final = primer píxel
+  // del footer → costura invisible.
+  &::after {
+    content: '';
+    pointer-events: none;
+    position: absolute;
+    inset-inline: 0;
+    bottom: 0;
+    height: 8rem;
+    z-index: 0;
+    background: linear-gradient(
+      180deg,
+      transparent 0%,
+      rgb(6 24 38 / 0.45) 40%,
+      rgb(6 24 38 / 0.85) 75%,
+      #061826 100%
+    );
+  }
 }
 
 .contacto__container {
+  // `position: relative` + z-index 1 mantiene el container por encima del
+  // fade del `.contacto::after` (z-index 0). Sin esto el fade taparía el
+  // contenido en la zona inferior.
+  position: relative;
+  z-index: 1;
   margin-inline: auto;
   width: 100%;
   max-width: 80rem;
