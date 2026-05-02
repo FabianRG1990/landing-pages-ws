@@ -11,10 +11,15 @@
 // ─── 1: Catálogo ───────────────────────────────────────────────────────────
 .especies {
   position: relative;
-  padding-block: 5rem;
+  // Padding-top muy reducido — el header ya ocupa 100dvh, así que la
+  // sección está debajo del fold en la carga inicial. Cuando el usuario
+  // scrollea no necesita pasar por un valle muerto entre el final del
+  // header y el primer card. Antes 5rem/7rem (mobile/desktop) + 22vh de
+  // depth-transition encima daban un total de ~280-320px de aire muerto.
+  padding-block: 2rem 4rem;
 
   @media (min-width: 1024px) {
-    padding-block: 7rem;
+    padding-block: 3rem 6rem;
   }
 }
 

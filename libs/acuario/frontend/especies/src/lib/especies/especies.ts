@@ -1,7 +1,6 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 
 import { conservationStats, species } from '@acuario-ui-shared/data/data';
-import { DepthTransition } from '@acuario-ui-shared/components/depth-transition/depth-transition';
 import { ImgFadeDirective } from '@acuario-ui-shared/directives/img-fade/img-fade.directive';
 import { PageHeader } from '@acuario-ui-shared/components/page-header/page-header';
 import { RevealDirective } from '@acuario-ui-shared/directives/reveal/reveal.directive';
@@ -54,7 +53,7 @@ const PROGRAMS: ReadonlyArray<Program> = [
  */
 @Component({
   selector: 'app-especies-page',
-  imports: [DepthTransition, ImgFadeDirective, PageHeader, RevealDirective],
+  imports: [ImgFadeDirective, PageHeader, RevealDirective],
   templateUrl: './especies.html',
   styleUrl: './especies.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,

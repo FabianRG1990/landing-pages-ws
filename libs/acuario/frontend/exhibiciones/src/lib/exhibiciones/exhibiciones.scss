@@ -4,10 +4,14 @@
 
 .exhibiciones {
   position: relative;
-  padding-block: 5rem;
+  // Padding-top muy reducido — el header ocupa 100dvh así que esta
+  // sección está debajo del fold inicial. Apenas el usuario scrollea
+  // empieza a verse el primer bioma sin tener que cruzar un valle de
+  // espacio muerto. Antes 5rem/7rem + 22vh de depth-transition encima.
+  padding-block: 2rem 4rem;
 
   @media (min-width: 1024px) {
-    padding-block: 7rem;
+    padding-block: 3rem 6rem;
   }
 }
 

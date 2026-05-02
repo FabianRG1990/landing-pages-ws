@@ -8,10 +8,25 @@
   position: relative;
   isolation: isolate;
   overflow: hidden;
+  // `min-height: 100dvh` ancla el header a la viewport completa en la
+  // carga inicial: el siguiente segmento de la página queda debajo del
+  // fold, sin "intrusión" sobre el encabezado. Cuando el usuario scrollea
+  // arriba devuelve naturalmente al estado inicial — el segmento siguiente
+  // queda fuera de pantalla porque está debajo del fold del header.
+  min-height: 100dvh;
   // Padding fluido sin step-functions: phone (~360px) → 8rem top, desktop
   // (1440px) → 14rem. Bottom escala 4→7rem. El nav respira sin dejar huecos.
   padding-top: clamp(8rem, 5rem + 9vw, 14rem);
   padding-bottom: clamp(4rem, 2.5rem + 4vw, 7rem);
+  // Flex column centrado: el container queda al centro vertical del
+  // header en lugar de pegado arriba contra el padding-top. Resultado:
+  // el contenido editorial (chip + capítulo + título + descripción) vive
+  // en el centro óptico de la viewport, con el aire mesh-deep + bubbles
+  // distribuído arriba y abajo. Sin esto el contenido quedaba pegado
+  // arriba dejando ~700px muertos de fondo bajo la última línea.
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .page-header__bubbles {

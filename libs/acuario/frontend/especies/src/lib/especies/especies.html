@@ -5,13 +5,12 @@
   italic="un protocolo propio."
   description="Llevamos un registro vivo de cada criatura: hábitat, dieta, profundidad y estado de conservación. Y abajo, los programas que mantenemos abiertos al mundo para protegerlas."
 />
-<app-depth-transition />
 
 <!-- ──── 1: Catálogo de especies ──── -->
 <section class="especies">
   <div class="especies__container">
     <!-- Filtros -->
-    <div class="especies__filters">
+    <div appReveal class="especies__filters">
       <span class="especies__filters-label">Filtrar por hábitat</span>
       <div class="especies__filters-list">
         @for (f of filters; track f; let i = $index) {
