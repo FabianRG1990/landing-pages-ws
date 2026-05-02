@@ -146,7 +146,7 @@
   &.is-visible {
     // forwards: el end-state del keyframe (opacity 1, sin blur, sin
     // translate) persiste al terminar — el elemento se queda visible.
-    animation: reveal-in 1100ms var(--ease-fluid) var(--reveal-delay, 0s)
+    animation: reveal-in 400ms var(--ease-fluid) var(--reveal-delay, 0s)
       forwards;
   }
 }
