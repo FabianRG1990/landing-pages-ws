@@ -1,9 +1,8 @@
-name: Deploy to Firebase Hosting on merge
+name: Deploy arias to Firebase Hosting on merge
 
-# Cuando se mergea a `main` (o se hace push directo a main), builda y publica
-# al canal `live` — la URL pública oficial del proyecto:
-#   https://landing-pages-79afc.web.app
-#   https://landing-pages-79afc.firebaseapp.com
+# Cuando se mergea a `main`, builda la app `arias` y la publica al canal
+# `live` de su sitio dedicado:
+#   https://dra-monica-arias.web.app
 
 on:
   push:
@@ -27,7 +26,7 @@ jobs:
         run: yarn install --immutable
 
       - name: Build production
-        run: yarn nx build acuario --configuration=production
+        run: yarn nx build arias --configuration=production
 
       - name: Deploy to Firebase Hosting (live channel)
         uses: FirebaseExtended/action-hosting-deploy@v0
@@ -35,5 +34,5 @@ jobs:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_LANDING_PAGES_79AFC }}
           projectId: landing-pages-79afc
-          target: acuario
+          target: arias
           channelId: live
