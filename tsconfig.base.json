@@ -15,14 +15,14 @@
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@org/api/products": ["libs/api/products/src/index.ts"],
-      "@org/models": ["libs/shared/models/src/index.ts"],
-      "@org/shop/data": ["libs/shop/data/src/index.ts"],
-      "@org/shop/feature-product-detail": [
-        "libs/shop/feature-product-detail/src/index.ts"
+      "@acuario-ui-shared": ["./libs/acuario/frontend/shared/src/index.ts"],
+      "@acuario-ui-shared/*": ["./libs/acuario/frontend/shared/src/lib/*"],
+      "@acuario-ui-home": ["./libs/acuario/frontend/home/src/index.ts"],
+      "@acuario-ui-exhibiciones": [
+        "./libs/acuario/frontend/exhibiciones/src/index.ts"
       ],
-      "@org/shop/feature-products": ["libs/shop/feature-products/src/index.ts"],
-      "@org/shop/shared-ui": ["libs/shop/shared-ui/src/index.ts"]
+      "@acuario-ui-especies": ["./libs/acuario/frontend/especies/src/index.ts"],
+      "@acuario-ui-contacto": ["./libs/acuario/frontend/contacto/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]
