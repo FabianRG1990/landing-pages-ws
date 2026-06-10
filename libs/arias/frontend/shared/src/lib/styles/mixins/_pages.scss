@@ -3,7 +3,9 @@
    ============================================================ */
 
 /* =================  INICIO / HERO  ================= */
-.hero { position: relative; padding: clamp(20px, 4vh, 60px) 0 clamp(40px, 7vh, 90px); }
+/* overflow-x: clip contiene el bleed decorativo de .hero-mark (140% de ancho)
+   sin afectar el scroll vertical ni el position:sticky de otras secciones. */
+.hero { position: relative; padding: clamp(20px, 4vh, 60px) 0 clamp(40px, 7vh, 90px); overflow-x: clip; }
 .hero-grid {
   display: grid; grid-template-columns: 1.05fr .95fr; gap: clamp(30px, 5vw, 80px); align-items: center;
 }
