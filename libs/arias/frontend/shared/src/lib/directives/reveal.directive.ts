@@ -1,24 +1,23 @@
 import {
+  DestroyRef,
   Directive,
   ElementRef,
   HostBinding,
-  PLATFORM_ID,
   afterNextRender,
   inject,
 } from '@angular/core';
-import { isPlatformBrowser } from '@angular/common';
+import { RevealOnScroll } from '../transitions/reveal-on-scroll.service';
 
 /**
- * appReveal — reveal de entrada (equivale al "data-reveal" del sitio
- * original). Aplica la clase `.reveal` (oculto) vía HostBinding —presente
- * también en el HTML prerenderizado, así no hay flash— y agrega `.is-visible`
- * cuando el elemento entra en viewport.
+ * appReveal — reveal de entrada al hacer scroll. Marca el elemento con la
+ * clase `.reveal` (oculto) vía HostBinding —presente también en el HTML
+ * prerenderizado, sin flash— y lo registra en el servicio compartido, que se
+ * encarga de revelarlo con una cascada limpia y ordenada por DOM.
  *
- * El atributo opcional `data-delay` (ej. "0.12s") escala el stagger.
  *   <div appReveal></div>
- *   <h1 appReveal data-delay="0.12s"></h1>
  *
- * Honra prefers-reduced-motion (la regla CSS neutraliza el estado oculto).
+ * El stagger lo decide el servicio (no un delay por elemento), así el scroll
+ * rápido no desordena la animación. Honra prefers-reduced-motion.
  */
 @Directive({
   selector: '[appReveal]',
@@ -26,35 +25,15 @@ import { isPlatformBrowser } from '@angular/common';
 })
 export class RevealDirective {
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
-  private readonly platformId = inject(PLATFORM_ID);
+  private readonly reveal = inject(RevealOnScroll);
+  private readonly destroyRef = inject(DestroyRef);
 
   @HostBinding('class.reveal') readonly hostClass = true;
 
   constructor() {
-    afterNextRender(() => {
-      if (!isPlatformBrowser(this.platformId)) return;
-      const el = this.host.nativeElement;
-
-      const delay = el.getAttribute('data-delay');
-      if (delay) el.style.transitionDelay = delay;
-
-      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-        el.classList.add('is-visible');
-        return;
-      }
-
-      const observer = new IntersectionObserver(
-        (entries) => {
-          for (const entry of entries) {
-            if (entry.isIntersecting) {
-              el.classList.add('is-visible');
-              observer.disconnect();
-            }
-          }
-        },
-        { threshold: 0.12, rootMargin: '0px 0px -8% 0px' },
-      );
-      observer.observe(el);
-    });
+    afterNextRender(() => this.reveal.observe(this.host.nativeElement));
+    this.destroyRef.onDestroy(() =>
+      this.reveal.unobserve(this.host.nativeElement),
+    );
   }
 }
