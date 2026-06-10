@@ -7,11 +7,7 @@ import { Route } from '@angular/router';
  * como ruta nombrada para la navegación del navbar.
  */
 export const appRoutes: Route[] = [
-  {
-    path: '',
-    pathMatch: 'full',
-    loadChildren: () => import('@arias-ui-inicio'),
-  },
+  { path: '', pathMatch: 'full', redirectTo: 'inicio' },
   { path: 'inicio', loadChildren: () => import('@arias-ui-inicio') },
   { path: 'sobre', loadChildren: () => import('@arias-ui-sobre') },
   { path: 'servicios', loadChildren: () => import('@arias-ui-servicios') },
