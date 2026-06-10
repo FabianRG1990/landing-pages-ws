@@ -1,0 +1,13 @@
+{
+  "name": "arias-ui-enfoque",
+  "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/arias/frontend/enfoque/src",
+  "prefix": "app",
+  "projectType": "library",
+  "tags": ["scope:arias"],
+  "targets": {
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    }
+  }
+}

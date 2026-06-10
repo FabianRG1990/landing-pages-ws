@@ -1,0 +1,38 @@
+name: Deploy arias to Firebase Hosting on merge
+
+# Cuando se mergea a `main`, builda la app `arias` y la publica al canal
+# `live` de su sitio dedicado:
+#   https://dra-monica-arias.web.app
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build_and_deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Enable Corepack (Yarn 4)
+        run: corepack enable
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      - name: Build production
+        run: yarn nx build arias --configuration=production
+
+      - name: Deploy to Firebase Hosting (live channel)
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_LANDING_PAGES_79AFC }}
+          projectId: landing-pages-79afc
+          target: arias
+          channelId: live

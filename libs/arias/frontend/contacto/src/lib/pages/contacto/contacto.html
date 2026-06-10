@@ -1,0 +1,88 @@
+<section class="page">
+  <div class="page-inner">
+    <div class="wrap page-head">
+      <div class="ph-grid">
+        <div>
+          <div class="page-num" appReveal>05</div>
+          <h2 class="h-section" appReveal data-delay="0.06s">Contacto<br />y citas</h2>
+        </div>
+        <p class="lead ph-lead" appReveal data-delay="0.12s">Abre tu corazón en un ambiente de confianza y calma. Escríbeme para coordinar tu cita y resolver cualquier detalle.</p>
+      </div>
+    </div>
+
+    <div class="wrap" style="padding-bottom:clamp(60px,9vh,110px)">
+      <div class="contact-grid">
+        <div class="contact-info">
+          <div class="ci-block" appReveal>
+            <div class="ci-lab">Consultorio</div>
+            <div class="ci-val">Oficina 323, Edificio Centauro</div>
+            <div class="ci-sub">3.<sup>er</sup> piso · Guadalupe, Goicoechea<br />San José, Costa Rica</div>
+          </div>
+          <div class="ci-block" appReveal data-delay="0.05s">
+            <div class="ci-lab">Correo</div>
+            <div class="ci-val"><a href="mailto:monica.ariaslepiz@gmail.com">monica.ariaslepiz&#64;gmail.com</a></div>
+          </div>
+          <div class="ci-block" appReveal data-delay="0.10s">
+            <div class="ci-lab">Teléfonos</div>
+            <div class="ci-val"><a href="tel:+50622240243">(506) 2224 0243</a></div>
+            <div class="ci-val" style="margin-top:.3rem"><a href="tel:+50688379409">(506) 8837 9409</a> <span class="ci-sub">· Celular / WhatsApp</span></div>
+          </div>
+
+          <div class="contact-actions" appReveal data-delay="0.12s">
+            <a class="btn btn-wa" href="https://wa.me/50688379409?text=Hola%20Dra.%20Arias%2C%20me%20gustar%C3%ADa%20agendar%20una%20cita." target="_blank" rel="noopener">
+              <svg class="ico" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 00-8.6 15l-1.3 4.7 4.8-1.3A10 10 0 1012 2zm0 2a8 8 0 11-4.1 14.9l-.3-.2-2.8.8.8-2.7-.2-.3A8 8 0 0112 4zm-3.4 4.3c-.2 0-.5.1-.7.3-.3.3-1 .9-1 2.3s1 2.7 1.2 2.9c.1.2 2 3.1 4.9 4.2 2.4 1 2.9.8 3.5.7.5-.1 1.6-.6 1.8-1.3.2-.6.2-1.2.2-1.3l-.6-.3s-1.6-.8-1.8-.9c-.2-.1-.4-.1-.6.1l-.8 1c-.2.2-.3.2-.5.1-.3-.1-1.1-.4-2.1-1.3-.8-.7-1.3-1.5-1.4-1.8-.2-.2 0-.4.1-.5l.4-.5.3-.5v-.5l-.8-1.9c-.2-.5-.4-.4-.6-.4z"/></svg>
+              WhatsApp
+            </a>
+            <a class="btn btn-ghost" href="tel:+50688379409">Llamar</a>
+            <a class="btn btn-ghost" href="mailto:monica.ariaslepiz@gmail.com">Correo</a>
+          </div>
+
+          <a class="map-card" appReveal data-delay="0.16s" href="https://www.google.com/maps/search/?api=1&query=Edificio%20Centauro%20Guadalupe%20Goicoechea%20San%20Jos%C3%A9%20Costa%20Rica" target="_blank" rel="noopener">
+            <span class="map-pin">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 21s-7-6-7-11a7 7 0 1114 0c0 5-7 11-7 11z"/><circle cx="12" cy="10" r="2.4"/></svg>
+            </span>
+            <span class="map-meta">
+              <span class="map-t">Edificio Centauro · Guadalupe</span>
+              <span class="map-s">Goicoechea, San José · Costa Rica</span>
+            </span>
+            <span class="map-go">Ver en mapa <span class="ln"></span></span>
+          </a>
+        </div>
+
+        <div class="contact-card" appReveal data-delay="0.08s">
+          <h3>Envíame un mensaje</h3>
+          <p class="cc-sub">Completa el formulario y te responderé personalmente para coordinar tu cita.</p>
+          <form (ngSubmit)="submit()" novalidate>
+            <div class="field">
+              <label for="f-nombre">Nombre completo</label>
+              <input id="f-nombre" name="nombre" type="text" placeholder="Tu nombre" autocomplete="name" [(ngModel)]="nombre" />
+            </div>
+            <div class="form-row">
+              <div class="field">
+                <label for="f-email">Correo</label>
+                <input id="f-email" name="email" type="email" placeholder="tucorreo@email.com" autocomplete="email" [(ngModel)]="email" />
+              </div>
+              <div class="field">
+                <label for="f-tel">Teléfono</label>
+                <input id="f-tel" name="telefono" type="tel" placeholder="(506) 0000 0000" autocomplete="tel" [(ngModel)]="telefono" />
+              </div>
+            </div>
+            <div class="field">
+              <label for="f-msg">Mensaje</label>
+              <textarea id="f-msg" name="mensaje" placeholder="Cuéntame brevemente en qué puedo acompañarte…" [(ngModel)]="mensaje"></textarea>
+            </div>
+            <button class="btn btn-primary btn-lg" type="submit" style="width:100%;justify-content:center">Enviar mensaje</button>
+            <div class="form-status" role="status">{{ status() }}</div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+  <footer class="site-footer"><div class="wrap footer-row">
+    <span class="fnote">© 2026 Dra. Mónica Arias Lépiz · Psicología · San José, Costa Rica</span>
+    <div class="socials">
+      <a href="https://www.facebook.com/ariaspsicologia" target="_blank" rel="noopener" aria-label="Facebook"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M13.5 21v-8h2.62l.39-3h-3.01V8.07c0-.86.24-1.45 1.48-1.45h1.6V3.94c-.28-.04-1.23-.12-2.34-.12-2.31 0-3.9 1.41-3.9 4V10H7.9v3h2.44v8z"/></svg></a>
+      <a href="https://www.linkedin.com/in/m%C3%B3nica-arias-lepiz-92484999/" target="_blank" rel="noopener" aria-label="LinkedIn"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.94 7.5a1.97 1.97 0 11-.02-3.94 1.97 1.97 0 01.02 3.94zM5.32 9.02h3.25V19.5H5.32zM10.6 9.02h3.11v1.43h.05c.43-.81 1.49-1.67 3.07-1.67 3.28 0 3.89 2.13 3.89 4.91V19.5h-3.24v-4.96c0-1.18-.02-2.7-1.66-2.7-1.66 0-1.92 1.28-1.92 2.61V19.5H10.6z"/></svg></a>
+    </div>
+  </div></footer>
+</section>

@@ -19,24 +19,22 @@ jobs:
           filter: tree:0
           fetch-depth: 0
 
-      # This enables task distribution via Nx Cloud
-      # Run this command as early as possible, before dependencies are installed
-      # Learn more at https://nx.dev/ci/reference/nx-cloud-cli#npx-nxcloud-startcirun
-      - run: yarn dlx nx start-ci-run --distribute-on="3 linux-medium-js" --stop-agents-after="e2e"
-
-      # Cache node_modules
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'yarn'
 
+      # Activate Yarn 4 (declared in package.json `packageManager`) BEFORE any
+      # `yarn` command runs. Doing this first avoids the global Yarn 1.x being
+      # used during cache resolution / start-ci-run, which fails against the
+      # `yarn@4.x` pin. (Note: `cache: 'yarn'` is intentionally NOT set on
+      # setup-node — it would invoke Yarn before Corepack is enabled.)
       - run: corepack enable
+      - run: corepack prepare yarn@4.14.1 --activate
+
       - run: yarn install --immutable
       - run: yarn playwright install --only-shell
 
-      # Prepend any command with "nx record --" to record its logs to Nx Cloud
-      - run: yarn nx record -- echo Hello World
+      # Tareas afectadas/relevantes. Sin Nx Cloud: corren localmente en el runner
+      # con caché local (no distribuida). Se quitaron `start-ci-run`, `nx record`
+      # y `fix-ci` porque requieren un workspace conectado a Nx Cloud.
       - run: yarn nx run-many -t lint test build typecheck e2e
-      # Nx Cloud recommends fixes for failures to help you get CI green faster. Learn more: https://nx.dev/ci/features/self-healing-ci
-      - run: yarn nx fix-ci
-        if: always()

@@ -1,5 +1,18 @@
 {
   "projects": {
     "default": "landing-pages-79afc"
-  }
+  },
+  "targets": {
+    "landing-pages-79afc": {
+      "hosting": {
+        "acuario": [
+          "landing-pages-79afc"
+        ],
+        "arias": [
+          "dra-monica-arias"
+        ]
+      }
+    }
+  },
+  "etags": {}
 }
