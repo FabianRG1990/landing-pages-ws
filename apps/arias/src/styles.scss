@@ -1,0 +1,9 @@
+/* ============================================================
+   Dra. Mónica Arias · Psicología — Hoja de estilos global
+   El design system vive en libs/shared/src/lib/styles
+   (resuelto vía stylePreprocessorOptions.includePaths).
+   ============================================================ */
+
+@use 'settings/tokens';
+@use 'mixins/base';
+@use 'mixins/pages';

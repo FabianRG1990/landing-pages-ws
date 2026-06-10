@@ -28,6 +28,10 @@ export default [
               sourceTag: 'scope:acuario',
               onlyDependOnLibsWithTags: ['scope:acuario', 'scope:shared'],
             },
+            {
+              sourceTag: 'scope:arias',
+              onlyDependOnLibsWithTags: ['scope:arias', 'scope:shared'],
+            },
           ],
         },
       ],

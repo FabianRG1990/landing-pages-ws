@@ -1,0 +1,49 @@
+/* ============================================================
+   DRA. ARIAS · PSICOLOGÍA — Design tokens
+   Turquesa + carbón sobre marfil cálido · Sanar desde el corazón
+   ============================================================ */
+
+:root {
+  /* Marfil / papel cálido */
+  --ivory:      #F5EDE3;
+  --ivory-2:    #EFE4D6;
+  --paper:      #FBF7F1;
+  --paper-2:    #F3EADd;
+
+  /* Turquesa · Sanar desde el corazón */
+  --wine:       #4F9D99;
+  --wine-deep:  #2C6B68;
+  --wine-soft:  #84C3BE;
+  --wine-glow:  rgba(79, 157, 153, 0.14);
+
+  /* Carbón / tinta */
+  --charcoal:   #2A2528;
+  --ink:        #3B3236;
+  --ink-soft:   #6A5F63;
+  --ink-faint:  #948A8D;
+
+  /* Acentos suaves */
+  --rose:       #DCEAE6;
+  --rose-deep:  #B9D9D2;
+  --gold:       #B6895A;
+  --gold-soft:  #9FC9C2;
+
+  /* Líneas y superficies */
+  --line:       rgba(42, 37, 40, 0.13);
+  --line-soft:  rgba(42, 37, 40, 0.07);
+  --card:       rgba(255, 253, 250, 0.72);
+  --card-solid: #FBF7F1;
+  --shadow-sm:  0 2px 10px rgba(60, 30, 45, 0.06);
+  --shadow-md:  0 18px 50px -22px rgba(60, 20, 40, 0.30), 0 4px 14px rgba(60, 30, 45, 0.06);
+  --shadow-lg:  0 40px 90px -40px rgba(70, 20, 45, 0.45), 0 8px 24px rgba(60, 30, 45, 0.08);
+
+  /* Tipografía (variables para el panel de Tweaks) */
+  --font-display: "Cormorant Garamond", Georgia, serif;
+  --font-eyebrow: "Jost", system-ui, sans-serif;
+  --font-body:    "Mulish", system-ui, sans-serif;
+
+  --nav-h: 84px;
+  --ease:  cubic-bezier(.6, .02, .1, 1);
+  --ease-out: cubic-bezier(.16, 1, .3, 1);
+  --maxw: 1240px;
+}

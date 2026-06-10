@@ -22,7 +22,15 @@
         "./libs/acuario/frontend/exhibiciones/src/index.ts"
       ],
       "@acuario-ui-especies": ["./libs/acuario/frontend/especies/src/index.ts"],
-      "@acuario-ui-contacto": ["./libs/acuario/frontend/contacto/src/index.ts"]
+      "@acuario-ui-contacto": ["./libs/acuario/frontend/contacto/src/index.ts"],
+      "@arias-ui-shared": ["./libs/arias/frontend/shared/src/index.ts"],
+      "@arias-ui-shared/*": ["./libs/arias/frontend/shared/src/lib/*"],
+      "@arias-ui-inicio": ["./libs/arias/frontend/inicio/src/index.ts"],
+      "@arias-ui-sobre": ["./libs/arias/frontend/sobre/src/index.ts"],
+      "@arias-ui-servicios": ["./libs/arias/frontend/servicios/src/index.ts"],
+      "@arias-ui-enfoque": ["./libs/arias/frontend/enfoque/src/index.ts"],
+      "@arias-ui-articulos": ["./libs/arias/frontend/articulos/src/index.ts"],
+      "@arias-ui-contacto": ["./libs/arias/frontend/contacto/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]
