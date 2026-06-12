@@ -1,6 +1,7 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  DestroyRef,
   PLATFORM_ID,
   afterNextRender,
   effect,
@@ -8,6 +9,8 @@ import {
   signal,
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
+import { NavigationEnd, Router } from '@angular/router';
+import { filter, take } from 'rxjs/operators';
 import { ExperienceReady } from './experience-ready.service';
 import { SmoothScroll } from '../smooth-scroll/smooth-scroll.service';
 
@@ -32,6 +35,8 @@ export class Preloader {
 
   private readonly experienceReady = inject(ExperienceReady);
   private readonly smoothScroll = inject(SmoothScroll);
+  private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly isBrowser = isPlatformBrowser(this.platformId);
 
@@ -48,13 +53,32 @@ export class Preloader {
 
     afterNextRender(() => {
       if (!this.isBrowser) return;
-      // Bloquear el scroll mientras carga: que el usuario no entre a un
-      // showcase a medio armar.
+      // Bloquear el scroll mientras decidimos (evita FOUC del contenido).
       this.smoothScroll.stop();
       document.documentElement.style.overflow = 'hidden';
-      // Tope de seguridad si el video nunca termina de cargar.
+      // Tope de seguridad si el showcase se cuelga.
       setTimeout(() => this.experienceReady.markReady(), this.maxWaitMs);
+      // Decidir según la ruta YA RESUELTA: el showcase solo vive en `/inicio`.
+      // En cualquier otro segmento no hay nada que esperar → revelar enseguida.
+      // En `afterNextRender` el router puede no haber resuelto aún (`url === '/'`),
+      // por eso esperamos al primer NavigationEnd si hace falta.
+      if (this.router.navigated && this.router.url !== '/') {
+        this.decide(this.router.url);
+      } else {
+        const sub = this.router.events
+          .pipe(
+            filter((e): e is NavigationEnd => e instanceof NavigationEnd),
+            take(1),
+          )
+          .subscribe((e) => this.decide(e.urlAfterRedirects));
+        this.destroyRef.onDestroy(() => sub.unsubscribe());
+      }
     });
+  }
+
+  /** Si la ruta no es la home (sin showcase), revela ya; si es home, espera. */
+  private decide(url: string): void {
+    if (!url.startsWith('/inicio')) this.experienceReady.markReady();
   }
 
   private reveal(): void {

@@ -1,17 +1,13 @@
 import { Route } from '@angular/router';
 
 /**
- * VELOX es una landing de una sola página: todo el recorrido (hero → showcase
- * cinemático → features → CTA) vive en un único scroll continuo, por lo que no
- * se divide en rutas. La feature `inicio` contiene la página completa y se
- * carga lazy (default export = rutas). La raíz redirige a `inicio` (URL
- * canónica) para mantener la convención del monorepo.
+ * VELOX es multi-segmento: cada ítem del nav es su propia ruta/página
+ * (Models, Performance, Design, Technology, Ownership), con una transición
+ * cinematográfica entre páginas. La home (`inicio`) es la pieza central:
+ * hero + showcase. La feature `inicio` define todas las rutas y se carga lazy.
  */
 export const appRoutes: Route[] = [
   { path: '', pathMatch: 'full', redirectTo: 'inicio' },
-  {
-    path: 'inicio',
-    loadChildren: () => import('@velox-ui-inicio'),
-  },
+  { path: '', loadChildren: () => import('@velox-ui-inicio') },
   { path: '**', redirectTo: 'inicio' },
 ];

@@ -48,6 +48,36 @@ export class SmoothScroll {
     gsap.ticker.lagSmoothing(0);
   }
 
+  /**
+   * Scroll suave a un segmento (selector CSS) — navegación del nav en la misma
+   * página. Compensa la altura del nav fijo. Si Lenis no está activo
+   * (reduced-motion / SSR ya filtrado), cae a `scrollIntoView` nativo.
+   */
+  scrollTo(target: string): void {
+    if (!this.isBrowser) return;
+    const navH = 68; // var(--nav-h)
+    if (this.lenis) {
+      this.lenis.scrollTo(target, { offset: -navH, duration: 1.6 });
+      return;
+    }
+    const el = document.querySelector(target);
+    if (el) {
+      const y =
+        el.getBoundingClientRect().top + window.scrollY - navH;
+      window.scrollTo({ top: y, behavior: 'smooth' });
+    }
+  }
+
+  /** Salta al tope al instante (al cambiar de segmento, oculto bajo el telón). */
+  toTop(): void {
+    if (!this.isBrowser) return;
+    if (this.lenis) {
+      this.lenis.scrollTo(0, { immediate: true });
+    } else {
+      window.scrollTo(0, 0);
+    }
+  }
+
   /** Pausa el scroll (lo usa el preloader mientras carga la experiencia). */
   stop(): void {
     this.lenis?.stop();

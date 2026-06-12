@@ -29,12 +29,38 @@ export interface FooterColumn {
   readonly links: readonly string[];
 }
 
-export const NAV_LINKS: readonly string[] = [
-  'Models',
-  'Performance',
-  'Design',
-  'Technology',
-  'Ownership',
+export interface Model {
+  readonly name: string;
+  readonly tagline: string;
+  readonly image: string;
+  readonly spec: string;
+  readonly note: string;
+}
+
+export interface DesignDetail {
+  readonly label: string;
+  readonly value: string;
+}
+
+export interface PerfStat {
+  readonly value: number;
+  readonly decimals: number;
+  readonly suffix: string;
+  readonly label: string;
+}
+
+export interface NavLink {
+  readonly label: string;
+  /** Selector CSS del segmento destino (scroll suave en la misma página). */
+  readonly target: string;
+}
+
+export const NAV_LINKS: readonly NavLink[] = [
+  { label: 'Models', target: '/models' },
+  { label: 'Performance', target: '/performance' },
+  { label: 'Design', target: '/design' },
+  { label: 'Technology', target: '/technology' },
+  { label: 'Ownership', target: '/ownership' },
 ];
 
 export const HERO_STATS: readonly HeroStat[] = [
@@ -76,6 +102,47 @@ export const FEATURES: readonly Feature[] = [
   },
 ];
 
+/* ── The Lineup (galería de modelos) ── */
+export const MODELS: readonly Model[] = [
+  {
+    name: 'VELOX GT',
+    tagline: 'The grand tourer',
+    image: 'stills/model-gt.webp',
+    spec: '850 hp',
+    note: 'Twin-turbo V12 · Grand Touring',
+  },
+  {
+    name: 'VELOX Sport',
+    tagline: 'The track-bred',
+    image: 'stills/model-sport.webp',
+    spec: '2.8s',
+    note: '0–60 mph · Carbon aero',
+  },
+  {
+    name: 'VELOX Noir',
+    tagline: 'The bespoke edition',
+    image: 'stills/model-noir.webp',
+    spec: '99',
+    note: 'Hand-finished · Limited worldwide',
+  },
+];
+
+/* ── Design (editorial) ── */
+export const DESIGN_DETAILS: readonly DesignDetail[] = [
+  { label: 'Cabin', value: 'Full-grain Italian leather, hand-stitched' },
+  { label: 'Structure', value: 'Cold-forged aluminium monocoque' },
+  { label: 'Wheels', value: '23" forged, diamond-polished' },
+  { label: 'Finish', value: 'Liquid-metal champagne, 14-stage paint' },
+];
+
+/* ── Performance (banda con contadores) ── */
+export const PERF_STATS: readonly PerfStat[] = [
+  { value: 850, decimals: 0, suffix: '', label: 'Horsepower' },
+  { value: 2.8, decimals: 1, suffix: 's', label: '0–60 mph' },
+  { value: 190, decimals: 0, suffix: '', label: 'Top speed · mph' },
+  { value: 480, decimals: 0, suffix: '', label: 'Total range · mi' },
+];
+
 export const PRESS_LOGOS: readonly string[] = [
   'Forbes',
   'Motor Trend',
@@ -84,6 +151,20 @@ export const PRESS_LOGOS: readonly string[] = [
   'Car & Driver',
   'Robb Report',
 ];
+
+/* ── Testimonial ── */
+export interface Testimonial {
+  readonly quote: string;
+  readonly author: string;
+  readonly role: string;
+}
+
+export const TESTIMONIAL: Testimonial = {
+  quote:
+    'I have driven everything money can buy. The VELOX is the first that made me forget the price and remember the road.',
+  author: 'Aria Castellano',
+  role: 'Collector · Monaco',
+};
 
 export const FOOTER_COLS: readonly FooterColumn[] = [
   {

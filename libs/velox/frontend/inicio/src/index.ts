@@ -2,4 +2,9 @@
 // `loadChildren: () => import('@velox-ui-inicio')`). Named para tests/tooling.
 export { veloxUiInicioRoutes as default } from './lib/lib.routes';
 export * from './lib/lib.routes';
-export { InicioPage } from './lib/pages/inicio/inicio';
+export { HomePage } from './lib/pages/home/home';
+export { ModelsPage } from './lib/pages/models/models';
+export { PerformancePage } from './lib/pages/performance/performance';
+export { DesignPage } from './lib/pages/design/design';
+export { TechnologyPage } from './lib/pages/technology/technology';
+export { OwnershipPage } from './lib/pages/ownership/ownership';

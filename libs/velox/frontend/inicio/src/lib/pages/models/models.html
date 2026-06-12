@@ -1,0 +1,42 @@
+<section class="page" id="models">
+  <div class="page-bg"></div>
+
+  <header class="page-head wrap">
+    <span class="eyebrow" appReveal>The Collection</span>
+    <h1 class="page-h1" appReveal>
+      Three expressions<br /><span class="gold-text">of one obsession.</span>
+    </h1>
+    <p class="page-lead" appReveal>
+      One platform, hand-finished into three distinct characters. Choose the one
+      that answers the way you drive.
+    </p>
+  </header>
+
+  <div class="wrap">
+    <div class="lineup-grid">
+      @for (m of models; track m.name) {
+        <article class="model-card" appReveal>
+          <div class="model-media">
+            <img
+              [appParallax]="0.1"
+              [src]="m.image"
+              [alt]="m.name"
+              loading="lazy"
+              decoding="async"
+            />
+            <span class="model-spec gold-text">{{ m.spec }}</span>
+          </div>
+          <div class="model-body">
+            <div class="model-tagline">{{ m.tagline }}</div>
+            <h3 class="model-name">{{ m.name }}</h3>
+            <p class="model-note">{{ m.note }}</p>
+            <a routerLink="/ownership" class="model-link">
+              Configure
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
+            </a>
+          </div>
+        </article>
+      }
+    </div>
+  </div>
+</section>

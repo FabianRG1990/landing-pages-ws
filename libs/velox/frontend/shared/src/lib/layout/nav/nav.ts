@@ -7,16 +7,18 @@ import {
   signal,
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
+import { RouterLink, RouterLinkActive } from '@angular/router';
 import { NAV_LINKS } from '../../data/site';
 
 /**
  * Barra de navegación fija con glass al hacer scroll y menú móvil de cortina.
- * Equivale al componente `Nav` del index.html original (estado `scrolled` por
- * scroll y `open` para el menú móvil).
+ * Cada link navega a su segmento (ruta propia) con `routerLink`; el segmento
+ * activo se resalta con `routerLinkActive`.
  */
 @Component({
   selector: 'app-nav',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [RouterLink, RouterLinkActive],
   templateUrl: './nav.html',
 })
 export class Nav {

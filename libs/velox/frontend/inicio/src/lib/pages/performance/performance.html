@@ -1,0 +1,42 @@
+<section class="page page--perf" id="performance">
+  <div class="perf-bleed">
+    <img
+      class="perf-bg"
+      [appParallax]="0.14"
+      src="stills/performance.webp"
+      alt="VELOX — vista trasera en movimiento"
+      loading="lazy"
+      decoding="async"
+    />
+    <div class="perf-scrim"></div>
+  </div>
+
+  <header class="page-head wrap">
+    <span class="eyebrow" appReveal>Performance</span>
+    <h1 class="page-h1" appReveal>
+      When you ask,<br /><span class="gold-text">it answers.</span>
+    </h1>
+    <p class="page-lead" appReveal>
+      A twin-turbo V12 paired with electric torque. No turbo lag, no gear gap —
+      only the road, rushing to meet you.
+    </p>
+  </header>
+
+  <div class="wrap">
+    <div class="perf-stats">
+      @for (s of perfStats; track s.label) {
+        <div class="perf-stat" appReveal>
+          <div class="perf-stat-num gold-text">
+            <span
+              [appCountUp]="s.value"
+              [decimals]="s.decimals"
+              [suffix]="s.suffix"
+              >0</span
+            >
+          </div>
+          <div class="perf-stat-label">{{ s.label }}</div>
+        </div>
+      }
+    </div>
+  </div>
+</section>

@@ -7,4 +7,6 @@
 @use 'settings/tokens';
 @use 'mixins/base';
 @use 'mixins/sections';
+@use 'mixins/editorial';
+@use 'mixins/pages';
 @use 'mixins/preloader';

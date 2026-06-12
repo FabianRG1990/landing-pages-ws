@@ -1,16 +1,21 @@
 <nav class="nav" [class.nav--scrolled]="scrolled()">
   <div class="nav-inner">
-    <div class="nav-brand gold-text">VELOX</div>
+    <a routerLink="/inicio" class="nav-brand gold-text">VELOX</a>
 
     <div class="nav-links">
-      @for (link of links; track link) {
-        <a href="#" class="nav-link">{{ link }}</a>
+      @for (link of links; track link.label) {
+        <a
+          [routerLink]="link.target"
+          routerLinkActive="nav-link--active"
+          class="nav-link"
+          >{{ link.label }}</a
+        >
       }
     </div>
 
     <div class="nav-actions">
       <a href="#" class="nav-signin">Sign In</a>
-      <button type="button" class="btn-gold nav-cta">Unlock Test Drive</button>
+      <a routerLink="/ownership" class="btn-gold nav-cta">Unlock Test Drive</a>
     </div>
 
     <button
@@ -35,12 +40,18 @@
 
   @if (open()) {
     <div class="nav-mobile">
-      @for (link of links; track link) {
-        <a href="#" class="nav-mobile-link" (click)="close()">{{ link }}</a>
+      @for (link of links; track link.label) {
+        <a
+          [routerLink]="link.target"
+          routerLinkActive="nav-mobile-link--active"
+          class="nav-mobile-link"
+          (click)="close()"
+          >{{ link.label }}</a
+        >
       }
-      <button type="button" class="btn-gold nav-mobile-cta" (click)="close()">
+      <a routerLink="/ownership" class="btn-gold nav-mobile-cta" (click)="close()">
         Unlock Your Test Drive
-      </button>
+      </a>
     </div>
   }
 </nav>

@@ -18,18 +18,34 @@ export { SmoothScroll } from './lib/smooth-scroll/smooth-scroll.service';
 export { RevealDirective } from './lib/reveal/reveal.directive';
 export { RevealOnScroll } from './lib/reveal/reveal-on-scroll.service';
 
+// Motion utilitario (parallax + contador animado)
+export { ParallaxDirective } from './lib/motion/parallax.directive';
+export { CountUpDirective } from './lib/motion/count-up.directive';
+
+// Transición cinematográfica entre segmentos (rutas)
+export { RouteCurtain } from './lib/transition/route-curtain';
+
 // Datos de contenido
 export {
   NAV_LINKS,
   HERO_STATS,
   FEATURES,
+  MODELS,
+  DESIGN_DETAILS,
+  PERF_STATS,
+  TESTIMONIAL,
   PRESS_LOGOS,
   FOOTER_COLS,
   FOOTER_LEGAL,
 } from './lib/data/site';
 export type {
+  NavLink,
   Feature,
   FeatureIcon,
   HeroStat,
+  Model,
+  DesignDetail,
+  PerfStat,
+  Testimonial,
   FooterColumn,
 } from './lib/data/site';
