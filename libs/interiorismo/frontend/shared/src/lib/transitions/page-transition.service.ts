@@ -7,26 +7,31 @@ import {
   NavigationStart,
   Router,
 } from '@angular/router';
+import { IntroGate } from './intro-gate.service';
 
 /**
- * Orquesta la cortina (veil) de transición entre secciones, sincronizada
- * con el router:
+ * Orquesta la cortina cinematográfica entre secciones, sincronizada con el
+ * router. Es una cortina de teatro de dos hojas: una baja desde arriba y otra
+ * sube desde abajo hasta encontrarse en el centro (cubre), sostiene la marca,
+ * y luego se separan revelando la nueva sección (que ya se montó oculta detrás).
  *
- *   click → NavigationStart → la cortina sube (cubre la sección actual y
- *   también la carga del chunk lazy) → el guard `pageTransitionGuard` espera
- *   a que la cortina cubra del todo (`coverComplete`) antes de activar la
- *   ruta → la nueva sección se monta OCULTA detrás de la cortina →
- *   NavigationEnd → la cortina baja y revela la nueva sección.
+ *   click → NavigationStart → las hojas cierran (cubren la sección y la carga
+ *   del chunk lazy) → el guard `pageTransitionGuard` espera `coverComplete`
+ *   antes de activar la ruta → la nueva sección se monta OCULTA detrás de la
+ *   cortina → NavigationEnd → las hojas se separan y revelan.
  *
- * Así el cambio de contenido nunca se ve antes que la animación.
+ * Así el cambio de contenido nunca se ve antes que la animación. Todo está
+ * secuenciado por timeouts: nunca queda trabada. Respeta prefers-reduced-motion.
  */
 @Injectable({ providedIn: 'root' })
 export class PageTransition {
-  private veil: HTMLElement | null = null;
+  private top: HTMLElement | null = null;
+  private bottom: HTMLElement | null = null;
   private mark: HTMLElement | null = null;
 
   private readonly platformId = inject(PLATFORM_ID);
   private readonly router = inject(Router);
+  private readonly introGate = inject(IntroGate);
   private readonly isBrowser = isPlatformBrowser(this.platformId);
   private reduce = false;
 
@@ -34,8 +39,13 @@ export class PageTransition {
   private booted = false;
   private active = false;
   private coverStart = 0;
-  private readonly sweepMs = 340;
-  private readonly holdMs = 130;
+
+  // Tiempos — un pelín más largos que un wipe simple para dar peso cinematográfico,
+  // sin llegar a sentirse lento (el contenido cambia oculto durante el "hold").
+  private readonly sweepMs = 480;
+  private readonly holdMs = 180;
+  private readonly easeClose = 'cubic-bezier(0.76, 0, 0.24, 1)'; // entrada controlada
+  private readonly easeOpen = 'cubic-bezier(0.32, 0.72, 0, 1)'; // salida expo (la de la página)
 
   constructor() {
     if (!this.isBrowser) return;
@@ -54,13 +64,15 @@ export class PageTransition {
     });
   }
 
-  register(veil: HTMLElement, mark: HTMLElement): void {
-    this.veil = veil;
+  register(top: HTMLElement, bottom: HTMLElement, mark: HTMLElement): void {
+    this.top = top;
+    this.bottom = bottom;
     this.mark = mark;
   }
 
   unregister(): void {
-    this.veil = null;
+    this.top = null;
+    this.bottom = null;
     this.mark = null;
   }
 
@@ -73,39 +85,59 @@ export class PageTransition {
   }
 
   private startCover(): void {
-    if (!this.veil || !this.mark) return;
+    if (!this.top || !this.bottom || !this.mark) return;
     this.active = true;
     this.coverStart = this.now();
-    const v = this.veil;
-    const m = this.mark;
-    v.style.transition = 'none';
-    v.style.transformOrigin = 'bottom';
-    v.style.transform = 'scaleY(0)';
-    void v.offsetWidth;
-    v.style.transition = `transform ${this.sweepMs}ms cubic-bezier(.7,.02,.2,1)`;
-    v.style.transform = 'scaleY(1)';
-    m.style.opacity = '1';
-    m.style.transform = 'translateY(0)';
+    const { top, bottom, mark } = this;
+
+    // Estado oculto (hojas fuera de pantalla), sin transición.
+    top.style.transition = 'none';
+    bottom.style.transition = 'none';
+    top.style.transform = 'translateY(-101%)';
+    bottom.style.transform = 'translateY(101%)';
+    void top.offsetWidth; // reflow
+
+    const t = `transform ${this.sweepMs}ms ${this.easeClose}`;
+    top.style.transition = t;
+    bottom.style.transition = t;
+    top.style.transform = 'translateY(0)';
+    bottom.style.transform = 'translateY(0)';
+
+    // La marca aparece (con un leve retardo para entrar tras el cierre).
+    mark.style.transitionDelay = '120ms';
+    mark.style.opacity = '1';
+    mark.style.transform = 'translateY(0)';
+    mark.style.filter = 'blur(0)';
   }
 
   private uncover(): void {
-    if (!this.active || !this.veil || !this.mark) return;
+    if (!this.active || !this.top || !this.bottom || !this.mark) return;
     this.active = false;
-    const v = this.veil;
-    const m = this.mark;
+    const { top, bottom, mark } = this;
+
     window.scrollTo(0, 0);
-    v.style.transition = 'none';
-    v.style.transformOrigin = 'top';
-    void v.offsetWidth;
-    v.style.transition = `transform ${this.sweepMs}ms cubic-bezier(.7,.02,.2,1)`;
-    v.style.transform = 'scaleY(0)';
-    m.style.opacity = '0';
-    m.style.transform = 'translateY(12px)';
+    // La cortina se abre → que la intro del hero entre al revelarse.
+    this.introGate.open();
+
+    // La marca se va primero, rápido.
+    mark.style.transitionDelay = '0ms';
+    mark.style.opacity = '0';
+    mark.style.transform = 'translateY(-8px)';
+    mark.style.filter = 'blur(6px)';
+
+    const t = `transform ${this.sweepMs}ms ${this.easeOpen}`;
+    top.style.transition = t;
+    bottom.style.transition = t;
+    top.style.transform = 'translateY(-101%)';
+    bottom.style.transform = 'translateY(101%)';
+
     setTimeout(() => {
       // Si ya arrancó otra cobertura, no pisar su estado.
-      if (this.active || !this.veil) return;
-      this.veil.style.transition = 'none';
-      this.veil.style.transform = 'scaleY(0)';
+      if (this.active || !this.top || !this.bottom) return;
+      this.top.style.transition = 'none';
+      this.bottom.style.transition = 'none';
+      this.top.style.transform = 'translateY(-101%)';
+      this.bottom.style.transform = 'translateY(101%)';
     }, this.sweepMs + 40);
   }
 

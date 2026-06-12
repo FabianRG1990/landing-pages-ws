@@ -55,6 +55,28 @@
 }
 .hero-cta { margin-top: 3rem; }
 
+/* Intro escalonada del hero — entra cuando se levanta la capa que cubría
+   (preloader al cargar, cortina al re-entrar) vía la clase `.hero-in`.
+   Solo opacidad + desplazamiento (sin blur) para que sea fluida en re-entradas. */
+.hero-badge,
+.hero h1,
+.hero-sub,
+.hero-cta {
+  opacity: 0;
+  transform: translateY(2rem);
+}
+.hero.hero-in .hero-badge { animation: hero-rise 0.9s var(--ease-expo) 0.05s both; }
+.hero.hero-in h1 { animation: hero-rise 1s var(--ease-expo) 0.2s both; }
+.hero.hero-in .hero-sub { animation: hero-rise 0.9s var(--ease-expo) 0.38s both; }
+.hero.hero-in .hero-cta { animation: hero-rise 0.9s var(--ease-expo) 0.54s both; }
+@keyframes hero-rise {
+  from { opacity: 0; transform: translateY(2rem); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-badge, .hero h1, .hero-sub, .hero-cta { opacity: 1; transform: none; }
+}
+
 /* =================  EXPLODING VIEW (inicio)  ================= */
 .explode { position: relative; height: 400vh; }
 .explode-sticky {

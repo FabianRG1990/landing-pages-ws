@@ -10,24 +10,30 @@ import {
 import { PageTransition } from '../../transitions/page-transition.service';
 
 /**
- * Cortina de transición entre secciones. Solo renderiza el DOM y lo registra
- * en `PageTransition`, que orquesta la animación sincronizada con el router
- * (cubre → cambia la sección oculta → revela). Respeta prefers-reduced-motion
- * y nunca queda trabada (todo secuenciado por timeouts en el servicio).
+ * Cortina cinematográfica de dos hojas (teatro). Solo renderiza el DOM y lo
+ * registra en `PageTransition`, que orquesta la animación sincronizada con el
+ * router (cierra → cambia la sección oculta → abre). Respeta
+ * prefers-reduced-motion y nunca queda trabada (todo secuenciado en el servicio).
  */
 @Component({
   selector: 'app-veil',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <div #veil class="veil" aria-hidden="true">
+    <div class="veil" aria-hidden="true">
+      <div #top class="veil-panel veil-top"></div>
+      <div #bottom class="veil-panel veil-bottom"></div>
       <div #mark class="veil-mark">
         <span class="veil-brand">Atelier Solano</span>
+        <span class="veil-rule"></span>
+        <span class="veil-tag">Estudio de Interiorismo</span>
       </div>
     </div>
   `,
 })
 export class Veil {
-  private readonly veil = viewChild.required<ElementRef<HTMLElement>>('veil');
+  private readonly top = viewChild.required<ElementRef<HTMLElement>>('top');
+  private readonly bottom =
+    viewChild.required<ElementRef<HTMLElement>>('bottom');
   private readonly mark = viewChild.required<ElementRef<HTMLElement>>('mark');
   private readonly transition = inject(PageTransition);
   private readonly destroyRef = inject(DestroyRef);
@@ -35,7 +41,8 @@ export class Veil {
   constructor() {
     afterNextRender(() => {
       this.transition.register(
-        this.veil().nativeElement,
+        this.top().nativeElement,
+        this.bottom().nativeElement,
         this.mark().nativeElement,
       );
     });

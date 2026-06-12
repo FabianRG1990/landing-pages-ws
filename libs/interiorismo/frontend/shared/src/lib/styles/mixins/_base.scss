@@ -237,24 +237,51 @@ p { margin: 0; }
 #mobile-menu.open .menu-link:nth-child(5) { transition-delay: 320ms; }
 body.menu-open { overflow: hidden; }
 
-/* ----------  Veil / cortina de transición  ---------- */
+/* ----------  Veil / cortina cinematográfica de dos hojas  ---------- */
 .veil {
   position: fixed; inset: 0; z-index: 80; pointer-events: none;
-  background: linear-gradient(120deg, #4A544A, #5F6B5E 55%, #4A544A);
-  transform: scaleY(0); transform-origin: bottom;
+  /* el contenedor no pinta; las dos hojas hacen el cubrimiento */
 }
-.veil .veil-mark {
-  position: absolute; inset: 0;
-  display: flex; align-items: center; justify-content: center;
-  opacity: 0; transform: translateY(12px);
-  transition: opacity 0.42s var(--ease-expo), transform 0.55s var(--ease-expo);
+.veil-panel {
+  position: absolute; left: 0; right: 0; height: calc(50% + 1px);
+  background: linear-gradient(180deg, #16120E 0%, #0B0A09 100%);
+  will-change: transform;
+  backface-visibility: hidden;
 }
-.veil .veil-brand {
-  font-family: var(--font-display);
-  font-size: clamp(1.8rem, 5vw, 3rem);
-  font-weight: 300;
-  letter-spacing: 0.02em;
-  color: var(--cream);
+/* Grano tenue sobre las hojas — coherente con el grano de la página */
+.veil-panel::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='a'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23a)'/%3E%3C/svg%3E");
+  background-size: 280px 280px;
+  opacity: 0.05;
+  mix-blend-mode: soft-light;
+}
+.veil-top {
+  top: 0; transform: translateY(-101%);
+  box-shadow: inset 0 -1px 0 rgba(95, 107, 94, 0.55);
+}
+.veil-bottom {
+  bottom: 0; transform: translateY(101%);
+  box-shadow: inset 0 1px 0 rgba(95, 107, 94, 0.55);
+}
+.veil-mark {
+  position: absolute; inset: 0; z-index: 1;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.1rem;
+  opacity: 0; transform: translateY(10px); filter: blur(6px);
+  transition: opacity 0.55s var(--ease-expo), transform 0.65s var(--ease-expo),
+              filter 0.65s var(--ease-expo);
+}
+.veil-brand {
+  font-family: var(--font-display); font-weight: 300;
+  font-size: clamp(2rem, 6vw, 3.4rem); letter-spacing: 0.04em; color: var(--cream);
+}
+.veil-rule {
+  display: block; width: 64px; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(95, 107, 94, 0.9), transparent);
+}
+.veil-tag {
+  font-family: var(--font-body); font-size: 11px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.28em; color: rgba(255, 255, 255, 0.5);
 }
 
 /* ----------  Reveal on enter  ---------- */

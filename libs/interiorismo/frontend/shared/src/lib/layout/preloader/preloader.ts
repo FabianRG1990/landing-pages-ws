@@ -8,6 +8,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
+import { IntroGate } from '../../transitions/intro-gate.service';
 
 /** Preloader de marca (carga inicial) — wordmark serif sobre crema. */
 @Component({
@@ -26,6 +27,7 @@ import { isPlatformBrowser } from '@angular/common';
 export class Preloader {
   private readonly pl = viewChild.required<ElementRef<HTMLElement>>('pl');
   private readonly platformId = inject(PLATFORM_ID);
+  private readonly introGate = inject(IntroGate);
 
   constructor() {
     afterNextRender(() => {
@@ -36,6 +38,8 @@ export class Preloader {
         setTimeout(() => {
           const el = this.pl().nativeElement;
           el.classList.add('is-done');
+          // El loader empieza a disolverse → que entre la intro del hero.
+          this.introGate.open();
           setTimeout(() => (el.style.display = 'none'), 900);
         }, wait);
       };

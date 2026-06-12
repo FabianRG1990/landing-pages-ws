@@ -13,6 +13,10 @@ export { MagneticDirective } from './lib/directives/magnetic.directive';
 export { PageTransition } from './lib/transitions/page-transition.service';
 export { pageTransitionGuard } from './lib/transitions/page-transition.guard';
 export { RevealOnScroll } from './lib/transitions/reveal-on-scroll.service';
+export { IntroGate } from './lib/transitions/intro-gate.service';
+
+// Showcase scroll-driven (caché de frames del canvas)
+export { FrameCache } from './lib/showcase/frame-cache.service';
 
 // Datos compartidos
 export { NAV_ITEMS, CONTACT } from './lib/data/nav';
