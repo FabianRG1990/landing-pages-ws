@@ -5,12 +5,12 @@ import {
   inject,
 } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { Nav, Footer, SmoothScroll } from '@velox-ui-shared';
+import { Nav, Footer, Preloader, SmoothScroll } from '@velox-ui-shared';
 
 @Component({
   selector: 'app-root',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterOutlet, Nav, Footer],
+  imports: [RouterOutlet, Nav, Footer, Preloader],
   templateUrl: './app.html',
 })
 export class App {

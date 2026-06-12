@@ -48,6 +48,16 @@ export class SmoothScroll {
     gsap.ticker.lagSmoothing(0);
   }
 
+  /** Pausa el scroll (lo usa el preloader mientras carga la experiencia). */
+  stop(): void {
+    this.lenis?.stop();
+  }
+
+  /** Reanuda el scroll cuando la experiencia está lista. */
+  start(): void {
+    this.lenis?.start();
+  }
+
   destroy(): void {
     if (this.tickerFn) {
       gsap.ticker.remove(this.tickerFn);

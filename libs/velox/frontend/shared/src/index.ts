@@ -4,6 +4,10 @@
 export { Nav } from './lib/layout/nav/nav';
 export { Footer } from './lib/layout/footer/footer';
 
+// Preloader de página + señal de "experiencia lista"
+export { Preloader } from './lib/preloader/preloader';
+export { ExperienceReady } from './lib/preloader/experience-ready.service';
+
 // Showcase cinemático (scroll-driven frame animation)
 export { VideoShowcase } from './lib/showcase/video-showcase';
 

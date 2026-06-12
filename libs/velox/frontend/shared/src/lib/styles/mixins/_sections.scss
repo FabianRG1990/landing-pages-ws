@@ -261,18 +261,6 @@
   pointer-events: none;
 }
 
-#scroll-progress-bar {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  height: 2px;
-  width: 0%;
-  background: linear-gradient(90deg, var(--gold), var(--gold-bright));
-  z-index: 10;
-  will-change: width;
-  transform: translateZ(0);
-}
-
 #scroll-hint {
   position: absolute;
   bottom: 36px;
@@ -332,88 +320,7 @@
   letter-spacing: 0.06em;
 }
 
-/* Overlay de carga */
-#video-loading {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  background: var(--bg);
-  z-index: 20;
-  transition: opacity 1s ease;
-}
-#video-loading.hidden {
-  opacity: 0;
-  pointer-events: none;
-}
-.vl-inner {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 20px;
-}
-.vl-text {
-  text-align: center;
-}
-.vl-title {
-  font-weight: 800;
-  font-size: 1rem;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  margin-bottom: 6px;
-}
-.vl-msg {
-  color: var(--muted-3);
-  font-size: 0.8rem;
-  margin-bottom: 16px;
-}
-.vl-count {
-  color: rgba(197, 160, 40, 0.55);
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  margin-bottom: 10px;
-}
-.loader-ring {
-  width: 64px;
-  height: 64px;
-  border: 2px solid rgba(197, 160, 40, 0.15);
-  border-top-color: var(--gold);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-.extract-bar-wrap {
-  width: 240px;
-  height: 3px;
-  background: var(--gold-012);
-  border-radius: 2px;
-  margin: 14px auto 0;
-  overflow: hidden;
-}
-.extract-bar-fill {
-  height: 100%;
-  background: linear-gradient(90deg, var(--gold), var(--gold-bright));
-  border-radius: 2px;
-  will-change: width;
-}
-
-.frame-badge {
-  position: absolute;
-  bottom: 18px;
-  right: 18px;
-  z-index: 10;
-  font-size: 0.6rem;
-  font-weight: 700;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: rgba(197, 160, 40, 0.35);
-  pointer-events: none;
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .loader-ring,
   #scroll-hint svg,
   .hero-glow,
   .hero-arrows svg {

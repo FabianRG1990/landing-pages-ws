@@ -1,0 +1,246 @@
+/* ============================================================
+   VELOX — Preloader premium: tacómetro de ignición
+   Cubre la pantalla hasta que el showcase cinemático está 100%
+   listo (150 frames). Animación indeterminada — sin barra ni
+   contador. Pensado para que la espera valga la pena.
+   ============================================================ */
+
+#app-preloader {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    radial-gradient(circle at 50% 42%, #161310 0%, #0d0d0d 60%),
+    var(--bg);
+  opacity: 1;
+  transition: opacity 0.8s var(--ease-fluid);
+}
+#app-preloader.is-hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+/* Glow de fondo que respira */
+#app-preloader::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle at 50% 45%,
+    rgba(197, 160, 40, 0.1) 0%,
+    transparent 58%
+  );
+  animation: pl-breathe 4.2s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.pl-stage {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 40px;
+}
+
+/* ── Anillos de pulso ── */
+.pl-pulse {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: 210px;
+  height: 210px;
+  margin-left: -105px;
+  border-radius: 50%;
+  border: 1px solid var(--gold-020);
+  opacity: 0;
+  animation: pl-pulse 3.4s ease-out infinite;
+  pointer-events: none;
+}
+.pl-pulse--2 {
+  animation-delay: 1.7s;
+}
+
+/* ── Tacómetro ── */
+.pl-gauge-wrap {
+  position: relative;
+  width: 210px;
+  height: 210px;
+  display: grid;
+  place-items: center;
+}
+.pl-gauge {
+  grid-area: 1 / 1;
+  width: 210px;
+  height: 210px;
+  fill: none;
+  transform: rotate(-90deg); /* arranca el sweep desde arriba */
+}
+.pl-ticks {
+  stroke: rgba(197, 160, 40, 0.28);
+  stroke-width: 7;
+  stroke-dasharray: 1.5 9; /* el patrón punteado simula las marcas */
+  animation: pl-ticks-spin 22s linear infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.pl-track {
+  stroke: var(--gold-010);
+  stroke-width: 2;
+}
+.pl-sweep {
+  stroke: url(#plGold);
+  stroke-width: 3.5;
+  stroke-linecap: round;
+  stroke-dasharray: 502.655; /* 2·π·80 */
+  filter: url(#plGlow);
+  transform-box: fill-box;
+  transform-origin: center;
+  animation:
+    pl-rev 2.6s cubic-bezier(0.5, 0, 0.2, 1) infinite,
+    pl-spin 2.6s linear infinite;
+}
+
+/* Marca VELOX con brillo dorado que la recorre */
+.pl-brand {
+  grid-area: 1 / 1;
+  align-self: center;
+  justify-self: center;
+  font-weight: 900;
+  font-size: clamp(1.5rem, 5.5vw, 1.95rem);
+  letter-spacing: 0.34em;
+  padding-left: 0.34em; /* compensa el letter-spacing para centrar */
+  background: linear-gradient(
+    110deg,
+    #8a6f1c 0%,
+    #c5a028 28%,
+    #f7e08a 50%,
+    #c5a028 72%,
+    #8a6f1c 100%
+  );
+  background-size: 220% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  animation: pl-shimmer 3.4s linear infinite;
+}
+
+/* ── Narrativa ── */
+.pl-words {
+  position: relative;
+  height: 1em;
+  width: 280px;
+  text-align: center;
+}
+.pl-words span {
+  position: absolute;
+  inset: 0;
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: rgba(197, 160, 40, 0.62);
+  opacity: 0;
+  padding-left: 0.3em;
+  animation: pl-word 7.5s ease-in-out infinite;
+}
+.pl-words span:nth-child(2) {
+  animation-delay: 2.5s;
+}
+.pl-words span:nth-child(3) {
+  animation-delay: 5s;
+}
+
+/* ── Keyframes ── */
+@keyframes pl-breathe {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+@keyframes pl-pulse {
+  0% {
+    transform: scale(0.82);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(1.55);
+    opacity: 0;
+  }
+}
+@keyframes pl-rev {
+  0% {
+    stroke-dashoffset: 470;
+  }
+  55% {
+    stroke-dashoffset: 120;
+  }
+  100% {
+    stroke-dashoffset: 470;
+  }
+}
+@keyframes pl-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes pl-ticks-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes pl-shimmer {
+  0% {
+    background-position: 130% 0;
+  }
+  100% {
+    background-position: -130% 0;
+  }
+}
+@keyframes pl-word {
+  0% {
+    opacity: 0;
+    transform: translateY(9px);
+    filter: blur(5px);
+  }
+  6% {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+  27% {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+  34% {
+    opacity: 0;
+    transform: translateY(-9px);
+    filter: blur(5px);
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #app-preloader::before,
+  .pl-pulse,
+  .pl-ticks,
+  .pl-brand,
+  .pl-words span {
+    animation: none;
+  }
+  .pl-sweep {
+    animation: pl-spin 2s linear infinite;
+    stroke-dashoffset: 300;
+  }
+  .pl-words span:first-child {
+    opacity: 1;
+  }
+}
