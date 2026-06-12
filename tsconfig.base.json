@@ -39,7 +39,10 @@
       "@vindas-ui-psicodiagnosticos": [
         "./libs/vindas/frontend/psicodiagnosticos/src/index.ts"
       ],
-      "@vindas-ui-contacto": ["./libs/vindas/frontend/contacto/src/index.ts"]
+      "@vindas-ui-contacto": ["./libs/vindas/frontend/contacto/src/index.ts"],
+      "@velox-ui-shared": ["./libs/velox/frontend/shared/src/index.ts"],
+      "@velox-ui-shared/*": ["./libs/velox/frontend/shared/src/lib/*"],
+      "@velox-ui-inicio": ["./libs/velox/frontend/inicio/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]

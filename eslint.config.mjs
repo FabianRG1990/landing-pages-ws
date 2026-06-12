@@ -36,6 +36,10 @@ export default [
               sourceTag: 'scope:vindas',
               onlyDependOnLibsWithTags: ['scope:vindas', 'scope:shared'],
             },
+            {
+              sourceTag: 'scope:velox',
+              onlyDependOnLibsWithTags: ['scope:velox', 'scope:shared'],
+            },
           ],
         },
       ],

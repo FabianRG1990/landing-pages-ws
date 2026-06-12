@@ -1,0 +1,42 @@
+<section class="page" id="design">
+  <div class="page-bg"></div>
+
+  <header class="page-head wrap">
+    <span class="eyebrow" appReveal>Design Language</span>
+    <h1 class="page-h1" appReveal>
+      Sculpted by obsession.<br /><span class="gold-text">Finished by hand.</span>
+    </h1>
+  </header>
+
+  <div class="wrap design-grid">
+    <div class="design-media" appReveal>
+      <div class="design-frame">
+        <img
+          [appParallax]="0.06"
+          src="stills/design.webp"
+          alt="VELOX — perfil lateral"
+          loading="lazy"
+          decoding="async"
+        />
+      </div>
+      <div class="design-frame-glow"></div>
+    </div>
+
+    <div class="design-copy">
+      <p class="design-lead" appReveal>
+        Every surface earns its place. Where others add, we remove — until only
+        intention remains. The result is a silhouette that looks fast standing
+        still, and a cabin that quiets the world the moment you close the door.
+      </p>
+
+      <dl class="design-specs" appReveal>
+        @for (d of designDetails; track d.label) {
+          <div class="design-spec">
+            <dt>{{ d.label }}</dt>
+            <dd>{{ d.value }}</dd>
+          </div>
+        }
+      </dl>
+    </div>
+  </div>
+</section>

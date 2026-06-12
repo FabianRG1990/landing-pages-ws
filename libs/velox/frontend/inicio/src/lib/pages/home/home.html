@@ -1,0 +1,65 @@
+<!-- ════════════════ HERO ════════════════ -->
+<section class="hero">
+  <div class="hero-grid-bg"></div>
+  <div class="hero-glow"></div>
+
+  <div class="hero-inner">
+    <div class="hero-copy">
+      <span class="hero-badge" appReveal>The New Standard in Motion</span>
+
+      <h1 class="hero-h1" appReveal>
+        <span style="color: #fff">Power</span><br />
+        <span style="color: #fff">Refined.</span><br />
+        <span class="gold-text">Perfected.</span>
+      </h1>
+
+      <p class="hero-lead" appReveal>
+        VELOX automobiles are engineered for those who refuse to settle — on
+        power, on luxury, or on presence.
+      </p>
+
+      <div class="hero-cta" appReveal>
+        <a appLink="/ownership" class="btn-gold">Unlock Your Test Drive</a>
+        <a appLink="/performance" class="btn-ghost">
+          Explore Performance
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
+        </a>
+      </div>
+
+      <div class="hero-stats" appReveal>
+        @for (s of stats; track s.label) {
+          <div class="hero-stat">
+            <div class="hero-stat-num gold-text">{{ s.value }}</div>
+            <div class="hero-stat-label">{{ s.label }}</div>
+          </div>
+        }
+      </div>
+    </div>
+
+    <div class="hero-aside" appReveal>
+      <div class="hero-aside-head">
+        <div class="hero-aside-eyebrow">Scroll to Experience</div>
+        <div class="hero-aside-title gold-text">The Exhibition</div>
+        <div class="hero-aside-desc">
+          An AI-rendered cinematic showcase. Scroll below to watch the
+          Lamborghini reveal itself.
+        </div>
+      </div>
+      <div class="hero-arrows">
+        @for (i of heroArrows; track i) {
+          <svg
+            viewBox="0 0 24 24" fill="none" stroke="#C5A028" stroke-width="1.5" stroke-linecap="round"
+            [style.opacity]="0.3 + i * 0.3"
+            [style.animation]="'bounce-down ' + (1.2 + i * 0.15) + 's ease-in-out infinite'"
+            [style.animationDelay]="i * 0.15 + 's'"
+          >
+            <path d="M6 9l6 6 6-6" />
+          </svg>
+        }
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════ SHOWCASE (cinematic scroll) ════════════════ -->
+<app-video-showcase />

@@ -5059,9 +5059,11 @@ __metadata:
     eslint-config-prettier: "npm:^10.0.0"
     eslint-plugin-playwright: "npm:^1.6.2"
     express: "npm:^4.21.2"
+    gsap: "npm:^3.12.5"
     jiti: "npm:2.4.2"
     jsdom: "npm:~22.1.0"
     jsonc-eslint-parser: "npm:^2.1.0"
+    lenis: "npm:^1.1.18"
     nx: "patch:nx@npm%3A22.7.0#~/.yarn/patches/nx-npm-22.7.0-93822c10a7.patch"
     prettier: "npm:^3.8.1"
     rxjs: "npm:~7.8.0"
@@ -10995,6 +10997,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"gsap@npm:^3.12.5":
+  version: 3.15.0
+  resolution: "gsap@npm:3.15.0"
+  checksum: 10c0/5d86de72cb0bd6b20502c34c329a83a7d679979731bb465164407b7a5225aa61d612beee740eea36258622897c116cd2ca35320d530b7cf68bad62522361fcf7
+  languageName: node
+  linkType: hard
+
 "handle-thing@npm:^2.0.0":
   version: 2.0.1
   resolution: "handle-thing@npm:2.0.1"
@@ -12428,6 +12437,24 @@ __metadata:
     picocolors: "npm:^1.1.1"
     shell-quote: "npm:^1.8.3"
   checksum: 10c0/5057fc8d3d0b0a92055b09b99192ffb5860b3e8a3f8ba56ef9b7f252fd78650d6b4182b725f4a1dcb8b04e350fa053874d819bb84362f2cfd6c3e84f556066dd
+  languageName: node
+  linkType: hard
+
+"lenis@npm:^1.1.18":
+  version: 1.3.23
+  resolution: "lenis@npm:1.3.23"
+  peerDependencies:
+    "@nuxt/kit": ">=3.0.0"
+    react: ">=17.0.0"
+    vue: ">=3.0.0"
+  peerDependenciesMeta:
+    "@nuxt/kit":
+      optional: true
+    react:
+      optional: true
+    vue:
+      optional: true
+  checksum: 10c0/c2ed59ee022edf8507661d47a82903e3a8b51e61d754ceb09c6671d1d975691f406b790dfff58d06c2d56e6cbceaed9db7235766c24598894cec1ea22da51768
   languageName: node
   linkType: hard
 
