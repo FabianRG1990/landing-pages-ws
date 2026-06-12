@@ -153,6 +153,9 @@
     &--gold { background: rgba(194,162,104,.16); color: $gold-deep; }
     &--coral { background: rgba(217,128,106,.13); color: $coral; } }
   &--wa &__ico { width: 46px; height: 46px; background: rgba(255,255,255,.16); .ico-wa { width: 23px; height: 23px; fill: #fff; stroke: none; } }
+  // El número de WhatsApp nunca se parte (el guion no debe forzar salto de línea)
+  &--wa &__body { min-width: max-content; }
+  &--wa &__value { white-space: nowrap; }
   &__body { flex: 1; min-width: 0; }
   &__label { display: block; font-size: 12px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; opacity: .85;
     &--muted { color: $muted; opacity: 1; } }
