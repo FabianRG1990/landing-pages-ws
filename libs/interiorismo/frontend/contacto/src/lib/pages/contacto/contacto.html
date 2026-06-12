@@ -1,0 +1,38 @@
+<div class="page">
+  <section class="wrap section cta">
+    <div class="cta-frame" appReveal>
+      <div class="cta-inner">
+        <span class="eyebrow">Comencemos</span>
+        <h2 class="h-section">Su espacio merece intención</h2>
+        <p>
+          Cada proyecto inicia con una conversación sobre cómo vive, qué valora
+          y qué significa "casa" para usted.
+        </p>
+        <a class="btn btn-primary btn-lg" appMagnetic [href]="contact.emailHref">
+          <span>Agendar consulta</span>
+          <span class="btn-ico" aria-hidden="true">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M17 7H7M17 7v10" /></svg>
+          </span>
+        </a>
+      </div>
+    </div>
+
+    <div class="contact-grid">
+      <div class="contact-block" appReveal>
+        <p class="cb-label">Correo</p>
+        <p class="cb-value"><a [href]="contact.emailHref">{{ contact.email }}</a></p>
+        <p class="cb-sub">Respondemos en menos de 48 horas.</p>
+      </div>
+      <div class="contact-block" appReveal>
+        <p class="cb-label">Teléfono</p>
+        <p class="cb-value"><a [href]="contact.phoneHref">{{ contact.phone }}</a></p>
+        <p class="cb-sub">Lunes a viernes, 10:00 – 18:00 CET.</p>
+      </div>
+      <div class="contact-block" appReveal>
+        <p class="cb-label">Estudio</p>
+        <p class="cb-value">{{ contact.address[0] }}</p>
+        <p class="cb-sub">{{ contact.address[1] }}<br />{{ contact.address[2] }}</p>
+      </div>
+    </div>
+  </section>
+</div>

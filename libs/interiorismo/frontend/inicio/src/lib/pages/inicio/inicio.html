@@ -1,0 +1,25 @@
+<app-hero-video />
+
+<app-exploding-scroll />
+
+<div class="marquee">
+  <div class="marquee-track">
+    @for (label of marqueeLoop; track $index) {
+      <span>{{ label }}</span><span class="sep">/</span>
+    }
+  </div>
+</div>
+
+<section class="wrap section testimonial" appReveal>
+  <svg class="testimonial-icon" width="40" height="32" viewBox="0 0 40 32" fill="currentColor" aria-hidden="true">
+    <path d="M0 20.8C0 27.2 4.3 32 9.7 32c4.5 0 8-3.5 8-7.8 0-4.2-3.2-7.3-7.2-7.3-1 0-2 .2-2.6.5.6-5 4.8-10.4 10.1-13L14.8 0C5.7 4.8 0 13.2 0 20.8zm22 0C22 27.2 26.3 32 31.7 32c4.5 0 8-3.5 8-7.8 0-4.2-3.2-7.3-7.2-7.3-1 0-2 .2-2.6.5.6-5 4.8-10.4 10.1-13L36.8 0C27.7 4.8 22 13.2 22 20.8z" />
+  </svg>
+  <blockquote>
+    Comprendieron nuestra casa antes de que pudiéramos articular qué queríamos.
+    El resultado se siente como si siempre hubiese estado destinado a ser así.
+  </blockquote>
+  <div class="testimonial-author">
+    <p class="ta-name">Helena Quiroga &amp; Andrés Solé</p>
+    <p class="ta-meta">Residencia Almagro · Madrid</p>
+  </div>
+</section>

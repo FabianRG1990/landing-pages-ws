@@ -1,0 +1,72 @@
+{
+  "name": "interiorismo",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "prefix": "app",
+  "sourceRoot": "apps/interiorismo/src",
+  "tags": ["scope:interiorismo"],
+  "targets": {
+    "build": {
+      "executor": "@angular/build:application",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/apps/interiorismo",
+        "browser": "apps/interiorismo/src/main.ts",
+        "index": "apps/interiorismo/src/index.html",
+        "tsConfig": "apps/interiorismo/tsconfig.app.json",
+        "inlineStyleLanguage": "scss",
+        "stylePreprocessorOptions": {
+          "includePaths": ["libs/interiorismo/frontend/shared/src/lib/styles"]
+        },
+        "assets": [
+          {
+            "glob": "**/*",
+            "input": "apps/interiorismo/public"
+          }
+        ],
+        "styles": ["apps/interiorismo/src/styles.scss"],
+        "server": "apps/interiorismo/src/main.server.ts",
+        "outputMode": "static",
+        "prerender": true
+      },
+      "configurations": {
+        "production": {
+          "budgets": [
+            { "type": "initial", "maximumWarning": "1mb", "maximumError": "1.5mb" },
+            { "type": "anyComponentStyle", "maximumWarning": "18kb", "maximumError": "24kb" }
+          ],
+          "outputHashing": "all"
+        },
+        "development": {
+          "optimization": false,
+          "extractLicenses": false,
+          "sourceMap": true
+        }
+      },
+      "defaultConfiguration": "production"
+    },
+    "serve": {
+      "continuous": true,
+      "executor": "@angular/build:dev-server",
+      "options": { "port": 4204 },
+      "configurations": {
+        "production": { "buildTarget": "interiorismo:build:production" },
+        "development": { "buildTarget": "interiorismo:build:development" }
+      },
+      "defaultConfiguration": "development"
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    },
+    "serve-static": {
+      "continuous": true,
+      "executor": "@nx/web:file-server",
+      "options": {
+        "buildTarget": "interiorismo:build",
+        "port": 4204,
+        "staticFilePath": "dist/apps/interiorismo/browser",
+        "spa": true
+      }
+    }
+  }
+}

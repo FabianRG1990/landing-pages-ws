@@ -1,0 +1,9 @@
+/* ============================================================
+   Atelier Solano · Estudio de Interiorismo — Hoja de estilos global
+   El design system vive en libs/interiorismo/frontend/shared/src/lib/styles
+   (resuelto vía stylePreprocessorOptions.includePaths).
+   ============================================================ */
+
+@use 'settings/tokens';
+@use 'mixins/base';
+@use 'mixins/pages';

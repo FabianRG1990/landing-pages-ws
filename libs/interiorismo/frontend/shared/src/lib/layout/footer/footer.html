@@ -1,0 +1,41 @@
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a class="footer-logo" routerLink="/inicio">Atelier Solano</a>
+        <p class="footer-tag">
+          Interiorismo residencial enraizado en la materia, la luz y el oficio
+          del habitar.
+        </p>
+      </div>
+
+      <div class="footer-col">
+        <p class="footer-label">Contacto</p>
+        <a class="footer-link" [href]="contact.emailHref">{{ contact.email }}</a>
+        <a class="footer-link" [href]="contact.phoneHref">{{ contact.phone }}</a>
+      </div>
+
+      <div class="footer-col">
+        <p class="footer-label">Estudio</p>
+        @for (line of contact.address; track line) {
+          <span class="footer-line">{{ line }}</span>
+        }
+      </div>
+
+      <div class="footer-col">
+        <p class="footer-label">Seguir</p>
+        <a class="footer-link" [href]="contact.instagram" target="_blank" rel="noopener">Instagram</a>
+        <a class="footer-link" [href]="contact.linkedin" target="_blank" rel="noopener">LinkedIn</a>
+        <a class="footer-link" [href]="contact.pinterest" target="_blank" rel="noopener">Pinterest</a>
+      </div>
+    </div>
+
+    <div class="footer-base">
+      <p>2026 Atelier Solano. Todos los derechos reservados.</p>
+      <div class="footer-legal">
+        <a href="#">Política de privacidad</a>
+        <a href="#">Términos del servicio</a>
+      </div>
+    </div>
+  </div>
+</footer>

@@ -1,0 +1,31 @@
+<div class="page">
+  <section class="wrap section portfolio">
+    <span class="eyebrow" appReveal>Obra seleccionada</span>
+    <h2 class="h-section" appReveal>
+      Cada residencia, un retrato de quien la habita
+    </h2>
+
+    <div class="portfolio-grid">
+      @for (p of projects; track p.seed) {
+        <article class="portfolio-card" [class.span2]="p.span" appReveal>
+          <a href="#">
+            <div class="portfolio-frame">
+              <div class="portfolio-clip">
+                <img
+                  [src]="'https://picsum.photos/seed/' + p.seed + '/' + p.w + '/' + p.h"
+                  [alt]="p.alt"
+                  [class]="p.ratio"
+                  loading="lazy"
+                />
+              </div>
+            </div>
+            <div class="portfolio-meta">
+              <p class="pm-loc">{{ p.loc }}</p>
+              <h3>{{ p.title }}</h3>
+            </div>
+          </a>
+        </article>
+      }
+    </div>
+  </section>
+</div>

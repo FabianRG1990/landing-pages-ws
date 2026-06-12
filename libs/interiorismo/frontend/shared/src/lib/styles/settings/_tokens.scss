@@ -1,0 +1,36 @@
+/* ============================================================
+   ATELIER SOLANO · Estudio de Interiorismo — Design tokens
+   Crema + espresso sobre crema cálida · materia, luz y proporción
+   ============================================================ */
+
+:root {
+  /* Base neutra */
+  --cream:        #FFFFFF;
+  --espresso:     #000000;
+
+  /* Sage (acento vegetal) */
+  --sage:         #5F6B5E;
+  --sage-light:   #E8EDE7;
+  --sage-dark:    #4A544A;
+
+  /* Tintes de espresso por opacidad (texto, líneas, superficies) */
+  --ink:          rgba(0, 0, 0, 0.88);
+  --ink-soft:     rgba(0, 0, 0, 0.60);
+  --ink-faint:    rgba(0, 0, 0, 0.40);
+  --ink-mute:     rgba(0, 0, 0, 0.35);
+  --line:         rgba(0, 0, 0, 0.08);
+  --line-soft:    rgba(0, 0, 0, 0.06);
+  --line-faint:   rgba(0, 0, 0, 0.05);
+  --surface:      rgba(0, 0, 0, 0.03);
+
+  /* Tipografía */
+  --font-display: "Cormorant Garamond", Georgia, serif;
+  --font-body:    "Plus Jakarta Sans", system-ui, sans-serif;
+
+  /* Movimiento — curva expo del original */
+  --ease-expo:    cubic-bezier(0.32, 0.72, 0, 1);
+
+  /* Métricas */
+  --nav-h:        84px;
+  --maxw:         1400px;
+}
