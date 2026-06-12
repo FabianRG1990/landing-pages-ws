@@ -183,7 +183,9 @@
    CSS sticky, NO position:fixed (sin vacío negro)
    ════════════════════════════════════════════ */
 #showcase-track {
-  height: 500vh; /* distancia de scroll generosa → ~3.3vh por frame */
+  /* Recorrido amplio (pacing cinematográfico): con 479 frames son ~1.5vh por
+     frame, así cada gesto de scroll cruza pocos cuadros → frenado sin escalón. */
+  height: 700vh;
   position: relative;
 }
 #showcase-sticky {
