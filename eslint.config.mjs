@@ -32,6 +32,10 @@ export default [
               sourceTag: 'scope:arias',
               onlyDependOnLibsWithTags: ['scope:arias', 'scope:shared'],
             },
+            {
+              sourceTag: 'scope:vindas',
+              onlyDependOnLibsWithTags: ['scope:vindas', 'scope:shared'],
+            },
           ],
         },
       ],

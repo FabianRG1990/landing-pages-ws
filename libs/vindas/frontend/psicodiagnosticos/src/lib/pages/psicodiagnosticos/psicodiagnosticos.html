@@ -1,0 +1,29 @@
+<section class="screen" id="psico">
+  <div class="wrap">
+    <div class="section-head section-head--left" appReveal>
+      <div class="eyebrow"><span class="eyebrow__line"></span><span>{{ t().psico.eyebrow }}</span></div>
+      <h2>{{ t().psico.title }}</h2>
+      <p>{{ t().psico.sub }}</p>
+    </div>
+
+    <div class="psico">
+      @for (g of t().psico.groups; track g.cat) {
+        <div class="pcard" appReveal>
+          <div class="pcard__head"><span class="dot"></span><h3>{{ g.cat }}</h3></div>
+          @for (it of g.items; track it.code) {
+            <div class="row"><span class="code">{{ it.code }}</span><span class="name">{{ it.name }}</span></div>
+          }
+        </div>
+      }
+    </div>
+
+    <div class="psico-note" appReveal>
+      <img src="assets/logo-mark.png" alt="" />
+      <p>{{ t().psico.note }}</p>
+      <a class="btn btn--wa" [href]="waHref()" target="_blank" rel="noopener">
+        <span>{{ t().cta }}</span>
+        <svg class="ico-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </a>
+    </div>
+  </div>
+</section>

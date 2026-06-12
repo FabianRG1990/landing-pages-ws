@@ -1,0 +1,59 @@
+<section class="screen" id="contacto">
+  <div class="wrap">
+    <div class="section-head section-head--left" appReveal>
+      <div class="eyebrow"><span class="eyebrow__line"></span><span>{{ t().contacto.eyebrow }}</span></div>
+      <h2>{{ t().contacto.title }}</h2>
+      <p>{{ t().contacto.sub }}</p>
+    </div>
+    <div class="contact">
+      <div class="contact__list" appReveal>
+        <a class="contact-row contact-row--wa" [href]="waHref()" target="_blank" rel="noopener">
+          <span class="contact-row__ico"><svg class="ico-wa" viewBox="0 0 24 24" aria-hidden="true"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.46 1.32 4.96L2 22l5.25-1.38a9.9 9.9 0 0 0 4.79 1.21h.01c5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.82 9.82 0 0 0 12.04 2Zm0 18.13a8.2 8.2 0 0 1-4.19-1.15l-.3-.18-3.11.82.83-3.04-.2-.31a8.18 8.18 0 0 1-1.26-4.39c0-4.54 3.7-8.23 8.24-8.23a8.2 8.2 0 0 1 8.23 8.24c0 4.54-3.7 8.23-8.24 8.23Zm4.52-6.16c-.25-.12-1.47-.72-1.69-.81-.23-.08-.39-.12-.56.13-.17.25-.64.81-.78.97-.14.17-.29.19-.54.06-.25-.12-1.05-.39-1.99-1.23-.74-.66-1.23-1.47-1.38-1.72-.14-.25-.02-.38.11-.51.11-.11.25-.29.37-.43.12-.14.17-.25.25-.41.08-.17.04-.31-.02-.43-.06-.12-.56-1.34-.76-1.84-.2-.48-.41-.42-.56-.42-.14-.01-.31-.01-.48-.01-.17 0-.43.06-.66.31-.23.25-.86.85-.86 2.07 0 1.22.89 2.4 1.01 2.56.12.17 1.75 2.67 4.24 3.74.59.26 1.05.41 1.41.52.59.19 1.13.16 1.56.1.48-.07 1.47-.6 1.68-1.18.21-.58.21-1.07.14-1.18-.06-.11-.22-.17-.47-.29Z"/></svg></span>
+          <span class="contact-row__body"><span class="contact-row__label">{{ t().contacto.lblWhats }}</span><span class="contact-row__value">{{ waDisplay }}</span></span>
+          <span class="contact-row__action">{{ t().contacto.waBtn }}</span>
+        </a>
+        <a class="contact-row" [href]="telHref">
+          <span class="contact-row__ico contact-row__ico--sage"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h3l2 5-2.2 1.2a11 11 0 0 0 5 5L19 13l2 5v2a1 1 0 0 1-1 1A16 16 0 0 1 4 6a1 1 0 0 1 1-2Z"/></svg></span>
+          <span class="contact-row__body"><span class="contact-row__label contact-row__label--muted">{{ t().contacto.lblPhone }}</span><span class="contact-row__value contact-row__value--ink">{{ telDisplay }}</span></span>
+        </a>
+        <a class="contact-row" [href]="mailto">
+          <span class="contact-row__ico contact-row__ico--gold"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="m4 8 8 5 8-5"/></svg></span>
+          <span class="contact-row__body"><span class="contact-row__label contact-row__label--muted">{{ t().contacto.lblEmail }}</span><span class="contact-row__value contact-row__value--ink">{{ email }}</span></span>
+        </a>
+        <div class="contact-row contact-row--static">
+          <span class="contact-row__ico contact-row__ico--coral"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-6-5.7-6-10a6 6 0 1 1 12 0c0 4.3-6 10-6 10Z"/><circle cx="12" cy="11" r="2.2"/></svg></span>
+          <span class="contact-row__body"><span class="contact-row__label contact-row__label--muted">{{ t().contacto.lblDir }}</span><span class="contact-row__value contact-row__value--ink">{{ t().contacto.address }}</span></span>
+        </div>
+        <div class="socials">
+          <a class="social" [href]="igUrl" target="_blank" rel="noopener" aria-label="Instagram"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5.4"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="1.1" fill="currentColor" stroke="none"/></svg></a>
+          <a class="social" [href]="fbUrl" target="_blank" rel="noopener" aria-label="Facebook"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 8.5H16.5V5.6h-2.2a3.3 3.3 0 0 0-3.3 3.3v1.9H9v2.9h2v6.7h3v-6.7h2.2l.5-2.9H14v-1.6a.9.9 0 0 1 .9-.9Z"/></svg></a>
+        </div>
+      </div>
+
+      <div class="contact__right" appReveal>
+        <form class="form" novalidate (submit)="onSubmit($event, fName.value, fEmail.value, fMsg.value)">
+          <h3>{{ t().contacto.formTitle }}</h3>
+          <div class="form__fields">
+            <input #fName type="text" [placeholder]="t().contacto.f_name" autocomplete="name" />
+            <input #fEmail type="email" [placeholder]="t().contacto.f_email" autocomplete="email" />
+            <textarea #fMsg rows="4" [placeholder]="t().contacto.f_msg"></textarea>
+            <button class="btn btn--wa form__submit" type="submit">
+              <span>{{ t().contacto.f_send }}</span>
+              <svg class="ico-arrow" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+            </button>
+          </div>
+        </form>
+        <div class="mapcard">
+          <div class="mapcard__frame">
+            <iframe title="Mapa" loading="lazy" src="https://www.google.com/maps?q=San+Francisco+de+Heredia,+Costa+Rica&z=14&output=embed"></iframe>
+          </div>
+          <div class="mapcard__foot">
+            <span class="contact-row__ico contact-row__ico--coral"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-6-5.7-6-10a6 6 0 1 1 12 0c0 4.3-6 10-6 10Z"/><circle cx="12" cy="11" r="2.2"/></svg></span>
+            <div class="mapcard__txt"><div class="contact-row__label contact-row__label--muted">{{ t().contacto.mapTitle }}</div><div>{{ t().contacto.region }}</div></div>
+            <a class="mapcard__link" href="https://www.google.com/maps/search/?api=1&query=San+Francisco+de+Heredia+Costa+Rica" target="_blank" rel="noopener">{{ t().contacto.mapBtn }} →</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

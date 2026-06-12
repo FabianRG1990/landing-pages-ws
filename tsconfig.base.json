@@ -30,7 +30,16 @@
       "@arias-ui-servicios": ["./libs/arias/frontend/servicios/src/index.ts"],
       "@arias-ui-enfoque": ["./libs/arias/frontend/enfoque/src/index.ts"],
       "@arias-ui-articulos": ["./libs/arias/frontend/articulos/src/index.ts"],
-      "@arias-ui-contacto": ["./libs/arias/frontend/contacto/src/index.ts"]
+      "@arias-ui-contacto": ["./libs/arias/frontend/contacto/src/index.ts"],
+      "@vindas-ui-shared": ["./libs/vindas/frontend/shared/src/index.ts"],
+      "@vindas-ui-shared/*": ["./libs/vindas/frontend/shared/src/lib/*"],
+      "@vindas-ui-inicio": ["./libs/vindas/frontend/inicio/src/index.ts"],
+      "@vindas-ui-sobre": ["./libs/vindas/frontend/sobre/src/index.ts"],
+      "@vindas-ui-servicios": ["./libs/vindas/frontend/servicios/src/index.ts"],
+      "@vindas-ui-psicodiagnosticos": [
+        "./libs/vindas/frontend/psicodiagnosticos/src/index.ts"
+      ],
+      "@vindas-ui-contacto": ["./libs/vindas/frontend/contacto/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]

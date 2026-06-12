@@ -1,0 +1,57 @@
+<section class="screen" id="servicios">
+  <div class="wrap">
+    <div class="section-head" appReveal>
+      <div class="eyebrow eyebrow--center"><span class="eyebrow__line"></span><span>{{ t().servicios.eyebrow }}</span><span class="eyebrow__line"></span></div>
+      <h2>{{ t().servicios.title }}</h2>
+      <p>{{ t().servicios.sub }}</p>
+    </div>
+
+    <div class="services">
+      @for (s of t().servicios.items; track s.t) {
+        <article class="service service--{{ s.tone }}" appReveal>
+          <div class="service__glow"></div>
+          <span class="service__ico">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              @switch (s.icon) {
+                @case ('individual') {
+                  <path d="M12 21s-7-4.6-7-9.5A3.7 3.7 0 0 1 12 8a3.7 3.7 0 0 1 7 3.5C19 16.4 12 21 12 21Z"/>
+                }
+                @case ('pareja') {
+                  <path d="M9 19s-5-3.3-5-7a2.7 2.7 0 0 1 5-1.5A2.7 2.7 0 0 1 14 12c0 3.7-5 7-5 7Z"/><path d="M15 16s5-3.3 5-7a2.7 2.7 0 0 0-5-1.5"/>
+                }
+                @case ('infantil') {
+                  <path d="M12 21v-8"/><path d="M12 13c0-3 2.2-5.4 5.4-5.4 0 3-2.2 5.4-5.4 5.4Z"/><path d="M12 15.5c0-2.6-2-4.7-4.8-4.7 0 2.6 2 4.7 4.8 4.7Z"/>
+                }
+              }
+            </svg>
+          </span>
+          <div class="service__tag">{{ s.d }}</div>
+          <h3 class="service__title">{{ s.t }}</h3>
+          <p class="service__body">{{ s.body }}</p>
+          <div class="service__meta">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>{{ s.meta }}
+          </div>
+        </article>
+      }
+    </div>
+
+    <div class="services-extra">
+      <div appReveal>
+        <h4 class="kicker">{{ t().servicios.moreTitle }}</h4>
+        <div class="chips">
+          @for (m of t().servicios.more; track m) {
+            <span class="chip-soft">{{ m }}</span>
+          }
+        </div>
+      </div>
+      <div appReveal>
+        <h4 class="kicker">{{ t().servicios.areasTitle }}</h4>
+        <div class="pills">
+          @for (a of t().servicios.areas; track a) {
+            <span class="pill">{{ a }}</span>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

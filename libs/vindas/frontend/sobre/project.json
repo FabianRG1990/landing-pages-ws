@@ -1,0 +1,15 @@
+{
+  "name": "vindas-ui-sobre",
+  "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/vindas/frontend/sobre/src",
+  "prefix": "app",
+  "projectType": "library",
+  "tags": [
+    "scope:vindas"
+  ],
+  "targets": {
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    }
+  }
+}
