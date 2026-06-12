@@ -1,0 +1,210 @@
+// ============================================================
+//  Dra. Valeria Vindas — Sistema base (global)
+//  Reset, fondo, preloader, telón, navbar, menú móvil, botones,
+//  primitivas de layout y reveal-on-scroll.
+// ============================================================
+
+@use '../settings/tokens' as *;
+
+// ---------- Reset ----------
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body { background: $ground; font-family: $sans; color: $ink; -webkit-font-smoothing: antialiased; }
+a { color: inherit; text-decoration: none; }
+img { display: block; max-width: 100%; }
+input, textarea, button { font-family: inherit; font-size: inherit; color: inherit; }
+::placeholder { color: #BCAA9B; }
+svg { display: block; }
+
+// ---------- Keyframes ----------
+@keyframes vv-spin   { to { transform: rotate(360deg); } }
+@keyframes vv-spin-r { to { transform: rotate(-360deg); } }
+@keyframes vv-beat   { 0%,100% { transform: scale(1); } 12% { transform: scale(1.05); } 24% { transform: scale(1); } 38% { transform: scale(1.035); } 52% { transform: scale(1); } }
+@keyframes vv-float  { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-14px); } }
+@keyframes vv-marquee{ from { transform: translateX(0); } to { transform: translateX(-50%); } }
+@keyframes vv-menuin { from { opacity: 0; clip-path: circle(0% at 92% 5%); } to { opacity: 1; clip-path: circle(150% at 92% 5%); } }
+
+// ---------- Shell ----------
+.site { position: relative; min-height: 100vh; overflow-x: hidden; }
+
+.bg {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden;
+  background:
+    radial-gradient(120% 90% at 88% -10%, rgba(217,128,106,.14), rgba(217,128,106,0) 55%),
+    radial-gradient(100% 80% at -8% 12%, rgba(159,171,140,.16), rgba(159,171,140,0) 55%),
+    radial-gradient(90% 70% at 50% 118%, rgba(194,162,104,.12), rgba(194,162,104,0) 60%),
+    linear-gradient(180deg, #FBF6F0 0%, #F6EDE2 100%);
+
+  &__mark { position: absolute; opacity: .05; }
+  &__mark--tr { right: -130px; top: 60px; width: 560px; transform: rotate(6deg); }
+  &__mark--bl { left: -150px; bottom: -60px; width: 480px; opacity: .045; transform: rotate(-8deg); }
+  &__grain {
+    position: absolute; inset: 0; opacity: .5; mix-blend-mode: multiply; background-size: 170px;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/><feColorMatrix type='saturate' values='0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/></svg>");
+  }
+}
+
+// ---------- Preloader ----------
+.preloader {
+  position: fixed; inset: 0; z-index: 120;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 30px;
+  background: radial-gradient(80% 60% at 50% 42%, #FDF9F4, #F4EADF);
+  opacity: 1; transition: opacity .9s ease;
+
+  &.is-hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+
+  &__ring { position: relative; width: 220px; height: 220px; display: flex; align-items: center; justify-content: center; }
+  &__arc { position: absolute; border-radius: 50%; }
+  &__arc--1 { inset: 0; border: 1.5px solid rgba(194,162,104,.22); border-top-color: $gold; border-right-color: $coral; animation: vv-spin 2.4s linear infinite; }
+  &__arc--2 { inset: 18px; border: 1px dashed rgba(159,171,140,.45); animation: vv-spin-r 9s linear infinite; }
+  &__mark { width: 130px; height: 130px; object-fit: contain; animation: vv-beat 2s ease-in-out infinite; }
+  &__text { text-align: center; }
+  &__name { font-family: $serif; font-size: 30px; font-weight: 600; color: $coral; letter-spacing: .01em; }
+  &__role { margin-top: 7px; font-size: 12px; font-weight: 600; letter-spacing: .34em; text-transform: uppercase; color: $sage-deep; }
+}
+
+// ---------- Cinematic curtain (telón) ----------
+.curtain {
+  position: fixed; inset: 0; z-index: 110;
+  display: flex; align-items: center; justify-content: center;
+  pointer-events: none; overflow: hidden; visibility: hidden;
+  &.is-cover, &.is-reveal { visibility: visible; }
+
+  &__slat {
+    position: absolute; top: -7%; bottom: -7%;
+    transform: translateY(114%); will-change: transform;
+    box-shadow: inset -1px 0 0 rgba(255,255,255,.06), inset 1px 0 0 rgba(60,28,18,.10);
+  }
+  &.is-cover  &__slat { transform: translateY(0);     transition: transform .72s $ease-cover; transition-delay: calc(var(--i) * .058s); }
+  &.is-reveal &__slat { transform: translateY(-114%); transition: transform .72s $ease-reveal; transition-delay: calc((var(--n) - 1 - var(--i)) * .05s); }
+
+  &__sheen {
+    position: absolute; inset: 0; opacity: 0; mix-blend-mode: soft-light; transition: opacity .5s ease;
+    background: radial-gradient(120% 80% at 50% 38%, rgba(255,240,225,.55), rgba(255,240,225,0) 60%);
+  }
+  &.is-cover &__sheen { opacity: 1; }
+
+  &__bloom {
+    position: absolute; top: 50%; left: 50%; width: 760px; height: 760px; margin: -380px 0 0 -380px;
+    border-radius: 50%; opacity: 0; transform: scale(.6);
+    background: radial-gradient(circle, rgba(255,244,232,.5) 0%, rgba(255,244,232,0) 62%);
+  }
+  &.is-cover &__bloom { opacity: 1; transform: scale(1); transition: opacity .6s ease .12s, transform .9s $ease-soft .12s; }
+
+  &__content {
+    position: relative; display: flex; flex-direction: column; align-items: center; gap: 20px; text-align: center;
+    opacity: 0; transform: translateY(14px) scale(.92);
+  }
+  &.is-cover &__content  { opacity: 1; transform: translateY(0) scale(1); transition: opacity .55s ease .22s, transform .8s $ease-soft .22s; }
+  &.is-reveal &__content { opacity: 0; transform: translateY(-16px) scale(1.05); transition: opacity .42s ease, transform .55s ease; }
+
+  &__emblem { position: relative; width: 150px; height: 150px; display: flex; align-items: center; justify-content: center; }
+  &__ring { position: absolute; inset: 0; border-radius: 50%; border: 1.5px solid rgba(255,249,243,.7); transform: scale(.42); opacity: .8; }
+  &.is-cover &__ring--1 { transform: scale(2);   opacity: 0; transition: transform 1s   cubic-bezier(.16,.8,.3,1) .06s, opacity 1s   ease .06s; }
+  &.is-cover &__ring--2 { transform: scale(2.9); opacity: 0; transition: transform 1.2s cubic-bezier(.16,.8,.3,1) .14s, opacity 1.2s ease .14s; }
+  &__frame { position: absolute; inset: -15px; border-radius: 50%; border: 1px solid rgba(255,255,255,.32); }
+  &__mark { position: relative; width: 118px; height: 118px; object-fit: contain; opacity: .97; transform: scale(.78);
+    filter: drop-shadow(0 10px 26px rgba(60,24,14,.35)); }
+  &.is-cover &__mark { transform: scale(1); transition: transform .8s cubic-bezier(.2,.8,.2,1) .08s; }
+
+  &__label { font-family: $serif; font-size: clamp(34px, 5vw, 54px); font-weight: 600; color: #fff; line-height: 1; text-shadow: 0 8px 30px rgba(60,24,14,.3); }
+  &__line { width: 0; height: 1.5px; background: rgba(255,247,240,.85); }
+  &.is-cover &__line { width: 64px; transition: width .7s $ease-soft .34s; }
+  &__sub { font-size: 12px; font-weight: 600; letter-spacing: .34em; text-transform: uppercase; color: rgba(255,244,236,.92); }
+}
+
+// ---------- Navbar ----------
+.nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 60;
+  padding: 20px clamp(18px, 5vw, 44px);
+  transition: padding .35s ease, background .35s ease, box-shadow .35s ease, backdrop-filter .35s ease;
+
+  &.is-scrolled {
+    padding-top: 11px; padding-bottom: 11px;
+    background: rgba(250,245,238,.86);
+    backdrop-filter: saturate(1.35) blur(16px); -webkit-backdrop-filter: saturate(1.35) blur(16px);
+    box-shadow: 0 1px 0 rgba(70,58,50,.07), 0 22px 44px -34px rgba(70,58,50,.5);
+  }
+
+  &__inner { max-width: 1240px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 18px; }
+  &__brand { display: flex; align-items: center; gap: 13px; cursor: pointer; }
+  &__logo { width: 48px; height: 48px; object-fit: contain; }
+  &__logo--lg { width: 52px; height: 52px; }
+  &__brandtext { display: flex; flex-direction: column; line-height: 1; }
+  &__brandname { font-family: $serif; font-size: 23px; font-weight: 600; color: $coral; }
+  &__brandrole { font-size: 10px; font-weight: 600; letter-spacing: .26em; text-transform: uppercase; color: $sage-deep; margin-top: 4px; }
+  &__links { display: flex; align-items: center; gap: 6px; }
+  &__link {
+    position: relative; cursor: pointer; padding: 9px 15px; border-radius: 999px;
+    font-size: 14.5px; font-weight: 500; color: $ink; transition: color .25s, background .25s;
+    &:hover { background: rgba(255,255,255,.55); }
+    &.is-active { color: $coral-deep; background: rgba(217,128,106,.10); }
+  }
+  &__actions { display: flex; align-items: center; gap: 10px; }
+}
+
+.lang-btn {
+  cursor: pointer; background: rgba(255,255,255,.55); border: 1px solid $line; border-radius: 999px;
+  padding: 8px 13px; font-size: 12px; font-weight: 700; letter-spacing: .08em; color: $ink-2;
+  &:hover { background: #fff; }
+}
+
+.burger {
+  display: none; cursor: pointer; width: 46px; height: 46px; align-items: center; justify-content: center;
+  background: rgba(255,255,255,.6); border: 1px solid $line; border-radius: 14px; color: $ink;
+  svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; }
+}
+
+// ---------- Buttons ----------
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+  border-radius: 999px; font-weight: 600; cursor: pointer; border: none; transition: transform .2s ease, box-shadow .2s ease;
+  &:hover { transform: translateY(-1px); }
+}
+.btn--wa { background: $coral; color: #fff; padding: 14px 24px; font-size: 15px; box-shadow: 0 22px 38px -18px rgba(217,128,106,.9); }
+.btn--ghost { background: transparent; color: $coral-deep; border: 1.5px solid rgba(217,128,106,.5); padding: 13px 24px; font-size: 15px; }
+.ico-wa { width: 18px; height: 18px; fill: #fff; }
+.ico-arrow { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.nav__cta { padding: 11px 19px; font-size: 14px; box-shadow: 0 16px 30px -16px rgba(217,128,106,.85); .ico-wa { width: 16px; height: 16px; } }
+
+// ---------- Mobile menu ----------
+.mobile {
+  position: fixed; inset: 0; z-index: 100; display: flex; flex-direction: column;
+  padding: 26px clamp(22px, 7vw, 44px);
+  background: linear-gradient(165deg, #FBF6F0, #F1E6D9);
+  animation: vv-menuin .5s $ease-soft both;
+
+  &__head { display: flex; align-items: center; justify-content: space-between; .nav__brand { cursor: default; } }
+  &__links { margin: auto 0; display: flex; flex-direction: column; gap: 6px;
+    a { font-family: $serif; font-size: clamp(34px, 9vw, 52px); font-weight: 600; color: $ink; padding: 6px 0; } }
+  &__cta { width: 100%; padding: 16px 22px; }
+  .burger { display: inline-flex; }
+}
+
+// ---------- Layout primitives ----------
+.main { position: relative; z-index: 10; }
+.screen { display: block; padding: clamp(122px, 15vh, 160px) clamp(20px, 5vw, 44px) clamp(56px, 8vh, 90px); }
+.wrap { max-width: 1180px; margin: 0 auto; }
+
+.eyebrow {
+  display: inline-flex; align-items: center; gap: 10px;
+  font-size: 12.5px; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; color: $coral-deep;
+  &__line { width: 34px; height: 1.5px; background: $coral; }
+  &--center { justify-content: center; }
+}
+.kicker { font-size: 12.5px; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; color: $muted; }
+
+.section-head {
+  text-align: center; max-width: 660px; margin: 0 auto;
+  h2 { margin-top: 18px; font-family: $serif; font-weight: 600; font-size: clamp(34px, 4.8vw, 56px); line-height: 1.05; letter-spacing: -.01em; color: $ink; text-wrap: balance; }
+  p { margin-top: 16px; font-size: 17px; line-height: 1.7; color: $ink-2; text-wrap: pretty; }
+  &--left { text-align: left; max-width: 680px; margin: 0; }
+}
+
+// ---------- Reveal on scroll (directiva appReveal + servicio compartido) ----------
+.reveal {
+  opacity: 0; transform: translateY(28px);
+  transition: opacity .85s $ease-soft, transform .85s $ease-soft;
+  transition-delay: var(--reveal-delay, 0ms);
+}
+.reveal.is-visible { opacity: 1; transform: none; }

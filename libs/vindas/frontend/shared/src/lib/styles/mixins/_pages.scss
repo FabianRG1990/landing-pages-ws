@@ -1,0 +1,215 @@
+// ============================================================
+//  Dra. Valeria Vindas — Estilos por sección (global)
+// ============================================================
+
+@use '../settings/tokens' as *;
+
+// ---------- Hero ----------
+.hero { max-width: 1240px; margin: 0 auto; display: flex; flex-wrap: wrap; align-items: center; gap: clamp(34px, 5vw, 70px); }
+.hero__copy { flex: 1 1 440px; min-width: 300px; }
+.hero__title { font-family: $serif; margin-top: 22px; font-weight: 600; font-size: clamp(42px, 6.4vw, 74px); line-height: 1.03; letter-spacing: -.012em; color: $ink; text-wrap: balance; }
+.hero__sub { margin-top: 24px; max-width: 540px; font-size: clamp(16px, 1.7vw, 18.5px); line-height: 1.72; color: $ink-2; text-wrap: pretty; }
+.hero__actions { margin-top: 32px; display: flex; flex-wrap: wrap; gap: 14px; }
+.hero__cred {
+  margin-top: 30px; display: flex; align-items: center; gap: 12px;
+  img { width: 30px; height: 30px; object-fit: contain; opacity: .8; }
+  span { font-size: 13px; color: $muted; max-width: 330px; line-height: 1.5; @include tabular; }
+}
+.hero__media { flex: 1 1 380px; min-width: 290px; display: flex; justify-content: center; }
+
+// ---------- Portrait placeholder frames ----------
+.portrait { position: relative; width: min(420px, 100%); }
+.portrait--arch { .portrait__inner { border-radius: 230px 230px 26px 26px; } }
+.portrait__outline { position: absolute; inset: -16px -16px 26px; border: 1px solid rgba(194,162,104,.4); border-radius: 240px 240px 30px 30px; pointer-events: none; }
+.portrait__inner {
+  position: relative; border-radius: 24px; overflow: hidden; aspect-ratio: 4/5;
+  background: linear-gradient(170deg, #F7E7DF 0%, #EFD7CC 55%, #E7C7BC 100%);
+  box-shadow: 0 50px 90px -50px rgba(70,58,50,.55);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; text-align: center; padding: 30px;
+  &::before { content: ""; position: absolute; inset: 0; opacity: .5;
+    background-image: repeating-linear-gradient(135deg, rgba(255,255,255,.45) 0 2px, rgba(255,255,255,0) 2px 13px); }
+  &::after { content: ""; position: absolute; inset: 14px; border: 1.4px dashed rgba(194,103,78,.4); border-radius: inherit; }
+}
+.portrait--rect .portrait__inner { background: linear-gradient(170deg, #F1E7DB 0%, #E9DAC9 100%);
+  &::after { border-color: rgba(124,138,107,.45); border-radius: 16px; } }
+.portrait__icon {
+  position: relative; width: 78px; height: 78px; border-radius: 50%; background: rgba(255,255,255,.6);
+  border: 1px solid rgba(194,103,78,.3); display: flex; align-items: center; justify-content: center; color: $coral;
+  svg { width: 38px; height: 38px; fill: none; stroke: currentColor; stroke-width: 1.3; stroke-linecap: round; stroke-linejoin: round; }
+  &--sage { border-color: rgba(124,138,107,.35); color: $sage-deep; }
+}
+.portrait__title { position: relative; font-family: $serif; font-size: 22px; font-weight: 600; color: $coral-deep; &--sage { color: $sage-deep; } }
+.portrait__hint { position: relative; margin-top: 7px; font-size: 11px; font-weight: 600; letter-spacing: .22em; text-transform: uppercase; color: $muted; }
+.portrait__badge {
+  position: absolute; left: -18px; bottom: 30px; display: flex; align-items: center; gap: 10px;
+  background: $surface; border: 1px solid $line; border-radius: 16px; padding: 11px 16px; box-shadow: $shadow-soft;
+  animation: vv-float 6s ease-in-out infinite;
+  img { width: 30px; height: 30px; object-fit: contain; }
+  span { font-size: 12.5px; font-weight: 600; color: $sage-deep; }
+}
+.portrait__seal { position: absolute; right: -14px; bottom: -14px; width: 84px; height: 84px; object-fit: contain; filter: drop-shadow(0 14px 22px rgba(70,58,50,.25)); }
+
+// ---------- Marquee ----------
+.marquee {
+  max-width: 1240px; margin: clamp(34px, 5vh, 56px) auto 0; overflow: hidden;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent);
+          mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent);
+  &__track { display: flex; gap: 12px; width: max-content; animation: vv-marquee 34s linear infinite; }
+  .chip { white-space: nowrap; }
+}
+.chip {
+  display: inline-flex; align-items: center; gap: 9px; padding: 10px 18px; border-radius: 999px;
+  border: 1px solid $line; background: rgba(255,255,255,.55); font-size: 14px; color: $ink-2;
+  &::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: $coral; }
+  &--sage::before { background: $sage; }
+}
+
+// ---------- About ----------
+.about { margin-top: 26px; display: flex; flex-wrap: wrap; gap: clamp(30px, 4vw, 58px); }
+.about__media { flex: 1 1 320px; min-width: 280px; }
+.about__copy { flex: 1 1 440px; min-width: 300px;
+  h2 { font-family: $serif; font-weight: 600; font-size: clamp(34px, 4.6vw, 54px); line-height: 1.05; letter-spacing: -.01em; color: $ink; }
+  p { margin-top: 16px; font-size: 17px; line-height: 1.74; color: $ink-2; text-wrap: pretty; }
+}
+.pullquote { font-family: $serif; margin-top: 18px !important; padding-left: 18px; border-left: 2px solid $coral; font-style: italic; font-size: 21px !important; line-height: 1.5 !important; color: $coral-deep !important; }
+
+.cards2 { margin-top: clamp(40px, 6vh, 64px); display: flex; flex-wrap: wrap; gap: clamp(20px, 3vw, 32px); }
+.card { @include card; flex: 1 1 320px; min-width: 280px; padding: clamp(24px, 3vw, 34px);
+  &__head { display: flex; align-items: center; gap: 11px; margin-bottom: 20px; h3 { font-family: $serif; font-size: 26px; font-weight: 600; color: $ink; } }
+  &__ico { width: 36px; height: 36px; border-radius: 11px; display: flex; align-items: center; justify-content: center;
+    svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+    &--gold { background: rgba(194,162,104,.16); color: $gold-deep; }
+    &--sage { background: rgba(159,171,140,.18); color: $sage-deep; } }
+}
+.timeline li { display: flex; gap: 13px; padding: 13px 0; border-top: 1px solid rgba(70,58,50,.1); list-style: none;
+  &::before { content: ""; margin-top: 7px; width: 7px; height: 7px; border-radius: 50%; background: $gold; flex-shrink: 0; }
+  .t { font-size: 16px; font-weight: 600; color: $ink; }
+  .s { margin-top: 3px; font-size: 13.5px; color: $muted; @include tabular; } }
+.explist li { padding: 14px 0; border-top: 1px solid rgba(70,58,50,.1); list-style: none;
+  .t { font-size: 16px; font-weight: 600; color: $ink; line-height: 1.35; }
+  .s { margin-top: 6px; font-size: 14px; color: $ink-2; line-height: 1.6; } }
+
+// ---------- Services ----------
+.services { margin-top: clamp(34px, 5vh, 52px); display: grid; grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); gap: clamp(18px, 2.4vw, 26px); }
+.service { @include card; border-radius: 26px; position: relative; padding: clamp(26px, 2.6vw, 34px); overflow: hidden;
+  &__glow { position: absolute; top: -30px; right: -30px; width: 120px; height: 120px; border-radius: 50%; }
+  &__ico { position: relative; display: inline-flex; width: 56px; height: 56px; border-radius: 16px; align-items: center; justify-content: center;
+    svg { width: 28px; height: 28px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; } }
+  &__tag { position: relative; margin-top: 20px; font-size: 12px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; color: $coral-deep; }
+  &__title { position: relative; margin-top: 8px; font-family: $serif; font-size: 30px; font-weight: 600; color: $ink; }
+  &__body { position: relative; margin-top: 12px; font-size: 15.5px; line-height: 1.68; color: $ink-2; text-wrap: pretty; }
+  &__meta { position: relative; margin-top: 20px; padding-top: 16px; border-top: 1px solid rgba(70,58,50,.1);
+    display: flex; align-items: center; gap: 9px; font-size: 13.5px; font-weight: 600; color: $sage-deep; @include tabular;
+    svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; } }
+
+  &--coral .service__glow { background: radial-gradient(circle, rgba(217,128,106,.14), transparent 70%); }
+  &--coral .service__ico { background: rgba(217,128,106,.13); color: $coral; }
+  &--sage  .service__glow { background: radial-gradient(circle, rgba(159,171,140,.16), transparent 70%); }
+  &--sage  .service__ico { background: rgba(159,171,140,.18); color: $sage-deep; }
+  &--gold  .service__glow { background: radial-gradient(circle, rgba(194,162,104,.16), transparent 70%); }
+  &--gold  .service__ico { background: rgba(194,162,104,.16); color: $gold-deep; }
+}
+.services-extra { margin-top: clamp(30px, 4vh, 46px); display: flex; flex-wrap: wrap; gap: clamp(20px, 3vw, 30px); align-items: flex-start;
+  > div { flex: 1 1 280px; } }
+.chips { margin-top: 14px; display: flex; flex-wrap: wrap; gap: 10px; }
+.chip-soft { display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; border-radius: 14px; background: $surface; border: 1px solid $line; font-size: 14px; font-weight: 500; color: $ink;
+  &::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: $coral; } }
+.pills { margin-top: 14px; display: flex; flex-wrap: wrap; gap: 9px; }
+.pill { padding: 9px 15px; border-radius: 999px; border: 1px solid rgba(217,128,106,.28); background: rgba(217,128,106,.06); font-size: 13.5px; color: $coral-deep; }
+
+// ---------- Psicodiagnósticos ----------
+.psico { margin-top: clamp(32px, 5vh, 48px); display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: clamp(18px, 2.4vw, 24px); }
+.pcard { @include card; padding: clamp(22px, 2.4vw, 30px);
+  &__head { display: flex; align-items: center; gap: 11px; padding-bottom: 16px; border-bottom: 1px solid rgba(70,58,50,.1);
+    h3 { font-family: $serif; font-size: 24px; font-weight: 600; color: $ink; }
+    .dot { width: 11px; height: 11px; border-radius: 50%; background: $coral; box-shadow: 0 0 0 4px rgba(217,128,106,.14); } }
+  .row { display: flex; align-items: center; gap: 14px; padding: 14px 0; border-bottom: 1px solid rgba(70,58,50,.07);
+    &:last-child { border-bottom: none; }
+    .code { flex-shrink: 0; min-width: 74px; text-align: center; padding: 7px 10px; border-radius: 10px; background: rgba(194,162,104,.14); font-size: 13px; font-weight: 700; color: $gold-deep; @include tabular; }
+    .name { font-size: 14.5px; line-height: 1.45; color: $ink-2; } }
+}
+.psico-note {
+  margin-top: clamp(26px, 3.5vh, 40px); display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+  padding: 22px 26px; border-radius: 20px; border: 1px solid rgba(70,58,50,.1);
+  background: linear-gradient(120deg, rgba(217,128,106,.08), rgba(159,171,140,.1));
+  img { width: 46px; height: 46px; object-fit: contain; }
+  p { flex: 1 1 280px; font-size: 15.5px; line-height: 1.6; color: $ink-2; text-wrap: pretty; }
+  .btn { padding: 13px 22px; font-size: 14.5px; box-shadow: 0 18px 32px -18px rgba(217,128,106,.85); }
+}
+
+// ---------- Contacto ----------
+.contact { margin-top: clamp(32px, 5vh, 48px); display: flex; flex-wrap: wrap; gap: clamp(22px, 3vw, 34px); align-items: stretch; }
+.contact__list { flex: 1 1 340px; min-width: 300px; display: flex; flex-direction: column; gap: 14px; }
+.contact__right { flex: 1 1 360px; min-width: 300px; display: flex; flex-direction: column; gap: 18px; }
+.contact-row {
+  display: flex; align-items: center; gap: 14px; padding: 17px 20px; border-radius: 18px;
+  background: $surface; border: 1px solid $line; transition: transform .2s ease;
+  &:hover { transform: translateY(-1px); }
+  &--wa { background: $coral; color: #fff; border-color: transparent; box-shadow: 0 26px 46px -26px rgba(217,128,106,.9); padding: 18px 20px; }
+  &--static { cursor: default; align-items: flex-start; &:hover { transform: none; } }
+  &__ico { width: 46px; height: 46px; border-radius: 13px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+    &--sage { background: rgba(159,171,140,.16); color: $sage-deep; }
+    &--gold { background: rgba(194,162,104,.16); color: $gold-deep; }
+    &--coral { background: rgba(217,128,106,.13); color: $coral; } }
+  &--wa &__ico { width: 46px; height: 46px; background: rgba(255,255,255,.16); .ico-wa { width: 23px; height: 23px; fill: #fff; stroke: none; } }
+  &__body { flex: 1; min-width: 0; }
+  &__label { display: block; font-size: 12px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; opacity: .85;
+    &--muted { color: $muted; opacity: 1; } }
+  &__value { display: block; margin-top: 3px; font-size: 18px; font-weight: 600; @include tabular; word-break: break-word;
+    &--ink { color: $ink; font-size: 16px; } }
+  &__action { font-size: 13px; font-weight: 600; opacity: .95; }
+}
+.socials { display: flex; gap: 10px; margin-top: 2px; }
+.social { width: 48px; height: 48px; border-radius: 14px; background: $surface; border: 1px solid $line; display: flex; align-items: center; justify-content: center; color: $coral-deep; transition: transform .2s ease;
+  &:hover { transform: translateY(-1px); }
+  svg { width: 21px; height: 21px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+  &--sm { width: 38px; height: 38px; border-radius: 11px; svg { width: 17px; height: 17px; } } }
+
+.form { @include card; padding: clamp(24px, 3vw, 32px);
+  h3 { font-family: $serif; font-size: 26px; font-weight: 600; color: $ink; }
+  &__fields { margin-top: 18px; display: flex; flex-direction: column; gap: 13px; }
+  input, textarea { width: 100%; padding: 14px 16px; border-radius: 13px; border: 1px solid rgba(70,58,50,.14); background: #FFFDFA; color: $ink; outline: none; transition: border-color .2s ease;
+    &:focus { border-color: $coral; } }
+  textarea { resize: vertical; line-height: 1.6; }
+  &__submit { margin-top: 4px; width: 100%; border-radius: 13px; padding: 15px 20px; box-shadow: 0 20px 36px -20px rgba(217,128,106,.9); }
+}
+.mapcard { @include card; overflow: hidden;
+  &__frame { height: 190px; background: linear-gradient(135deg, #EAE2D4, #E3DAC8);
+    iframe { width: 100%; height: 100%; border: 0; filter: saturate(.86) contrast(.98); } }
+  &__foot { display: flex; align-items: center; gap: 13px; padding: 16px 20px;
+    .contact-row__ico { width: 40px; height: 40px; border-radius: 12px; svg { width: 20px; height: 20px; } } }
+  &__txt { flex: 1; min-width: 0; div:last-child { margin-top: 2px; font-size: 14px; color: $ink; } }
+  &__link { font-size: 13px; font-weight: 600; color: $coral-deep; white-space: nowrap; }
+}
+
+// ---------- Footer ----------
+.footer { position: relative; z-index: 10; margin-top: 30px; border-top: 1px solid $line;
+  background: linear-gradient(180deg, rgba(243,233,220,0), rgba(243,233,220,.7));
+  padding: clamp(40px, 6vh, 64px) clamp(20px, 5vw, 44px) 34px;
+  &__inner { max-width: 1180px; margin: 0 auto; display: flex; flex-wrap: wrap; gap: 30px; align-items: flex-start; justify-content: space-between; }
+  &__brand { flex: 1 1 280px; max-width: 360px; .nav__brand { cursor: default; } }
+  &__name { font-family: $serif; font-size: 23px; font-weight: 600; color: $coral; }
+  &__role { margin-top: 3px; font-size: 10.5px; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; color: $sage-deep; }
+  &__code { margin-top: 16px; font-size: 13.5px; color: $muted; @include tabular; }
+  &__nav { display: flex; flex-direction: column; gap: 11px; a { font-size: 14.5px; color: $ink-2; &:hover { color: $coral-deep; } } }
+  &__contact { display: flex; flex-direction: column; gap: 11px; @include tabular; a { font-size: 14.5px; color: $ink-2; &:hover { color: $coral-deep; } } }
+  &__bar { max-width: 1180px; margin: 26px auto 0; padding-top: 20px; border-top: 1px solid rgba(70,58,50,.1);
+    display: flex; flex-wrap: wrap; gap: 10px; justify-content: space-between; font-size: 12.5px; color: $muted; @include tabular; }
+}
+
+// ---------- Responsive ----------
+@media (max-width: 900px) {
+  .nav__links, .nav__cta { display: none; }
+  .burger { display: inline-flex; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition-duration: .01ms !important; }
+  .preloader { display: none; }
+  .reveal { opacity: 1; transform: none; }
+}
+
+@media print {
+  .preloader, .curtain, .bg, .nav, .mobile { display: none !important; }
+}

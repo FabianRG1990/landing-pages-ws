@@ -1,0 +1,32 @@
+<footer class="footer">
+  <div class="footer__inner">
+    <div class="footer__brand">
+      <div class="nav__brand">
+        <img class="nav__logo nav__logo--lg" src="assets/logo-mark.png" alt="" />
+        <div>
+          <div class="footer__name">Dra. Valeria Vindas</div>
+          <div class="footer__role">{{ t().footer.tagline }}</div>
+        </div>
+      </div>
+      <p class="footer__code">{{ t().footer.code }}</p>
+    </div>
+    <nav class="footer__nav">
+      @for (item of items; track item.id) {
+        <a [routerLink]="'/' + item.id">{{ t().nav[item.key] }}</a>
+      }
+    </nav>
+    <div class="footer__contact">
+      <a [href]="waHref()" target="_blank" rel="noopener">WhatsApp · {{ waDisplay }}</a>
+      <a [href]="telHref">Tel · {{ telDisplay }}</a>
+      <a [href]="mailto">{{ email }}</a>
+      <div class="socials">
+        <a class="social social--sm" [href]="igUrl" target="_blank" rel="noopener" aria-label="Instagram"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5.4"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="1.1" fill="currentColor" stroke="none"/></svg></a>
+        <a class="social social--sm" [href]="fbUrl" target="_blank" rel="noopener" aria-label="Facebook"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.5 8.5H16.5V5.6h-2.2a3.3 3.3 0 0 0-3.3 3.3v1.9H9v2.9h2v6.7h3v-6.7h2.2l.5-2.9H14v-1.6a.9.9 0 0 1 .9-.9Z"/></svg></a>
+      </div>
+    </div>
+  </div>
+  <div class="footer__bar">
+    <span>© {{ year }} Dra. Valeria Vindas Salas. {{ t().footer.rights }}</span>
+    <span>Heredia, Costa Rica</span>
+  </div>
+</footer>

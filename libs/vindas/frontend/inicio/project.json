@@ -1,0 +1,15 @@
+{
+  "name": "vindas-ui-inicio",
+  "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/vindas/frontend/inicio/src",
+  "prefix": "app",
+  "projectType": "library",
+  "tags": [
+    "scope:vindas"
+  ],
+  "targets": {
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    }
+  }
+}
