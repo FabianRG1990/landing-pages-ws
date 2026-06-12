@@ -46,10 +46,12 @@
           class="nav-mobile-link"
           [class.nav-mobile-link--active]="isActive(link.target)"
           (click)="close()"
+          (keydown.enter)="close()"
+          tabindex="0"
           >{{ link.label }}</a
         >
       }
-      <a appLink="/ownership" class="btn-gold nav-mobile-cta" (click)="close()">
+      <a appLink="/ownership" class="btn-gold nav-mobile-cta" (click)="close()" (keydown.enter)="close()" tabindex="0">
         Unlock Your Test Drive
       </a>
     </div>
