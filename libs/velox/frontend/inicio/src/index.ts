@@ -3,7 +3,6 @@
 export { veloxUiInicioRoutes as default } from './lib/lib.routes';
 export * from './lib/lib.routes';
 export { HomePage } from './lib/pages/home/home';
-export { ModelsPage } from './lib/pages/models/models';
 export { PerformancePage } from './lib/pages/performance/performance';
 export { DesignPage } from './lib/pages/design/design';
 export { TechnologyPage } from './lib/pages/technology/technology';

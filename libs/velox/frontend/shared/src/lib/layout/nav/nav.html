@@ -1,13 +1,13 @@
 <nav class="nav" [class.nav--scrolled]="scrolled()">
   <div class="nav-inner">
-    <a routerLink="/inicio" class="nav-brand gold-text">VELOX</a>
+    <a appLink="/inicio" class="nav-brand gold-text">VELOX</a>
 
     <div class="nav-links">
       @for (link of links; track link.label) {
         <a
-          [routerLink]="link.target"
-          routerLinkActive="nav-link--active"
+          [appLink]="link.target"
           class="nav-link"
+          [class.nav-link--active]="isActive(link.target)"
           >{{ link.label }}</a
         >
       }
@@ -15,7 +15,7 @@
 
     <div class="nav-actions">
       <a href="#" class="nav-signin">Sign In</a>
-      <a routerLink="/ownership" class="btn-gold nav-cta">Unlock Test Drive</a>
+      <a appLink="/ownership" class="btn-gold nav-cta">Unlock Test Drive</a>
     </div>
 
     <button
@@ -42,14 +42,14 @@
     <div class="nav-mobile">
       @for (link of links; track link.label) {
         <a
-          [routerLink]="link.target"
-          routerLinkActive="nav-mobile-link--active"
+          [appLink]="link.target"
           class="nav-mobile-link"
+          [class.nav-mobile-link--active]="isActive(link.target)"
           (click)="close()"
           >{{ link.label }}</a
         >
       }
-      <a routerLink="/ownership" class="btn-gold nav-mobile-cta" (click)="close()">
+      <a appLink="/ownership" class="btn-gold nav-mobile-cta" (click)="close()">
         Unlock Your Test Drive
       </a>
     </div>

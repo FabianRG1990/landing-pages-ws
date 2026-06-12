@@ -160,18 +160,21 @@
   position: relative;
   border-radius: 20px;
   overflow: hidden;
-  aspect-ratio: 16 / 11;
+  /* Marco ancho cinematográfico: como el frame es 16:9, recortar arriba/abajo
+     (estudio oscuro) en vez de los lados deja el coche COMPLETO y centrado. */
+  aspect-ratio: 16 / 9;
   border: 1px solid var(--gold-014);
   box-shadow: 0 40px 80px rgba(0, 0, 0, 0.5);
 }
 .design-frame img {
   position: absolute;
-  inset: 0;
-  top: -20%;
+  left: 0;
+  top: -9%;
   width: 100%;
-  height: 140%;
+  height: 118%; /* overscan vertical chico para el parallax (no toca los lados) */
   object-fit: cover;
-  filter: brightness(0.92) saturate(1.05);
+  object-position: center;
+  filter: saturate(1.06) contrast(1.02);
 }
 .design-frame-glow {
   position: absolute;

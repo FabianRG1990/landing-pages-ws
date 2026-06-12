@@ -24,6 +24,8 @@ export { CountUpDirective } from './lib/motion/count-up.directive';
 
 // Transición cinematográfica entre segmentos (rutas)
 export { RouteCurtain } from './lib/transition/route-curtain';
+export { PageTransition } from './lib/transition/page-transition.service';
+export { LinkDirective } from './lib/transition/link.directive';
 
 // Datos de contenido
 export {

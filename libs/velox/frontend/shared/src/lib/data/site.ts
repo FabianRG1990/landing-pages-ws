@@ -56,7 +56,7 @@ export interface NavLink {
 }
 
 export const NAV_LINKS: readonly NavLink[] = [
-  { label: 'Models', target: '/models' },
+  { label: 'Inicio', target: '/inicio' },
   { label: 'Performance', target: '/performance' },
   { label: 'Design', target: '/design' },
   { label: 'Technology', target: '/technology' },
