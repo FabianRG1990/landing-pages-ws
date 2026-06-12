@@ -15,32 +15,41 @@ import { ExperienceReady } from '../preloader/experience-ready.service';
 
 /**
  * ══════════════════════════════════════════════════════════════════
- * CINEMATIC SCROLL ENGINE — secuencia de imágenes (no video)
+ * CINEMATIC SCROLL ENGINE — secuencia de imágenes (241 frames nativos)
  * ──────────────────────────────────────────────────────────────────
- *  Reescrito siguiendo el consenso de producción (Codrops/Zajno OPTIKKA,
- *  páginas de producto de Apple) para arreglar los 3 problemas reales del
- *  enfoque anterior (extraer frames de un <video> por seeking):
+ *  El reto resuelto acá es el ATERRIZAJE al frenar el scroll. Con un
+ *  mapeo directo scroll→frame, al detenerse el carro queda en un punto
+ *  fraccionario y se ven "brincos"/cortes entre cuadros. La solución
+ *  (validada por el patrón snap-to-frame de GSAP + crossfade):
  *
- *   1. PIXELADO → canvas consciente del devicePixelRatio (backing store en
- *      px de dispositivo) + `imageSmoothingQuality: 'high'`. Antes el canvas
- *      se dimensionaba en px CSS (sin DPR) y los frames se capaban a 1280 →
- *      borroso en pantallas retina/4K.
- *   2. SE VEN LOS CUADROS / SALTOS → 241 frames nativos (antes 150) + un
- *      lerp del índice de frame en el ticker (cada cuadro se acerca suave al
- *      target del scroll). Al parar, converge exacto → sin "pegado" ni rebote.
- *   3. CARGA LENTA → secuencia WebP pre-extraída con FFmpeg (8.3 MB, frames
- *      ~35 KB) en vez de bajar 14 MB de video y hacer 241 seeks en el cliente.
- *      Precarga por etapas: un primer lote se muestra ya; el resto carga en
- *      segundo plano en paralelo.
+ *   1. INERCIA: el índice de frame sigue al scroll con un ease suave
+ *      (no salta al valor exacto), así el movimiento tiene un frenado
+ *      con "aterrizaje" en vez de cortar en seco.
+ *   2. SNAP AL DETENERSE: cuando el scroll queda quieto, el destino se
+ *      redondea al frame entero más cercano y el ease aterriza exacto
+ *      sobre UN cuadro nítido → sin imagen doble congelada.
+ *   3. CROSSFADE EN MOVIMIENTO: mientras se mueve/aterriza, se mezclan
+ *      los dos cuadros adyacentes según la fracción, de modo que la
+ *      transición es continua (sin "tac, tac") y al asentarse (fracción
+ *      → 0) queda perfectamente nítido.
  *
- *  Layout: CSS sticky (NO position:fixed). Todo browser-only (afterNextRender
- *  / isPlatformBrowser); el prerender solo emite el DOM estático.
+ *  Nitidez: canvas consciente de devicePixelRatio + imageSmoothingQuality
+ *  'high'. Carga: WebP pre-extraído, precarga por etapas (primer lote ya,
+ *  resto en segundo plano). Todo browser-only.
  * ══════════════════════════════════════════════════════════════════
  */
 const FRAME_COUNT = 241; // frames nativos del video (24fps · 10.04s)
+// Carpeta de frames. Lleva versión: si alguna vez se regeneran los frames,
+// SUBIR esta versión (cinematic2, …) para invalidar el caché `immutable` del
+// navegador — si no, sirve frames viejos con el mismo nombre y el video
+// "brinca" a tomas equivocadas.
+const FRAMES_DIR = 'cinematic';
 const FIRST_BATCH = 48; // frames a precargar antes de revelar la página
 const BG_CONCURRENCY = 6; // descargas en paralelo en segundo plano
 const MAX_DPR = 2; // tope de DPR (evita canvases enormes en móviles 3x)
+const EASE = 0.12; // suavidad del aterrizaje (menor = más suave/lento)
+const SETTLE_EPS = 0.0015; // umbral para considerar el frame asentado
+const IDLE_EPS = 1e-4; // umbral de velocidad de scroll para detectar "quieto"
 
 @Component({
   selector: 'app-video-showcase',
@@ -65,8 +74,12 @@ export class VideoShowcase {
   private ctx: CanvasRenderingContext2D | null = null;
   private st: ScrollTrigger | null = null;
   private tickerFn: (() => void) | null = null;
-  private lastProgress = -1; // gate: solo redibujar cuando el scroll cambió
-  private lastFrame = 0; // último frame fraccional dibujado (para resize)
+
+  private targetFrame = 0; // destino (sigue el scroll; redondea al frenar)
+  private currentFrame = 0; // posición suavizada con inercia (lo que se dibuja)
+  private lastRaw = -1; // frame crudo del scroll en el tick previo (velocidad)
+  private lastRendered = -999; // último valor dibujado (evita redibujar igual)
+  private lastP = -1; // último progress (para opacidades)
   private ready = false;
 
   constructor() {
@@ -86,7 +99,7 @@ export class VideoShowcase {
     );
 
     this.sizeCanvas();
-    this.drawFrame(0);
+    this.render(0);
     this.canvas().nativeElement.classList.add('visible');
     this.ready = true;
 
@@ -128,7 +141,7 @@ export class VideoShowcase {
   }
 
   private framePath(i: number): string {
-    return `showcase/frame_${String(i + 1).padStart(4, '0')}.webp`;
+    return `${FRAMES_DIR}/frame_${String(i + 1).padStart(4, '0')}.webp`;
   }
 
   /* ── Canvas consciente de DPR (backing store en px de dispositivo) ── */
@@ -148,12 +161,10 @@ export class VideoShowcase {
     }
   }
 
-  /* ── drawFrame(f) — frame FRACCIONAL con crossfade entre adyacentes ──
-     En vez de redondear a un frame (que a baja velocidad se ve "tac, tac"),
-     dibuja el frame i0 y mezcla encima el i1 con globalAlpha = parte
-     fraccional. El resultado es movimiento CONTINUO a cualquier velocidad y,
-     al parar, una imagen estable exacta (sin escalones ni rebote). */
-  private drawFrame(f: number): void {
+  /* ── render(f) — frame fraccional: dibuja el cuadro base y, si la fracción
+     aporta, mezcla el siguiente por encima. Al asentarse (fracción ≈ 0 tras
+     el snap) queda UN cuadro nítido, sin imagen doble. ── */
+  private render(f: number): void {
     const ctx = this.ctx;
     const c = this.canvas().nativeElement;
     if (!ctx) return;
@@ -170,14 +181,11 @@ export class VideoShowcase {
     ctx.globalAlpha = 1;
     this.drawCover(base);
 
-    // Mezcla del frame siguiente solo si ya cargó y aporta (evita ghosting inútil).
-    if (t > 0.01 && i1 !== i0 && this.frames[i1]) {
+    if (t > 0.012 && i1 !== i0 && this.frames[i1]) {
       ctx.globalAlpha = t;
       this.drawCover(this.frames[i1] as HTMLImageElement);
       ctx.globalAlpha = 1;
     }
-
-    this.lastFrame = clamped;
   }
 
   /** Dibuja una imagen con object-fit: cover en px de dispositivo. */
@@ -214,21 +222,40 @@ export class VideoShowcase {
     setTimeout(() => ScrollTrigger.refresh(), 150);
   }
 
-  /* ── Ticker: mapeo DIRECTO scroll→frame (Lenis ya suaviza; sin segunda
-     capa de easing) + crossfade. Por eso no hay "tac, tac" al frenar. ── */
+  /* ── Ticker: inercia + snap-al-frenar. El frenado tiene "aterrizaje". ── */
   private startTicker(): void {
     this.tickerFn = () => {
       const st = this.st;
       if (!st) return;
+
       const p = st.progress;
-      if (Math.abs(p - this.lastProgress) < 0.00002) return; // idle → no redibujar
-      this.lastProgress = p;
+      const raw = p * (FRAME_COUNT - 1);
 
-      this.drawFrame(p * (FRAME_COUNT - 1));
+      // ¿Se está moviendo el scroll? Si quedó quieto, redondeamos el destino
+      // al frame entero más cercano para aterrizar nítido (sin imagen doble).
+      const moving = Math.abs(raw - this.lastRaw) > IDLE_EPS;
+      this.lastRaw = raw;
+      this.targetFrame = moving ? raw : Math.round(raw);
 
-      this.hint().nativeElement.style.opacity = p > 0.04 ? '0' : '1';
-      this.label().nativeElement.style.opacity =
-        p > 0.08 && p < 0.85 ? '1' : '0';
+      // Inercia: el frame se acerca suave al destino (esto es el aterrizaje).
+      this.currentFrame += (this.targetFrame - this.currentFrame) * EASE;
+      if (Math.abs(this.targetFrame - this.currentFrame) < SETTLE_EPS) {
+        this.currentFrame = this.targetFrame;
+      }
+
+      // Redibujar solo si el frame cambió de forma perceptible.
+      if (Math.abs(this.currentFrame - this.lastRendered) > 0.0008) {
+        this.lastRendered = this.currentFrame;
+        this.render(this.currentFrame);
+      }
+
+      // Opacidades de hint/label (solo cuando el scroll cambió).
+      if (Math.abs(p - this.lastP) > 1e-5) {
+        this.lastP = p;
+        this.hint().nativeElement.style.opacity = p > 0.04 ? '0' : '1';
+        this.label().nativeElement.style.opacity =
+          p > 0.08 && p < 0.85 ? '1' : '0';
+      }
     };
     gsap.ticker.add(this.tickerFn);
   }
@@ -241,7 +268,8 @@ export class VideoShowcase {
       timer = setTimeout(() => {
         if (!this.ready) return;
         this.sizeCanvas();
-        this.drawFrame(this.lastFrame);
+        this.lastRendered = -999;
+        this.render(this.currentFrame);
         ScrollTrigger.refresh();
       }, 150);
     };
