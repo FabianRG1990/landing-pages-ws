@@ -1,0 +1,13 @@
+{
+  "name": "velox-ui-shared",
+  "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/velox/frontend/shared/src",
+  "prefix": "app",
+  "projectType": "library",
+  "tags": ["scope:velox"],
+  "targets": {
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    }
+  }
+}

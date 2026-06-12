@@ -1,0 +1,381 @@
+/* ============================================================
+   VELOX — Base: reset, tipografía, botones, reveal, nav, footer
+   ============================================================ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: auto; /* Lenis maneja el smooth scroll — sin nativo */
+}
+
+body {
+  font-family: var(--font-body);
+  background: var(--bg);
+  color: var(--text);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+::-webkit-scrollbar {
+  width: 5px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--gold);
+  border-radius: 999px;
+}
+
+/* ── Texto en degradado oro ── */
+.gold-text {
+  background: linear-gradient(
+    135deg,
+    var(--gold) 0%,
+    var(--gold-bright) 50%,
+    var(--gold) 100%
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+/* ── Botones ── */
+.btn-gold {
+  background: linear-gradient(135deg, var(--gold), var(--gold-warm));
+  color: var(--bg);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  transition:
+    transform 0.25s ease,
+    box-shadow 0.25s ease;
+  cursor: pointer;
+  border: none;
+  border-radius: 999px;
+  font-family: inherit;
+  font-size: 0.875rem;
+  padding: 10px 22px;
+}
+.btn-ghost {
+  background: transparent;
+  color: var(--text);
+  font-weight: 600;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  transition:
+    border-color 0.25s,
+    background 0.25s;
+  cursor: pointer;
+  border-radius: 999px;
+  font-family: inherit;
+}
+@media (hover: hover) {
+  .btn-gold:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px var(--gold-045);
+  }
+  .btn-ghost:hover {
+    border-color: rgba(197, 160, 40, 0.5);
+    background: var(--gold-007);
+  }
+}
+
+/* ── Reveal on scroll (sustituye .fade-in.visible) ──
+   Animation (no transition): una animación corre siempre desde su keyframe
+   `from`, incluso si el estado inicial y final se aplican en el mismo frame. */
+.reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  will-change: opacity, transform;
+}
+.reveal.is-visible {
+  animation: reveal-in 0.75s var(--ease-fluid) var(--reveal-delay, 0s) forwards;
+}
+@keyframes reveal-in {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes glow-pulse {
+  0%,
+  100% {
+    opacity: 0.15;
+  }
+  50% {
+    opacity: 0.28;
+  }
+}
+@keyframes bounce-down {
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.5;
+  }
+  50% {
+    transform: translateY(6px);
+    opacity: 1;
+  }
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+    animation: none;
+  }
+}
+
+/* ════════════════════════════════════════════
+   NAV — barra fija con glass al hacer scroll
+   ════════════════════════════════════════════ */
+.nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  background: rgba(13, 13, 13, 0.55);
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+  border-bottom: 1px solid transparent;
+  transition:
+    background 0.4s,
+    border-color 0.4s;
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .nav {
+    background: rgba(13, 13, 13, 0.92);
+  }
+}
+.nav--scrolled {
+  background: rgba(13, 13, 13, 0.93);
+  border-bottom: 1px solid var(--gold-014);
+}
+.nav-inner {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 0 24px;
+  height: var(--nav-h);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.nav-brand {
+  font-weight: 900;
+  font-size: 1.4rem;
+  letter-spacing: 0.3em;
+}
+.nav-links {
+  display: none;
+  gap: 32px;
+}
+.nav-link {
+  position: relative;
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+.nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: -3px;
+  left: 0;
+  width: 0;
+  height: 1px;
+  background: var(--gold);
+  transition: width 0.3s ease;
+}
+@media (hover: hover) {
+  .nav-link:hover {
+    color: var(--text);
+  }
+  .nav-link:hover::after {
+    width: 100%;
+  }
+}
+.nav-actions {
+  display: none;
+  gap: 16px;
+  align-items: center;
+}
+.nav-signin {
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+@media (hover: hover) {
+  .nav-signin:hover {
+    color: var(--text);
+  }
+}
+.nav-burger {
+  background: none;
+  border: none;
+  color: var(--text);
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+}
+.nav-burger svg {
+  width: 22px;
+  height: 22px;
+}
+.nav-mobile {
+  background: rgba(13, 13, 13, 0.98);
+  padding: 12px 24px 28px;
+  border-bottom: 1px solid var(--gold-012);
+}
+.nav-mobile-link {
+  display: block;
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 0.9rem;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+.nav-mobile-cta {
+  margin-top: 18px;
+  width: 100%;
+  padding: 14px;
+  font-size: 0.95rem;
+}
+
+@media (min-width: 768px) {
+  .nav-links,
+  .nav-actions {
+    display: flex;
+  }
+  .nav-burger {
+    display: none;
+  }
+}
+
+/* ════════════════════════════════════════════
+   FOOTER
+   ════════════════════════════════════════════ */
+.footer {
+  background: var(--bg-footer);
+  border-top: 1px solid var(--gold-010);
+  padding: 64px 24px 32px;
+}
+.footer-inner {
+  max-width: var(--maxw);
+  margin: 0 auto;
+}
+.footer-cols {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 40px 48px;
+  margin-bottom: 48px;
+}
+.footer-brand {
+  font-weight: 900;
+  font-size: 1.4rem;
+  letter-spacing: 0.3em;
+  margin-bottom: 16px;
+}
+.footer-tagline {
+  color: var(--muted-3);
+  font-size: 0.85rem;
+  line-height: 1.75;
+  max-width: 240px;
+}
+.footer-socials {
+  display: flex;
+  gap: 10px;
+  margin-top: 24px;
+}
+.social-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--gold-008);
+  border: 1px solid var(--gold-020);
+  color: var(--gold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    transform 0.2s,
+    background 0.2s;
+  text-decoration: none;
+}
+.social-icon svg {
+  width: 15px;
+  height: 15px;
+}
+@media (hover: hover) {
+  .social-icon:hover {
+    transform: scale(1.15);
+    background: var(--gold-018);
+  }
+}
+.footer-col-heading {
+  color: var(--text);
+  font-weight: 700;
+  font-size: 0.78rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  margin-bottom: 18px;
+}
+.footer-col-link {
+  display: block;
+  color: var(--muted-3);
+  text-decoration: none;
+  font-size: 0.875rem;
+  margin-bottom: 12px;
+  transition: color 0.2s;
+}
+.footer-bottom {
+  border-top: 1px solid var(--gold-008);
+  padding-top: 28px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.footer-copy {
+  color: var(--muted-4);
+  font-size: 0.78rem;
+}
+.footer-legal {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+.footer-legal-link {
+  color: var(--muted-4);
+  text-decoration: none;
+  font-size: 0.78rem;
+  transition: color 0.2s;
+}
+@media (hover: hover) {
+  .footer-col-link:hover {
+    color: var(--muted);
+  }
+  .footer-legal-link:hover {
+    color: var(--muted-2);
+  }
+}

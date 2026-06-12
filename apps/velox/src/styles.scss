@@ -1,0 +1,9 @@
+/* ============================================================
+   VELOX · Luxury Automobiles — Hoja de estilos global
+   El design system vive en libs/velox/frontend/shared/src/lib/styles
+   (resuelto vía stylePreprocessorOptions.includePaths).
+   ============================================================ */
+
+@use 'settings/tokens';
+@use 'mixins/base';
+@use 'mixins/sections';

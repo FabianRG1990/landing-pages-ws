@@ -1,0 +1,72 @@
+{
+  "name": "velox",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "prefix": "app",
+  "sourceRoot": "apps/velox/src",
+  "tags": ["scope:velox"],
+  "targets": {
+    "build": {
+      "executor": "@angular/build:application",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/apps/velox",
+        "browser": "apps/velox/src/main.ts",
+        "index": "apps/velox/src/index.html",
+        "tsConfig": "apps/velox/tsconfig.app.json",
+        "inlineStyleLanguage": "scss",
+        "stylePreprocessorOptions": {
+          "includePaths": ["libs/velox/frontend/shared/src/lib/styles"]
+        },
+        "assets": [
+          {
+            "glob": "**/*",
+            "input": "apps/velox/public"
+          }
+        ],
+        "styles": ["apps/velox/src/styles.scss"],
+        "server": "apps/velox/src/main.server.ts",
+        "outputMode": "static",
+        "prerender": true
+      },
+      "configurations": {
+        "production": {
+          "budgets": [
+            { "type": "initial", "maximumWarning": "1mb", "maximumError": "1.5mb" },
+            { "type": "anyComponentStyle", "maximumWarning": "18kb", "maximumError": "24kb" }
+          ],
+          "outputHashing": "all"
+        },
+        "development": {
+          "optimization": false,
+          "extractLicenses": false,
+          "sourceMap": true
+        }
+      },
+      "defaultConfiguration": "production"
+    },
+    "serve": {
+      "continuous": true,
+      "executor": "@angular/build:dev-server",
+      "options": { "port": 4203 },
+      "configurations": {
+        "production": { "buildTarget": "velox:build:production" },
+        "development": { "buildTarget": "velox:build:development" }
+      },
+      "defaultConfiguration": "development"
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    },
+    "serve-static": {
+      "continuous": true,
+      "executor": "@nx/web:file-server",
+      "options": {
+        "buildTarget": "velox:build",
+        "port": 4203,
+        "staticFilePath": "dist/apps/velox/browser",
+        "spa": true
+      }
+    }
+  }
+}

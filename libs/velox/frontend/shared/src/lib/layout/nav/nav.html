@@ -1,0 +1,46 @@
+<nav class="nav" [class.nav--scrolled]="scrolled()">
+  <div class="nav-inner">
+    <div class="nav-brand gold-text">VELOX</div>
+
+    <div class="nav-links">
+      @for (link of links; track link) {
+        <a href="#" class="nav-link">{{ link }}</a>
+      }
+    </div>
+
+    <div class="nav-actions">
+      <a href="#" class="nav-signin">Sign In</a>
+      <button type="button" class="btn-gold nav-cta">Unlock Test Drive</button>
+    </div>
+
+    <button
+      type="button"
+      class="nav-burger"
+      [attr.aria-label]="open() ? 'Close menu' : 'Open menu'"
+      [attr.aria-expanded]="open()"
+      (click)="toggle()"
+    >
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        @if (open()) {
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
+        } @else {
+          <line x1="3" y1="6" x2="21" y2="6" />
+          <line x1="3" y1="12" x2="21" y2="12" />
+          <line x1="3" y1="18" x2="21" y2="18" />
+        }
+      </svg>
+    </button>
+  </div>
+
+  @if (open()) {
+    <div class="nav-mobile">
+      @for (link of links; track link) {
+        <a href="#" class="nav-mobile-link" (click)="close()">{{ link }}</a>
+      }
+      <button type="button" class="btn-gold nav-mobile-cta" (click)="close()">
+        Unlock Your Test Drive
+      </button>
+    </div>
+  }
+</nav>

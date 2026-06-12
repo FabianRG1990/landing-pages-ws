@@ -1,0 +1,49 @@
+/* ============================================================
+   VELOX · Luxury Automobiles — Design tokens
+   Oro champagne sobre negro carbón · "Power Refined. Perfected."
+   ============================================================ */
+
+:root {
+  /* Fondos (de claro a oscuro) */
+  --bg: #0d0d0d;
+  --bg-hero-a: #0d0d0d;
+  --bg-hero-b: #121212;
+  --bg-hero-c: #0a0a0a;
+  --bg-card: #141414;
+  --bg-band: #111111;
+  --bg-footer: #0a0a0a;
+
+  /* Oro / champagne */
+  --gold: #c5a028;
+  --gold-bright: #f0d060;
+  --gold-warm: #d9b73e;
+
+  /* Texto */
+  --text: #ffffff;
+  --muted: #9ca3af;
+  --muted-2: #6b7280;
+  --muted-3: #4b5563;
+  --muted-4: #374151;
+
+  /* Oro con alfa (líneas, glows, superficies) */
+  --gold-008: rgba(197, 160, 40, 0.08);
+  --gold-007: rgba(197, 160, 40, 0.07);
+  --gold-009: rgba(197, 160, 40, 0.09);
+  --gold-010: rgba(197, 160, 40, 0.1);
+  --gold-012: rgba(197, 160, 40, 0.12);
+  --gold-014: rgba(197, 160, 40, 0.14);
+  --gold-018: rgba(197, 160, 40, 0.18);
+  --gold-020: rgba(197, 160, 40, 0.2);
+  --gold-030: rgba(197, 160, 40, 0.3);
+  --gold-045: rgba(197, 160, 40, 0.45);
+
+  /* Tipografía */
+  --font-body: 'Inter', system-ui, sans-serif;
+
+  /* Layout */
+  --maxw: 1280px;
+  --nav-h: 68px;
+
+  /* Easings */
+  --ease-fluid: cubic-bezier(0.16, 1, 0.3, 1);
+}
