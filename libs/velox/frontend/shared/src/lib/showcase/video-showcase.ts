@@ -51,10 +51,12 @@ const FRAMES_DIR = 'cinematic2';
 const FIRST_BATCH = 80; // frames a precargar antes de revelar la página
 const BG_CONCURRENCY = 6; // descargas en paralelo en segundo plano
 const MAX_DPR = 2; // tope de DPR (evita canvases enormes en móviles 3x)
-// Umbral de "reposo": si el frame (float) se mueve menos que esto por tick,
-// el scroll está prácticamente detenido → cristalizamos al frame más cercano
-// (nítido). Mientras se mueva más que esto, mezcla sub-frame continua.
-const REST_EPS = 0.0015; // ≈ 1.5/479 de frame por tick = casi inmóvil
+// Reposo CON HISTÉRESIS — evita el "toggle" snap/blend que producía 3-4 brincos
+// al frenar. Solo cristalizamos cuando la quietud es SOSTENIDA, y el aterrizaje
+// final es un micro-ease del frac (no un salto), para que no haya ningún pop.
+const REST_WINDOW = 0.03; // deriva (en frames) tolerada como "quieto"
+const STILL_TICKS = 6; // ticks seguidos casi inmóvil antes de aterrizar (~100ms)
+const SETTLE_EASE = 0.2; // suavidad del micro-aterrizaje hacia el frame nítido
 
 @Component({
   selector: 'app-video-showcase',
@@ -80,9 +82,16 @@ export class VideoShowcase {
   private st: ScrollTrigger | null = null;
   private tickerFn: (() => void) | null = null;
   private currentIdx = -1; // último frame base realmente dibujado
-  private lastF = -1; // último frame (float) — para detectar reposo
+  private lastF = 0; // último frame (float) — para redibujar en resize
   private lastP = -1; // último progress (para opacidades)
-  private settled = false; // true cuando ya cristalizamos en reposo
+  /* máquina de reposo con histéresis */
+  private restRef = -999; // referencia para medir deriva desde el último reposo
+  private stillCount = 0; // ticks seguidos dentro de la ventana de reposo
+  private settling = false; // micro-aterrizaje en curso
+  private settleBase = 0; // frame base del aterrizaje
+  private settleFrac = 0; // frac animándose hacia settleTarget
+  private settleTarget = 0; // 0 → asienta en base; 1 → asienta en base+1
+  private settled = false; // ya cristalizado y quieto
   private ready = false;
 
   constructor() {
@@ -173,18 +182,23 @@ export class VideoShowcase {
     const max = FRAME_COUNT - 1;
     const clamped = Math.max(0, Math.min(max, f));
     const base = Math.floor(clamped);
-    const frac = clamped - base;
+    this.drawFrame(base, clamped - base);
+  }
 
-    const baseImg = this.frames[base] ?? this.nearestLoaded(base);
+  /** Dibuja el frame `base` + el vecino `base+1` con opacidad `frac`. */
+  private drawFrame(base: number, frac: number): void {
+    const max = FRAME_COUNT - 1;
+    const b = Math.max(0, Math.min(max, base));
+    const baseImg = this.frames[b] ?? this.nearestLoaded(b);
     if (!baseImg) return;
     this.draw(baseImg, 1);
 
     // Mezcla sub-frame SOLO entre vecinos inmediatos (micro motion-blur).
-    if (frac > 0.001 && base < max) {
-      const nextImg = this.frames[base + 1];
+    if (frac > 0.001 && b < max) {
+      const nextImg = this.frames[b + 1];
       if (nextImg) this.draw(nextImg, frac);
     }
-    this.currentIdx = base;
+    this.currentIdx = b;
   }
 
   /** Busca el frame cargado más cercano a `want` (fallback anti-blanco). */
@@ -224,26 +238,55 @@ export class VideoShowcase {
     setTimeout(() => ScrollTrigger.refresh(), 150);
   }
 
-  /* ── Ticker: scroll→frame (float). Mientras se mueve, mezcla sub-frame
-     continua (Lenis da el aterrizaje suave). En reposo, cristaliza al frame
-     más cercano (nítido). ── */
+  /* ── Ticker: scroll→frame (float) con reposo por histéresis.
+     • Movimiento real → mezcla sub-frame continua (Lenis da el aterrizaje).
+     • Quietud SOSTENIDA (STILL_TICKS) → micro-ease del frac al frame entero
+       más cercano = se asienta nítido SIN salto (mata los 3-4 brincos). ── */
   private startTicker(): void {
+    const max = FRAME_COUNT - 1;
     this.tickerFn = () => {
       const st = this.st;
       if (!st) return;
       const p = st.progress;
-      const f = p * (FRAME_COUNT - 1);
+      const f = Math.max(0, Math.min(max, p * max));
+      this.lastF = f;
 
-      if (Math.abs(f - this.lastF) > REST_EPS) {
-        // En movimiento → mezcla continua entre vecinos.
-        this.lastF = f;
+      if (Math.abs(f - this.restRef) > REST_WINDOW) {
+        // ── Movimiento real → mezcla continua; reinicia el reposo. ──
+        this.restRef = f;
+        this.stillCount = 0;
+        this.settling = false;
         this.settled = false;
         this.renderFloat(f);
-      } else if (!this.settled) {
-        // Recién detenido → snap nítido al frame entero más cercano.
-        this.settled = true;
-        this.lastF = f;
-        this.renderFloat(Math.round(f));
+      } else if (this.settled) {
+        // ya nítido y quieto → nada que redibujar
+      } else if (this.settling) {
+        // ── Micro-aterrizaje: el frac se asienta en 0 o 1 (sin pop). ──
+        this.settleFrac += (this.settleTarget - this.settleFrac) * SETTLE_EASE;
+        if (Math.abs(this.settleFrac - this.settleTarget) < 0.01) {
+          this.settling = false;
+          this.settled = true;
+          this.drawFrame(this.settleBase + this.settleTarget, 0);
+        } else {
+          this.drawFrame(this.settleBase, this.settleFrac);
+        }
+      } else {
+        // ── Dentro de la ventana de reposo: confirmar quietud sostenida. ──
+        this.stillCount++;
+        if (this.stillCount >= STILL_TICKS) {
+          const base = Math.floor(f);
+          if (base >= max) {
+            this.settled = true;
+            this.drawFrame(max, 0);
+          } else {
+            this.settleBase = base;
+            this.settleFrac = f - base;
+            this.settleTarget = this.settleFrac < 0.5 ? 0 : 1;
+            this.settling = true;
+          }
+        } else {
+          this.renderFloat(f);
+        }
       }
 
       if (Math.abs(p - this.lastP) > 1e-5) {
@@ -264,9 +307,10 @@ export class VideoShowcase {
       timer = setTimeout(() => {
         if (!this.ready) return;
         this.sizeCanvas();
-        const f = this.lastF < 0 ? 0 : this.lastF;
         this.settled = false; // forzar redibujo tras el resize
-        this.renderFloat(f);
+        this.settling = false;
+        this.restRef = -999; // se tratará como movimiento → redibuja la mezcla
+        this.renderFloat(this.lastF);
         ScrollTrigger.refresh();
       }, 150);
     };
