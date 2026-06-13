@@ -6,7 +6,9 @@
 
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; }
-html { scroll-behavior: smooth; scroll-padding-top: 5rem; }
+/* `auto`, no `smooth`: con router (sin anclas) el smooth global hacía que el
+   scrollTo(0,0) de la cortina se animara y se sintiera "trabado" al navegar. */
+html { scroll-behavior: auto; }
 
 body {
   font-family: var(--font-body);
@@ -128,8 +130,9 @@ p { margin: 0; }
               box-shadow 0.7s var(--ease-expo);
 }
 #nav.scrolled {
-  background: rgba(255, 255, 255, 0.82);
-  backdrop-filter: blur(20px);
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   box-shadow: 0 1px 0 rgba(0, 0, 0, 0.05);
 }
 .nav-inner {
@@ -290,8 +293,8 @@ body.menu-open { overflow: hidden; }
   animation: reveal-in 0.9s var(--ease-expo) var(--reveal-delay, 0ms) both;
 }
 @keyframes reveal-in {
-  from { opacity: 0; transform: translateY(2.5rem); filter: blur(4px); }
-  to { opacity: 1; transform: none; filter: blur(0); }
+  from { opacity: 0; transform: translateY(2.2rem); }
+  to { opacity: 1; transform: none; }
 }
 
 /* ----------  Marquee  ---------- */

@@ -2,8 +2,9 @@ import {
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
-  HostListener,
+  NgZone,
   PLATFORM_ID,
+  afterNextRender,
   effect,
   inject,
   signal,
@@ -22,6 +23,11 @@ import { NAV_ITEMS } from '../../data/nav';
  * Navbar flotante + menú móvil. Equivale al `<header id="nav">` y al
  * `<div id="mobile-menu">` originales, con el estado `scrolled` (fondo glass al
  * hacer scroll) y `menuOpen` (body.menu-open ↔ hamburguesa morph).
+ *
+ * El scroll se escucha FUERA de la zona de Angular y con throttle por rAF, y
+ * solo re-entra a la zona cuando el booleano `scrolled` realmente cambia (al
+ * cruzar el umbral). Así el scroll no dispara detección de cambios en cada
+ * evento (una de las causas del tironeo general).
  */
 @Component({
   selector: 'app-floating-nav',
@@ -37,6 +43,7 @@ export class FloatingNav {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly zone = inject(NgZone);
 
   constructor() {
     // body.menu-open ↔ menuOpen()
@@ -55,12 +62,28 @@ export class FloatingNav {
         document.body.classList.remove('menu-open');
       }
     });
-  }
 
-  @HostListener('window:scroll')
-  protected onScroll(): void {
-    if (!isPlatformBrowser(this.platformId)) return;
-    this.scrolled.set(window.scrollY > 60);
+    afterNextRender(() => {
+      let ticking = false;
+      this.zone.runOutsideAngular(() => {
+        const onScroll = () => {
+          if (ticking) return;
+          ticking = true;
+          requestAnimationFrame(() => {
+            const next = window.scrollY > 60;
+            if (next !== this.scrolled()) {
+              // Re-entra a la zona solo en el cruce del umbral (poco frecuente).
+              this.zone.run(() => this.scrolled.set(next));
+            }
+            ticking = false;
+          });
+        };
+        window.addEventListener('scroll', onScroll, { passive: true });
+        this.destroyRef.onDestroy(() =>
+          window.removeEventListener('scroll', onScroll),
+        );
+      });
+    });
   }
 
   protected toggleMenu(): void {

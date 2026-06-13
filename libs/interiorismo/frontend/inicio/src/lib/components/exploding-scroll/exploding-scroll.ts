@@ -3,6 +3,7 @@ import {
   Component,
   DestroyRef,
   ElementRef,
+  NgZone,
   PLATFORM_ID,
   afterNextRender,
   inject,
@@ -14,14 +15,17 @@ import { FrameCache } from '@interiorismo-ui-shared';
 
 /**
  * Vista de la casa expandiéndose, fotograma a fotograma sobre canvas.
- * 121 frames (1280×720) dibujados directamente en cada scroll — sin seek, sin
- * decodificación por frame, sin saltos (técnica estilo Apple).
+ * 121 frames dibujados directamente en cada scroll — técnica estilo Apple.
  *
- * Los frames viven en `FrameCache` (singleton), así que al volver a `inicio`
- * desde otra sección NO se vuelven a crear ni decodificar: el canvas dibuja al
- * instante el frame correspondiente y el hero deja de "trabarse". En la primera
- * visita la pre-carga se difiere a `requestIdleCallback` para que el hero tenga
- * prioridad de ancho de banda.
+ * Optimizaciones contra el tironeo:
+ *  - Todo el manejo de scroll corre FUERA de la zona de Angular (solo toca
+ *    canvas y clases del DOM, nada de detección de cambios).
+ *  - Un IntersectionObserver activa el trabajo SOLO cuando la sección está cerca
+ *    del viewport: estando en otras secciones no se llama `getBoundingClientRect`
+ *    en cada scroll (se evita el thrash de layout global).
+ *  - Los frames viven en `FrameCache` (singleton): al re-entrar a `inicio` no se
+ *    re-decodifican; en la primera visita se difieren a `requestIdleCallback`
+ *    para no competir con el hero.
  */
 @Component({
   selector: 'app-exploding-scroll',
@@ -38,6 +42,7 @@ export class ExplodingScroll {
   private readonly platformId = inject(PLATFORM_ID);
   private readonly destroyRef = inject(DestroyRef);
   private readonly frameCache = inject(FrameCache);
+  private readonly zone = inject(NgZone);
 
   constructor() {
     afterNextRender(() => {
@@ -54,6 +59,7 @@ export class ExplodingScroll {
       let currentFrame = -1;
       let ticking = false;
       let sized = false;
+      let active = false;
 
       const drawFrame = (index: number) => {
         if (index === currentFrame) return;
@@ -63,7 +69,6 @@ export class ExplodingScroll {
           ctx.drawImage(f, 0, 0);
           return;
         }
-        // Frame pedido aún no listo: dibuja el más cercano que sí lo esté.
         for (let off = 1; off < frameCount; off++) {
           const a = frames[index - off];
           if (a && a.complete && a.naturalWidth > 0) {
@@ -87,7 +92,7 @@ export class ExplodingScroll {
         canvas.width = first.naturalWidth;
         canvas.height = first.naturalHeight;
         sized = true;
-        currentFrame = -1; // forzar el primer drawImage tras dimensionar
+        currentFrame = -1;
       };
 
       const render = () => {
@@ -115,7 +120,7 @@ export class ExplodingScroll {
       };
 
       const onScroll = () => {
-        if (ticking) return;
+        if (!active || ticking) return; // fuera de la sección: no se hace nada
         ticking = true;
         requestAnimationFrame(() => {
           render();
@@ -125,34 +130,44 @@ export class ExplodingScroll {
 
       const wire = (fr: HTMLImageElement[]) => {
         frames = fr;
-        // Dibuja ya con lo que haya en caché (en re-entradas, todo está listo).
         sizeCanvas();
         render();
-        // Si el primer frame aún no decodificó, redibuja cuando llegue.
         const first = frames[0];
         if (first && !(first.complete && first.naturalWidth > 0)) {
           first.addEventListener('load', () => render(), { once: true });
         }
       };
 
-      const cached = this.frameCache.get();
-      if (cached) {
-        wire(cached);
-      } else {
-        // Primera visita: difiere la descarga para no competir con el hero.
-        const start = () => wire(this.frameCache.preload());
-        if ('requestIdleCallback' in window) {
-          window.requestIdleCallback(start, { timeout: 800 });
-        } else {
-          setTimeout(start, 200);
-        }
-      }
+      this.zone.runOutsideAngular(() => {
+        // Activa el trabajo solo cuando la sección está a ≤1 viewport del borde.
+        const io = new IntersectionObserver(
+          (entries) => {
+            active = entries[0]?.isIntersecting ?? false;
+            if (active) render();
+          },
+          { rootMargin: '100% 0px 100% 0px' },
+        );
+        io.observe(section);
 
-      window.addEventListener('scroll', onScroll, { passive: true });
-      window.addEventListener('resize', onScroll, { passive: true });
-      this.destroyRef.onDestroy(() => {
-        window.removeEventListener('scroll', onScroll);
-        window.removeEventListener('resize', onScroll);
+        const cached = this.frameCache.get();
+        if (cached) {
+          wire(cached);
+        } else {
+          const start = () => wire(this.frameCache.preload());
+          if ('requestIdleCallback' in window) {
+            window.requestIdleCallback(start, { timeout: 800 });
+          } else {
+            setTimeout(start, 200);
+          }
+        }
+
+        window.addEventListener('scroll', onScroll, { passive: true });
+        window.addEventListener('resize', onScroll, { passive: true });
+        this.destroyRef.onDestroy(() => {
+          io.disconnect();
+          window.removeEventListener('scroll', onScroll);
+          window.removeEventListener('resize', onScroll);
+        });
       });
     });
   }
