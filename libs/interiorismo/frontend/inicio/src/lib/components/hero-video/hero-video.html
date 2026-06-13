@@ -1,21 +1,23 @@
 <section class="hero" [class.hero-in]="intro()">
-  <video
-    #video
-    class="hero-video"
-    autoplay
-    loop
-    muted
-    playsinline
-    preload="auto"
-    poster="/hero-poster.jpg"
-  >
-    <source src="/hero.mp4" type="video/mp4" />
-  </video>
+  <div class="hero-media">
+    <video
+      #video
+      class="hero-video"
+      autoplay
+      loop
+      muted
+      playsinline
+      preload="auto"
+      poster="/hero-poster.jpg"
+    >
+      <source src="/hero.mp4" type="video/mp4" />
+    </video>
 
-  <div class="hero-halo"></div>
-  <div class="hero-vignette"></div>
-  <div class="hero-fade-top"></div>
-  <div class="hero-fade-bottom"></div>
+    <div class="hero-halo"></div>
+    <div class="hero-vignette"></div>
+    <div class="hero-fade-top"></div>
+    <div class="hero-fade-bottom"></div>
+  </div>
 
   <div class="hero-content">
     <div class="hero-inner">

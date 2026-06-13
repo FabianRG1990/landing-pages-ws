@@ -142,7 +142,8 @@ p { margin: 0; }
   align-items: center;
   justify-content: space-between;
   gap: 1.5rem;
-  padding: 1.25rem clamp(24px, 5vw, 40px);
+  padding: 1.25rem max(clamp(24px, 5vw, 40px), env(safe-area-inset-right))
+           1.25rem max(clamp(24px, 5vw, 40px), env(safe-area-inset-left));
 }
 .brand {
   font-family: var(--font-display);
@@ -324,7 +325,13 @@ body.menu-open { overflow: hidden; }
 }
 
 /* ----------  Layout  ---------- */
-.wrap { width: 100%; max-width: var(--maxw); margin: 0 auto; padding: 0 clamp(24px, 5vw, 40px); }
+.wrap {
+  width: 100%; max-width: var(--maxw); margin: 0 auto;
+  /* env(safe-area-inset-*) evita que el contenido quede bajo el notch/cámara
+     en pantallas edge-to-edge (sobre todo en apaisado). */
+  padding-left: max(clamp(24px, 5vw, 40px), env(safe-area-inset-left));
+  padding-right: max(clamp(24px, 5vw, 40px), env(safe-area-inset-right));
+}
 /* Sub-páginas: despejan el nav fijo. (inicio no usa .page: su hero va detrás del nav.) */
 .page { position: relative; z-index: 1; padding-top: var(--nav-h); }
 .section { padding-block: clamp(96px, 14vh, 160px); }
