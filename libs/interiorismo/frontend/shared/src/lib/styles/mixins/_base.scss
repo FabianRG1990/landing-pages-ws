@@ -204,8 +204,17 @@ p { margin: 0; }
   inset: 0;
   z-index: 30;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
+  /* Si los ítems no entran (p. ej. teléfono en apaisado) la capa hace scroll
+     en vez de recortar Inicio/Contacto. */
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: calc(var(--nav-h) + 1rem)
+           max(1.5rem, env(safe-area-inset-right))
+           max(1.5rem, env(safe-area-inset-bottom))
+           max(1.5rem, env(safe-area-inset-left));
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(40px);
   opacity: 0;
@@ -213,13 +222,18 @@ p { margin: 0; }
   transition: opacity 0.6s var(--ease-expo);
 }
 #mobile-menu.open { opacity: 1; pointer-events: auto; }
-#mobile-menu nav { display: flex; flex-direction: column; align-items: center; gap: 2.25rem; }
+/* margin-block auto = centrado vertical cuando hay espacio, scroll cuando no. */
+#mobile-menu nav {
+  display: flex; flex-direction: column; align-items: center;
+  gap: clamp(1rem, 4.5vh, 2.25rem);
+  margin: auto 0;
+}
 #mobile-menu .menu-link {
   display: flex;
   align-items: baseline;
   gap: 1rem;
   font-family: var(--font-display);
-  font-size: clamp(2rem, 9vw, 2.5rem);
+  font-size: clamp(1.6rem, 5.5vh, 2.5rem);
   font-weight: 300;
   color: var(--espresso);
   text-decoration: none;

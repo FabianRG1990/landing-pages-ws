@@ -233,13 +233,7 @@
   .about-stats { gap: 2.25rem 3rem; margin-top: 3.5rem; }
   .service-num { margin-bottom: 0.5rem; }
 
-  .hero h1 {
-    font-size: clamp(2.6rem, 9vw, 4rem);
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2), 0 0 16px #fff, 0 0 42px #fff;
-  }
-  .hero-sub {
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.16), 0 0 14px #fff, 0 0 38px #fff;
-  }
+  .hero h1 { font-size: clamp(2.6rem, 9vw, 4rem); }
 
   /* Diálogos del despliegue: ancho acotado y proporción cómoda (ya no colapsan
      a una palabra por línea; flotan sobre la casa full-bleed como en escritorio). */
@@ -262,9 +256,18 @@
   .explode-card p { font-size: 0.84rem; line-height: 1.45; margin-top: 0.45rem; }
 }
 
-/* En táctil, no dejar pegados los estados :hover tras un tap (sticky-hover). */
+/* En táctil (cualquier orientación / ancho): no dejar pegados los :hover tras un
+   tap, y SIEMPRE usar el glow liviano del hero. Esto cubre el teléfono en
+   APAISADO —donde el ancho supera 767px y el bloque `max-width:767px` no
+   aplicaba—, que es donde seguía el glitch del h1 con las 9 sombras gigantes. */
 @media (hover: none) {
   .portfolio-card:hover img { transform: none; }
   .service-row:hover { background: transparent; }
   .btn:hover .btn-ico { transform: none; }
+
+  /* En móvil el video es claro (paredes blancas): el glow BLANCO borraba el
+     texto negro fino. Definición OSCURA en su lugar → legible sobre claro y
+     sobre la zona beige del sofá, en cualquier orientación. */
+  .hero h1 { text-shadow: 0 1px 3px rgba(0, 0, 0, 0.42), 0 2px 14px rgba(0, 0, 0, 0.22); }
+  .hero-sub { text-shadow: 0 1px 3px rgba(0, 0, 0, 0.36), 0 2px 12px rgba(0, 0, 0, 0.2); }
 }
