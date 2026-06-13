@@ -42,7 +42,28 @@
       "@vindas-ui-contacto": ["./libs/vindas/frontend/contacto/src/index.ts"],
       "@velox-ui-shared": ["./libs/velox/frontend/shared/src/index.ts"],
       "@velox-ui-shared/*": ["./libs/velox/frontend/shared/src/lib/*"],
-      "@velox-ui-inicio": ["./libs/velox/frontend/inicio/src/index.ts"]
+      "@velox-ui-inicio": ["./libs/velox/frontend/inicio/src/index.ts"],
+      "@interiorismo-ui-shared": [
+        "./libs/interiorismo/frontend/shared/src/index.ts"
+      ],
+      "@interiorismo-ui-shared/*": [
+        "./libs/interiorismo/frontend/shared/src/lib/*"
+      ],
+      "@interiorismo-ui-inicio": [
+        "./libs/interiorismo/frontend/inicio/src/index.ts"
+      ],
+      "@interiorismo-ui-proyectos": [
+        "./libs/interiorismo/frontend/proyectos/src/index.ts"
+      ],
+      "@interiorismo-ui-estudio": [
+        "./libs/interiorismo/frontend/estudio/src/index.ts"
+      ],
+      "@interiorismo-ui-servicios": [
+        "./libs/interiorismo/frontend/servicios/src/index.ts"
+      ],
+      "@interiorismo-ui-contacto": [
+        "./libs/interiorismo/frontend/contacto/src/index.ts"
+      ]
     }
   },
   "exclude": ["node_modules", "tmp"]

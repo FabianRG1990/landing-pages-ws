@@ -40,6 +40,13 @@ export default [
               sourceTag: 'scope:velox',
               onlyDependOnLibsWithTags: ['scope:velox', 'scope:shared'],
             },
+            {
+              sourceTag: 'scope:interiorismo',
+              onlyDependOnLibsWithTags: [
+                'scope:interiorismo',
+                'scope:shared',
+              ],
+            },
           ],
         },
       ],

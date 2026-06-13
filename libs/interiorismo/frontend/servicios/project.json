@@ -1,0 +1,13 @@
+{
+  "name": "interiorismo-ui-servicios",
+  "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/interiorismo/frontend/servicios/src",
+  "prefix": "app",
+  "projectType": "library",
+  "tags": ["scope:interiorismo"],
+  "targets": {
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    }
+  }
+}
