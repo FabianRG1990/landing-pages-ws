@@ -184,14 +184,20 @@
    ════════════════════════════════════════════ */
 #showcase-track {
   /* Recorrido amplio (pacing cinematográfico): con 479 frames son ~1.5vh por
-     frame, así cada gesto de scroll cruza pocos cuadros → frenado sin escalón. */
+     frame, así cada gesto de scroll cruza pocos cuadros → frenado sin escalón.
+     ALTURA ESTABLE (lvh): en móvil, ocultar/mostrar la barra de URL cambia `vh`
+     en mitad del scroll → la altura del track cambiaba en px → el progreso se
+     remapeaba y el frame pegaba un BRINCO siempre en el mismo punto. `lvh` (large
+     viewport) NO cambia con la barra → geometría estable → sin brinco. */
   height: 700vh;
+  height: 700lvh;
   position: relative;
 }
 #showcase-sticky {
   position: sticky;
   top: 0;
   height: 100vh;
+  height: 100lvh;
   overflow: hidden;
   background: var(--bg); /* el fondo oscuro se ve a través del canvas transparente */
 }
@@ -320,6 +326,32 @@
   font-size: 0.78rem;
   color: rgba(255, 255, 255, 0.3);
   letter-spacing: 0.06em;
+}
+
+/* ── MÓVIL VERTICAL — el coche se dibuja en banda cinematográfica (ver draw()):
+   la viñeta/glow están calibrados para pantalla completa (cover) y en la banda
+   fina del móvil OSCURECÍAN y "se tragaban" el coche ("parte faltante/recortada").
+   En vertical se desactivan y la etiqueta sube por encima de la banda. ── */
+@media (orientation: portrait) {
+  /* La viñeta de pantalla completa se tragaba el coche de la banda → fuera. */
+  #video-overlay {
+    display: none;
+  }
+  /* Foco de escena ADITIVO (screen) sobre la banda → separa el coche del negro
+     y hace que el letterbox se lea como escenario intencional, no como vacío. */
+  #canvas-glow {
+    background: radial-gradient(
+      ellipse 96% 26% at 50% 50%,
+      rgba(255, 238, 205, 0.16) 0%,
+      rgba(197, 160, 40, 0.08) 45%,
+      transparent 74%
+    );
+    mix-blend-mode: screen;
+  }
+  #showcase-label {
+    top: 16%;
+    transform: translateX(-50%);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

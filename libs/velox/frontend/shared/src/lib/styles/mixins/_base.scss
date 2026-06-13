@@ -18,7 +18,14 @@ body {
   font-family: var(--font-body);
   background: var(--bg);
   color: var(--text);
+  /* `overflow-x: hidden` hace que overflow-y compute a `auto` → el body se vuelve
+     contenedor de scroll y en iOS Safari ESO ROMPE `position: sticky` (el showcase
+     dejaba de fijarse y se iba con el scroll, dejando el track de 700vh en negro).
+     `overflow-x: clip` corta el desbordamiento horizontal SIN crear contenedor de
+     scroll → el sticky del showcase vuelve a anclarse. (Safari 16+, Chrome 90+.)
+     `hidden` queda de fallback para navegadores sin soporte de `clip`. */
   overflow-x: hidden;
+  overflow-x: clip;
   -webkit-font-smoothing: antialiased;
 }
 
