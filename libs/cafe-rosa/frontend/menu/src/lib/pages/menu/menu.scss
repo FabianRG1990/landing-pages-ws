@@ -1,0 +1,231 @@
+/* ===================  MENÚ  =================== */
+.menu {
+  position: relative;
+  overflow: hidden;
+}
+
+/* Halo rosado superior, sutil. */
+.menu-glow {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: min(800px, 90%);
+  height: 400px;
+  transform: translateX(-50%);
+  border-radius: 999px;
+  background: var(--pink);
+  opacity: 0.05;
+  filter: blur(120px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.menu-head,
+.menu-tabs,
+.menu-grid,
+.menu-cta {
+  position: relative;
+  z-index: 1;
+}
+
+/* ----------  Header  ---------- */
+.menu-head {
+  text-align: center;
+  margin-bottom: clamp(2.5rem, 6vw, 4rem);
+}
+.menu-head .eyebrow {
+  display: inline-block;
+  margin-bottom: 1rem;
+}
+
+/* ----------  Tabs  ---------- */
+.menu-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-bottom: clamp(2.5rem, 5vw, 3.5rem);
+}
+.menu-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  border-radius: 999px;
+  border: 1px solid rgba(244, 114, 182, 0.15);
+  background: rgba(244, 114, 182, 0.08);
+  color: var(--text-soft);
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    color 0.3s var(--ease-expo),
+    border-color 0.3s var(--ease-expo),
+    background 0.3s var(--ease-expo),
+    box-shadow 0.3s var(--ease-expo);
+}
+.menu-tab-ico {
+  flex: none;
+}
+.menu-tab.is-active {
+  border-color: transparent;
+  background: var(--grad-pink);
+  color: #fff;
+  box-shadow: 0 0 20px rgba(244, 114, 182, 0.35);
+}
+
+@media (hover: hover) {
+  .menu-tab:not(.is-active):hover {
+    color: var(--pink);
+    border-color: rgba(244, 114, 182, 0.3);
+  }
+}
+
+/* ----------  Grid  ---------- */
+.menu-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+  max-width: 64rem;
+  margin: 0 auto;
+}
+@media (min-width: 768px) {
+  .menu-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Transición de entrada al cambiar de categoría (sin framer-motion). */
+.menu-grid {
+  animation: menu-fade 0.4s var(--ease-expo) both;
+}
+@keyframes menu-fade {
+  from {
+    opacity: 0;
+    transform: translateY(1.25rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ----------  Card  ---------- */
+.menu-card {
+  position: relative;
+  padding: 1.75rem;
+  border-radius: 28px;
+  border: 1px solid rgba(244, 114, 182, 0.12);
+  background: linear-gradient(
+    135deg,
+    rgba(244, 114, 182, 0.06),
+    transparent 70%
+  );
+  overflow: hidden;
+  transition: transform 0.4s var(--ease-expo);
+}
+.menu-card-glow {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(
+    135deg,
+    rgba(244, 114, 182, 0.1),
+    rgba(157, 23, 77, 0.05)
+  );
+  opacity: 0;
+  transition: opacity 0.5s var(--ease-expo);
+  pointer-events: none;
+}
+.menu-card-body {
+  position: relative;
+  z-index: 1;
+}
+
+.menu-card-tag {
+  display: inline-block;
+  margin-bottom: 1rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid rgba(244, 114, 182, 0.2);
+  background: rgba(244, 114, 182, 0.1);
+  color: var(--pink);
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+.menu-card-name {
+  margin: 0 0 0.5rem;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text);
+}
+.menu-card-desc {
+  margin: 0 0 1.5rem;
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  font-weight: 300;
+  line-height: 1.6;
+  color: var(--text-soft);
+}
+.menu-card-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.menu-card-price {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: var(--pink);
+}
+.menu-card-add {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: var(--text-soft);
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  transition: color 0.3s var(--ease-expo);
+}
+
+@media (hover: hover) {
+  .menu-card:hover {
+    transform: translateY(-6px);
+  }
+  .menu-card:hover .menu-card-glow {
+    opacity: 1;
+  }
+  .menu-card-add:hover {
+    color: var(--pink);
+  }
+}
+
+/* ----------  CTA  ---------- */
+.menu-cta {
+  margin-top: clamp(2.5rem, 5vw, 3.5rem);
+  text-align: center;
+}
+
+/* ----------  Reduced motion  ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .menu-grid {
+    animation: none;
+  }
+  .menu-card,
+  .menu-card-glow,
+  .menu-card-add,
+  .menu-tab {
+    transition: none;
+  }
+  .menu-card:hover {
+    transform: none;
+  }
+}

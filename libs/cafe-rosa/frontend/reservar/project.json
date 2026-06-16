@@ -1,0 +1,15 @@
+{
+  "name": "cafe-rosa-ui-reservar",
+  "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/cafe-rosa/frontend/reservar/src",
+  "prefix": "app",
+  "projectType": "library",
+  "tags": [
+    "scope:cafe-rosa"
+  ],
+  "targets": {
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    }
+  }
+}

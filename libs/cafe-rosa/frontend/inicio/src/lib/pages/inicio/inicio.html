@@ -1,0 +1,115 @@
+<!-- ===================  HERO  =================== -->
+<section #hero class="hero">
+  <div class="hero-bg-gradient"></div>
+  <div class="hero-grid"></div>
+
+  <!-- Campo de pétalos (generado en cliente) -->
+  <div class="petal-field" aria-hidden="true">
+    @for (p of petals(); track $index) {
+      <span
+        class="petal"
+        [style.width.px]="p.size"
+        [style.height.px]="p.size * 1.5"
+        [style.left.%]="p.left"
+        [style.top.%]="p.top"
+        [style.--petal-opacity]="p.opacity"
+        [style.--petal-rot.deg]="p.rotation"
+        [style.--petal-drift.px]="p.drift"
+        [style.animation-duration.s]="p.duration"
+        [style.animation-delay.s]="p.delay"
+      ></span>
+    }
+  </div>
+
+  <!-- Orbes de color con parallax -->
+  <div class="hero-orbs" aria-hidden="true">
+    <span class="orb orb-1"></span>
+    <span class="orb orb-2"></span>
+    <span class="orb orb-3"></span>
+  </div>
+
+  <div class="hero-fade-bottom" aria-hidden="true"></div>
+
+  <div class="hero-content">
+    <div class="hero-tilt">
+      <span class="hero-badge">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2l2.4 6.9L21 11l-6.6 2.1L12 20l-2.4-6.9L3 11l6.6-2.1z"/></svg>
+        Artisan Coffee House · Est. 2019
+      </span>
+
+      <h1 class="hero-title">
+        <span class="line-1">SABORES</span>
+        <span class="line-2 italic text-gradient">hermosos.</span>
+        <span class="line-3">Momentos eternos.</span>
+      </h1>
+
+      <p class="hero-sub">
+        Un refugio de aromas y sabores artesanales. Cada taza es una obra de
+        arte, elaborada con amor, granos de origen único y el calor de nuestra
+        pasión.
+      </p>
+
+      <div class="hero-cta">
+        <a class="btn btn-primary btn-lg" routerLink="/reservar">
+          Reservar una Mesa
+          <span class="btn-ico" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </span>
+        </a>
+        <a class="btn btn-ghost btn-lg" routerLink="/menu">Ver Nuestro Menú</a>
+      </div>
+
+      @if (motionHint()) {
+        <button type="button" class="hero-motion" (click)="enableMotion()">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/><circle cx="12" cy="12" r="3"/></svg>
+          Inclina tu teléfono · toca para activar
+        </button>
+      }
+
+      <div class="hero-stats">
+        @for (s of stats; track s.label) {
+          <div class="hero-stat">
+            <div class="hero-stat-value">{{ s.value }}</div>
+            <div class="hero-stat-label">{{ s.label }}</div>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================  SOCIAL PROOF  =================== -->
+<section class="social">
+  <div class="social-glow" aria-hidden="true"></div>
+  <div class="social-fade" aria-hidden="true"></div>
+
+  <p class="social-eyebrow" appReveal>Reconocidos por los mejores</p>
+
+  <div class="marquee social-row">
+    <div class="marquee-track" style="--marquee-dur: 45s">
+      @for (item of press; track $index) {
+        <span class="press-item">{{ item }}</span>
+      }
+      @for (item of press; track 'b' + $index) {
+        <span class="press-item" aria-hidden="true">{{ item }}</span>
+      }
+    </div>
+  </div>
+
+  <div class="marquee social-row social-row-2">
+    <div class="marquee-track reverse" style="--marquee-dur: 30s">
+      @for (a of awards; track $index) {
+        <span class="award-item">{{ a }}</span>
+      }
+      @for (a of awards; track 'b' + $index) {
+        <span class="award-item" aria-hidden="true">{{ a }}</span>
+      }
+      @for (a of awards; track 'c' + $index) {
+        <span class="award-item" aria-hidden="true">{{ a }}</span>
+      }
+      @for (a of awards; track 'd' + $index) {
+        <span class="award-item" aria-hidden="true">{{ a }}</span>
+      }
+    </div>
+  </div>
+</section>

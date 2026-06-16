@@ -1,0 +1,74 @@
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a class="footer-logo-link" routerLink="/inicio" aria-label="Rosa Café — inicio">
+          <img
+            class="footer-logo-img"
+            src="/logo.webp"
+            width="560"
+            height="587"
+            alt="Café Rosa · Coffee & Pastelería"
+          />
+        </a>
+
+        <p class="footer-tag">
+          Un refugio de aromas, sabores y belleza en el corazón de Madrid. Cada
+          visita es una historia que merece ser contada.
+        </p>
+
+        <div class="footer-social">
+          <a [href]="contact.instagram" target="_blank" rel="noopener" aria-label="Instagram">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>
+          </a>
+          <a [href]="contact.twitter" target="_blank" rel="noopener" aria-label="Twitter">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"/></svg>
+          </a>
+          <a [href]="contact.facebook" target="_blank" rel="noopener" aria-label="Facebook">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+          </a>
+        </div>
+
+        <div class="footer-hours">
+          <p class="footer-label">Horario</p>
+          <p>{{ contact.hoursWeek }}</p>
+          <p>{{ contact.hoursWeekend }}</p>
+        </div>
+      </div>
+
+      @for (col of columns; track col.title) {
+        <div class="footer-col">
+          <p class="footer-label">{{ col.title }}</p>
+          @for (link of col.links; track link.label) {
+            <a class="footer-link" [routerLink]="link.path">{{ link.label }}</a>
+          }
+        </div>
+      }
+    </div>
+
+    <div class="footer-newsletter">
+      <div>
+        <h4>¿Quieres enterarte de todo?</h4>
+        <p>Novedades, eventos exclusivos y recetas secretas.</p>
+      </div>
+      <form class="footer-news-form" (submit)="$event.preventDefault()">
+        <input type="email" placeholder="tu@email.com" aria-label="Tu email" />
+        <button type="submit" class="btn btn-primary btn-sm">Suscribirme</button>
+      </form>
+    </div>
+
+    <div class="footer-base">
+      <p>© 2026 Rosa Café Madrid. Todos los derechos reservados.</p>
+      <p class="footer-made">
+        Hecho con
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+        y mucho café en Madrid
+      </p>
+      <div class="footer-legal">
+        <a href="#">Privacidad</a>
+        <a href="#">Cookies</a>
+        <a href="#">Aviso legal</a>
+      </div>
+    </div>
+  </div>
+</footer>

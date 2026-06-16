@@ -61,3 +61,6 @@ vitest.config.*.timestamp*
 
 .nx/polygraph
 .nx/self-healing
+
+# Caché local de deploy de Firebase Hosting (no commitear)
+.firebase

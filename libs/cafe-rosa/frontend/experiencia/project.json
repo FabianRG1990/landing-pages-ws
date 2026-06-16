@@ -1,0 +1,15 @@
+{
+  "name": "cafe-rosa-ui-experiencia",
+  "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/cafe-rosa/frontend/experiencia/src",
+  "prefix": "app",
+  "projectType": "library",
+  "tags": [
+    "scope:cafe-rosa"
+  ],
+  "targets": {
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    }
+  }
+}

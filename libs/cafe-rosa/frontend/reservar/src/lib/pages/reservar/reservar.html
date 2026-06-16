@@ -1,0 +1,122 @@
+<div class="page">
+  <section class="wrap section res">
+    <div class="res-grid">
+
+      <!-- ----------  Izquierda · Info  ---------- -->
+      <div class="res-info">
+        <span class="eyebrow" appReveal>Reserva tu momento</span>
+
+        <h2 class="h-section res-title">
+          TU MESA<br />
+          <span class="text-gradient italic">te espera.</span>
+        </h2>
+
+        <p class="res-lead">
+          Garantiza tu rincón favorito y llega a disfrutar sin esperas. Cada
+          reserva incluye una bienvenida especial con nuestra firma floral.
+        </p>
+
+        <ul class="res-points">
+          @for (item of infoItems; track item.text) {
+            <li class="res-point">
+              <span class="res-point-ico" aria-hidden="true">
+                @switch (item.icon) {
+                  @case ('calendar') {
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+                  }
+                  @case ('clock') {
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                  }
+                  @case ('users') {
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                  }
+                }
+              </span>
+              <span class="res-point-text">{{ item.text }}</span>
+            </li>
+          }
+        </ul>
+      </div>
+
+      <!-- ----------  Derecha · Formulario  ---------- -->
+      <div class="res-card">
+        @if (submitted()) {
+          <div class="res-success">
+            <div class="res-success-ico" aria-hidden="true">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+            </div>
+            <h3 class="res-success-title">¡Reserva confirmada!</h3>
+            <p class="res-success-text">
+              Te enviaremos la confirmación en breve. ¡Nos encanta tenerte con
+              nosotros!
+            </p>
+          </div>
+        } @else {
+          <form class="res-form" (submit)="onSubmit($event)">
+            <h3 class="res-form-title">Hacer una reserva</h3>
+
+            <!-- Nombre + Email -->
+            <div class="res-field-grid">
+              <div class="res-field">
+                <label class="res-label" for="res-name">Nombre</label>
+                <input
+                  id="res-name"
+                  class="res-input"
+                  type="text"
+                  required
+                  placeholder="Tu nombre"
+                />
+              </div>
+              <div class="res-field">
+                <label class="res-label" for="res-email">Email</label>
+                <input
+                  id="res-email"
+                  class="res-input"
+                  type="email"
+                  required
+                  placeholder="tu@email.com"
+                />
+              </div>
+            </div>
+
+            <!-- Fecha -->
+            <div class="res-field">
+              <label class="res-label" for="res-date">Fecha</label>
+              <input id="res-date" class="res-input res-input-date" type="date" required />
+            </div>
+
+            <!-- Franjas horarias -->
+            <div class="res-field">
+              <span class="res-label">Hora</span>
+              <div class="res-slots">
+                @for (t of timeSlots; track t) {
+                  <button
+                    type="button"
+                    class="res-slot"
+                    [class.is-active]="selectedTime() === t"
+                    (click)="selectTime(t)"
+                  >
+                    {{ t }}
+                  </button>
+                }
+              </div>
+            </div>
+
+            <!-- Personas -->
+            <div class="res-field">
+              <span class="res-label">Personas</span>
+              <div class="res-counter">
+                <button type="button" class="res-counter-btn" aria-label="Menos personas" (click)="decGuests()">−</button>
+                <span class="res-counter-value">{{ guests() }}</span>
+                <button type="button" class="res-counter-btn" aria-label="Más personas" (click)="incGuests()">+</button>
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary res-submit">Confirmar Reserva</button>
+          </form>
+        }
+      </div>
+
+    </div>
+  </section>
+</div>

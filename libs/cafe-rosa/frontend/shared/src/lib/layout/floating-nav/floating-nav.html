@@ -1,0 +1,39 @@
+<header id="nav" [class.scrolled]="scrolled()">
+  <div class="nav-inner">
+    <a class="brand" routerLink="/inicio" aria-label="Rosa Café — inicio">
+      <img class="brand-cup" src="/logo-cup.webp" width="380" height="257" alt="" aria-hidden="true" />
+      <span><span class="brand-name">ROSA</span><span class="brand-sub">café</span></span>
+    </a>
+
+    <nav class="nav-links">
+      @for (item of items; track item.id) {
+        <a [routerLink]="'/' + item.id" routerLinkActive="active">{{ item.label }}</a>
+      }
+    </nav>
+
+    <a class="btn btn-primary btn-sm nav-cta" routerLink="/reservar">Reservar Mesa</a>
+
+    <button
+      class="nav-burger"
+      [class.open]="menuOpen()"
+      type="button"
+      aria-label="Menú"
+      (click)="toggleMenu()"
+    >
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+</header>
+
+<div id="mobile-menu" [class.open]="menuOpen()">
+  <nav>
+    @for (item of items; track item.id) {
+      <a class="menu-link" [routerLink]="'/' + item.id" (click)="closeMenu()">
+        <span class="mnum">{{ item.num }}</span>{{ item.label }}
+      </a>
+    }
+    <a class="btn btn-primary menu-cta" routerLink="/reservar" (click)="closeMenu()">
+      Reservar Mesa
+    </a>
+  </nav>
+</div>
