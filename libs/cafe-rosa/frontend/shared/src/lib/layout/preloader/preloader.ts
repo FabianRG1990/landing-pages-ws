@@ -17,9 +17,14 @@ import { IntroGate } from '../../transitions/intro-gate.service';
   template: `
     <div #pl id="preloader">
       <div class="pl-stage">
-        <span class="pl-brand">Rosa<span> Café</span></span>
+        <img
+          class="pl-logo"
+          src="/logo.webp"
+          width="560"
+          height="587"
+          alt="Café Rosa · Coffee & Pastelería"
+        />
         <span class="pl-line"><span class="pl-line-fill"></span></span>
-        <span class="pl-word">Artisan Coffee House</span>
       </div>
     </div>
   `,

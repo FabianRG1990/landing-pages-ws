@@ -6,6 +6,8 @@
 
 * { box-sizing: border-box; }
 html, body { margin: 0; padding: 0; }
+/* Cinturón de seguridad: ningún hijo puede generar scroll lateral en móvil. */
+html { overflow-x: clip; }
 /* `auto`, no `smooth`: con router (sin anclas) el smooth global hacía que el
    scrollTo(0,0) de la cortina se animara y se sintiera "trabado" al navegar. */
 html { scroll-behavior: auto; }
@@ -105,6 +107,8 @@ p { margin: 0; }
   border: none;
   border-radius: 999px;
   padding: 1.1em 2.2em;
+  max-width: 100%;
+  text-align: center;
   transition: transform 0.4s var(--ease-expo), opacity 0.4s var(--ease-expo),
     box-shadow 0.4s var(--ease-expo), background 0.4s var(--ease-expo),
     color 0.4s var(--ease-expo);
@@ -469,7 +473,7 @@ body.menu-open { overflow: hidden; }
   padding-right: max(clamp(20px, 5vw, 40px), env(safe-area-inset-right));
 }
 /* Sub-páginas: despejan el nav fijo. (inicio no usa .page: su hero va detrás del nav.) */
-.page { position: relative; z-index: 1; padding-top: var(--nav-h); }
+.page { position: relative; z-index: 1; padding-top: calc(var(--nav-h) + 0.5rem); }
 .section { padding-block: clamp(80px, 14vh, 160px); position: relative; }
 .section-bg-2 { background: var(--bg-2); }
 
@@ -540,11 +544,45 @@ body.menu-open { overflow: hidden; }
   100% { transform: scaleX(0); transform-origin: right; }
 }
 
+/* ----------  Imágenes de marca (logo)  ---------- */
+/* Taza-emblema en el navbar (reemplaza el ícono genérico). */
+.brand-cup {
+  height: 42px;
+  width: auto;
+  display: block;
+  filter: drop-shadow(0 2px 8px rgba(244, 114, 182, 0.25));
+  transition: height 0.4s var(--ease-expo), transform 0.3s var(--ease-expo);
+}
+.brand:hover .brand-cup { transform: scale(1.06) rotate(-2deg); }
+#nav.scrolled .brand-cup { height: 34px; }
+
+/* Logo completo en el preloader. */
+.pl-logo {
+  width: clamp(190px, 56vw, 268px);
+  height: auto;
+  filter: drop-shadow(0 8px 30px rgba(244, 114, 182, 0.25));
+}
+
+/* Palabras (script) en la cortina de transición. */
+.veil-logo {
+  width: clamp(220px, 62vw, 360px);
+  height: auto;
+  filter: drop-shadow(0 6px 24px rgba(0, 0, 0, 0.5));
+}
+
 /* ----------  Responsive  ---------- */
 @media (max-width: 860px) {
   .nav-links,
   .nav-cta { display: none; }
   .nav-burger { display: flex; }
+}
+
+/* Pulido móvil global: secciones menos altas y áreas táctiles cómodas. */
+@media (max-width: 640px) {
+  .section { padding-block: clamp(56px, 11vh, 96px); }
+  .site-footer { padding: clamp(56px, 10vh, 80px) 0 calc(2rem + env(safe-area-inset-bottom)); }
+  .btn { padding: 1em 1.6em; min-height: 48px; }
+  .btn-lg { font-size: 16px; padding: 1.05em 1.8em; }
 }
 
 @media (hover: none) {

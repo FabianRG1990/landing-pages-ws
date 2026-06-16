@@ -11,6 +11,12 @@
   align-items: flex-start;
   gap: 1.5rem;
 }
+.footer-logo-link { display: inline-block; }
+.footer-logo-img {
+  width: clamp(168px, 44vw, 208px);
+  height: auto;
+  filter: drop-shadow(0 6px 22px rgba(244, 114, 182, 0.18));
+}
 
 .footer-tag {
   font-size: 0.9rem;
@@ -105,12 +111,15 @@
   color: var(--text-mute);
 }
 .footer-news-form {
+  /* Móvil: input y botón apilados a ancho completo (sin overflow). */
   display: flex;
+  flex-direction: column;
   gap: 0.75rem;
   width: 100%;
 }
 .footer-news-form input {
-  flex: 1;
+  width: 100%;
+  min-width: 0; /* permite que el input se encoja dentro del flex (evita empujar el botón fuera) */
   background: rgba(244, 114, 182, 0.05);
   border: 1px solid rgba(244, 114, 182, 0.15);
   border-radius: 1rem;
@@ -120,6 +129,7 @@
   font-size: 0.9rem;
   transition: border-color 0.4s var(--ease-expo);
 }
+.footer-news-form .btn { width: 100%; }
 .footer-news-form input::placeholder { color: var(--text-mute); }
 .footer-news-form input:focus {
   outline: none;
@@ -159,8 +169,9 @@
     align-items: center;
     justify-content: space-between;
   }
-  .footer-news-form { width: auto; }
+  .footer-news-form { flex-direction: row; width: auto; }
   .footer-news-form input { width: 16rem; }
+  .footer-news-form .btn { width: auto; }
 }
 
 @media (max-width: 860px) {

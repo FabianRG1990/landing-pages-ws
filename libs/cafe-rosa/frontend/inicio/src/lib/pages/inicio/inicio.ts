@@ -31,10 +31,20 @@ interface Stat {
   readonly label: string;
 }
 
+// Acceso tipado a la API de orientación (el requestPermission de iOS 13+ no está
+// en los typings estándar de TS).
+type OrientationPermission = 'granted' | 'denied' | 'default';
+interface DeviceOrientationEventiOS {
+  requestPermission?: () => Promise<OrientationPermission>;
+}
+
 /**
- * Inicio — hero cinemático (campo de pétalos, parallax de orbes, tilt 3D con el
- * cursor, intro escalonada) seguido de la prueba social (dos marquees infinitos).
- * Equivale a `<Hero/>` + `<SocialProof/>` del original React.
+ * Inicio — hero cinemático (campo de pétalos, parallax de orbes, tilt 3D) seguido
+ * de la prueba social. El tilt 3D responde al CURSOR en escritorio y al
+ * GIROSCOPIO en móvil (inclinar el teléfono izq/der ≈ gamma, adelante/atrás ≈
+ * beta). En iOS 13+ la orientación exige permiso explícito disparado por un
+ * gesto, así que ahí mostramos una píldora "Activar movimiento". Equivale a
+ * `<Hero/>` + `<SocialProof/>` del original React.
  */
 @Component({
   selector: 'app-inicio-page',
@@ -45,6 +55,8 @@ interface Stat {
 })
 export class InicioPage {
   protected readonly petals = signal<Petal[]>([]);
+  /** Muestra la píldora para activar el sensor (solo donde hace falta gesto/permiso). */
+  protected readonly motionHint = signal(false);
 
   protected readonly stats: readonly Stat[] = [
     { value: '12+', label: 'Orígenes de café' },
@@ -68,9 +80,16 @@ export class InicioPage {
   private readonly introGate = inject(IntroGate);
   private readonly isBrowser = isPlatformBrowser(this.platformId);
 
+  // Estado del tilt suavizado (lerp): objetivo y valor actual, en rango -0.5..0.5.
+  private targetNx = 0;
+  private targetNy = 0;
+  private curNx = 0;
+  private curNy = 0;
+  private rafId = 0;
+  private orientationOn = false;
+
   constructor() {
-    // Intro escalonada: se reproduce cuando la capa que cubría se levanta
-    // (preloader al cargar · cortina al re-entrar) vía IntroGate.
+    // Intro escalonada: se reproduce cuando la capa que cubría se levanta.
     effect(() => {
       const tick = this.introGate.tick();
       if (!this.isBrowser || tick === 0) return;
@@ -91,51 +110,150 @@ export class InicioPage {
         return;
       }
 
+      const hasFinePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
       this.zone.runOutsideAngular(() => {
-        // Tilt 3D + desplazamiento del texto siguiendo al cursor.
-        let movePending = false;
-        let lastX = 0;
-        let lastY = 0;
-        const onMove = (e: PointerEvent) => {
-          lastX = e.clientX;
-          lastY = e.clientY;
-          if (movePending) return;
-          movePending = true;
-          requestAnimationFrame(() => {
-            const rect = el.getBoundingClientRect();
-            const nx = (lastX - rect.left) / rect.width - 0.5;
-            const ny = (lastY - rect.top) / rect.height - 0.5;
-            el.style.setProperty('--shift-x', `${nx * 30}px`);
-            el.style.setProperty('--shift-y', `${ny * 30}px`);
-            el.style.setProperty('--tilt-x', `${ny * -8}deg`);
-            el.style.setProperty('--tilt-y', `${nx * 8}deg`);
-            el.style.setProperty('--orb1-x', `${nx * 120}px`);
-            el.style.setProperty('--orb2-x', `${nx * -120}px`);
-            movePending = false;
-          });
-        };
-
-        // Parallax de orbes con el scroll.
-        let scrollPending = false;
-        const onScroll = () => {
-          if (scrollPending) return;
-          scrollPending = true;
-          requestAnimationFrame(() => {
-            const y = window.scrollY;
-            el.style.setProperty('--orb1-y', `${Math.min(y, 500) * 0.4}px`);
-            el.style.setProperty('--orb2-y', `${Math.min(y, 500) * -0.3}px`);
-            scrollPending = false;
-          });
-        };
-
-        el.addEventListener('pointermove', onMove, { passive: true });
-        window.addEventListener('scroll', onScroll, { passive: true });
-        this.destroyRef.onDestroy(() => {
-          el.removeEventListener('pointermove', onMove);
-          window.removeEventListener('scroll', onScroll);
-        });
+        if (hasFinePointer) {
+          this.setupPointerTilt(el);
+        } else {
+          this.setupMotionTilt();
+        }
+        this.setupScrollParallax(el);
       });
     });
+  }
+
+  /** Escritorio: el cursor mueve el texto/orbes (escritura directa, sin lerp). */
+  private setupPointerTilt(el: HTMLElement): void {
+    let pending = false;
+    let lx = 0;
+    let ly = 0;
+    const onMove = (e: PointerEvent) => {
+      lx = e.clientX;
+      ly = e.clientY;
+      if (pending) return;
+      pending = true;
+      requestAnimationFrame(() => {
+        const rect = el.getBoundingClientRect();
+        const nx = (lx - rect.left) / rect.width - 0.5;
+        const ny = (ly - rect.top) / rect.height - 0.5;
+        this.applyTilt(el, nx, ny);
+        pending = false;
+      });
+    };
+    el.addEventListener('pointermove', onMove, { passive: true });
+    this.destroyRef.onDestroy(() => el.removeEventListener('pointermove', onMove));
+  }
+
+  /**
+   * Móvil: el giroscopio mueve el texto/orbes. En iOS 13+ requiere permiso por
+   * gesto → mostramos la píldora. En Android se engancha directo; si en 1.6s no
+   * llega ningún evento, mostramos la píldora como fallback.
+   */
+  private setupMotionTilt(): void {
+    const supported =
+      typeof window !== 'undefined' && 'DeviceOrientationEvent' in window;
+    if (!supported) return;
+
+    const doe = window.DeviceOrientationEvent as unknown as DeviceOrientationEventiOS;
+    const needsPermission = typeof doe.requestPermission === 'function';
+
+    if (needsPermission) {
+      // iOS: esperar a que el usuario active (gesto requerido).
+      this.zone.run(() => this.motionHint.set(true));
+      return;
+    }
+
+    // Android / otros: enganchar directo.
+    this.attachOrientation();
+    let gotEvent = false;
+    const probe = () => {
+      gotEvent = true;
+    };
+    window.addEventListener('deviceorientation', probe, { once: true });
+    setTimeout(() => {
+      window.removeEventListener('deviceorientation', probe);
+      if (!gotEvent && !this.orientationOn) {
+        this.zone.run(() => this.motionHint.set(true));
+      }
+    }, 1600);
+  }
+
+  /** Handler de la píldora (iOS pide permiso aquí, dentro del gesto del usuario). */
+  protected async enableMotion(): Promise<void> {
+    const doe = window.DeviceOrientationEvent as unknown as DeviceOrientationEventiOS;
+    try {
+      if (typeof doe.requestPermission === 'function') {
+        const res = await doe.requestPermission();
+        if (res !== 'granted') {
+          this.motionHint.set(false);
+          return;
+        }
+      }
+    } catch {
+      // si falla el permiso, ocultar la píldora silenciosamente
+    }
+    this.motionHint.set(false);
+    this.zone.runOutsideAngular(() => this.attachOrientation());
+  }
+
+  private attachOrientation(): void {
+    if (this.orientationOn) return;
+    const el = this.hero().nativeElement;
+    const onOrient = (e: DeviceOrientationEvent) => {
+      if (e.gamma === null || e.beta === null) return;
+      this.orientationOn = true;
+      // gamma: izquierda-derecha (-90..90). beta: adelante-atrás (~45° en mano).
+      this.targetNx = this.clampHalf(e.gamma / 35);
+      this.targetNy = this.clampHalf((e.beta - 45) / 35);
+      this.startLerp(el);
+    };
+    window.addEventListener('deviceorientation', onOrient, { passive: true });
+    this.destroyRef.onDestroy(() => {
+      window.removeEventListener('deviceorientation', onOrient);
+      if (this.rafId) cancelAnimationFrame(this.rafId);
+    });
+  }
+
+  /** Bucle de suavizado (lerp) que interpola hacia el objetivo del sensor. */
+  private startLerp(el: HTMLElement): void {
+    if (this.rafId) return;
+    const step = () => {
+      this.curNx += (this.targetNx - this.curNx) * 0.09;
+      this.curNy += (this.targetNy - this.curNy) * 0.09;
+      this.applyTilt(el, this.curNx, this.curNy);
+      this.rafId = requestAnimationFrame(step);
+    };
+    this.rafId = requestAnimationFrame(step);
+  }
+
+  /** Escribe los CSS vars del hero a partir de nx/ny en rango -0.5..0.5. */
+  private applyTilt(el: HTMLElement, nx: number, ny: number): void {
+    el.style.setProperty('--shift-x', `${nx * 34}px`);
+    el.style.setProperty('--shift-y', `${ny * 34}px`);
+    el.style.setProperty('--tilt-x', `${ny * -8}deg`);
+    el.style.setProperty('--tilt-y', `${nx * 8}deg`);
+    el.style.setProperty('--orb1-x', `${nx * 120}px`);
+    el.style.setProperty('--orb2-x', `${nx * -120}px`);
+  }
+
+  private setupScrollParallax(el: HTMLElement): void {
+    let pending = false;
+    const onScroll = () => {
+      if (pending) return;
+      pending = true;
+      requestAnimationFrame(() => {
+        const y = Math.min(window.scrollY, 500);
+        el.style.setProperty('--orb1-y', `${y * 0.4}px`);
+        el.style.setProperty('--orb2-y', `${y * -0.3}px`);
+        pending = false;
+      });
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    this.destroyRef.onDestroy(() => window.removeEventListener('scroll', onScroll));
+  }
+
+  private clampHalf(v: number): number {
+    return Math.max(-1, Math.min(1, v)) * 0.5;
   }
 
   private makePetals(n: number): Petal[] {

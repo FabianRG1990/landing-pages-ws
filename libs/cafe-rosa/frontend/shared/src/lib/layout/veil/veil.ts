@@ -22,9 +22,13 @@ import { PageTransition } from '../../transitions/page-transition.service';
       <div #top class="veil-panel veil-top"></div>
       <div #bottom class="veil-panel veil-bottom"></div>
       <div #mark class="veil-mark">
-        <span class="veil-brand">Rosa<span> Café</span></span>
-        <span class="veil-rule"></span>
-        <span class="veil-tag">Artisan Coffee House</span>
+        <img
+          class="veil-logo"
+          src="/logo-words.webp"
+          width="560"
+          height="219"
+          alt="Café Rosa"
+        />
       </div>
     </div>
   `,

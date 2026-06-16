@@ -59,6 +59,13 @@
         <a class="btn btn-ghost btn-lg" routerLink="/menu">Ver Nuestro Menú</a>
       </div>
 
+      @if (motionHint()) {
+        <button type="button" class="hero-motion" (click)="enableMotion()">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"/><circle cx="12" cy="12" r="3"/></svg>
+          Inclina tu teléfono · toca para activar
+        </button>
+      }
+
       <div class="hero-stats">
         @for (s of stats; track s.label) {
           <div class="hero-stat">

@@ -163,6 +163,9 @@
   grid-template-columns: 1fr 1fr;
   gap: 1rem;
 }
+@media (max-width: 420px) {
+  .form-row { grid-template-columns: 1fr; }
+}
 
 .field {
   display: flex;

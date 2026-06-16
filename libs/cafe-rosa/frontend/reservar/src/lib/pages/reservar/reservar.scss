@@ -107,6 +107,9 @@
   grid-template-columns: 1fr 1fr;
   gap: 1rem;
 }
+@media (max-width: 420px) {
+  .res-field-grid { grid-template-columns: 1fr; }
+}
 
 .res-label {
   display: block;
@@ -147,7 +150,8 @@
 /* ----------  Franjas horarias  ---------- */
 .res-slots {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  /* auto-fit: las franjas se reacomodan y nunca se salen en pantallas angostas. */
+  grid-template-columns: repeat(auto-fit, minmax(56px, 1fr));
   gap: 0.5rem;
 }
 
