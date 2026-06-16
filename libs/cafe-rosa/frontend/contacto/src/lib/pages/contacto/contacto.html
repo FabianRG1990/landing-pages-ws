@@ -1,0 +1,132 @@
+<div class="page">
+  <section class="wrap section section-bg-2 contacto">
+    <div class="contacto-glow" aria-hidden="true"></div>
+
+    <!-- ---------- Header ---------- -->
+    <header class="contacto-head">
+      <span class="eyebrow text-gradient" appReveal>Cuéntanos</span>
+      <h2 class="h-section">
+        Eventos &amp; <span class="text-gradient italic">catering</span>
+      </h2>
+      <p class="contacto-lead">
+        ¿Quieres celebrar algo especial? Cumpleaños, despedidas, bodas, eventos
+        corporativos. Hacemos tu sueño realidad.
+      </p>
+    </header>
+
+    <!-- ---------- Grid ---------- -->
+    <div class="contacto-grid">
+      <!-- Columna izquierda: info + mapa -->
+      <div class="contacto-info">
+        @for (item of contactInfo; track item.label) {
+          <div class="info-item">
+            <span class="info-chip" aria-hidden="true">
+              @switch (item.icon) {
+                @case ('map-pin') {
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                }
+                @case ('phone') {
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.91.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                }
+                @case ('mail') {
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 6L2 7"/></svg>
+                }
+              }
+            </span>
+            <div class="info-text">
+              <p class="info-label">{{ item.label }}</p>
+              <p class="info-value">{{ item.value }}</p>
+              <p class="info-sub">{{ item.sub }}</p>
+            </div>
+          </div>
+        }
+
+        <!-- Placeholder de mapa -->
+        <div class="map-placeholder" aria-hidden="true">
+          <div class="map-inner">
+            <svg class="map-pin" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            <p class="map-label">{{ mapAddress }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Columna derecha: formulario -->
+      <div class="contacto-card">
+        @if (sent()) {
+          <div class="form-success">
+            <span class="success-icon" aria-hidden="true">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+            </span>
+            <h3 class="success-title">¡Mensaje enviado!</h3>
+            <p class="success-text">
+              Nos pondremos en contacto contigo muy pronto.
+            </p>
+          </div>
+        } @else {
+          <form class="contacto-form" (submit)="onSubmit($event)">
+            <h3 class="form-title">Escríbenos</h3>
+
+            <div class="form-row">
+              <div class="field">
+                <label class="field-label" for="contacto-nombre">Nombre</label>
+                <input
+                  id="contacto-nombre"
+                  class="field-input"
+                  type="text"
+                  required
+                  placeholder="Tu nombre"
+                />
+              </div>
+              <div class="field">
+                <label class="field-label" for="contacto-telefono">Teléfono</label>
+                <input
+                  id="contacto-telefono"
+                  class="field-input"
+                  type="tel"
+                  placeholder="+34 ..."
+                />
+              </div>
+            </div>
+
+            <div class="field">
+              <label class="field-label" for="contacto-email">Email</label>
+              <input
+                id="contacto-email"
+                class="field-input"
+                type="email"
+                required
+                placeholder="tu@email.com"
+              />
+            </div>
+
+            <div class="field">
+              <label class="field-label" for="contacto-evento">Tipo de evento</label>
+              <select id="contacto-evento" class="field-input field-select">
+                <option value="">Selecciona...</option>
+                @for (type of eventTypes; track type) {
+                  <option [value]="type">{{ type }}</option>
+                }
+              </select>
+            </div>
+
+            <div class="field">
+              <label class="field-label" for="contacto-mensaje">Mensaje</label>
+              <textarea
+                id="contacto-mensaje"
+                class="field-input field-textarea"
+                rows="4"
+                required
+                placeholder="Cuéntanos tu idea o necesidad..."
+              ></textarea>
+            </div>
+
+            <button class="btn btn-primary form-submit" type="submit">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+              Enviar mensaje
+            </button>
+          </form>
+        }
+      </div>
+    </div>
+  </section>
+</div>

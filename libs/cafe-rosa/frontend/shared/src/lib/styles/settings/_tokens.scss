@@ -1,0 +1,49 @@
+/* ============================================================
+   ROSA CAFÉ · Artisan Coffee House — Design tokens
+   Rosa sobre espresso oscuro · pétalos, glow y vidrio
+   ============================================================ */
+
+:root {
+  /* Base oscura */
+  --bg:          #0d0508;
+  --bg-2:        #080205;
+  --bg-3:        #060203;
+
+  /* Rosas */
+  --pink:        #f472b6;
+  --pink-deep:   #ec4899;
+  --pink-light:  #fbcfe8;
+  --rose-dark:   #9d174d;
+  --rose-darker: #4a0726;
+
+  /* Texto */
+  --white:       #ffffff;
+  --text:        rgba(255, 255, 255, 0.9);
+  --text-soft:   #c9a0b0;
+  --text-mute:   #9b7085;
+
+  /* Líneas y superficies (tinte rosa por opacidad) */
+  --line:        rgba(244, 114, 182, 0.12);
+  --line-soft:   rgba(244, 114, 182, 0.08);
+  --line-faint:  rgba(244, 114, 182, 0.05);
+  --surface:     rgba(244, 114, 182, 0.05);
+  --surface-2:   rgba(244, 114, 182, 0.03);
+
+  /* Tipografía */
+  --font-display: "Playfair Display", Georgia, serif;
+  --font-body:    "Lato", system-ui, sans-serif;
+  --font-elegant: "Cormorant Garamond", Georgia, serif;
+
+  /* Movimiento */
+  --ease-expo:   cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-out:    cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* Métricas */
+  --nav-h:       84px;
+  --maxw:        1280px;
+
+  /* Glow rosa reutilizable */
+  --glow:        0 0 30px rgba(244, 114, 182, 0.3);
+  --glow-soft:   0 0 20px rgba(244, 114, 182, 0.2);
+  --grad-pink:   linear-gradient(to right, #f472b6, #ec4899);
+}

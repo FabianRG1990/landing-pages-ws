@@ -63,6 +63,22 @@
       ],
       "@interiorismo-ui-contacto": [
         "./libs/interiorismo/frontend/contacto/src/index.ts"
+      ],
+      "@cafe-rosa-ui-shared": ["./libs/cafe-rosa/frontend/shared/src/index.ts"],
+      "@cafe-rosa-ui-shared/*": ["./libs/cafe-rosa/frontend/shared/src/lib/*"],
+      "@cafe-rosa-ui-inicio": ["./libs/cafe-rosa/frontend/inicio/src/index.ts"],
+      "@cafe-rosa-ui-menu": ["./libs/cafe-rosa/frontend/menu/src/index.ts"],
+      "@cafe-rosa-ui-historia": [
+        "./libs/cafe-rosa/frontend/historia/src/index.ts"
+      ],
+      "@cafe-rosa-ui-experiencia": [
+        "./libs/cafe-rosa/frontend/experiencia/src/index.ts"
+      ],
+      "@cafe-rosa-ui-reservar": [
+        "./libs/cafe-rosa/frontend/reservar/src/index.ts"
+      ],
+      "@cafe-rosa-ui-contacto": [
+        "./libs/cafe-rosa/frontend/contacto/src/index.ts"
       ]
     }
   },

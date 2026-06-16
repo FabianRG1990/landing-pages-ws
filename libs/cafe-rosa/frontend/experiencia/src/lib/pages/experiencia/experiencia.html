@@ -1,0 +1,170 @@
+<div class="page">
+  <!-- ===================  PRICING  =================== -->
+  <section class="wrap section pricing">
+    <div class="pricing-glow" aria-hidden="true"></div>
+
+    <header class="sec-head">
+      <span class="eyebrow" appReveal>Nuestras Experiencias</span>
+      <h2 class="h-section" appReveal>
+        SABOR QUE <span class="text-gradient italic">enamora</span>
+      </h2>
+      <p class="lead sec-lead" appReveal>
+        Desde el desayuno íntimo hasta la celebración más especial. Cada visita
+        es única.
+      </p>
+    </header>
+
+    <div class="tiers">
+      @for (tier of menuTiers; track tier.name) {
+        <article
+          class="tier"
+          [class.tier-highlight]="tier.highlight"
+          appReveal
+        >
+          @if (tier.highlight) {
+            <span class="tier-badge">Más Popular</span>
+          }
+
+          <div class="tier-top">
+            <span class="tier-emoji" aria-hidden="true">{{ tier.emoji }}</span>
+            <h3 class="tier-name">{{ tier.name }}</h3>
+            <p class="tier-sub">{{ tier.subtitle }}</p>
+          </div>
+
+          <div class="tier-price">
+            <span class="tier-cur">€</span>
+            <span class="tier-amount">{{ tier.price }}</span>
+            <span class="tier-period">{{ tier.period }}</span>
+          </div>
+
+          <ul class="tier-items">
+            @for (item of tier.items; track item) {
+              <li class="tier-item">
+                <span
+                  class="tier-check"
+                  [class.tier-check-strong]="tier.highlight"
+                  aria-hidden="true"
+                >
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="3"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M5 13l4 4L19 7" />
+                  </svg>
+                </span>
+                <span class="tier-item-text">{{ item }}</span>
+              </li>
+            }
+          </ul>
+
+          <a
+            class="btn tier-cta"
+            [class.btn-primary]="tier.highlight"
+            [class.btn-ghost]="!tier.highlight"
+            routerLink="/reservar"
+          >
+            Reservar {{ tier.name }}
+          </a>
+        </article>
+      }
+    </div>
+
+    <p class="pricing-foot">
+      <span class="pricing-foot-ico" aria-hidden="true">
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M18 8h1a4 4 0 0 1 0 8h-1" />
+          <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z" />
+          <line x1="6" y1="1" x2="6" y2="4" />
+          <line x1="10" y1="1" x2="10" y2="4" />
+          <line x1="14" y1="1" x2="14" y2="4" />
+        </svg>
+      </span>
+      <span>
+        Todos los precios incluyen IVA · Alérgenos disponibles · Sin cargo por
+        reserva
+      </span>
+    </p>
+  </section>
+
+  <!-- ===================  TESTIMONIOS  =================== -->
+  <section class="section testimonials">
+    <div class="testimonials-glow" aria-hidden="true"></div>
+
+    <header class="wrap sec-head">
+      <span class="eyebrow" appReveal>Lo que dicen nuestros clientes</span>
+      <h2 class="h-section" appReveal>
+        Amor en cada <span class="text-gradient italic">sorbo.</span>
+      </h2>
+    </header>
+
+    <div class="carousel">
+      <div class="carousel-fade carousel-fade-l" aria-hidden="true"></div>
+      <div class="carousel-fade carousel-fade-r" aria-hidden="true"></div>
+
+      <div #viewport class="carousel-viewport">
+        <div #track class="carousel-track">
+          @for (t of carouselItems; track $index) {
+            <article class="t-card">
+              <span class="t-quote" aria-hidden="true">
+                <svg
+                  width="32"
+                  height="32"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                >
+                  <path
+                    d="M10 11H6.5a.5.5 0 0 1-.5-.5V9a4 4 0 0 1 4-4 1 1 0 0 0 0-2 6 6 0 0 0-6 6v8a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-4a2 2 0 0 0-2-2zm10 0h-3.5a.5.5 0 0 1-.5-.5V9a4 4 0 0 1 4-4 1 1 0 0 0 0-2 6 6 0 0 0-6 6v8a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2v-4a2 2 0 0 0-2-2z"
+                  />
+                </svg>
+              </span>
+
+              <div class="t-stars" [attr.aria-label]="t.rating + ' de 5'">
+                @for (s of stars(t.rating); track s) {
+                  <svg
+                    class="t-star"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M12 2l2.9 6.3 6.9.7-5.1 4.6 1.4 6.8L12 17.8 5.9 20.4l1.4-6.8L2.2 9l6.9-.7z"
+                    />
+                  </svg>
+                }
+              </div>
+
+              <blockquote class="t-text">"{{ t.content }}"</blockquote>
+
+              <div class="t-author">
+                <span class="t-mono" aria-hidden="true">{{ t.initials }}</span>
+                <span class="t-meta">
+                  <span class="t-name">{{ t.name }}</span>
+                  <span class="t-role">{{ t.role }}</span>
+                </span>
+              </div>
+            </article>
+          }
+        </div>
+      </div>
+    </div>
+
+    <p class="carousel-hint">Arrastra para explorar más reseñas →</p>
+  </section>
+</div>

@@ -47,6 +47,10 @@ export default [
                 'scope:shared',
               ],
             },
+            {
+              sourceTag: 'scope:cafe-rosa',
+              onlyDependOnLibsWithTags: ['scope:cafe-rosa', 'scope:shared'],
+            },
           ],
         },
       ],

@@ -1,0 +1,391 @@
+/* ===================  HISTORIA · El arte del café  =================== */
+.hist {
+  position: relative;
+  overflow: hidden;
+}
+
+/* ----------  Blobs de fondo  ---------- */
+.hist-blob {
+  position: absolute;
+  border-radius: 999px;
+  pointer-events: none;
+  z-index: 0;
+}
+.hist-blob-1 {
+  top: 0;
+  right: 0;
+  width: 600px;
+  height: 600px;
+  max-width: 80vw;
+  max-height: 80vw;
+  background: rgba(157, 23, 77, 0.1);
+  filter: blur(140px);
+}
+.hist-blob-2 {
+  bottom: 0;
+  left: 0;
+  width: 500px;
+  height: 500px;
+  max-width: 70vw;
+  max-height: 70vw;
+  background: rgba(244, 114, 182, 0.05);
+  filter: blur(120px);
+}
+
+/* ----------  Header  ---------- */
+.hist-head {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  margin-bottom: clamp(3rem, 8vh, 6rem);
+}
+.hist-head .eyebrow {
+  margin-bottom: 1rem;
+}
+.hist-head-lead {
+  max-width: 28rem;
+  font-family: var(--font-body);
+  font-size: clamp(1.05rem, 1.6vw, 1.25rem);
+  font-weight: 300;
+  line-height: 1.7;
+  color: var(--text-soft);
+}
+
+@media (min-width: 768px) {
+  .hist-head {
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 2.5rem;
+  }
+  .hist-head-lead {
+    text-align: right;
+  }
+}
+
+/* ===================  BENTO GRID  =================== */
+.bento {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .bento {
+    grid-template-columns: repeat(6, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    height: 800px;
+  }
+  .card-main {
+    grid-column: span 4;
+    grid-row: span 2;
+  }
+  .card-sm {
+    grid-column: span 2;
+    grid-row: span 1;
+  }
+}
+
+/* ----------  Cards base  ---------- */
+.card {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(244, 114, 182, 0.1);
+  border-radius: 40px;
+  background: linear-gradient(
+    to bottom right,
+    rgba(244, 114, 182, 0.08),
+    transparent
+  );
+  padding: clamp(1.75rem, 3vw, 2.5rem);
+  display: flex;
+  flex-direction: column;
+}
+.card-main {
+  justify-content: space-between;
+  gap: 2.5rem;
+}
+.card-sm {
+  justify-content: center;
+  border-color: rgba(244, 114, 182, 0.08);
+  background: rgba(244, 114, 182, 0.03);
+}
+
+.card > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Glow hover — gateado a punteros con hover real */
+.card-glow {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  opacity: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom right,
+    rgba(244, 114, 182, 0.12),
+    rgba(157, 23, 77, 0.05)
+  );
+  transition: opacity 0.7s var(--ease-expo);
+}
+.card-glow-rose {
+  background: linear-gradient(
+    to top right,
+    rgba(157, 23, 77, 0.15),
+    transparent
+  );
+}
+
+.card-arrow {
+  position: absolute;
+  top: 1.5rem;
+  right: 1.5rem;
+  z-index: 2;
+  color: var(--pink);
+  opacity: 0;
+  transform: translateX(0.75rem);
+  transition: opacity 0.3s var(--ease-expo), transform 0.3s var(--ease-expo);
+}
+.card-arrow svg {
+  width: 1.75rem;
+  height: 1.75rem;
+}
+
+@media (hover: hover) {
+  .card:hover .card-glow {
+    opacity: 1;
+  }
+  .card:hover .card-arrow {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  .card-main:hover {
+    transform: scale(0.99);
+  }
+  .card-sm:hover {
+    transform: scale(0.98);
+  }
+  .card {
+    transition: transform 0.4s var(--ease-expo);
+  }
+  .card:hover .card-icon-lg {
+    transform: rotate(12deg);
+  }
+}
+
+/* ----------  Iconos de card  ---------- */
+.card-icon-lg {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 4rem;
+  height: 4rem;
+  margin-bottom: 2rem;
+  border-radius: 1rem;
+  color: #fff;
+  background: linear-gradient(to bottom right, var(--pink), var(--rose-dark));
+  box-shadow: 0 0 25px rgba(244, 114, 182, 0.4);
+  transform: rotate(3deg);
+  transition: transform 0.5s var(--ease-expo);
+}
+.card-icon-lg svg {
+  width: 2rem;
+  height: 2rem;
+}
+.card-icon-bare {
+  width: 2.5rem;
+  height: 2.5rem;
+  margin-bottom: 1.5rem;
+}
+.card-icon-bare svg {
+  width: 100%;
+  height: 100%;
+}
+.card-icon-leaf {
+  color: var(--pink-light);
+}
+.card-icon-heart {
+  color: var(--pink-deep);
+}
+
+/* ----------  Tipografía de card  ---------- */
+.card-title {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: 0.75rem;
+  color: var(--text);
+}
+.card-title-lg {
+  font-size: clamp(2rem, 3.5vw, 2.25rem);
+  line-height: 1.1;
+  margin-bottom: 1.5rem;
+}
+.card-text {
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  line-height: 1.7;
+  color: var(--text-soft);
+}
+.card-text-lg {
+  font-size: 1.125rem;
+  max-width: 28rem;
+}
+
+/* ===================  PERFIL DE SABORES  =================== */
+.flavor {
+  position: relative;
+  margin-top: 2.5rem;
+  height: 14rem;
+  border: 1px solid rgba(244, 114, 182, 0.1);
+  border-radius: 1.5rem;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 2rem;
+  overflow: hidden;
+}
+.flavor-label {
+  font-family: var(--font-body);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.25em;
+  color: var(--text-mute);
+  margin-bottom: 1rem;
+}
+.flavor-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.75rem;
+  height: 7rem;
+}
+.flavor-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  height: 100%;
+  justify-content: flex-end;
+}
+
+/* La barra: la directiva pone `.reveal` (opacity:0) + luego `.is-visible`.
+   Aquí la mantenemos visible y animamos solo la altura al revelarse. */
+.bar {
+  width: 100%;
+  border-radius: 0.5rem 0.5rem 0 0;
+  background: linear-gradient(
+    to top,
+    rgba(244, 114, 182, 0.15),
+    var(--pink)
+  );
+}
+.bar.reveal {
+  opacity: 1;
+  height: 0;
+}
+.bar.reveal.is-visible {
+  animation: bar-grow 1s var(--ease-expo) both;
+}
+@keyframes bar-grow {
+  from {
+    height: 0;
+  }
+  to {
+    height: var(--bar-height, 0%);
+  }
+}
+.flavor-name {
+  font-family: var(--font-body);
+  font-size: 9px;
+  line-height: 1.1;
+  text-align: center;
+  color: var(--text-mute);
+}
+
+/* ===================  FILA INFERIOR  =================== */
+.features {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .features {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.feature {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  border: 1px solid rgba(244, 114, 182, 0.08);
+  border-radius: 1.5rem;
+  background: rgba(244, 114, 182, 0.02);
+  padding: 1.5rem;
+}
+.feature-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem;
+  border-radius: 0.75rem;
+  background: rgba(244, 114, 182, 0.08);
+}
+.feature-icon svg {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+.feature-icon[data-tone='wind'] {
+  color: var(--pink);
+}
+.feature-icon[data-tone='sun'] {
+  color: var(--pink-light);
+}
+.feature-icon[data-tone='leaf'] {
+  color: var(--pink-deep);
+}
+.feature-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: var(--text);
+}
+.feature-sub {
+  font-family: var(--font-body);
+  font-size: 0.75rem;
+  color: var(--text-mute);
+}
+
+@media (hover: hover) {
+  .feature {
+    transition: transform 0.3s var(--ease-expo);
+  }
+  .feature:hover {
+    transform: translateY(-5px);
+  }
+}
+
+/* ----------  Reduced motion: barras visibles sin animar  ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .bar.reveal,
+  .bar.reveal.is-visible {
+    opacity: 1;
+    height: var(--bar-height, 0%);
+    animation: none !important;
+  }
+  .card,
+  .feature,
+  .card-icon-lg,
+  .card-arrow {
+    transition: none !important;
+  }
+}

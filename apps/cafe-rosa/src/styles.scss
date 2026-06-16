@@ -1,0 +1,8 @@
+/* ============================================================
+   Rosa Café · Artisan Coffee House — Hoja de estilos global
+   El design system vive en libs/cafe-rosa/frontend/shared/src/lib/styles
+   (resuelto vía stylePreprocessorOptions.includePaths).
+   ============================================================ */
+
+@use 'settings/tokens';
+@use 'mixins/base';

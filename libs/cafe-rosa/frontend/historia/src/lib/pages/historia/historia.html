@@ -1,0 +1,137 @@
+<div class="page">
+  <section class="wrap section hist">
+    <!-- Blobs de fondo -->
+    <div class="hist-blob hist-blob-1" aria-hidden="true"></div>
+    <div class="hist-blob hist-blob-2" aria-hidden="true"></div>
+
+    <!-- ===================  HEADER  =================== -->
+    <header class="hist-head">
+      <div class="hist-head-main">
+        <span class="eyebrow" appReveal>Nuestra Filosofía</span>
+        <h2 class="h-section" appReveal>
+          EL ARTE <br />
+          <span class="text-gradient italic">del café.</span>
+        </h2>
+      </div>
+      <p class="hist-head-lead" appReveal>
+        Cada detalle está diseñado para despertar tus sentidos. Desde el grano
+        hasta la taza, vivimos por la excelencia artesanal.
+      </p>
+    </header>
+
+    <!-- ===================  BENTO GRID  =================== -->
+    <div class="bento">
+      <!-- Card grande — Origen único -->
+      <article class="card card-main" appReveal>
+        <span class="card-glow" aria-hidden="true"></span>
+
+        <div class="card-main-top">
+          <div class="card-icon card-icon-lg" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 8h1a4 4 0 0 1 0 8h-1" />
+              <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4Z" />
+              <line x1="6" y1="1" x2="6" y2="4" />
+              <line x1="10" y1="1" x2="10" y2="4" />
+              <line x1="14" y1="1" x2="14" y2="4" />
+            </svg>
+          </div>
+          <h3 class="card-title card-title-lg">Granos de<br />Origen Único</h3>
+          <p class="card-text card-text-lg">
+            Seleccionamos personalmente granos de fincas sostenibles en
+            Colombia, Etiopía y Guatemala. Cada origen cuenta una historia, cada
+            sorbo es un viaje.
+          </p>
+        </div>
+
+        <!-- Perfil de sabores -->
+        <div class="flavor">
+          <p class="flavor-label">Perfil de sabores</p>
+          <div class="flavor-bars">
+            @for (item of flavorProfile; track item.label) {
+              <div class="flavor-col">
+                <span
+                  class="bar"
+                  appReveal
+                  [style.--bar-height.%]="item.val"
+                ></span>
+                <span class="flavor-name">{{ item.label }}</span>
+              </div>
+            }
+          </div>
+        </div>
+      </article>
+
+      <!-- Card 2 — Pastelería -->
+      <article class="card card-sm" appReveal>
+        <span class="card-arrow" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M7 17 17 7" />
+            <path d="M7 7h10v10" />
+          </svg>
+        </span>
+        <span class="card-glow" aria-hidden="true"></span>
+        <div class="card-icon-bare card-icon-leaf" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z" />
+            <path d="M2 21c0-3 1.85-5.36 5.08-6" />
+          </svg>
+        </div>
+        <h3 class="card-title">Pastelería Artesanal</h3>
+        <p class="card-text">
+          Croissants, tartas y macarons hechos cada mañana con ingredientes
+          locales y mucho amor.
+        </p>
+      </article>
+
+      <!-- Card 3 — Ambiente -->
+      <article class="card card-sm" appReveal>
+        <span class="card-glow card-glow-rose" aria-hidden="true"></span>
+        <div class="card-icon-bare card-icon-heart" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
+          </svg>
+        </div>
+        <h3 class="card-title">Ambiente Rosa</h3>
+        <p class="card-text">
+          Un espacio diseñado para el descanso, la conexión y la belleza. Cada
+          rincón es una foto.
+        </p>
+      </article>
+    </div>
+
+    <!-- ===================  FILA INFERIOR  =================== -->
+    <div class="features">
+      @for (f of bottomFeatures; track f.title) {
+        <article class="feature" appReveal>
+          <div class="feature-icon" [attr.data-tone]="f.icon" aria-hidden="true">
+            @switch (f.icon) {
+              @case ('wind') {
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12.8 19.6A2 2 0 1 0 14 16H2" />
+                  <path d="M17.5 8a2.5 2.5 0 1 1 2 4H2" />
+                  <path d="M9.8 4.4A2 2 0 1 1 11 8H2" />
+                </svg>
+              }
+              @case ('sun') {
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="4" />
+                  <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
+                </svg>
+              }
+              @case ('leaf') {
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z" />
+                  <path d="M2 21c0-3 1.85-5.36 5.08-6" />
+                </svg>
+              }
+            }
+          </div>
+          <div class="feature-body">
+            <h4 class="feature-title">{{ f.title }}</h4>
+            <p class="feature-sub">{{ f.sub }}</p>
+          </div>
+        </article>
+      }
+    </div>
+  </section>
+</div>

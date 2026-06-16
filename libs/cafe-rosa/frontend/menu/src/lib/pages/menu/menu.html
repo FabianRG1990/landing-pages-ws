@@ -1,0 +1,66 @@
+<div class="page">
+  <section class="wrap section section-bg-2 menu">
+    <div class="menu-glow" aria-hidden="true"></div>
+
+    <!-- ----------  Header  ---------- -->
+    <header class="menu-head">
+      <span class="eyebrow" appReveal>Carta de la Casa</span>
+      <h2 class="h-section" appReveal>
+        Nuestro <span class="text-gradient italic">menú estrella</span>
+      </h2>
+    </header>
+
+    <!-- ----------  Tabs de categoría  ---------- -->
+    <div class="menu-tabs" role="tablist" aria-label="Categorías del menú">
+      @for (cat of categories; track cat.category; let i = $index) {
+        <button
+          type="button"
+          class="menu-tab"
+          [class.is-active]="activeCategory() === i"
+          role="tab"
+          [attr.aria-selected]="activeCategory() === i"
+          (click)="setCategory(i)"
+        >
+          <svg
+            class="menu-tab-ico"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path [attr.d]="cat.iconPath" />
+          </svg>
+          {{ cat.category }}
+        </button>
+      }
+    </div>
+
+    <!-- ----------  Grid de items de la categoría activa  ---------- -->
+    <div class="menu-grid" [attr.data-active]="activeCategory()">
+      @for (item of activeItems(); track item.name) {
+        <article class="menu-card" appReveal>
+          <div class="menu-card-glow" aria-hidden="true"></div>
+          <div class="menu-card-body">
+            <span class="menu-card-tag">{{ item.tag }}</span>
+            <h3 class="menu-card-name">{{ item.name }}</h3>
+            <p class="menu-card-desc">{{ item.desc }}</p>
+            <div class="menu-card-foot">
+              <span class="menu-card-price">{{ item.price }}</span>
+              <button type="button" class="menu-card-add">Añadir →</button>
+            </div>
+          </div>
+        </article>
+      }
+    </div>
+
+    <!-- ----------  CTA final  ---------- -->
+    <div class="menu-cta">
+      <a class="btn btn-ghost" routerLink="/reservar">Ver Carta Completa</a>
+    </div>
+  </section>
+</div>
