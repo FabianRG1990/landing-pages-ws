@@ -1,0 +1,57 @@
+/* ============================================================
+   SERVICIOS — cuatro disciplinas + catálogo Orbital (ventas).
+   ============================================================ */
+
+.svc-grid {
+  max-width: var(--maxw); margin: 0 auto; padding: 0 var(--pad);
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(min(258px, 100%), 1fr)); gap: clamp(16px, 1.6vw, 22px);
+}
+.svc-section { background: var(--carbon); }
+.svc-card .card-pad { padding: clamp(32px, 3vw, 44px) clamp(28px, 2.6vw, 36px); }
+.svc-card .card-ico { width: 60px; height: 60px; }
+.svc-card .card-ghostnum { right: -16px; bottom: -50px; font-size: 188px; }
+.svc-card h3 { font-size: clamp(23px, 2vw, 28px); line-height: 1.05; }
+
+/* ----- Ventas ----- */
+.ventas { background: var(--carbon-2); padding: clamp(70px, 10vw, 130px) 0; border-top: 1px solid var(--line); }
+.ventas-head {
+  display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between;
+  gap: 24px; margin-bottom: 30px;
+}
+.ventas-head .intro { max-width: 52ch; }
+.ventas-head h2 {
+  font-family: var(--display); font-weight: 700; font-size: clamp(30px, 4.6vw, 56px);
+  line-height: 1; margin: 0; text-transform: uppercase;
+}
+.ventas-head .intro p { margin: 16px 0 0; font-size: 15px; line-height: 1.7; color: var(--dim); }
+.ventas-cta { padding: 15px 24px; font-size: 13px;
+  clip-path: polygon(0 0, calc(100% - 9px) 0, 100% 9px, 100% 100%, 9px 100%, 0 calc(100% - 9px)); }
+
+.filters { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 34px; }
+
+.wheel-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(250px, 100%), 1fr)); gap: 18px; }
+.wcard {
+  position: relative; background: var(--card-wheel); border: 1px solid rgba(255, 255, 255, 0.09);
+  overflow: hidden; clip-path: polygon(0 0, 100% 0, 100% 100%, 20px 100%, 0 calc(100% - 20px));
+  transition: transform 0.4s var(--ease-out), border-color 0.4s ease, box-shadow 0.4s ease;
+}
+.wcard:hover { transform: translateY(-7px); border-color: rgba(228, 2, 43, 0.5); box-shadow: 0 38px 70px -42px rgba(228, 2, 43, 0.32); }
+.wcard-img { position: relative; aspect-ratio: 4 / 5; overflow: hidden; background: #0a0a0c; }
+.wcard-img img { width: 100%; height: 100%; object-fit: cover; object-position: center 36%; transition: transform 0.65s var(--ease-out); }
+.wcard:hover .wcard-img img { transform: scale(1.07); }
+.wcard-grad { position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(to top, rgba(8, 8, 10, 0.94) 5%, rgba(8, 8, 10, 0.35) 38%, transparent 66%); }
+.wcard-badge {
+  position: absolute; top: 13px; left: 13px; font-family: var(--display); font-weight: 700;
+  font-size: 12px; letter-spacing: 0.1em; color: var(--text);
+  border: 1px solid rgba(255, 255, 255, 0.32); padding: 5px 10px; background: rgba(8, 8, 10, 0.4);
+}
+.wcard-dot { position: absolute; top: 15px; right: 15px; width: 15px; height: 15px; border-radius: 50%; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5); }
+.wcard-name { position: absolute; left: 18px; right: 18px; bottom: 15px; pointer-events: none; }
+.wcard-name .n { font-family: var(--display); font-weight: 800; font-size: 24px; line-height: 1; text-transform: uppercase; color: #fff; }
+.wcard-name .f { font-family: var(--sans); font-size: 11px; letter-spacing: 0.04em; color: rgba(242, 242, 243, 0.72); margin-top: 5px; }
+.wcard-foot { padding: 15px 18px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.wcard-specs { display: flex; gap: 16px; font-family: var(--sans); font-variant-numeric: tabular-nums lining-nums; }
+.wcard-spec { display: flex; flex-direction: column; gap: 2px; }
+.wcard-spec .k { font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(242, 242, 243, 0.4); }
+.wcard-spec .v { font-size: 13px; color: var(--text); font-weight: 600; }

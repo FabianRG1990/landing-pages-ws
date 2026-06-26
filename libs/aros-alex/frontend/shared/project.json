@@ -1,0 +1,13 @@
+{
+  "name": "aros-alex-ui-shared",
+  "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/aros-alex/frontend/shared/src",
+  "prefix": "app",
+  "projectType": "library",
+  "tags": ["scope:aros-alex"],
+  "targets": {
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    }
+  }
+}

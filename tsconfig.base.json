@@ -79,6 +79,21 @@
       ],
       "@cafe-rosa-ui-contacto": [
         "./libs/cafe-rosa/frontend/contacto/src/index.ts"
+      ],
+      "@aros-alex-ui-shared": ["./libs/aros-alex/frontend/shared/src/index.ts"],
+      "@aros-alex-ui-shared/*": ["./libs/aros-alex/frontend/shared/src/lib/*"],
+      "@aros-alex-ui-inicio": ["./libs/aros-alex/frontend/inicio/src/index.ts"],
+      "@aros-alex-ui-servicios": [
+        "./libs/aros-alex/frontend/servicios/src/index.ts"
+      ],
+      "@aros-alex-ui-galeria": [
+        "./libs/aros-alex/frontend/galeria/src/index.ts"
+      ],
+      "@aros-alex-ui-nosotros": [
+        "./libs/aros-alex/frontend/nosotros/src/index.ts"
+      ],
+      "@aros-alex-ui-contacto": [
+        "./libs/aros-alex/frontend/contacto/src/index.ts"
       ]
     }
   },

@@ -1,0 +1,9 @@
+/* ============================================================
+   AROS ALEX · Luxury Rims — Hoja de estilos global
+   El design system vive en libs/aros-alex/frontend/shared/src/lib/styles
+   (resuelto vía stylePreprocessorOptions.includePaths).
+   ============================================================ */
+
+@use 'settings/tokens';
+@use 'mixins/base';
+@use 'mixins/pages';

@@ -1,0 +1,167 @@
+/* ============================================================
+   CONTACTO — formulario (mailto) + WhatsApp, teléfono, correo,
+   mapa y horario en vivo.
+   ============================================================ */
+
+.contacto { background: var(--carbon); padding: clamp(120px, 15vw, 180px) 0 clamp(70px, 9vw, 120px); position: relative; overflow: hidden; }
+.contacto h1 { font-size: clamp(40px, 7vw, 92px); max-width: 16ch; }
+.contacto .lead { margin: 22px 0 50px; max-width: 54ch; }
+
+.contact-grid { display: grid; grid-template-columns: 1.05fr 0.95fr; gap: clamp(28px, 4vw, 56px); align-items: start; }
+
+/* ----- Formulario ----- */
+.cform {
+  position: relative; overflow: hidden;
+  background: linear-gradient(162deg, #1c1c22 0%, #15151a 54%, #0d0d11 100%);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 24px 100%, 0 calc(100% - 24px));
+  padding: clamp(28px, 3.4vw, 42px); display: flex; flex-direction: column; gap: 20px;
+  box-shadow: 0 44px 84px -50px rgba(0, 0, 0, 0.92), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+.cform::before, .cd-card::before, .hours-card::before {
+  content: ""; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, var(--accent), transparent 72%);
+}
+.cform-head .e { font-family: var(--display); font-weight: 700; font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--accent); }
+.cform-head h3 { font-family: var(--display); font-weight: 700; font-size: clamp(22px, 2.4vw, 28px); margin: 10px 0 0; text-transform: uppercase; line-height: 1.05; }
+.cform-row { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.field { display: flex; flex-direction: column; gap: 9px; }
+.field .lbl { font-family: var(--display); font-weight: 600; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--dim); }
+.field input, .field textarea {
+  background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 13px 15px; font-family: var(--sans); font-size: 15px; color: var(--text);
+  outline: none; transition: border-color 0.25s ease, background 0.25s ease;
+}
+.field textarea { resize: vertical; }
+.field input:focus, .field textarea:focus { border-color: var(--accent); background: rgba(228, 2, 43, 0.06); }
+.cform .note { font-family: var(--sans); font-size: 12.5px; color: var(--accent); opacity: 0; transition: opacity 0.4s ease; }
+.cform .note.show { opacity: 1; }
+
+/* ----- Detalles ----- */
+.cdetails { display: flex; flex-direction: column; gap: 14px; }
+.cd-wa {
+  position: relative; overflow: hidden; display: flex; align-items: center; gap: 18px;
+  background: linear-gradient(135deg, #e4022b 0%, #a80020 100%); color: #fff; padding: 24px 26px;
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 18px 100%, 0 calc(100% - 18px));
+  box-shadow: 0 30px 60px -38px rgba(228, 2, 43, 0.65);
+  transition: transform 0.4s var(--ease-out), box-shadow 0.4s ease;
+}
+.cd-wa:hover { transform: translateY(-4px); box-shadow: 0 46px 84px -36px rgba(228, 2, 43, 0.8); }
+.cd-wa .ic { flex: none; width: 56px; height: 56px; border-radius: 50%; background: #fff; display: flex; align-items: center; justify-content: center; color: var(--accent); }
+.cd-wa .ic app-icon svg { width: 26px; height: 26px; }
+.cd-wa .txt { display: flex; flex-direction: column; gap: 3px; }
+.cd-wa .txt .l { font-family: var(--display); font-weight: 600; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; opacity: 0.85; }
+.cd-wa .txt .n { font-family: var(--display); font-weight: 800; font-size: 25px; font-variant-numeric: tabular-nums lining-nums; line-height: 1; }
+.cd-wa .arr { margin-left: auto; transition: transform 0.35s ease; }
+.cd-wa:hover .arr { transform: translateX(6px); }
+.cd-wa .arr app-icon svg { width: 22px; height: 22px; }
+
+.cd-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.cd-card {
+  position: relative; overflow: hidden; display: flex; flex-direction: column; gap: 16px;
+  background: var(--card-detail); border: 1px solid rgba(255, 255, 255, 0.09); padding: 22px 22px 20px;
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 16px 100%, 0 calc(100% - 16px));
+  transition: transform 0.35s ease, border-color 0.35s ease;
+}
+.cd-card:hover { transform: translateY(-3px); border-color: rgba(228, 2, 43, 0.42); }
+.cd-ico { flex: none; width: 44px; height: 44px; border: 1px solid rgba(255, 255, 255, 0.16); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--accent); background: rgba(228, 2, 43, 0.06); }
+.cd-ico app-icon svg { width: 20px; height: 20px; }
+.cd-body { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+.cd-body .k { font-family: var(--display); font-weight: 600; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--dim); }
+.cd-body .v { font-family: var(--display); font-weight: 700; font-size: 19px; font-variant-numeric: tabular-nums lining-nums; }
+.cd-body .v.email { font-family: var(--sans); font-size: 13.5px; word-break: break-all; color: var(--text); font-weight: 400; }
+.cd-body .act { font-family: var(--display); font-weight: 700; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); }
+
+.cd-map {
+  position: relative; overflow: hidden; border: 1px solid rgba(255, 255, 255, 0.09); display: block;
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 16px 100%, 0 calc(100% - 16px)); transition: border-color 0.35s ease;
+}
+.cd-map:hover { border-color: rgba(228, 2, 43, 0.42); }
+.cd-map .canvas { height: 184px; background: radial-gradient(120% 140% at 30% 20%, #23232a, #0d0d0f 70%); position: relative; overflow: hidden; }
+.cd-map .mgrid { position: absolute; inset: 0; background-image: linear-gradient(rgba(255, 255, 255, 0.045) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.045) 1px, transparent 1px); background-size: 30px 30px; }
+.cd-map .road1 { position: absolute; left: -10%; top: 38%; width: 120%; height: 14px; background: rgba(228, 2, 43, 0.14); transform: rotate(-8deg); }
+.cd-map .road2 { position: absolute; left: 18%; top: -10%; width: 12px; height: 130%; background: rgba(255, 255, 255, 0.05); transform: rotate(10deg); }
+.cd-map .pin { position: absolute; left: 50%; top: 48%; transform: translate(-50%, -50%); width: 18px; height: 18px; border-radius: 50%; background: var(--accent); animation: aaBeat 2.4s ease-out infinite; }
+.cd-map .foot { padding: 18px 22px; display: flex; align-items: center; justify-content: space-between; gap: 12px; background: var(--card-detail); }
+.cd-map .foot .k { font-family: var(--display); font-weight: 600; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--dim); }
+.cd-map .foot .addr { font-size: 13.5px; line-height: 1.5; color: var(--text); }
+.cd-map .foot .open { flex: none; font-family: var(--display); font-weight: 700; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); white-space: nowrap; }
+
+/* ----- Horario en vivo ----- */
+.hours-card { position: relative; overflow: hidden; background: var(--card-detail); border: 1px solid rgba(255, 255, 255, 0.09); padding: 24px; clip-path: polygon(0 0, 100% 0, 100% 100%, 16px 100%, 0 calc(100% - 16px)); }
+.hours-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px; }
+.hours-top .lab { display: flex; align-items: center; gap: 11px; }
+.hours-top .ic { flex: none; width: 40px; height: 40px; border: 1px solid rgba(255, 255, 255, 0.16); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--accent); background: rgba(228, 2, 43, 0.06); }
+.hours-top .ic app-icon svg { width: 19px; height: 19px; }
+.hours-top .ttl { font-family: var(--display); font-weight: 700; font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--text); }
+.hours-badge { display: inline-flex; align-items: center; gap: 7px; font-family: var(--display); font-weight: 700; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; padding: 6px 11px; border: 1px solid rgba(255, 255, 255, 0.14); color: var(--dim); }
+.hours-badge .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--dim); }
+.hours-badge.is-open { border-color: rgba(52, 199, 89, 0.4); background: rgba(52, 199, 89, 0.08); color: #34c759; }
+.hours-badge.is-open .dot { background: #34c759; box-shadow: 0 0 8px rgba(52, 199, 89, 0.8); }
+.hours-badge.is-closed { border-color: rgba(255, 90, 95, 0.35); background: rgba(255, 90, 95, 0.06); color: #ff5a5f; }
+.hours-badge.is-closed .dot { background: #ff5a5f; }
+.hours-rows { display: flex; flex-direction: column; }
+.hrow { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; margin: 0 -12px; transition: background 0.3s ease; }
+.hrow + .hrow { border-top: 1px solid rgba(255, 255, 255, 0.06); }
+.hrow.today { background: rgba(228, 2, 43, 0.1); }
+.hrow .d { font-size: 14px; }
+.hrow .t { font-variant-numeric: tabular-nums lining-nums; font-size: 14px; color: var(--dim); }
+.hrow.is-closed .t { color: rgba(242, 242, 243, 0.4); }
+
+@media (max-width: 900px) { .contact-grid { grid-template-columns: 1fr; } }
+@media (max-width: 560px) { .cform-row, .cd-row { grid-template-columns: 1fr; } }
+
+/* ----- Selector de app de mapas (hoja inferior en teléfono) ----- */
+.map-sheet { position: fixed; inset: 0; z-index: 400; display: flex; align-items: flex-end; justify-content: center; }
+.map-sheet-backdrop {
+  position: absolute; inset: 0; border: 0; padding: 0; cursor: pointer;
+  background: rgba(4, 4, 6, 0.66); backdrop-filter: blur(3px);
+  animation: aaFade 0.25s ease both;
+}
+.map-sheet-panel {
+  position: relative; width: 100%; max-width: 460px;
+  background: linear-gradient(180deg, #1b1b21 0%, #121216 100%);
+  border: 1px solid rgba(255, 255, 255, 0.1); border-bottom: 0;
+  clip-path: polygon(20px 0, 100% 0, 100% 100%, 0 100%, 0 20px);
+  padding: 26px 22px calc(22px + env(safe-area-inset-bottom));
+  box-shadow: 0 -40px 90px -40px rgba(0, 0, 0, 0.9);
+  animation: aaSheetUp 0.34s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.map-sheet-panel::before {
+  content: ""; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, var(--accent), transparent 72%);
+}
+.map-sheet-head { display: flex; flex-direction: column; gap: 4px; margin-bottom: 18px; }
+.map-sheet-head .t { font-family: var(--display); font-weight: 800; font-size: 17px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text); }
+.map-sheet-head .h { font-family: var(--sans); font-size: 13px; color: var(--dim); }
+.map-sheet-opts { display: flex; flex-direction: column; gap: 10px; }
+.map-opt {
+  display: flex; align-items: center; gap: 15px; padding: 14px 16px;
+  background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text); transition: border-color 0.25s ease, background 0.25s ease, transform 0.2s ease;
+}
+.map-opt:hover, .map-opt:active { border-color: rgba(228, 2, 43, 0.5); background: rgba(228, 2, 43, 0.06); transform: translateX(2px); }
+.map-opt .ic { flex: none; width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; }
+.map-opt .ic app-icon svg { width: 22px; height: 22px; }
+.map-opt .ic.is-waze { background: linear-gradient(135deg, #3ccdf7 0%, #0a9fe0 100%); }
+.map-opt .ic.is-google { background: #1a73e8; }
+.map-opt .ic.is-apple { background: #000; border: 1px solid rgba(255, 255, 255, 0.18); }
+.map-opt .ic.is-web { background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.16); color: var(--text); }
+.map-opt .lbl { font-family: var(--display); font-weight: 700; font-size: 15px; letter-spacing: 0.02em; }
+.map-opt .go { margin-left: auto; color: var(--dim); transition: transform 0.3s ease, color 0.25s ease; }
+.map-opt .go svg { width: 18px; height: 18px; }
+.map-opt:hover .go, .map-opt:active .go { color: var(--accent); transform: translateX(4px); }
+.map-sheet-cancel {
+  margin-top: 16px; width: 100%; padding: 14px; cursor: pointer;
+  background: transparent; border: 1px solid rgba(255, 255, 255, 0.12); color: var(--dim);
+  font-family: var(--display); font-weight: 700; font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase;
+  transition: color 0.25s ease, border-color 0.25s ease;
+}
+.map-sheet-cancel:hover { color: var(--text); border-color: rgba(255, 255, 255, 0.28); }
+
+@keyframes aaFade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes aaSheetUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .map-sheet-backdrop, .map-sheet-panel { animation: none; }
+}

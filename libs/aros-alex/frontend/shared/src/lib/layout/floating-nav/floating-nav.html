@@ -1,0 +1,82 @@
+<nav
+  class="nav"
+  [class.scrolled]="scrolled()"
+  [class.transparent]="onHero() && !scrolled()"
+>
+  <div class="nav-inner">
+    <a class="brand" routerLink="/inicio" aria-label="Aros Alex · Inicio">
+      <img src="assets/aros-alex/logo.png" alt="" />
+      <span class="brand-txt">
+        <span class="brand-mark">AROS<span class="accent">&nbsp;ALEX</span></span>
+        <span class="brand-sub">Luxury Rims</span>
+      </span>
+    </a>
+
+    <div class="nav-right">
+      <ul class="nav-links">
+        @for (item of items; track item.id) {
+          <li>
+            <a [routerLink]="'/' + item.id" routerLinkActive="active">
+              {{ L.t(item.label) }}<span class="uline"></span>
+            </a>
+          </li>
+        }
+      </ul>
+
+      <div class="lang">
+        <button
+          type="button"
+          [class.active]="!L.isEnglish()"
+          (click)="L.set('es')"
+        >
+          ES
+        </button>
+        <span class="lang-sep">/</span>
+        <button
+          type="button"
+          [class.active]="L.isEnglish()"
+          (click)="L.set('en')"
+        >
+          EN
+        </button>
+      </div>
+
+      <a class="btn btn-primary nav-cta" routerLink="/contacto">
+        {{ L.t(copy.ctaLabel) }}
+      </a>
+
+      <button
+        type="button"
+        class="nav-burger"
+        [attr.aria-expanded]="menuOpen()"
+        aria-label="Menú"
+        (click)="toggleMenu()"
+      >
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<div class="mobile-menu" [class.open]="menuOpen()">
+  <div class="mm-top">
+    <img src="assets/aros-alex/logo.png" alt="" />
+    <button type="button" class="mm-close" aria-label="Cerrar" (click)="closeMenu()">
+      ✕
+    </button>
+  </div>
+  <nav class="mm-links">
+    @for (item of items; track item.id) {
+      <a
+        [routerLink]="'/' + item.id"
+        [class.is-contacto]="item.id === 'contacto'"
+        (click)="closeMenu()"
+      >
+        <span class="mm-num">{{ item.num }}</span>{{ L.t(item.label) }}
+      </a>
+    }
+  </nav>
+  <a class="mm-wa" href="https://wa.me/50685602560" target="_blank" rel="noopener">
+    WhatsApp · 8560-2560
+  </a>
+</div>

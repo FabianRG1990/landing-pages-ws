@@ -1,0 +1,58 @@
+<footer class="footer">
+  <div class="footer-grid">
+    <div class="footer-brand">
+      <div class="brand">
+        <img src="assets/aros-alex/logo.png" alt="" />
+        <span class="brand-txt">
+          <span class="brand-mark">AROS<span class="accent">&nbsp;ALEX</span></span>
+          <span class="brand-sub">Luxury Rims</span>
+        </span>
+      </div>
+      <p class="footer-desc">{{ L.t(copy.description) }}</p>
+      <div class="footer-social">
+        <a [href]="contact.instagram.href" target="_blank" rel="noopener" aria-label="Instagram">
+          <app-icon name="instagram" />
+        </a>
+        <a [href]="contact.facebook.href" target="_blank" rel="noopener" aria-label="Facebook">
+          <app-icon name="facebook" />
+        </a>
+      </div>
+    </div>
+
+    <div class="footer-col">
+      <div class="footer-head">{{ L.t(copy.navHeading) }}</div>
+      <div class="footer-links">
+        @for (item of items; track item.id) {
+          <a [routerLink]="'/' + item.id">{{ L.t(item.label) }}</a>
+        }
+      </div>
+    </div>
+
+    <div class="footer-col">
+      <div class="footer-head">{{ L.t(copy.contactHeading) }}</div>
+      <div class="footer-links">
+        <a [href]="contact.phone.href" class="tnum">Tel · {{ contact.phone.number }}</a>
+        <a [href]="contact.whatsapp.href" target="_blank" rel="noopener" class="tnum">
+          WhatsApp · {{ contact.whatsapp.number }}
+        </a>
+        <a [href]="contact.email.href" class="break">{{ contact.email.address }}</a>
+      </div>
+    </div>
+
+    <div class="footer-col">
+      <div class="footer-head">{{ L.t(copy.hoursHeading) }}</div>
+      <div class="footer-links">
+        <span class="tnum">{{ L.t(copy.hoursWeekday) }}</span>
+        <span class="tnum">{{ L.t(copy.hoursSaturday) }}</span>
+        <span class="dim">{{ L.t(copy.hoursSunday) }}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-bottom">
+    <div class="footer-bottom-inner">
+      <span>{{ copy.copyright }}</span>
+      <span>{{ L.t(copy.madeWith) }}</span>
+    </div>
+  </div>
+</footer>

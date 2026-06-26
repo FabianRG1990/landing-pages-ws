@@ -1,0 +1,72 @@
+{
+  "name": "aros-alex",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "prefix": "app",
+  "sourceRoot": "apps/aros-alex/src",
+  "tags": ["scope:aros-alex"],
+  "targets": {
+    "build": {
+      "executor": "@angular/build:application",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/apps/aros-alex",
+        "browser": "apps/aros-alex/src/main.ts",
+        "index": "apps/aros-alex/src/index.html",
+        "tsConfig": "apps/aros-alex/tsconfig.app.json",
+        "inlineStyleLanguage": "scss",
+        "stylePreprocessorOptions": {
+          "includePaths": ["libs/aros-alex/frontend/shared/src/lib/styles"]
+        },
+        "assets": [
+          {
+            "glob": "**/*",
+            "input": "apps/aros-alex/public"
+          }
+        ],
+        "styles": ["apps/aros-alex/src/styles.scss"],
+        "server": "apps/aros-alex/src/main.server.ts",
+        "outputMode": "static",
+        "prerender": true
+      },
+      "configurations": {
+        "production": {
+          "budgets": [
+            { "type": "initial", "maximumWarning": "1mb", "maximumError": "1.5mb" },
+            { "type": "anyComponentStyle", "maximumWarning": "18kb", "maximumError": "24kb" }
+          ],
+          "outputHashing": "all"
+        },
+        "development": {
+          "optimization": false,
+          "extractLicenses": false,
+          "sourceMap": true
+        }
+      },
+      "defaultConfiguration": "production"
+    },
+    "serve": {
+      "continuous": true,
+      "executor": "@angular/build:dev-server",
+      "options": { "port": 4205 },
+      "configurations": {
+        "production": { "buildTarget": "aros-alex:build:production" },
+        "development": { "buildTarget": "aros-alex:build:development" }
+      },
+      "defaultConfiguration": "development"
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    },
+    "serve-static": {
+      "continuous": true,
+      "executor": "@nx/web:file-server",
+      "options": {
+        "buildTarget": "aros-alex:build",
+        "port": 4205,
+        "staticFilePath": "dist/apps/aros-alex/browser",
+        "spa": true
+      }
+    }
+  }
+}

@@ -1,0 +1,51 @@
+<section class="page page-galeria">
+  <div class="gal-head">
+    <div class="wrap">
+      <div class="eyebrow" appReveal>{{ L.t(copy.galeria.eyebrow) }}</div>
+      <h1 class="display" appReveal>{{ L.t(copy.galeria.title) }}</h1>
+      <p class="lead" appReveal>{{ L.t(copy.galeria.lead) }}</p>
+      <div class="filters" appReveal>
+        @for (f of filters; track f.id) {
+          <button type="button" class="pill" [class.active]="active() === f.id" (click)="active.set(f.id)">
+            {{ L.t(f.label) }}
+          </button>
+        }
+      </div>
+    </div>
+  </div>
+
+  <div class="gal-body">
+    <div class="gal-grid">
+      @for (g of items(); track g.jobNum) {
+        <article class="gcard" appReveal>
+          <app-before-after
+            [beforeImg]="g.beforeImg"
+            [afterImg]="g.afterImg"
+            [beforeLabel]="L.t(copy.galeria.before)"
+            [afterLabel]="L.t(copy.galeria.after)"
+          />
+          <div class="gcard-foot">
+            <span class="ghostnum">{{ g.jobNum }}</span>
+            <span class="gcard-ico"><app-icon [name]="g.icon" /></span>
+            <span class="gcard-meta">
+              <span class="job">{{ L.t(copy.galeria.jobLabel) }} {{ g.jobNum }}</span>
+              <span class="ttl">{{ L.t(g.title) }}</span>
+            </span>
+            <span class="gcard-tag">{{ L.t(g.caption) }}</span>
+          </div>
+        </article>
+      }
+    </div>
+  </div>
+
+  <div class="consultenos">
+    <img class="ghost" src="assets/aros-alex/logo-ghost.png" alt="" />
+    <div class="inner" appReveal>
+      <h2>{{ L.t(copy.consultenos.title) }}</h2>
+      <p>{{ L.t(copy.consultenos.lead) }}</p>
+      <a class="btn btn-primary btn-lg" href="https://wa.me/50685602560" target="_blank" rel="noopener">
+        <app-icon name="whatsapp" />{{ L.t(copy.consultenos.cta) }}
+      </a>
+    </div>
+  </div>
+</section>

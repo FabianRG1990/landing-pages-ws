@@ -1,0 +1,119 @@
+<section class="page page-inicio">
+  <div #cinema class="cinema" [class.is-flat]="flat()">
+    <div class="stage">
+      <div class="wheel-glow" [style.opacity]="fx()?.glowOpacity"></div>
+      <img
+        class="wheel"
+        src="assets/aros-alex/logo-ghost.png"
+        alt=""
+        [style.transform]="fx()?.wheelTransform"
+        [style.opacity]="fx()?.wheelOpacity"
+      />
+
+      <!-- ACTO 1 · HERO -->
+      <div
+        class="act act-hero"
+        [style.opacity]="fx()?.heroOpacity"
+        [style.pointer-events]="fx()?.heroPointer"
+      >
+        <div class="hero-streak" [style.transform]="fx()?.streakTransform"></div>
+        <div class="hero-fade"></div>
+
+        <div class="hero-content" [style.transform]="fx()?.contentTransform">
+          <div class="eyebrow dot" appReveal>{{ L.t(copy.hero.eyebrow) }}</div>
+          <h1 class="display hero-h1" [class.in]="headlineIn()" appReveal>
+            @for (w of words(); track $index) {
+              <span class="word"><span>{{ w }}</span></span>
+            }
+          </h1>
+          <div class="hero-rule" appReveal></div>
+          <p class="lead hero-sub" appReveal>{{ L.t(copy.hero.lead) }}</p>
+          <div class="hero-cta" appReveal>
+            <a class="btn btn-primary btn-lg" href="https://wa.me/50685602560" target="_blank" rel="noopener">
+              <app-icon name="whatsapp" />{{ L.t(copy.hero.ctaWhatsapp) }}
+            </a>
+            <a class="btn btn-ghost btn-lg" routerLink="/servicios">{{ L.t(copy.hero.ctaServices) }}</a>
+          </div>
+        </div>
+
+        <div class="hero-cue" [style.opacity]="fx()?.cueOpacity">
+          <span class="label">{{ L.t(copy.hero.scroll) }}</span>
+          <span class="track"></span>
+        </div>
+
+        <div class="hero-marquee">
+          <div class="track">
+            @for (i of [0, 1, 2, 3]; track i) {
+              <div class="run" [attr.aria-hidden]="i > 0 ? 'true' : null">
+                @for (word of marquee; track word) {
+                  <span>{{ word }}</span><i>/</i>
+                }
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- ACTO 2 · PROMESA -->
+      <div
+        class="act act-promesa"
+        [style.opacity]="fx()?.promOpacity"
+        [style.pointer-events]="fx()?.promPointer"
+      >
+        <div class="prom-bg">
+          <img src="assets/aros-alex/logo-ghost.png" alt="" />
+          <div class="glow"></div>
+        </div>
+        <div class="prom-inner" [style.transform]="fx()?.promInner">
+          <div class="prom-head" [style.transform]="fx()?.promHead" [style.opacity]="fx()?.promHeadOpacity">
+            <div class="eyebrow">{{ L.t(copy.promesa.eyebrow) }}</div>
+            <h2 class="section-title">{{ L.t(copy.promesa.title) }}</h2>
+          </div>
+          <div class="prom-cards" [style.transform]="fx()?.promCards" [style.opacity]="fx()?.promCardsOpacity">
+            @for (p of promises; track p.num) {
+              <article class="card">
+                <span class="card-ghostnum">{{ p.num }}</span>
+                <div class="card-pad">
+                  <div class="card-top">
+                    <span class="card-ico"><app-icon [name]="p.icon" /></span>
+                    <span class="card-idx">{{ p.num }}</span>
+                  </div>
+                  <h3>{{ L.t(p.title) }}</h3>
+                  <div class="card-divider"></div>
+                  <p>{{ L.t(p.body) }}</p>
+                </div>
+              </article>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- ACTO 3 · RESEÑAS -->
+      <div
+        class="act act-resenas"
+        [style.opacity]="fx()?.resenasOpacity"
+        [style.transform]="fx()?.resenasTransform"
+        [style.pointer-events]="fx()?.resenasPointer"
+      >
+        <div class="wrap resenas-head">
+          <div>
+            <div class="eyebrow">{{ L.t(copy.resenas.eyebrow) }}</div>
+            <h2 class="section-title">{{ L.t(copy.resenas.title) }}</h2>
+          </div>
+          <div class="rating">
+            <span class="num">{{ copy.resenas.rating }}</span>
+            <div>
+              <div class="stars">★★★★★</div>
+              <span class="glabel">{{ L.t(copy.resenas.ratingLabel) }}</span>
+            </div>
+          </div>
+        </div>
+
+        <app-reviews-carousel
+          [reviews]="reviews"
+          [verifiedLabel]="L.t(copy.resenas.verifiedClient)"
+        />
+      </div>
+    </div>
+  </div>
+</section>
