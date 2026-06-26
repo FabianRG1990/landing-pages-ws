@@ -29,10 +29,28 @@ jobs:
         run: yarn nx build arias --configuration=production
 
       - name: Deploy to Firebase Hosting (live channel)
-        uses: FirebaseExtended/action-hosting-deploy@v0
-        with:
-          repoToken: ${{ secrets.GITHUB_TOKEN }}
-          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_LANDING_PAGES_79AFC }}
-          projectId: landing-pages-79afc
-          target: arias
-          channelId: live
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_LANDING_PAGES_79AFC }}
+        run: |
+          set -euo pipefail
+
+          gac_file="$(mktemp)"
+          deploy_output="$(mktemp)"
+          trap 'rm -f "$gac_file" "$deploy_output"' EXIT
+
+          printf '%s' "$FIREBASE_SERVICE_ACCOUNT" > "$gac_file"
+          export GOOGLE_APPLICATION_CREDENTIALS="$gac_file"
+
+          set +e
+          npx firebase-tools@latest hosting:channel:deploy live \
+            --project landing-pages-79afc \
+            --only arias \
+            --json >"$deploy_output" 2>&1
+          status=$?
+          set -e
+
+          cat "$deploy_output"
+
+          if [ "$status" -ne 0 ] && ! grep -Fq 'is the current active version' "$deploy_output"; then
+            exit "$status"
+          fi
