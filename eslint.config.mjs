@@ -51,6 +51,10 @@ export default [
               sourceTag: 'scope:cafe-rosa',
               onlyDependOnLibsWithTags: ['scope:cafe-rosa', 'scope:shared'],
             },
+            {
+              sourceTag: 'scope:aros-alex',
+              onlyDependOnLibsWithTags: ['scope:aros-alex', 'scope:shared'],
+            },
           ],
         },
       ],

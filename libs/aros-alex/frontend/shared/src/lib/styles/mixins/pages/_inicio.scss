@@ -1,0 +1,193 @@
+/* ============================================================
+   INICIO — hero cinematográfico (3 actos sobre stage sticky),
+   promesa y reseñas en marquee.
+   ============================================================ */
+
+.cinema { position: relative; height: 340vh; }
+.stage {
+  position: sticky; top: 0; height: 100vh; overflow: hidden;
+  background: radial-gradient(130% 120% at 80% 14%, #1c1c20 0%, #0e0e11 44%, #08080a 100%);
+}
+
+.wheel-glow {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  width: min(86vw, 900px); height: min(86vw, 900px);
+  background: radial-gradient(circle, rgba(228, 2, 43, 0.22), transparent 60%);
+  pointer-events: none; opacity: 0; z-index: 2;
+}
+.wheel {
+  position: absolute; left: 50%; top: 50%; width: min(78vw, 840px);
+  transform: translate(-50%, -50%) scale(0.8); opacity: 0;
+  pointer-events: none; will-change: transform, opacity; z-index: 3;
+}
+
+.act { position: absolute; inset: 0; z-index: 1; }
+.act-hero { display: flex; align-items: center; will-change: opacity; }
+.act-promesa { display: flex; align-items: center; opacity: 0; pointer-events: none; z-index: 4; will-change: opacity; }
+.act-resenas {
+  display: flex; flex-direction: column; justify-content: center; gap: clamp(22px, 2.6vw, 32px);
+  opacity: 0; pointer-events: none; z-index: 5; will-change: transform, opacity;
+}
+
+/* ----- Acto 1 · Hero ----- */
+.hero-streak {
+  position: absolute; top: 0; bottom: 0; left: 44%; width: 46%;
+  background: linear-gradient(105deg, transparent, rgba(228, 2, 43, 0.13) 50%, transparent);
+  transform: skewX(-12deg); pointer-events: none; will-change: transform;
+}
+.hero-fade { position: absolute; inset: 0; background: linear-gradient(90deg, #08080a 8%, transparent 58%); pointer-events: none; }
+.hero-content {
+  position: relative; max-width: var(--maxw); margin: 0 auto; padding: 0 var(--pad);
+  width: 100%; will-change: transform;
+}
+.hero-h1 { font-size: clamp(50px, 9.2vw, 134px); max-width: 15ch; }
+.hero-h1 .word { display: inline-block; overflow: hidden; vertical-align: top; padding-bottom: 0.06em; margin-right: 0.24em; }
+.hero-h1 .word > span {
+  display: inline-block; transform: translateY(112%);
+  transition: transform 0.9s var(--ease-out);
+}
+.hero-h1.in .word > span { transform: none; }
+.hero-rule { width: 96px; height: 5px; background: var(--accent); margin: 32px 0 0; transform: skewX(-20deg); }
+.hero-sub { margin: 28px 0 0; max-width: 54ch; font-size: clamp(15px, 1.5vw, 18px); }
+.hero-cta { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 40px; }
+.hero-cue {
+  position: absolute; left: 50%; bottom: 84px; transform: translateX(-50%);
+  display: flex; flex-direction: column; align-items: center; gap: 9px; pointer-events: none; z-index: 2;
+}
+.hero-cue span.label {
+  font-family: var(--display); font-weight: 600; font-size: 10px; letter-spacing: 0.32em;
+  text-transform: uppercase; color: rgba(242, 242, 243, 0.5);
+}
+.hero-cue .track {
+  width: 1px; height: 44px; background: linear-gradient(rgba(242, 242, 243, 0.45), transparent);
+  position: relative; overflow: hidden; display: block;
+}
+.hero-cue .track::after {
+  content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 16px;
+  background: var(--accent); animation: aaScroll 1.9s ease-in-out infinite;
+}
+.hero-marquee {
+  position: absolute; bottom: 0; left: 0; right: 0; overflow: hidden;
+  border-top: 1px solid rgba(242, 242, 243, 0.1); background: rgba(8, 8, 10, 0.5);
+}
+.hero-marquee .track {
+  display: flex; width: max-content; animation: aaMarquee 24s linear infinite; padding: 15px 0;
+}
+.hero-marquee .run {
+  display: flex; font-family: var(--display); font-weight: 600; font-size: 13px;
+  letter-spacing: 0.26em; text-transform: uppercase; color: rgba(242, 242, 243, 0.5);
+}
+.hero-marquee .run span { padding: 0 26px; }
+.hero-marquee .run i { color: var(--accent); font-style: normal; }
+
+/* ----- Acto 2 · Promesa ----- */
+.prom-bg { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.prom-bg img { position: absolute; left: -14%; top: 50%; transform: translateY(-50%); width: min(50vw, 560px); opacity: 0.045; }
+.prom-bg .glow { position: absolute; right: -8%; top: -14%; width: min(58vw, 660px); height: min(58vw, 660px); background: radial-gradient(circle, rgba(228, 2, 43, 0.14), transparent 62%); }
+.prom-inner { position: relative; max-width: var(--maxw); margin: 0 auto; padding: 0 var(--pad); width: 100%; will-change: transform; }
+.prom-head { max-width: 60ch; will-change: transform, opacity; }
+.prom-head h2 { font-size: clamp(32px, 5.2vw, 70px); line-height: 0.96; }
+.prom-cards {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(16px, 1.6vw, 24px);
+  margin-top: clamp(34px, 4.5vw, 54px); will-change: transform, opacity;
+}
+
+/* ----- Acto 3 · Reseñas ----- */
+.resenas-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 20px; }
+.resenas-head h2 { font-size: clamp(30px, 4.8vw, 62px); line-height: 0.96; }
+.rating { display: flex; align-items: center; gap: 12px; }
+.rating .num { font-family: var(--display); font-weight: 800; font-size: 34px; font-variant-numeric: tabular-nums lining-nums; }
+.rating .stars { color: var(--accent); font-size: 13px; letter-spacing: 0.14em; }
+.rating .glabel { font-family: var(--sans); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--dim); }
+
+.marquee-rows { display: flex; flex-direction: column; gap: 20px; overflow: hidden; }
+.marquee-row {
+  display: flex; gap: 20px; width: max-content;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);
+}
+.marquee-row.r1 { animation: aaMarquee 46s linear infinite; }
+.marquee-row.r2 { animation: aaMarquee 60s linear infinite reverse; }
+.marquee-rows:hover .marquee-row { animation-play-state: paused; }
+
+/* ----- Tarjetas (promesa + reseñas) ----- */
+.card {
+  position: relative; overflow: hidden; background: var(--card);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  box-shadow: 0 40px 80px -44px rgba(0, 0, 0, 0.95), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 26px 100%, 0 calc(100% - 26px));
+  transition: transform 0.45s var(--ease-out), border-color 0.45s ease, box-shadow 0.45s ease;
+}
+.card::before {
+  content: ""; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, var(--accent), transparent 72%);
+}
+.card:hover {
+  transform: translateY(-6px); border-color: rgba(228, 2, 43, 0.45);
+  box-shadow: 0 52px 92px -40px rgba(228, 2, 43, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.09);
+}
+.card-ghostnum {
+  position: absolute; right: -14px; bottom: -46px; font-family: var(--display); font-weight: 800;
+  font-size: 178px; line-height: 1; color: rgba(255, 255, 255, 0.035);
+  font-variant-numeric: tabular-nums lining-nums; pointer-events: none;
+}
+.card-pad { position: relative; padding: clamp(30px, 3vw, 40px) clamp(26px, 2.4vw, 32px); }
+.card-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 26px; }
+.card-ico {
+  width: 58px; height: 58px; border: 1px solid rgba(255, 255, 255, 0.16); border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; color: var(--accent);
+  background: rgba(228, 2, 43, 0.06); flex: none;
+}
+.card-ico app-icon svg { width: 26px; height: 26px; }
+.card-idx { font-family: var(--display); font-weight: 700; font-size: 12px; letter-spacing: 0.2em; color: var(--accent); }
+.card h3 { font-family: var(--display); font-weight: 700; font-size: clamp(21px, 1.9vw, 26px); margin: 0; text-transform: uppercase; letter-spacing: 0.01em; }
+.card-divider { width: 40px; height: 2px; background: rgba(255, 255, 255, 0.18); margin: 16px 0; }
+.card p { margin: 0; font-size: 14.5px; line-height: 1.65; color: var(--dim); }
+
+.review-card {
+  flex: 0 0 min(86vw, 420px); display: flex; flex-direction: column; gap: 18px;
+  padding: clamp(30px, 2.6vw, 38px) clamp(28px, 2.4vw, 34px);
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 24px 100%, 0 calc(100% - 24px));
+}
+.review-card .quote-mark {
+  position: absolute; top: -30px; right: 8px; font-family: var(--display); font-weight: 800;
+  font-size: 155px; line-height: 1; color: rgba(228, 2, 43, 0.13); pointer-events: none;
+}
+.review-head { display: flex; align-items: center; justify-content: space-between; position: relative; }
+.review-head .stars { color: var(--accent); font-size: 14px; letter-spacing: 0.16em; }
+.review-badge {
+  display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line);
+  padding: 5px 11px; font-family: var(--display); font-weight: 700; font-size: 10px;
+  letter-spacing: 0.14em; text-transform: uppercase; color: var(--dim);
+}
+.review-badge app-icon svg { width: 11px; height: 11px; }
+.review-card .quote { margin: 0; font-family: var(--display); font-weight: 600; font-size: 24px; line-height: 1.22; text-transform: uppercase; position: relative; }
+.review-author { margin-top: auto; display: flex; align-items: center; gap: 12px; position: relative; }
+.review-author .av {
+  width: 42px; height: 42px; border: 1px solid var(--line); border-radius: 50%; flex: none;
+  display: flex; align-items: center; justify-content: center; color: var(--accent);
+}
+.review-author .av app-icon svg { width: 19px; height: 19px; }
+.review-author .who { display: flex; flex-direction: column; }
+.review-author .who .name { font-family: var(--display); font-weight: 700; font-size: 14px; text-transform: uppercase; }
+.review-author .who .tag { font-family: var(--sans); font-size: 11px; letter-spacing: 0.08em; color: var(--dim); }
+
+/* ----- Flattened (sin JS / reduced-motion / SSR) ----- */
+.cinema.is-flat { height: auto; }
+.cinema.is-flat .stage { position: static; height: auto; overflow: visible; }
+.cinema.is-flat .wheel, .cinema.is-flat .wheel-glow { display: none; }
+.cinema.is-flat .act { position: relative; inset: auto; opacity: 1; transform: none !important; pointer-events: auto; }
+.cinema.is-flat .act-hero { min-height: 100svh; }
+.cinema.is-flat .act-promesa { padding: clamp(80px, 11vw, 150px) 0; }
+.cinema.is-flat .act-resenas { padding: clamp(80px, 11vw, 150px) 0; }
+.cinema.is-flat .prom-inner, .cinema.is-flat .prom-head, .cinema.is-flat .prom-cards { transform: none !important; opacity: 1 !important; }
+.cinema.is-flat .marquee-row { animation: none; flex-wrap: wrap; width: 100%; }
+.cinema.is-flat .marquee-row.dup { display: none; }
+.cinema.is-flat .hero-h1 .word > span { transform: none; }
+
+@media (max-width: 880px) {
+  .prom-cards { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 600px) {
+  .prom-cards { grid-template-columns: 1fr; }
+}

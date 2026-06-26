@@ -1,0 +1,120 @@
+<section class="page page-contacto">
+  <div class="contacto">
+    <img class="ghost-logo" src="assets/aros-alex/logo-ghost.png" alt=""
+      style="right: -7vw; top: -5vw; width: min(46vw, 480px)" />
+    <div class="wrap">
+      <div class="eyebrow" appReveal>{{ L.t(copy.eyebrow) }}</div>
+      <h1 class="display" appReveal>{{ L.t(copy.title) }}</h1>
+      <p class="lead" appReveal>{{ L.t(copy.lead) }}</p>
+
+      <div class="contact-grid">
+        <!-- Formulario -->
+        <form class="cform" appReveal (submit)="submit($event)">
+          <div class="cform-head">
+            <span class="e">{{ L.t(copy.form.eyebrow) }}</span>
+            <h3>{{ L.t(copy.form.title) }}</h3>
+          </div>
+
+          <div class="cform-row">
+            @for (f of [copy.form.fields[0], copy.form.fields[1]]; track f.id) {
+              <label class="field">
+                <span class="lbl">{{ L.t(f.label) }}</span>
+                <input type="text" [value]="values()[f.id]" [placeholder]="L.t(f.placeholder)"
+                  (input)="update(f.id, $event)" />
+              </label>
+            }
+          </div>
+
+          @let veh = copy.form.fields[2];
+          <label class="field">
+            <span class="lbl">{{ L.t(veh.label) }}</span>
+            <input type="text" [value]="values()[veh.id]" [placeholder]="L.t(veh.placeholder)"
+              (input)="update(veh.id, $event)" />
+          </label>
+
+          @let msg = copy.form.fields[3];
+          <label class="field">
+            <span class="lbl">{{ L.t(msg.label) }}</span>
+            <textarea rows="4" [value]="values()[msg.id]" [placeholder]="L.t(msg.placeholder)"
+              (input)="update(msg.id, $event)"></textarea>
+          </label>
+
+          <button type="submit" class="btn btn-primary btn-lg">
+            {{ L.t(copy.form.submit) }}<app-icon name="arrow" />
+          </button>
+          <span class="note" [class.show]="sent()">{{ L.t(copy.form.note) }}</span>
+        </form>
+
+        <!-- Detalles -->
+        <div class="cdetails" appReveal>
+          <a class="cd-wa" [href]="contact.whatsapp.href" target="_blank" rel="noopener">
+            <span class="ic"><app-icon name="whatsapp" /></span>
+            <span class="txt">
+              <span class="l">{{ L.t(copy.whatsappLabel) }}</span>
+              <span class="n">{{ contact.whatsapp.number }}</span>
+            </span>
+            <span class="arr"><app-icon name="arrow" /></span>
+          </a>
+
+          <div class="cd-row">
+            <a class="cd-card" [href]="contact.phone.href">
+              <span class="cd-ico"><app-icon name="phone" /></span>
+              <span class="cd-body">
+                <span class="k">{{ L.t(copy.phoneLabel) }}</span>
+                <span class="v">{{ contact.phone.number }}</span>
+                <span class="act">{{ L.t(copy.phoneAction) }}</span>
+              </span>
+            </a>
+            <a class="cd-card" [href]="contact.email.href">
+              <span class="cd-ico"><app-icon name="mail" /></span>
+              <span class="cd-body">
+                <span class="k">{{ L.t(copy.emailLabel) }}</span>
+                <span class="v email">{{ contact.email.address }}</span>
+                <span class="act">{{ L.t(copy.emailAction) }}</span>
+              </span>
+            </a>
+          </div>
+
+          <a class="cd-map" [href]="contact.mapLink" target="_blank" rel="noopener">
+            <div class="canvas">
+              <div class="mgrid"></div>
+              <div class="road1"></div>
+              <div class="road2"></div>
+              <div class="pin"></div>
+            </div>
+            <div class="foot">
+              <span class="cd-body">
+                <span class="k">{{ L.t(copy.locationLabel) }}</span>
+                <span class="addr">{{ copy.addressLines[0] }}<br />{{ copy.addressLines[1] }}</span>
+              </span>
+              <span class="open">{{ L.t(copy.mapAction) }}</span>
+            </div>
+          </a>
+
+          <div class="hours-card">
+            <div class="hours-top">
+              <span class="lab">
+                <span class="ic"><app-icon name="clock" /></span>
+                <span class="ttl">{{ L.t(copy.hoursLabel) }}</span>
+              </span>
+              <span class="hours-badge"
+                [class.is-open]="hoursService.isOpen()"
+                [class.is-closed]="!hoursService.isOpen()">
+                <span class="dot"></span>
+                {{ hoursService.isOpen() ? L.t(hoursCopy.openNow) : L.t(hoursCopy.closedNow) }}
+              </span>
+            </div>
+            <div class="hours-rows">
+              @for (row of hours; track $index) {
+                <div class="hrow" [class.today]="isToday(row.days)" [class.is-closed]="row.closed">
+                  <span class="d">{{ L.t(row.label) }}</span>
+                  <span class="t">{{ L.t(row.value) }}</span>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

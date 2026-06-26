@@ -1,0 +1,40 @@
+<section class="page page-nosotros">
+  <div class="about">
+    <div class="about-grid">
+      <div class="about-copy">
+        <div class="eyebrow" appReveal>{{ L.t(copy.eyebrow) }}</div>
+        <h1 class="display" appReveal>{{ L.t(copy.title) }}</h1>
+        <p appReveal>{{ L.t(copy.para1) }}</p>
+        <p appReveal>{{ L.t(copy.para2) }}</p>
+      </div>
+
+      <div class="about-photo" appReveal>
+        <img [src]="copy.workshopImg" [alt]="L.t(copy.workshopLabel)" />
+        <div class="grad"></div>
+        <div class="cap">
+          <span class="lbl">
+            <span class="t">{{ L.t(copy.workshopLabel) }}</span>
+            <span class="s">{{ L.t(copy.workshopLocation) }}</span>
+          </span>
+          <a class="visit" [href]="contact.mapLink" target="_blank" rel="noopener">
+            <app-icon name="map" />{{ L.t(copy.workshopVisit) }}
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="principles">
+    <div class="wrap">
+      <div class="eyebrow-row" appReveal>{{ L.t(copy.principlesEyebrow) }}</div>
+      <div class="principles-grid">
+        @for (p of copy.principles; track $index) {
+          <div class="principle" appReveal>
+            <h3>{{ L.t(p.title) }}</h3>
+            <p>{{ L.t(p.body) }}</p>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+</section>

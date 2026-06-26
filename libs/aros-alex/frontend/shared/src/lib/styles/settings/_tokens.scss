@@ -1,0 +1,44 @@
+/* ============================================================
+   AROS ALEX · Luxury Rims — Design tokens
+   Rojo competición sobre carbón, tipografías Saira / Michroma.
+   ============================================================ */
+
+:root {
+  /* Marca */
+  --accent:      #e4022b;
+  --accent-deep: #a80020;
+  --accent-glow: rgba(228, 2, 43, 0.22);
+
+  /* Carbón / superficies */
+  --carbon:    #08080a;
+  --carbon-2:  #121215;
+  --carbon-3:  #1a1a1e;
+
+  /* Texto */
+  --text: #f2f2f3;
+  --dim:  rgba(242, 242, 243, 0.6);
+  --faint: rgba(242, 242, 243, 0.4);
+
+  /* Líneas */
+  --line:      rgba(255, 255, 255, 0.1);
+  --line-soft: rgba(255, 255, 255, 0.06);
+
+  /* Superficies de tarjeta */
+  --card:        linear-gradient(158deg, #24242b 0%, #15151a 52%, #0c0c0f 100%);
+  --card-wheel:  linear-gradient(165deg, #1b1b20, #0d0d10);
+  --card-gallery: linear-gradient(168deg, #1b1b21, #0c0c10);
+  --card-detail: linear-gradient(160deg, #1b1b21, #0e0e12);
+
+  /* Tipografía */
+  --display: "Saira Condensed", system-ui, sans-serif;
+  --sans: "Saira", system-ui, sans-serif;
+  --mono-brand: "Michroma", system-ui, sans-serif;
+
+  /* Layout */
+  --maxw: 1320px;
+  --pad: clamp(20px, 5vw, 68px);
+
+  /* Easing */
+  --ease-out: cubic-bezier(0.16, 0.7, 0.2, 1);
+  --ease-curtain: cubic-bezier(0.7, 0.02, 0.2, 1);
+}

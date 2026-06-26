@@ -1,0 +1,85 @@
+<section class="page page-servicios">
+  <div class="phead">
+    <img class="ghost-logo" src="assets/aros-alex/logo-ghost.png" alt=""
+      style="right: -6vw; top: -8vw; width: min(50vw, 520px)" />
+    <div class="wrap">
+      <div class="eyebrow" appReveal>{{ L.t(copy.servicios.eyebrow) }}</div>
+      <h1 class="display" appReveal>{{ L.t(copy.servicios.title) }}</h1>
+      <p class="lead" appReveal>{{ L.t(copy.servicios.lead) }}</p>
+    </div>
+  </div>
+
+  <div class="svc-section section-block">
+    <div class="svc-grid">
+      @for (s of services; track s.num) {
+        <article class="card svc-card" appReveal>
+          <span class="card-ghostnum">{{ s.num }}</span>
+          <div class="card-pad">
+            <div class="card-top">
+              <span class="card-ico"><app-icon [name]="s.icon" /></span>
+              <span class="card-idx">{{ s.num }}</span>
+            </div>
+            <h3>{{ L.t(s.title) }}</h3>
+            <div class="card-divider"></div>
+            <p>{{ L.t(s.body) }}</p>
+          </div>
+        </article>
+      }
+    </div>
+  </div>
+
+  <div class="ventas">
+    <div class="wrap">
+      <div class="ventas-head" appReveal>
+        <div class="intro">
+          <div class="eyebrow">{{ L.t(copy.ventas.eyebrow) }}</div>
+          <h2>{{ L.t(copy.ventas.title) }}</h2>
+          <p>{{ L.t(copy.ventas.lead) }}</p>
+        </div>
+        <a class="btn btn-primary ventas-cta" href="https://wa.me/50685602560" target="_blank" rel="noopener">
+          {{ L.t(copy.ventas.cta) }}
+        </a>
+      </div>
+
+      <div class="filters" appReveal>
+        @for (f of filters; track f.id) {
+          <button type="button" class="pill" [class.active]="active() === f.id" (click)="active.set(f.id)">
+            {{ L.t(f.label) }}
+          </button>
+        }
+      </div>
+
+      <div class="wheel-grid">
+        @for (w of wheels(); track $index) {
+          <article class="wcard" appReveal>
+            <div class="wcard-img">
+              <img [src]="w.img" [alt]="'Aro Orbital ' + w.name" loading="lazy" />
+              <div class="wcard-grad"></div>
+              <span class="wcard-badge">{{ w.badge }}</span>
+              <span class="wcard-dot" [title]="L.t(w.finish)"
+                [style.background]="w.dotColor" [style.border]="'2px solid ' + w.dotBorder"></span>
+              <div class="wcard-name">
+                <div class="n">{{ w.name }}</div>
+                <div class="f">{{ L.t(w.finish) }}</div>
+              </div>
+            </div>
+            <div class="wcard-foot">
+              <div class="wcard-specs">
+                @for (sp of w.specs; track $index) {
+                  <span class="wcard-spec">
+                    <span class="k">{{ L.t(sp.label) }}</span>
+                    <span class="v">{{ sp.value }}</span>
+                  </span>
+                }
+              </div>
+              <a class="wa-mini" [href]="w.whatsapp" target="_blank" rel="noopener"
+                [attr.title]="L.t(copy.ventas.cta)">
+                <app-icon name="arrow" />
+              </a>
+            </div>
+          </article>
+        }
+      </div>
+    </div>
+  </div>
+</section>
