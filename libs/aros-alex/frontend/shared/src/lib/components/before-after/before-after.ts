@@ -18,6 +18,7 @@ import { Icon } from '../../icons/icon';
   template: `
     <div
       class="ba"
+      [class.loaded]="loaded()"
       [style.--pos.%]="pos()"
       (pointerdown)="start($event)"
       (pointermove)="move($event)"
@@ -25,8 +26,15 @@ import { Icon } from '../../icons/icon';
       (pointercancel)="end($event)"
       (lostpointercapture)="dragging.set(false)"
     >
-      <img class="ba-after" [src]="afterImg()" [alt]="afterLabel()" draggable="false" />
-      <img class="ba-before" [src]="beforeImg()" [alt]="beforeLabel()" draggable="false" />
+      <img
+        class="ba-after"
+        [src]="afterImg()"
+        [alt]="afterLabel()"
+        draggable="false"
+        decoding="async"
+        (load)="loaded.set(true)"
+      />
+      <img class="ba-before" [src]="beforeImg()" [alt]="beforeLabel()" draggable="false" decoding="async" />
       <span class="ba-tag ba-tag--before">{{ beforeLabel() }}</span>
       <span class="ba-tag ba-tag--after">{{ afterLabel() }}</span>
       <div class="ba-divider">
@@ -43,6 +51,7 @@ export class BeforeAfter {
 
   protected readonly pos = signal(50);
   protected readonly dragging = signal(false);
+  protected readonly loaded = signal(false);
 
   protected start(e: PointerEvent): void {
     this.dragging.set(true);

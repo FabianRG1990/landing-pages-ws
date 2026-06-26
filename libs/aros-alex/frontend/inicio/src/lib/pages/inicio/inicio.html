@@ -109,48 +109,10 @@
           </div>
         </div>
 
-        <div class="marquee-rows">
-          <div class="marquee-row r1">
-            @for (r of rowItems(); track $index) {
-              <article class="card review-card">
-                <span class="quote-mark">”</span>
-                <div class="review-head">
-                  <span class="stars">★★★★★</span>
-                  <span class="review-badge"><app-icon name="google" />Google</span>
-                </div>
-                <p class="quote">{{ L.t(r.quote) }}</p>
-                <div class="review-author">
-                  <span class="av"><app-icon name="fabrication" /></span>
-                  <span class="who">
-                    <span class="name">{{ L.t(copy.resenas.verifiedClient) }}</span>
-                    <span class="tag">{{ L.t(r.tag) }}</span>
-                  </span>
-                </div>
-              </article>
-            }
-          </div>
-          @if (!flat()) {
-            <div class="marquee-row r2 dup" aria-hidden="true">
-              @for (r of reviewsLoop; track $index) {
-                <article class="card review-card">
-                  <span class="quote-mark">”</span>
-                  <div class="review-head">
-                    <span class="stars">★★★★★</span>
-                    <span class="review-badge"><app-icon name="google" />Google</span>
-                  </div>
-                  <p class="quote">{{ L.t(r.quote) }}</p>
-                  <div class="review-author">
-                    <span class="av"><app-icon name="fabrication" /></span>
-                    <span class="who">
-                      <span class="name">{{ L.t(copy.resenas.verifiedClient) }}</span>
-                      <span class="tag">{{ L.t(r.tag) }}</span>
-                    </span>
-                  </div>
-                </article>
-              }
-            </div>
-          }
-        </div>
+        <app-reviews-carousel
+          [reviews]="reviews"
+          [verifiedLabel]="L.t(copy.resenas.verifiedClient)"
+        />
       </div>
     </div>
   </div>

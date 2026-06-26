@@ -100,15 +100,17 @@
 .rating .stars { color: var(--accent); font-size: 13px; letter-spacing: 0.14em; }
 .rating .glabel { font-family: var(--sans); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--dim); }
 
-.marquee-rows { display: flex; flex-direction: column; gap: 20px; overflow: hidden; }
-.marquee-row {
-  display: flex; gap: 20px; width: max-content;
-  -webkit-mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);
-  mask-image: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent);
+/* Carrusel de reseñas (auto-scroll + arrastrable, app-reviews-carousel). */
+.rc-viewport {
+  width: 100%; overflow: hidden;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent);
 }
-.marquee-row.r1 { animation: aaMarquee 46s linear infinite; }
-.marquee-row.r2 { animation: aaMarquee 60s linear infinite reverse; }
-.marquee-rows:hover .marquee-row { animation-play-state: paused; }
+.rc-track {
+  display: flex; gap: 20px; width: max-content;
+  cursor: grab; touch-action: pan-y; will-change: transform;
+}
+.rc-track.grabbing { cursor: grabbing; }
 
 /* ----- Tarjetas (promesa + reseñas) ----- */
 .card {
@@ -182,16 +184,33 @@
 .cinema.is-flat .act-promesa { padding: clamp(80px, 11vw, 150px) 0; }
 .cinema.is-flat .act-resenas { padding: clamp(80px, 11vw, 150px) 0; }
 .cinema.is-flat .prom-inner, .cinema.is-flat .prom-head, .cinema.is-flat .prom-cards { transform: none !important; opacity: 1 !important; }
-.cinema.is-flat .marquee-row { animation: none; flex-wrap: wrap; width: 100%; }
-.cinema.is-flat .marquee-row.dup { display: none; }
 .cinema.is-flat .hero-h1 .word > span { transform: none; }
 .cinema.is-flat .hero-cue { display: none; }
-.cinema.is-flat .act-resenas { gap: 28px; }
-.cinema.is-flat .marquee-rows { gap: 16px; }
 
-@media (max-width: 880px) {
-  .prom-cards { grid-template-columns: 1fr 1fr; }
-}
-@media (max-width: 600px) {
-  .prom-cards { grid-template-columns: 1fr; }
+/* ============================================================
+   Cinema en móvil/tablet: cada acto debe caber en una pantalla
+   (≈100svh) para que la transición no se solape. Tipos más
+   compactos y la promesa convertida en carrusel horizontal.
+   ============================================================ */
+@media (max-width: 1024px) {
+  .hero-content { padding-top: var(--nav-h, 84px); }
+  .hero-h1 { font-size: clamp(40px, 11vw, 84px); }
+  .hero-sub { margin-top: 18px; font-size: 15px; }
+  .hero-cta { margin-top: 26px; }
+
+  .prom-head h2 { font-size: clamp(26px, 6.4vw, 46px); }
+  .prom-cards {
+    display: flex; gap: 14px; margin-top: 22px;
+    overflow-x: auto; scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch; scrollbar-width: none;
+    padding-bottom: 4px;
+  }
+  .prom-cards::-webkit-scrollbar { display: none; }
+  .prom-cards > .card { flex: 0 0 78%; max-width: 320px; scroll-snap-align: center; }
+  .prom-cards .card-pad { padding: 26px 24px; }
+  .prom-cards .card-top { margin-bottom: 18px; }
+
+  .resenas-head h2 { font-size: clamp(26px, 6.4vw, 44px); }
+  .review-card { flex: 0 0 80%; max-width: 340px; padding: 26px 24px; }
+  .review-card .quote { font-size: 20px; }
 }

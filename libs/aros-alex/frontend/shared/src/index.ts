@@ -7,6 +7,7 @@ export { SiteFooter } from './lib/layout/footer/footer';
 
 // Componentes reutilizables
 export { BeforeAfter } from './lib/components/before-after/before-after';
+export { ReviewsCarousel } from './lib/components/reviews-carousel/reviews-carousel';
 export { Icon } from './lib/icons/icon';
 
 // Directivas

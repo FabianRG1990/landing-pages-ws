@@ -17,6 +17,7 @@ import {
   PROMISES,
   REVIEWS,
   RevealDirective,
+  ReviewsCarousel,
   COPY,
 } from '@aros-alex-ui-shared';
 
@@ -36,7 +37,7 @@ const eInOut = (x: number): number =>
 @Component({
   selector: 'app-inicio-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, RevealDirective, Icon],
+  imports: [RouterLink, RevealDirective, Icon, ReviewsCarousel],
   templateUrl: './inicio.html',
 })
 export class InicioPage {
@@ -45,14 +46,6 @@ export class InicioPage {
   protected readonly promises = PROMISES;
   protected readonly reviews = REVIEWS;
   protected readonly marquee = HERO_MARQUEE;
-
-  /** Reseñas duplicadas para que el marquee haga loop sin costuras. */
-  protected readonly reviewsLoop = [...REVIEWS, ...REVIEWS];
-
-  /** En modo aplanado mostramos las reseñas una sola vez; en cinema, el loop. */
-  protected readonly rowItems = computed(() =>
-    this.flat() ? this.reviews : this.reviewsLoop,
-  );
 
   protected readonly flat = signal(true);
   protected readonly headlineIn = signal(false);
@@ -112,13 +105,13 @@ export class InicioPage {
 
   constructor() {
     afterNextRender(() => {
-      // El cinema con scroll es una mejora SOLO de escritorio: en touch, tablet,
-      // móvil o con prefers-reduced-motion mostramos el hero apilado y legible
-      // (`is-flat`). Los heroes con scroll "secuestrado" son un anti-patrón en
-      // móvil — jank, solapamiento de secciones y consumo de batería.
+      // El cinema por scroll corre en todos los dispositivos (incluido móvil),
+      // igual que el diseño original. Solo se aplana con prefers-reduced-motion
+      // (accesibilidad) y en SSR. Cada acto está dimensionado para caber en una
+      // pantalla (las tarjetas y reseñas son carruseles horizontales en móvil),
+      // así la transición entre actos nunca se solapa.
       const reduceMq = window.matchMedia('(prefers-reduced-motion: reduce)');
-      const compactMq = window.matchMedia('(max-width: 1024px), (pointer: coarse)');
-      const isFlat = (): boolean => reduceMq.matches || compactMq.matches;
+      const isFlat = (): boolean => reduceMq.matches;
 
       setTimeout(() => this.headlineIn.set(true), 120);
 
@@ -149,11 +142,9 @@ export class InicioPage {
 
       apply();
       reduceMq.addEventListener('change', apply);
-      compactMq.addEventListener('change', apply);
       this.destroyRef.onDestroy(() => {
         stop();
         reduceMq.removeEventListener('change', apply);
-        compactMq.removeEventListener('change', apply);
       });
     });
   }
