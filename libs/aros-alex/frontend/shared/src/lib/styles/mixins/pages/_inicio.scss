@@ -22,7 +22,9 @@
 }
 
 .act { position: absolute; inset: 0; z-index: 1; }
-.act-hero { display: flex; align-items: center; will-change: opacity; }
+/* El padding reserva el alto del nav (arriba) y del marquee/cue (abajo) para que
+   el contenido se centre en la zona segura y nunca se cruce con el logo del nav. */
+.act-hero { display: flex; align-items: center; padding: clamp(88px, 12vh, 124px) 0 clamp(60px, 9vh, 104px); will-change: opacity; }
 .act-promesa { display: flex; align-items: center; opacity: 0; pointer-events: none; z-index: 4; will-change: opacity; }
 .act-resenas {
   display: flex; flex-direction: column; justify-content: center; gap: clamp(22px, 2.6vw, 32px);
@@ -40,7 +42,9 @@
   position: relative; max-width: var(--maxw); margin: 0 auto; padding: 0 var(--pad);
   width: 100%; will-change: transform;
 }
-.hero-h1 { font-size: clamp(50px, 9.2vw, 134px); max-width: 15ch; }
+/* La tipografía escala también con el alto (`12vh`): en laptops pequeñas/bajas
+   el título encoge para que los tres renglones quepan sin desbordar el hero. */
+.hero-h1 { font-size: clamp(50px, min(9.2vw, 12vh), 134px); max-width: 15ch; }
 .hero-h1 .word { display: inline-block; overflow: hidden; vertical-align: top; padding-bottom: 0.06em; margin-right: 0.24em; }
 .hero-h1 .word > span {
   display: inline-block; transform: translateY(112%);
@@ -193,7 +197,6 @@
    compactos y la promesa convertida en carrusel horizontal.
    ============================================================ */
 @media (max-width: 1024px) {
-  .hero-content { padding-top: var(--nav-h, 84px); }
   .hero-h1 { font-size: clamp(40px, 11vw, 84px); }
   .hero-sub { margin-top: 18px; font-size: 15px; }
   .hero-cta { margin-top: 26px; }
@@ -213,4 +216,18 @@
   .resenas-head h2 { font-size: clamp(26px, 6.4vw, 44px); }
   .review-card { flex: 0 0 80%; max-width: 340px; padding: 26px 24px; }
   .review-card .quote { font-size: 20px; }
+}
+
+/* ============================================================
+   Laptops anchas pero BAJAS (p. ej. 1280×800, 1366×768, Mac y
+   Windows): el hero se ancla bajo el nav (en vez de centrarse)
+   y comprime tipografía/márgenes para que los tres renglones
+   nunca se crucen con el logo.
+   ============================================================ */
+@media (min-width: 1025px) and (max-height: 820px) {
+  .act-hero { align-items: flex-start; padding-top: clamp(92px, 13vh, 116px); }
+  .hero-h1 { font-size: clamp(44px, min(7.4vw, 12vh), 104px); }
+  .hero-rule { margin-top: clamp(16px, 2.6vh, 28px); }
+  .hero-sub { margin-top: clamp(14px, 2.4vh, 24px); }
+  .hero-cta { margin-top: clamp(20px, 3.2vh, 34px); }
 }
