@@ -50,14 +50,14 @@ import { COPY } from '../../data/copy';
             </a>
 
             <a class="map-opt" [href]="google()" target="_blank" rel="noopener" (click)="sheet.close()">
-              <span class="ic is-google"><app-icon name="map" /></span>
+              <span class="ic is-google"><app-icon name="googlemaps" /></span>
               <span class="lbl">Google Maps</span>
               <app-icon name="arrow" class="go" />
             </a>
 
             @if (isIOS()) {
               <a class="map-opt" [href]="apple()" target="_blank" rel="noopener" (click)="sheet.close()">
-                <span class="ic is-apple"><app-icon name="navigation" /></span>
+                <span class="ic is-apple"><app-icon name="apple" /></span>
                 <span class="lbl">Apple Maps</span>
                 <app-icon name="arrow" class="go" />
               </a>

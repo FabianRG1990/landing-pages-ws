@@ -143,9 +143,9 @@
 .map-opt:hover, .map-opt:active { border-color: rgba(228, 2, 43, 0.5); background: rgba(228, 2, 43, 0.06); transform: translateX(2px); }
 .map-opt .ic { flex: none; width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; }
 .map-opt .ic app-icon svg { width: 22px; height: 22px; }
-.map-opt .ic.is-waze { background: #33ccff; color: #062a36; }
+.map-opt .ic.is-waze { background: linear-gradient(135deg, #3ccdf7 0%, #0a9fe0 100%); }
 .map-opt .ic.is-google { background: #1a73e8; }
-.map-opt .ic.is-apple { background: #2a2a30; border: 1px solid rgba(255, 255, 255, 0.18); }
+.map-opt .ic.is-apple { background: #000; border: 1px solid rgba(255, 255, 255, 0.18); }
 .map-opt .ic.is-web { background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.16); color: var(--text); }
 .map-opt .lbl { font-family: var(--display); font-weight: 700; font-size: 15px; letter-spacing: 0.02em; }
 .map-opt .go { margin-left: auto; color: var(--dim); transition: transform 0.3s ease, color 0.25s ease; }
