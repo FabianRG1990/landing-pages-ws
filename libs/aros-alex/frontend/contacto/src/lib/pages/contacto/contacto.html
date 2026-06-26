@@ -75,7 +75,7 @@
             </a>
           </div>
 
-          <a class="cd-map" [href]="contact.mapLink" target="_blank" rel="noopener">
+          <a class="cd-map" [href]="contact.mapLink" target="_blank" rel="noopener" (click)="onMapClick($event)">
             <div class="canvas">
               <div class="mgrid"></div>
               <div class="road1"></div>

@@ -110,3 +110,58 @@
 
 @media (max-width: 900px) { .contact-grid { grid-template-columns: 1fr; } }
 @media (max-width: 560px) { .cform-row, .cd-row { grid-template-columns: 1fr; } }
+
+/* ----- Selector de app de mapas (hoja inferior en teléfono) ----- */
+.map-sheet { position: fixed; inset: 0; z-index: 400; display: flex; align-items: flex-end; justify-content: center; }
+.map-sheet-backdrop {
+  position: absolute; inset: 0; border: 0; padding: 0; cursor: pointer;
+  background: rgba(4, 4, 6, 0.66); backdrop-filter: blur(3px);
+  animation: aaFade 0.25s ease both;
+}
+.map-sheet-panel {
+  position: relative; width: 100%; max-width: 460px;
+  background: linear-gradient(180deg, #1b1b21 0%, #121216 100%);
+  border: 1px solid rgba(255, 255, 255, 0.1); border-bottom: 0;
+  clip-path: polygon(20px 0, 100% 0, 100% 100%, 0 100%, 0 20px);
+  padding: 26px 22px calc(22px + env(safe-area-inset-bottom));
+  box-shadow: 0 -40px 90px -40px rgba(0, 0, 0, 0.9);
+  animation: aaSheetUp 0.34s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.map-sheet-panel::before {
+  content: ""; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, var(--accent), transparent 72%);
+}
+.map-sheet-head { display: flex; flex-direction: column; gap: 4px; margin-bottom: 18px; }
+.map-sheet-head .t { font-family: var(--display); font-weight: 800; font-size: 17px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text); }
+.map-sheet-head .h { font-family: var(--sans); font-size: 13px; color: var(--dim); }
+.map-sheet-opts { display: flex; flex-direction: column; gap: 10px; }
+.map-opt {
+  display: flex; align-items: center; gap: 15px; padding: 14px 16px;
+  background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text); transition: border-color 0.25s ease, background 0.25s ease, transform 0.2s ease;
+}
+.map-opt:hover, .map-opt:active { border-color: rgba(228, 2, 43, 0.5); background: rgba(228, 2, 43, 0.06); transform: translateX(2px); }
+.map-opt .ic { flex: none; width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; }
+.map-opt .ic app-icon svg { width: 22px; height: 22px; }
+.map-opt .ic.is-waze { background: #33ccff; color: #062a36; }
+.map-opt .ic.is-google { background: #1a73e8; }
+.map-opt .ic.is-apple { background: #2a2a30; border: 1px solid rgba(255, 255, 255, 0.18); }
+.map-opt .ic.is-web { background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.16); color: var(--text); }
+.map-opt .lbl { font-family: var(--display); font-weight: 700; font-size: 15px; letter-spacing: 0.02em; }
+.map-opt .go { margin-left: auto; color: var(--dim); transition: transform 0.3s ease, color 0.25s ease; }
+.map-opt .go svg { width: 18px; height: 18px; }
+.map-opt:hover .go, .map-opt:active .go { color: var(--accent); transform: translateX(4px); }
+.map-sheet-cancel {
+  margin-top: 16px; width: 100%; padding: 14px; cursor: pointer;
+  background: transparent; border: 1px solid rgba(255, 255, 255, 0.12); color: var(--dim);
+  font-family: var(--display); font-weight: 700; font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase;
+  transition: color 0.25s ease, border-color 0.25s ease;
+}
+.map-sheet-cancel:hover { color: var(--text); border-color: rgba(255, 255, 255, 0.28); }
+
+@keyframes aaFade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes aaSheetUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .map-sheet-backdrop, .map-sheet-panel { animation: none; }
+}

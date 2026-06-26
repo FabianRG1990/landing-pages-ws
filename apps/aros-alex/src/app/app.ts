@@ -3,6 +3,7 @@ import { RouterOutlet } from '@angular/router';
 import {
   FloatingNav,
   GrainTexture,
+  MapChooser,
   Preloader,
   SiteFooter,
   Veil,
@@ -11,7 +12,7 @@ import {
 @Component({
   selector: 'app-root',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterOutlet, GrainTexture, Preloader, Veil, FloatingNav, SiteFooter],
+  imports: [RouterOutlet, GrainTexture, Preloader, Veil, FloatingNav, SiteFooter, MapChooser],
   templateUrl: './app.html',
 })
 export class App {}

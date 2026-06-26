@@ -179,6 +179,12 @@ export const COPY = {
     locationLabel: M('Ubicación', 'Location'),
     addressLines: ['200 O y 25 N de la Bomba Delta,', 'San Francisco de Dos Ríos, San José'],
     mapAction: M('Abrir mapa →', 'Open map →'),
+    mapChooser: {
+      title: M('Abrir ubicación', 'Open location'),
+      hint: M('Elegí con qué app abrir el mapa', 'Choose which app opens the map'),
+      browser: M('Abrir en el navegador', 'Open in browser'),
+      cancel: M('Cancelar', 'Cancel'),
+    },
     hoursLabel: M('Horario', 'Hours'),
   },
 

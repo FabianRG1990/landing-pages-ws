@@ -8,6 +8,7 @@ export { SiteFooter } from './lib/layout/footer/footer';
 // Componentes reutilizables
 export { BeforeAfter } from './lib/components/before-after/before-after';
 export { ReviewsCarousel } from './lib/components/reviews-carousel/reviews-carousel';
+export { MapChooser } from './lib/components/map-chooser/map-chooser';
 export { Icon } from './lib/icons/icon';
 
 // Directivas
@@ -24,6 +25,7 @@ export type { Lang, Bilingual } from './lib/i18n/types';
 
 // Servicios
 export { OpeningHours } from './lib/services/opening-hours';
+export { MapSheet } from './lib/services/map-sheet';
 
 // Datos y copy
 export {

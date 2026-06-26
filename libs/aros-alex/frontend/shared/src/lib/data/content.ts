@@ -33,6 +33,8 @@ export const CONTACT = {
   instagram: { handle: '@arosalexcr', href: 'https://www.instagram.com/arosalexcr/' },
   facebook: { handle: 'arosalexcr', href: 'https://www.facebook.com/arosalexcr' },
   address: '200 O y 25 N de la Bomba Delta, San Francisco de Dos Ríos, San José',
+  /** Texto de búsqueda para los deep links de mapas (Google ya lo geocodifica al taller). */
+  mapQuery: 'Aros Alex, San Francisco de Dos Ríos, San José, Costa Rica',
   mapLink:
     'https://www.google.com/maps/search/?api=1&query=Aros+Alex+San+Francisco+de+Dos+Rios+San+Jose+Costa+Rica',
 } as const;
