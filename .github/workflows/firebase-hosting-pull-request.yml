@@ -1,11 +1,10 @@
-name: Deploy preview to Firebase Hosting on PR
+name: Deploy acuario preview to Firebase Hosting on PR
 
-# Por cada Pull Request al repo, builda la app y la sube a un canal de preview
-# de Firebase Hosting. La URL del preview queda comentada automáticamente
-# en el PR por la action oficial.
+# Por cada Pull Request, builda la app `acuario` y la sube a un canal de
+# preview de su sitio dedicado. La URL del preview queda comentada
+# automáticamente en el PR.
 #
-# Por seguridad — no corre para PRs desde forks (no tendrían acceso al
-# secret del service account).
+# No corre para PRs desde forks (no tendrían acceso al secret).
 
 on:
   pull_request:
@@ -19,6 +18,7 @@ jobs:
     permissions:
       checks: write
       contents: read
+      issues: write
       pull-requests: write
     steps:
       - uses: actions/checkout@v4
@@ -38,10 +38,108 @@ jobs:
         run: yarn nx build acuario --configuration=production
 
       - name: Deploy preview to Firebase Hosting
-        uses: FirebaseExtended/action-hosting-deploy@v0
+        id: deploy_preview
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_LANDING_PAGES_79AFC }}
+        run: |
+          set -euo pipefail
+
+          gac_file="$(mktemp)"
+          deploy_output="$(mktemp)"
+          channels_output="$(mktemp)"
+          trap 'rm -f "$gac_file" "$deploy_output" "$channels_output"' EXIT
+
+          printf '%s' "$FIREBASE_SERVICE_ACCOUNT" > "$gac_file"
+          export GOOGLE_APPLICATION_CREDENTIALS="$gac_file"
+
+          branch_name="${{ github.event.pull_request.head.ref }}"
+          branch_name="${branch_name:0:20}"
+          sanitized_branch_name="${branch_name//[^a-zA-Z0-9_.-]/_}"
+          channel_id="pr${{ github.event.number }}-${sanitized_branch_name}"
+
+          set +e
+          npx firebase-tools@latest hosting:channel:deploy "$channel_id" \
+            --project landing-pages-79afc \
+            --only acuario \
+            --expires 7d \
+            --json >"$deploy_output" 2>&1
+          status=$?
+          set -e
+
+          cat "$deploy_output"
+
+          if [ "$status" -ne 0 ] && ! grep -Fq 'is the current active version' "$deploy_output"; then
+            exit "$status"
+          fi
+
+          npx firebase-tools@latest hosting:channel:list \
+            --project landing-pages-79afc \
+            --site landing-pages-79afc \
+            --json >"$channels_output"
+
+          python - "$channel_id" "$channels_output" <<'PY'
+          import json
+          import os
+          import sys
+
+          channel_id = sys.argv[1]
+          channels_path = sys.argv[2]
+
+          with open(channels_path, encoding="utf-8") as fh:
+              payload = json.load(fh)
+
+          channels = payload["result"]["channels"]
+          channel = next(
+              item for item in channels if item["name"].rsplit("/", 1)[-1] == channel_id
+          )
+
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as fh:
+              fh.write(f"details_url={channel['url']}\n")
+              fh.write(f"expire_time={channel.get('expireTime', '')}\n")
+          PY
+
+      - name: Comment preview URL on PR
+        uses: actions/github-script@v7
+        env:
+          DETAILS_URL: ${{ steps.deploy_preview.outputs.details_url }}
+          EXPIRE_TIME: ${{ steps.deploy_preview.outputs.expire_time }}
         with:
-          repoToken: ${{ secrets.GITHUB_TOKEN }}
-          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_LANDING_PAGES_79AFC }}
-          projectId: landing-pages-79afc
-          target: acuario
-          expires: 7d
+          script: |
+            const marker = '<!-- firebase-hosting-acuario-preview -->';
+            const body = `${marker}
+            🔥 Preview for \`acuario\` is ready.
+
+            URL: ${process.env.DETAILS_URL}
+            Expires: ${process.env.EXPIRE_TIME || '7d'}`;
+
+            const { owner, repo } = context.repo;
+            const issue_number = context.issue.number;
+            const comments = await github.paginate(github.rest.issues.listComments, {
+              owner,
+              repo,
+              issue_number,
+              per_page: 100,
+            });
+
+            const existing = comments.find(
+              (comment) =>
+                comment.user?.type === 'Bot' &&
+                typeof comment.body === 'string' &&
+                comment.body.includes(marker)
+            );
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner,
+                repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number,
+                body,
+              });
+            }
