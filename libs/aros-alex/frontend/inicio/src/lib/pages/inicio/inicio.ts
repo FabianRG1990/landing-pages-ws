@@ -112,17 +112,22 @@ export class InicioPage {
 
   constructor() {
     afterNextRender(() => {
-      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      if (reduce) {
-        this.headlineIn.set(true);
-        return;
-      }
-      this.flat.set(false);
-      this.vw.set(window.innerWidth);
+      // El cinema con scroll es una mejora SOLO de escritorio: en touch, tablet,
+      // móvil o con prefers-reduced-motion mostramos el hero apilado y legible
+      // (`is-flat`). Los heroes con scroll "secuestrado" son un anti-patrón en
+      // móvil — jank, solapamiento de secciones y consumo de batería.
+      const reduceMq = window.matchMedia('(prefers-reduced-motion: reduce)');
+      const compactMq = window.matchMedia('(max-width: 1024px), (pointer: coarse)');
+      const isFlat = (): boolean => reduceMq.matches || compactMq.matches;
+
       setTimeout(() => this.headlineIn.set(true), 120);
 
       let raf = 0;
-      const loop = () => {
+      const stop = (): void => {
+        if (raf) cancelAnimationFrame(raf);
+        raf = 0;
+      };
+      const loop = (): void => {
         const el = this.cinema().nativeElement;
         const vh = window.innerHeight || 800;
         const total = el.offsetHeight - vh;
@@ -132,8 +137,24 @@ export class InicioPage {
         this.vw.set(window.innerWidth);
         raf = requestAnimationFrame(loop);
       };
-      raf = requestAnimationFrame(loop);
-      this.destroyRef.onDestroy(() => cancelAnimationFrame(raf));
+      const apply = (): void => {
+        const flat = isFlat();
+        this.flat.set(flat);
+        if (flat) stop();
+        else if (!raf) {
+          this.vw.set(window.innerWidth);
+          raf = requestAnimationFrame(loop);
+        }
+      };
+
+      apply();
+      reduceMq.addEventListener('change', apply);
+      compactMq.addEventListener('change', apply);
+      this.destroyRef.onDestroy(() => {
+        stop();
+        reduceMq.removeEventListener('change', apply);
+        compactMq.removeEventListener('change', apply);
+      });
     });
   }
 }

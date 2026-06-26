@@ -177,7 +177,7 @@ app-icon svg { display: block; }
 
 /* ----------  Mobile menu  ---------- */
 .mobile-menu {
-  position: fixed; inset: 0; z-index: 120;
+  position: fixed; inset: 0; z-index: 120; overflow: hidden;
   background: radial-gradient(120% 90% at 80% 8%, #1a1a1d, #08080a 68%);
   opacity: 0; pointer-events: none; clip-path: circle(0% at 100% 0);
   transition: clip-path 0.55s var(--ease-curtain), opacity 0.4s ease;
@@ -190,10 +190,10 @@ app-icon svg { display: block; }
   background: none; border: 1px solid rgba(242, 242, 243, 0.25); width: 46px; height: 46px;
   color: var(--text); cursor: pointer; font-size: 20px; line-height: 1;
 }
-.mm-links { margin: auto 0; display: flex; flex-direction: column; gap: 2px; }
+.mm-links { margin: auto 0; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .mm-links a {
-  display: flex; align-items: baseline; gap: 16px;
-  font-family: var(--display); font-weight: 800; font-size: 14vw; line-height: 1.1;
+  display: flex; align-items: baseline; gap: 14px; min-width: 0;
+  font-family: var(--display); font-weight: 800; font-size: clamp(34px, 12vw, 86px); line-height: 1.12;
   text-transform: uppercase; color: var(--text);
 }
 .mm-links a.is-contacto { color: var(--accent); }
@@ -256,6 +256,13 @@ app-icon svg { display: block; }
   max-width: var(--maxw); margin: 0 auto;
   padding: clamp(56px, 7vw, 90px) var(--pad) 34px;
   display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr; gap: 40px;
+}
+@media (max-width: 900px) {
+  .footer-grid { grid-template-columns: 1fr 1fr; gap: 32px 28px; }
+  .footer-brand { grid-column: 1 / -1; }
+}
+@media (max-width: 480px) {
+  .footer-grid { grid-template-columns: 1fr; }
 }
 .footer .brand { margin-bottom: 18px; }
 .footer .brand img { width: 54px; height: 54px; }

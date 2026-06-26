@@ -4,7 +4,7 @@
 
 .svc-grid {
   max-width: var(--maxw); margin: 0 auto; padding: 0 var(--pad);
-  display: grid; grid-template-columns: repeat(auto-fit, minmax(258px, 1fr)); gap: clamp(16px, 1.6vw, 22px);
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(min(258px, 100%), 1fr)); gap: clamp(16px, 1.6vw, 22px);
 }
 .svc-section { background: var(--carbon); }
 .svc-card .card-pad { padding: clamp(32px, 3vw, 44px) clamp(28px, 2.6vw, 36px); }
@@ -29,7 +29,7 @@
 
 .filters { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 34px; }
 
-.wheel-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 18px; }
+.wheel-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(250px, 100%), 1fr)); gap: 18px; }
 .wcard {
   position: relative; background: var(--card-wheel); border: 1px solid rgba(255, 255, 255, 0.09);
   overflow: hidden; clip-path: polygon(0 0, 100% 0, 100% 100%, 20px 100%, 0 calc(100% - 20px));

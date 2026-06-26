@@ -9,7 +9,7 @@
 .gal-body { background: var(--carbon); padding: 0 0 clamp(70px, 9vw, 120px); }
 .gal-grid {
   max-width: var(--maxw); margin: 0 auto; padding: 0 var(--pad);
-  display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 22px;
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(min(330px, 100%), 1fr)); gap: 22px;
 }
 
 .gcard {

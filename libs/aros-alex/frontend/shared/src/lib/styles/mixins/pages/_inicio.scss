@@ -172,8 +172,9 @@
 .review-author .who .name { font-family: var(--display); font-weight: 700; font-size: 14px; text-transform: uppercase; }
 .review-author .who .tag { font-family: var(--sans); font-size: 11px; letter-spacing: 0.08em; color: var(--dim); }
 
-/* ----- Flattened (sin JS / reduced-motion / SSR) ----- */
-.cinema.is-flat { height: auto; }
+/* ----- Flattened (sin JS / reduced-motion / SSR / móvil-tablet) ----- */
+.cinema.is-flat { height: auto; overflow-x: clip; }
+.cinema.is-flat .act-hero { overflow-x: clip; }
 .cinema.is-flat .stage { position: static; height: auto; overflow: visible; }
 .cinema.is-flat .wheel, .cinema.is-flat .wheel-glow { display: none; }
 .cinema.is-flat .act { position: relative; inset: auto; opacity: 1; transform: none !important; pointer-events: auto; }
@@ -184,6 +185,9 @@
 .cinema.is-flat .marquee-row { animation: none; flex-wrap: wrap; width: 100%; }
 .cinema.is-flat .marquee-row.dup { display: none; }
 .cinema.is-flat .hero-h1 .word > span { transform: none; }
+.cinema.is-flat .hero-cue { display: none; }
+.cinema.is-flat .act-resenas { gap: 28px; }
+.cinema.is-flat .marquee-rows { gap: 16px; }
 
 @media (max-width: 880px) {
   .prom-cards { grid-template-columns: 1fr 1fr; }
