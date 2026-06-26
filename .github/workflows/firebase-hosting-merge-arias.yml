@@ -34,12 +34,12 @@ jobs:
         run: |
           set -euo pipefail
 
-          gac_file="$(mktemp)"
+          service_account_file="$(mktemp)"
           deploy_output="$(mktemp)"
-          trap 'rm -f "$gac_file" "$deploy_output"' EXIT
+          trap 'rm -f "$service_account_file" "$deploy_output"' EXIT
 
-          printf '%s' "$FIREBASE_SERVICE_ACCOUNT" > "$gac_file"
-          export GOOGLE_APPLICATION_CREDENTIALS="$gac_file"
+          printf '%s' "$FIREBASE_SERVICE_ACCOUNT" > "$service_account_file"
+          export GOOGLE_APPLICATION_CREDENTIALS="$service_account_file"
 
           set +e
           npx firebase-tools@latest hosting:channel:deploy live \
@@ -51,6 +51,6 @@ jobs:
 
           cat "$deploy_output"
 
-          if [ "$status" -ne 0 ] && ! grep -Fq 'is the current active version' "$deploy_output"; then
+          if [ "$status" -ne 0 ] && ! grep -Eq 'FAILED_PRECONDITION|is the current active version' "$deploy_output"; then
             exit "$status"
           fi
