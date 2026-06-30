@@ -1,19 +1,21 @@
 /** Ítems de navegación compartidos por el navbar y el menú móvil. */
 export interface NavItem {
-  /** id de ruta (también el path: /inicio, /proyectos, …) */
+  /** id de sección (también la clave de tracking) */
   readonly id: string;
   /** etiqueta visible en el navbar de escritorio */
   readonly label: string;
+  /** Ruta absoluta de la sección. `inicio` es la raíz canónica (`/`). */
+  readonly path: string;
   /** número de orden mostrado en el menú móvil */
   readonly num: string;
 }
 
 export const NAV_ITEMS: readonly NavItem[] = [
-  { id: 'inicio', label: 'Inicio', num: '01' },
-  { id: 'proyectos', label: 'Proyectos', num: '02' },
-  { id: 'estudio', label: 'Estudio', num: '03' },
-  { id: 'servicios', label: 'Servicios', num: '04' },
-  { id: 'contacto', label: 'Contacto', num: '05' },
+  { id: 'inicio', label: 'Inicio', path: '/', num: '01' },
+  { id: 'proyectos', label: 'Proyectos', path: '/proyectos', num: '02' },
+  { id: 'estudio', label: 'Estudio', path: '/estudio', num: '03' },
+  { id: 'servicios', label: 'Servicios', path: '/servicios', num: '04' },
+  { id: 'contacto', label: 'Contacto', path: '/contacto', num: '05' },
 ];
 
 /** Datos de contacto y enlaces sociales reutilizables (footer, contacto). */

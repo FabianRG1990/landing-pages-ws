@@ -1,5 +1,5 @@
 <header class="nav" [class.scrolled]="scrolled()">
-  <a class="brand" routerLink="/inicio">
+  <a class="brand" routerLink="/">
     <img src="assets/logo-mark.png" alt="Sanar desde el corazón · Mónica Arias" />
     <span class="brand-txt">
       <span class="b1">Mónica Arias</span>
@@ -10,7 +10,11 @@
     <ul class="nav-links">
       @for (item of items; track item.id) {
         <li>
-          <a [routerLink]="'/' + item.id" routerLinkActive="active">
+          <a
+            [routerLink]="item.path"
+            routerLinkActive="active"
+            [routerLinkActiveOptions]="{ exact: true }"
+          >
             {{ item.label }}<span class="dot"></span>
           </a>
         </li>
@@ -27,7 +31,7 @@
 
 <div class="mobile-menu">
   @for (item of items; track item.id) {
-    <a [routerLink]="'/' + item.id" (click)="closeMenu()">
+    <a [routerLink]="item.path" (click)="closeMenu()">
       <span class="mnum">{{ item.num }}</span> {{ item.label }}
     </a>
   }

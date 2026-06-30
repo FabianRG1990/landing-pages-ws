@@ -3,14 +3,14 @@ import { pageTransitionGuard } from '@arias-ui-shared';
 
 /**
  * Rutas de la app `arias` — cada sección vive en su propia lib feature y se
- * carga lazy (default export = rutas). La raíz redirige a `inicio` (URL
- * canónica). `pageTransitionGuard` retiene la activación hasta que la cortina
- * cubre, para que el cambio de sección ocurra oculto detrás de la animación.
+ * carga lazy (default export = rutas). `inicio` es la raíz canónica y se sirve
+ * en `/` (la landing aterriza ahí, sin redirección). `pageTransitionGuard`
+ * retiene la activación hasta que la cortina cubre, para que el cambio de
+ * sección ocurra oculto detrás de la animación.
  */
 export const appRoutes: Route[] = [
-  { path: '', pathMatch: 'full', redirectTo: 'inicio' },
   {
-    path: 'inicio',
+    path: '',
     canActivate: [pageTransitionGuard],
     loadChildren: () => import('@arias-ui-inicio'),
   },
@@ -39,5 +39,5 @@ export const appRoutes: Route[] = [
     canActivate: [pageTransitionGuard],
     loadChildren: () => import('@arias-ui-contacto'),
   },
-  { path: '**', redirectTo: 'inicio' },
+  { path: '**', redirectTo: '' },
 ];

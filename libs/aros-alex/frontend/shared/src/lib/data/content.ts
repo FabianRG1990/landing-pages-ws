@@ -18,11 +18,11 @@ import {
 
 /** Ítems de navegación (orden = navbar y menú móvil). */
 export const NAV_ITEMS: readonly NavItem[] = [
-  { id: 'inicio', label: { es: 'Inicio', en: 'Home' }, num: '01' },
-  { id: 'servicios', label: { es: 'Servicios', en: 'Services' }, num: '02' },
-  { id: 'galeria', label: { es: 'Galería', en: 'Gallery' }, num: '03' },
-  { id: 'nosotros', label: { es: 'Nosotros', en: 'About' }, num: '04' },
-  { id: 'contacto', label: { es: 'Contáctenos', en: 'Contact us' }, num: '05' },
+  { id: 'inicio', path: '/', label: { es: 'Inicio', en: 'Home' }, num: '01' },
+  { id: 'servicios', path: '/servicios', label: { es: 'Servicios', en: 'Services' }, num: '02' },
+  { id: 'galeria', path: '/galeria', label: { es: 'Galería', en: 'Gallery' }, num: '03' },
+  { id: 'nosotros', path: '/nosotros', label: { es: 'Nosotros', en: 'About' }, num: '04' },
+  { id: 'contacto', path: '/contacto', label: { es: 'Contáctenos', en: 'Contact us' }, num: '05' },
 ];
 
 /** Datos de contacto reutilizables (navbar, footer, contacto). */

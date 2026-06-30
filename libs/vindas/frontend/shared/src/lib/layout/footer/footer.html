@@ -12,7 +12,7 @@
     </div>
     <nav class="footer__nav">
       @for (item of items; track item.id) {
-        <a [routerLink]="'/' + item.id">{{ t().nav[item.key] }}</a>
+        <a [routerLink]="item.path">{{ t().nav[item.key] }}</a>
       }
     </nav>
     <div class="footer__contact">

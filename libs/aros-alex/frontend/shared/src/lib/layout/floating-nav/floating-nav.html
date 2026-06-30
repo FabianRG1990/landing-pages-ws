@@ -4,7 +4,7 @@
   [class.transparent]="onHero() && !scrolled()"
 >
   <div class="nav-inner">
-    <a class="brand" routerLink="/inicio" aria-label="Aros Alex · Inicio">
+    <a class="brand" routerLink="/" aria-label="Aros Alex · Inicio">
       <img src="assets/aros-alex/logo.png" alt="" />
       <span class="brand-txt">
         <span class="brand-mark">AROS<span class="accent">&nbsp;ALEX</span></span>
@@ -16,7 +16,11 @@
       <ul class="nav-links">
         @for (item of items; track item.id) {
           <li>
-            <a [routerLink]="'/' + item.id" routerLinkActive="active">
+            <a
+              [routerLink]="item.path"
+              routerLinkActive="active"
+              [routerLinkActiveOptions]="{ exact: true }"
+            >
               {{ L.t(item.label) }}<span class="uline"></span>
             </a>
           </li>
@@ -68,7 +72,7 @@
   <nav class="mm-links">
     @for (item of items; track item.id) {
       <a
-        [routerLink]="'/' + item.id"
+        [routerLink]="item.path"
         [class.is-contacto]="item.id === 'contacto'"
         (click)="closeMenu()"
       >

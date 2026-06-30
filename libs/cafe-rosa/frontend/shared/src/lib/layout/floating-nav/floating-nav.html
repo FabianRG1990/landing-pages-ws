@@ -1,13 +1,18 @@
 <header id="nav" [class.scrolled]="scrolled()">
   <div class="nav-inner">
-    <a class="brand" routerLink="/inicio" aria-label="Rosa Café — inicio">
+    <a class="brand" routerLink="/" aria-label="Rosa Café — inicio">
       <img class="brand-cup" src="/logo-cup.webp" width="380" height="257" alt="" aria-hidden="true" />
       <span><span class="brand-name">ROSA</span><span class="brand-sub">café</span></span>
     </a>
 
     <nav class="nav-links">
       @for (item of items; track item.id) {
-        <a [routerLink]="'/' + item.id" routerLinkActive="active">{{ item.label }}</a>
+        <a
+          [routerLink]="item.path"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: true }"
+          >{{ item.label }}</a
+        >
       }
     </nav>
 
@@ -28,7 +33,7 @@
 <div id="mobile-menu" [class.open]="menuOpen()">
   <nav>
     @for (item of items; track item.id) {
-      <a class="menu-link" [routerLink]="'/' + item.id" (click)="closeMenu()">
+      <a class="menu-link" [routerLink]="item.path" (click)="closeMenu()">
         <span class="mnum">{{ item.num }}</span>{{ item.label }}
       </a>
     }

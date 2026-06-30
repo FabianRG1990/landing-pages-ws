@@ -1,15 +1,20 @@
-/** Sección de navegación: `id` es el path de la ruta; `key` indexa el diccionario i18n. */
+/**
+ * Sección de navegación: `id` identifica la sección (también es la clave que
+ * resuelve el telón de transición); `path` es el routerLink (inicio en `/`, sin
+ * redirección); `key` indexa el diccionario i18n.
+ */
 export interface NavItem {
   readonly id: string;
+  readonly path: string;
   readonly key: 'inicio' | 'sobre' | 'servicios' | 'psico' | 'contacto';
 }
 
 export const NAV_ITEMS: readonly NavItem[] = [
-  { id: 'inicio', key: 'inicio' },
-  { id: 'sobre', key: 'sobre' },
-  { id: 'servicios', key: 'servicios' },
-  { id: 'psicodiagnosticos', key: 'psico' },
-  { id: 'contacto', key: 'contacto' },
+  { id: 'inicio', path: '/', key: 'inicio' },
+  { id: 'sobre', path: '/sobre', key: 'sobre' },
+  { id: 'servicios', path: '/servicios', key: 'servicios' },
+  { id: 'psicodiagnosticos', path: '/psicodiagnosticos', key: 'psico' },
+  { id: 'contacto', path: '/contacto', key: 'contacto' },
 ];
 
 /** Datos de contacto (equivalen a las constantes al inicio del script.js original). */
