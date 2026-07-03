@@ -35,3 +35,15 @@
     <span style="display:block;width:22px;height:1.7px;background:#F2F3F5"></span><span style="display:block;width:22px;height:1.7px;background:#F2F3F5"></span><span style="display:block;width:22px;height:1.7px;background:#F2F3F5"></span>
   </button>
 </header>
+
+<!-- MOBILE MENU -->
+<div [attr.style]="mobileStyle()">
+  <div style="width:100%;max-width:480px">
+    @for (m of mobileItems; track m.id) {
+      <button (click)="go(m.id)" style="display:flex;align-items:baseline;gap:16px;width:100%;padding:16px 4px;border-bottom:1px solid rgba(255,255,255,.08);text-align:left">
+        <span style="font-family:'Barlow Condensed',sans-serif;font-size:13px;color:#E11D2E">{{ m.num }}</span>
+        <span style="font-family:'Barlow Condensed',sans-serif;font-style:italic;font-weight:600;text-transform:uppercase;font-size:clamp(30px,8vw,46px)" [style.color]="screen()===m.id ? '#E11D2E' : '#F2F3F5'">{{ m.label }}</span>
+      </button>
+    }
+  </div>
+</div>
