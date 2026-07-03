@@ -11,6 +11,9 @@ import {
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 
+/** Preloader tipo escáner de diagnóstico — transcripción fiel del original.
+ *  El contador de % va sincronizado al barrido; la salida la maneja la
+ *  animación CSS `.amv-preloader` (fade a los 2.55s). */
 @Component({
   selector: 'amv-preloader',
   standalone: true,
@@ -19,15 +22,15 @@ import { isPlatformBrowser } from '@angular/common';
   styleUrl: './preloader.component.scss',
 })
 export class PreloaderComponent implements AfterViewInit, OnDestroy {
-  /** oculta el nodo del DOM cuando termina la animación de salida */
+  private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
   readonly gone = signal(false);
-  readonly leaving = signal(false);
+
+  readonly preloaderStyle = 'position:fixed;inset:0;z-index:2000;background:#0A0A0B;display:flex;flex-direction:column;align-items:center;justify-content:center';
 
   private readonly pct = viewChild<ElementRef<HTMLSpanElement>>('pct');
   private readonly bar = viewChild<ElementRef<HTMLDivElement>>('bar');
   private raf = 0;
   private timers: ReturnType<typeof setTimeout>[] = [];
-  private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
 
   ngAfterViewInit(): void {
     if (!this.isBrowser) return;
@@ -43,14 +46,14 @@ export class PreloaderComponent implements AfterViewInit, OnDestroy {
       if (pctEl) pctEl.textContent = v + '%';
       if (barEl) barEl.style.width = v + '%';
       if (p < 1) this.raf = requestAnimationFrame(step);
+      else { if (pctEl) pctEl.textContent = '100%'; if (barEl) barEl.style.width = '100%'; }
     };
     this.raf = requestAnimationFrame(step);
-
-    this.timers.push(setTimeout(() => this.leaving.set(true), 2550));
     this.timers.push(setTimeout(() => this.gone.set(true), 3300));
   }
 
   ngOnDestroy(): void {
+    if (!this.isBrowser) return;
     cancelAnimationFrame(this.raf);
     this.timers.forEach(clearTimeout);
   }

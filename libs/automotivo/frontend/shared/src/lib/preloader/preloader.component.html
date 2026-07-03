@@ -1,50 +1,54 @@
 @if (!gone()) {
-  <div class="amv-preloader" [class.is-leaving]="leaving()">
-    <div class="scan">
-      <!-- barra superior HUD -->
-      <div class="hud">
-        <span class="hud-lbl">Diagnóstico</span>
-        <span class="hud-live"><i></i>En vivo</span>
+  <!-- PRELOADER · scanner de diagnóstico — transcripción fiel del original -->
+  <div class="amv-preloader" [attr.style]="preloaderStyle">
+    <div style="position:relative;width:min(90vw,420px)">
+      <!-- HUD top bar -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;font-family:'Barlow Condensed',sans-serif;font-weight:600;letter-spacing:.24em;text-transform:uppercase;font-size:11px;animation:amv-hudin .5s ease .1s both">
+        <span style="color:#8f9298">Diagnóstico</span>
+        <span style="display:inline-flex;align-items:center;gap:7px;color:#E11D2E"><span style="width:7px;height:7px;border-radius:50%;background:#E11D2E;box-shadow:0 0 8px #E11D2E;animation:amv-recblink 1s steps(1) infinite"></span>En vivo</span>
       </div>
 
-      <!-- escenario del escáner -->
-      <div class="stage">
-        <div class="grid"></div>
-        <div class="cross-v"></div>
-        <div class="cross-h"></div>
+      <!-- SCANNER STAGE -->
+      <div style="position:relative;height:230px;border-radius:16px;overflow:hidden;background:radial-gradient(120% 90% at 50% 40%,rgba(225,29,46,.06),transparent 62%),linear-gradient(180deg,#101116,#0a0a0c);border:1px solid rgba(255,255,255,.09);box-shadow:inset 0 0 60px rgba(0,0,0,.6)">
+        <!-- tech grid -->
+        <div style="position:absolute;inset:0;opacity:.5;background-image:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px);background-size:22px 22px;animation:amv-gridpan 3s linear infinite;mask-image:radial-gradient(120% 100% at 50% 50%,#000 40%,transparent 82%);-webkit-mask-image:radial-gradient(120% 100% at 50% 50%,#000 40%,transparent 82%)"></div>
+        <!-- crosshair guides -->
+        <div style="position:absolute;left:50%;top:0;bottom:0;width:1px;background:linear-gradient(180deg,transparent,rgba(255,255,255,.1),transparent)"></div>
+        <div style="position:absolute;top:50%;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,255,255,.08),transparent)"></div>
 
-        <span class="corner tl"></span>
-        <span class="corner tr"></span>
-        <span class="corner bl"></span>
-        <span class="corner br"></span>
+        <!-- corner brackets -->
+        <span style="position:absolute;left:12px;top:12px;width:22px;height:22px;border-left:2px solid #E11D2E;border-top:2px solid #E11D2E;border-radius:3px 0 0 0;animation:amv-cornpulse 1.8s ease-in-out infinite"></span>
+        <span style="position:absolute;right:12px;top:12px;width:22px;height:22px;border-right:2px solid #E11D2E;border-top:2px solid #E11D2E;border-radius:0 3px 0 0;animation:amv-cornpulse 1.8s ease-in-out infinite .2s"></span>
+        <span style="position:absolute;left:12px;bottom:12px;width:22px;height:22px;border-left:2px solid #E11D2E;border-bottom:2px solid #E11D2E;border-radius:0 0 0 3px;animation:amv-cornpulse 1.8s ease-in-out infinite .4s"></span>
+        <span style="position:absolute;right:12px;bottom:12px;width:22px;height:22px;border-right:2px solid #E11D2E;border-bottom:2px solid #E11D2E;border-radius:0 0 3px 0;animation:amv-cornpulse 1.8s ease-in-out infinite .6s"></span>
 
-        <!-- logo escaneado -->
-        <div class="logo-wrap">
-          <div class="logo-inner">
-            <img class="logo-dim" src="assets/automotivo-logo.png" alt="" />
-            <img class="logo-lit" src="assets/automotivo-logo.png" alt="Automotivo" />
+        <!-- logo being scanned -->
+        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center">
+          <div style="position:relative;width:min(66%,240px)">
+            <img src="assets/automotivo-logo.png" alt="" style="display:block;width:100%;height:auto;filter:grayscale(1) brightness(.5);opacity:.32">
+            <img src="assets/automotivo-logo.png" alt="Automotivo" style="position:absolute;inset:0;width:100%;height:auto;filter:drop-shadow(0 0 14px rgba(225,29,46,.55));clip-path:inset(0 0 100% 0);animation:amv-scanreveal 1.9s linear .35s forwards">
           </div>
         </div>
 
-        <!-- haz de escaneo -->
-        <div class="beam"></div>
-        <div class="beam-trail"></div>
+        <!-- scan beam -->
+        <div style="position:absolute;left:0;right:0;height:2px;top:7%;background:linear-gradient(90deg,transparent,#FF5058 12%,#fff 50%,#FF5058 88%,transparent);box-shadow:0 0 18px 3px rgba(225,29,46,.65);animation:amv-scanbeam 1.9s linear .35s forwards"></div>
+        <div style="position:absolute;left:0;right:0;height:64px;top:7%;transform:translateY(-64px);background:linear-gradient(180deg,transparent,rgba(225,29,46,.12));animation:amv-scanbeam 1.9s linear .35s forwards"></div>
 
-        <!-- lecturas de diagnóstico -->
-        <div class="readouts">
-          <div class="r r1">✓ ECU · sistema</div>
-          <div class="r r2">✓ Frenos · presión</div>
-          <div class="r r3">✓ Motor · lectura</div>
+        <!-- data readouts -->
+        <div style="position:absolute;left:16px;bottom:16px;font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:#7fd6a0;line-height:1.8">
+          <div style="animation:amv-tickon .4s ease .6s both">✓ ECU · sistema</div>
+          <div style="animation:amv-tickon .4s ease 1.0s both">✓ Frenos · presión</div>
+          <div style="animation:amv-tickon .4s ease 1.45s both">✓ Motor · lectura</div>
         </div>
-        <div class="scanning">Escaneando</div>
+        <div style="position:absolute;right:16px;bottom:16px;text-align:right;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#E11D2E;animation:amv-flick 1.4s steps(2) infinite">Escaneando</div>
       </div>
 
-      <!-- lema + progreso -->
-      <div class="caption">
+      <!-- caption + progress -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-top:16px;font-family:'Barlow Condensed',sans-serif;font-style:italic;font-weight:600;letter-spacing:.28em;text-transform:uppercase;font-size:12px;color:#8f9298;animation:amv-hudin .5s ease .2s both">
         <span>Nuestro motivo sos vos</span>
-        <span #pct class="pct">0%</span>
+        <span #pct class="amv-scanpct" style="color:#EDEFF2;font-style:normal;letter-spacing:.08em;font-variant-numeric:tabular-nums">0%</span>
       </div>
-      <div class="track"><div #bar class="fill"></div></div>
+      <div style="margin-top:9px;height:3px;border-radius:3px;background:rgba(255,255,255,.08);overflow:hidden"><div #bar class="amv-scanbar" style="height:100%;width:0%;background:linear-gradient(90deg,#B00D1B,#E11D2E 50%,#FF5058);box-shadow:0 0 12px rgba(225,29,46,.6);transition:width .12s linear"></div></div>
     </div>
   </div>
 }
