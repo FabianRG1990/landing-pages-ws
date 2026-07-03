@@ -58,7 +58,7 @@ export class Preloader {
       document.documentElement.style.overflow = 'hidden';
       // Tope de seguridad si el showcase se cuelga.
       setTimeout(() => this.experienceReady.markReady(), this.maxWaitMs);
-      // Decidir según la ruta YA RESUELTA: el showcase solo vive en `/inicio`.
+      // Decidir según la ruta YA RESUELTA: el showcase solo vive en la home (`/`).
       // En cualquier otro segmento no hay nada que esperar → revelar enseguida.
       // En `afterNextRender` el router puede no haber resuelto aún (`url === '/'`),
       // por eso esperamos al primer NavigationEnd si hace falta.
@@ -78,7 +78,7 @@ export class Preloader {
 
   /** Si la ruta no es la home (sin showcase), revela ya; si es home, espera. */
   private decide(url: string): void {
-    if (!url.startsWith('/inicio')) this.experienceReady.markReady();
+    if (url !== '/') this.experienceReady.markReady();
   }
 
   private reveal(): void {

@@ -8,11 +8,11 @@ import { OwnershipPage } from './pages/ownership/ownership';
 /**
  * VELOX es multi-segmento: cada segmento es su propia ruta (encabezado + poca
  * info + footer global), con una transición cinematográfica entre páginas
- * (obturador sincronizado). La home (`inicio`) es la pieza central: hero +
+ * (obturador sincronizado). La home (`/`) es la pieza central: hero +
  * showcase.
  */
 export const veloxUiInicioRoutes: Route[] = [
-  { path: 'inicio', component: HomePage },
+  { path: '', component: HomePage, pathMatch: 'full' },
   { path: 'performance', component: PerformancePage },
   { path: 'design', component: DesignPage },
   { path: 'technology', component: TechnologyPage },

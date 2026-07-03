@@ -23,7 +23,7 @@
       <div class="footer-head">{{ L.t(copy.navHeading) }}</div>
       <div class="footer-links">
         @for (item of items; track item.id) {
-          <a [routerLink]="'/' + item.id">{{ L.t(item.label) }}</a>
+          <a [routerLink]="item.path">{{ L.t(item.label) }}</a>
         }
       </div>
     </div>

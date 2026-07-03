@@ -7,7 +7,7 @@ import {
 } from '@velox-ui-shared';
 
 /**
- * Home (`/inicio`) — la pieza central: hero + showcase cinemático del coche.
+ * Home (`/`) — la pieza central: hero + showcase cinemático del coche.
  * Los demás segmentos (Performance, Design, Technology, Ownership) son páginas
  * propias a las que navega el nav, con su transición entre rutas.
  */

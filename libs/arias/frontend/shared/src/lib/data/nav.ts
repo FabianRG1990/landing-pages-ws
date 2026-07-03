@@ -1,7 +1,9 @@
 /** Ítems de navegación compartidos por el navbar y el menú móvil. */
 export interface NavItem {
-  /** id de ruta (también el path: /inicio, /sobre, …) */
+  /** id de sección (también ancla del scroll y key del @for) */
   readonly id: string;
+  /** ruta absoluta de la sección. `inicio` es la raíz canónica (`/`) */
+  readonly path: string;
   /** etiqueta visible en el navbar de escritorio */
   readonly label: string;
   /** número de orden mostrado en el menú móvil */
@@ -9,12 +11,12 @@ export interface NavItem {
 }
 
 export const NAV_ITEMS: readonly NavItem[] = [
-  { id: 'inicio', label: 'Inicio', num: '01' },
-  { id: 'sobre', label: 'Sobre la Dra.', num: '02' },
-  { id: 'servicios', label: 'Servicios', num: '03' },
-  { id: 'enfoque', label: 'Enfoque', num: '04' },
-  { id: 'articulos', label: 'Artículos', num: '05' },
-  { id: 'contacto', label: 'Contacto', num: '06' },
+  { id: 'inicio', path: '/', label: 'Inicio', num: '01' },
+  { id: 'sobre', path: '/sobre', label: 'Sobre la Dra.', num: '02' },
+  { id: 'servicios', path: '/servicios', label: 'Servicios', num: '03' },
+  { id: 'enfoque', path: '/enfoque', label: 'Enfoque', num: '04' },
+  { id: 'articulos', path: '/articulos', label: 'Artículos', num: '05' },
+  { id: 'contacto', path: '/contacto', label: 'Contacto', num: '06' },
 ];
 
 /** Número de teléfono / WhatsApp y enlaces de contacto reutilizables. */

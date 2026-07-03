@@ -3,6 +3,8 @@ import { Bilingual } from '../i18n/types';
 export interface NavItem {
   readonly id: string;
   readonly label: Bilingual;
+  /** Ruta absoluta de la sección. `inicio` es la raíz canónica (`/`). */
+  readonly path: string;
   /** Número de orden mostrado en el menú móvil. */
   readonly num: string;
 }

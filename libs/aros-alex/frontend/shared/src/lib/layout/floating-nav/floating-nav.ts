@@ -82,6 +82,6 @@ export class FloatingNav {
   }
 
   private isHero(url: string): boolean {
-    return url === '/' || url.startsWith('/inicio');
+    return url === '/';
   }
 }

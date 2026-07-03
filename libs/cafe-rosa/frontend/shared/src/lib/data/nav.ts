@@ -1,7 +1,9 @@
 /** Ítems de navegación compartidos por el navbar y el menú móvil. */
 export interface NavItem {
-  /** id de ruta (también el path: /inicio, /menu, …) */
+  /** id de ruta (slug interno de la sección) */
   readonly id: string;
+  /** ruta absoluta de la sección; `inicio` es la raíz canónica (`/`) */
+  readonly path: string;
   /** etiqueta visible en el navbar de escritorio */
   readonly label: string;
   /** número de orden mostrado en el menú móvil */
@@ -9,11 +11,11 @@ export interface NavItem {
 }
 
 export const NAV_ITEMS: readonly NavItem[] = [
-  { id: 'inicio', label: 'Inicio', num: '01' },
-  { id: 'menu', label: 'Menú', num: '02' },
-  { id: 'historia', label: 'Nuestra Historia', num: '03' },
-  { id: 'experiencia', label: 'Experiencia', num: '04' },
-  { id: 'contacto', label: 'Contacto', num: '05' },
+  { id: 'inicio', path: '/', label: 'Inicio', num: '01' },
+  { id: 'menu', path: '/menu', label: 'Menú', num: '02' },
+  { id: 'historia', path: '/historia', label: 'Nuestra Historia', num: '03' },
+  { id: 'experiencia', path: '/experiencia', label: 'Experiencia', num: '04' },
+  { id: 'contacto', path: '/contacto', label: 'Contacto', num: '05' },
 ];
 
 /** Datos de contacto reutilizables (footer, contacto). */

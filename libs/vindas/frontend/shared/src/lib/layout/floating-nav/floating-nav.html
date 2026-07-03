@@ -1,6 +1,6 @@
 <header class="nav" [class.is-scrolled]="scrolled()">
   <nav class="nav__inner">
-    <a class="nav__brand" routerLink="/inicio">
+    <a class="nav__brand" routerLink="/">
       <img class="nav__logo" src="assets/logo-mark.png" alt="Dra. Valeria Vindas" />
       <span class="nav__brandtext">
         <span class="nav__brandname">Valeria Vindas</span>
@@ -9,7 +9,7 @@
     </a>
     <div class="nav__links">
       @for (item of items; track item.id) {
-        <a class="nav__link" [routerLink]="'/' + item.id" routerLinkActive="is-active">{{ t().nav[item.key] }}</a>
+        <a class="nav__link" [routerLink]="item.path" routerLinkActive="is-active" [routerLinkActiveOptions]="{ exact: true }">{{ t().nav[item.key] }}</a>
       }
     </div>
     <div class="nav__actions">
@@ -38,7 +38,7 @@
     </div>
     <nav class="mobile__links">
       @for (item of items; track item.id) {
-        <a [routerLink]="'/' + item.id" (click)="closeMenu()">{{ t().nav[item.key] }}</a>
+        <a [routerLink]="item.path" (click)="closeMenu()">{{ t().nav[item.key] }}</a>
       }
     </nav>
     <a class="btn btn--wa mobile__cta" [href]="waHref()" target="_blank" rel="noopener" (click)="closeMenu()">

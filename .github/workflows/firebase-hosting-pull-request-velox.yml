@@ -54,7 +54,10 @@ jobs:
 
           branch_name="${{ github.event.pull_request.head.ref }}"
           branch_name="${branch_name:0:20}"
-          sanitized_branch_name="${branch_name//[^a-zA-Z0-9_.-]/_}"
+          sanitized_branch_name="$(printf '%s' "$branch_name" \
+            | tr '[:upper:]' '[:lower:]' \
+            | sed -E 's/[^a-z0-9]+/-/g; s/^-+//; s/-+$//; s/-{2,}/-/g')"
+          sanitized_branch_name="${sanitized_branch_name:-preview}"
           channel_id="pr${{ github.event.number }}-${sanitized_branch_name}"
 
           set +e
@@ -68,7 +71,10 @@ jobs:
 
           cat "$deploy_output"
 
-          if [ "$status" -ne 0 ] && ! grep -Fq 'is the current active version' "$deploy_output"; then
+          if [ "$status" -ne 0 ] \
+            && ! grep -Fq 'is the current active version' "$deploy_output" \
+            && ! grep -Fq 'already exists' "$deploy_output" \
+            && ! grep -Fq 'HTTP Error: 409' "$deploy_output"; then
             exit "$status"
           fi
 
@@ -90,8 +96,12 @@ jobs:
 
           channels = payload["result"]["channels"]
           channel = next(
-              item for item in channels if item["name"].rsplit("/", 1)[-1] == channel_id
+              (item for item in channels if item["name"].rsplit("/", 1)[-1] == channel_id),
+              None,
           )
+
+          if channel is None:
+              raise SystemExit(f"Channel {channel_id!r} was not found after deploy")
 
           with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as fh:
               fh.write(f"details_url={channel['url']}\n")
