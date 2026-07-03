@@ -1,34 +1,33 @@
-<section class="head" data-pad>
-  <div class="kicker"><span></span>Nuestros servicios</div>
-  <h2>Todo lo que tu carro<br />necesita, en un solo taller.</h2>
-  <p class="lead">
-    Del diagnóstico a la entrega, trabajamos con criterio y honestidad. Te explicamos qué necesita
-    tu vehículo —y qué no— antes de tocar una sola pieza.
-  </p>
-</section>
-
-<section class="grid-wrap" data-pad>
-  <div class="grid">
-    @for (s of services; track s.key) {
-      <article class="card amv-card">
-        <span class="num">{{ s.n }}</span>
-        <span class="ico"><amv-icon [paths]="s.icon" /></span>
-        <h3>{{ s.title }}</h3>
-        <p>{{ s.description }}</p>
-      </article>
-    }
-  </div>
-</section>
-
-<section class="cta" data-pad>
-  <div class="inner">
-    <div>
-      <h3>¿No sabés qué necesita tu carro?</h3>
-      <p>Contanos qué está pasando y te damos un diagnóstico claro. Sin compromiso.</p>
+<div>
+  <section data-pad style="position:relative;max-width:1300px;margin:0 auto;padding:clamp(120px,15vh,168px) 44px 30px">
+    <div data-rv [attr.style]="kicker"><span style="width:30px;height:1.5px;background:#E11D2E"></span>Nuestros servicios</div>
+    <h2 data-rv [attr.style]="h2Style">Todo lo que tu carro<br>necesita, en un solo taller.</h2>
+    <p data-rv [attr.style]="lead">Del diagnóstico a la entrega, trabajamos con criterio y honestidad. Te explicamos qué necesita tu vehículo —y qué no— antes de tocar una sola pieza.</p>
+  </section>
+  <section data-pad style="max-width:1300px;margin:0 auto;padding:20px 44px 40px">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(288px,1fr));gap:16px">
+      @for (s of services; track s.n) {
+        <div data-rv="s" class="amv-card" style="position:relative;padding:28px 26px 30px;border-radius:20px;background:linear-gradient(165deg,rgba(255,255,255,.05),rgba(255,255,255,.012));border:1px solid rgba(255,255,255,.09);overflow:hidden">
+          <span style="position:absolute;top:22px;right:26px;font-family:'Barlow Condensed',sans-serif;font-style:italic;font-weight:700;font-size:34px;color:rgba(255,255,255,.06)">{{ s.n }}</span>
+          <span style="display:inline-flex;width:52px;height:52px;border-radius:14px;align-items:center;justify-content:center;background:rgba(225,29,46,.12);border:1px solid rgba(225,29,46,.25)"><amv-icon [paths]="s.ic" /></span>
+          <h3 style="margin:22px 0 0;font-family:'Barlow Condensed',sans-serif;font-style:italic;font-weight:700;text-transform:uppercase;font-size:24px;letter-spacing:.01em;color:#F2F3F5">{{ s.t }}</h3>
+          <p style="margin:12px 0 0;font-family:'Manrope',sans-serif;font-size:14.5px;line-height:1.65;color:#a9adb3">{{ s.d }}</p>
+        </div>
+      }
     </div>
-    <div class="btns">
-      <button class="amv-btn primary" type="button" (click)="go('contacto')">Agendá tu cita</button>
-      <a class="ghost" [href]="waLink" target="_blank" rel="noopener">WhatsApp</a>
+  </section>
+  <section data-pad style="max-width:1300px;margin:0 auto;padding:30px 44px clamp(70px,10vw,110px)">
+    <div data-rv style="position:relative;overflow:hidden;border-radius:24px;padding:clamp(36px,5vw,60px);background:linear-gradient(135deg,rgba(225,29,46,.16),rgba(255,255,255,.02) 60%);border:1px solid rgba(225,29,46,.2)">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:30px;flex-wrap:wrap">
+        <div style="max-width:560px">
+          <h3 style="margin:0;font-family:'Barlow Condensed',sans-serif;font-style:italic;font-weight:700;text-transform:uppercase;font-size:clamp(26px,3.4vw,40px);line-height:1;color:#fff">¿No sabés qué necesita tu carro?</h3>
+          <p style="margin:14px 0 0;font-family:'Manrope',sans-serif;font-size:15.5px;line-height:1.6;color:#d5d7db">Contanos qué está pasando y te damos un diagnóstico claro. Sin compromiso.</p>
+        </div>
+        <div style="display:flex;gap:12px;flex-wrap:wrap">
+          <button (click)="goContacto()" class="amv-btn" style="display:inline-flex;align-items:center;gap:10px;padding:16px 30px;border-radius:13px;background:linear-gradient(135deg,#FF3B41,#E11D2E 60%,#B00D1B);color:#fff;font-family:'Manrope',sans-serif;font-weight:700;font-size:15px;box-shadow:0 12px 30px rgba(225,29,46,.4),inset 0 1px 0 rgba(255,255,255,.28)">Agendá tu cita</button>
+          <a [href]="waLink" target="_blank" rel="noopener" [attr.style]="outlineStyle">WhatsApp</a>
+        </div>
+      </div>
     </div>
-  </div>
-</section>
+  </section>
+</div>
