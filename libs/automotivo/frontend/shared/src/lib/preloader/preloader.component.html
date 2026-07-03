@@ -1,0 +1,50 @@
+@if (!gone()) {
+  <div class="amv-preloader" [class.is-leaving]="leaving()">
+    <div class="scan">
+      <!-- barra superior HUD -->
+      <div class="hud">
+        <span class="hud-lbl">Diagnóstico</span>
+        <span class="hud-live"><i></i>En vivo</span>
+      </div>
+
+      <!-- escenario del escáner -->
+      <div class="stage">
+        <div class="grid"></div>
+        <div class="cross-v"></div>
+        <div class="cross-h"></div>
+
+        <span class="corner tl"></span>
+        <span class="corner tr"></span>
+        <span class="corner bl"></span>
+        <span class="corner br"></span>
+
+        <!-- logo escaneado -->
+        <div class="logo-wrap">
+          <div class="logo-inner">
+            <img class="logo-dim" src="assets/automotivo-logo.png" alt="" />
+            <img class="logo-lit" src="assets/automotivo-logo.png" alt="Automotivo" />
+          </div>
+        </div>
+
+        <!-- haz de escaneo -->
+        <div class="beam"></div>
+        <div class="beam-trail"></div>
+
+        <!-- lecturas de diagnóstico -->
+        <div class="readouts">
+          <div class="r r1">✓ ECU · sistema</div>
+          <div class="r r2">✓ Frenos · presión</div>
+          <div class="r r3">✓ Motor · lectura</div>
+        </div>
+        <div class="scanning">Escaneando</div>
+      </div>
+
+      <!-- lema + progreso -->
+      <div class="caption">
+        <span>Nuestro motivo sos vos</span>
+        <span #pct class="pct">0%</span>
+      </div>
+      <div class="track"><div #bar class="fill"></div></div>
+    </div>
+  </div>
+}

@@ -1,0 +1,24 @@
+:host {
+  display: block;
+  position: relative;
+  min-height: 100vh;
+  background: var(--amv-ink);
+}
+
+// Fondo continuo (una sola capa, evita costuras entre segmentos).
+.amv-root-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(58% 34% at 80% 4%, rgba(230, 140, 70, 0.06), transparent 60%),
+    radial-gradient(46% 26% at 8% 34%, rgba(225, 29, 46, 0.06), transparent 60%),
+    radial-gradient(60% 30% at 60% 88%, rgba(120, 140, 180, 0.045), transparent 62%),
+    linear-gradient(180deg, #0c0d10 0%, #0a0a0b 46%, #08080a 100%);
+}
+
+.amv-main {
+  position: relative;
+  z-index: 1;
+}

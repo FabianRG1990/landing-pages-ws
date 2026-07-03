@@ -1,0 +1,29 @@
+<section #section class="amv-vhero">
+  <div class="stage">
+    <div #media class="vh-mediawrap"><canvas #canvas class="vh-canvas"></canvas></div>
+    <div #vig class="vh-vig" aria-hidden="true"></div>
+
+    <div #text class="vh-text" data-pad>
+      <div class="inner">
+        <div class="eyebrow">
+          <span class="tick"></span>{{ brand.brand().eyebrow }}
+        </div>
+        <h1 class="title">
+          Tu carro<br />en las mejores<br /><em>manos.</em>
+        </h1>
+        <p class="sub">{{ slogan }}</p>
+        <div class="cta">
+          <a class="amv-btn primary" [href]="waLink" target="_blank" rel="noopener">
+            Agendá tu cita
+          </a>
+          <a class="ghost" [href]="brand.mapsDir" target="_blank" rel="noopener">Cómo llegar</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="vh-hint" aria-hidden="true">
+      <span>Scroll</span>
+      <span class="arrow"></span>
+    </div>
+  </div>
+</section>

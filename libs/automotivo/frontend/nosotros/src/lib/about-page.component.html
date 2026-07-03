@@ -1,0 +1,48 @@
+<section class="head" data-pad>
+  <div class="kicker"><span></span>Quiénes somos</div>
+  <h2>Un taller que trata tu carro<br />como si fuera propio.</h2>
+</section>
+
+<section class="story" data-pad>
+  <div class="grid" data-split>
+    <div data-rv="l" class="media">
+      <img src="assets/equipo.jpg" alt="Equipo de Automotivo" />
+      <div class="badge">
+        <div class="b-city">Heredia</div>
+        <div class="b-sub">Santo Domingo · San Miguel</div>
+      </div>
+    </div>
+    <div data-rv="r">
+      <p class="big">
+        En Automotivo la mecánica deja de ser un misterio. Nacimos con una idea simple: que llevar
+        el carro al taller no tenga que ser un mal rato ni una sorpresa en la factura.
+      </p>
+      <p>
+        Hacemos mecánica general, diagnóstico por scanner, frenos, aceite, aire acondicionado y más,
+        con la misma vara de siempre: trabajo bien hecho y precios que te explicamos de frente.
+        Porque nuestro motivo, de verdad, sos vos.
+      </p>
+      <div class="btns">
+        <button class="amv-btn primary" type="button" (click)="go('contacto')">Visitanos en el taller</button>
+        <a class="ghost" [href]="fb" target="_blank" rel="noopener">Seguinos</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="values" data-pad>
+  <div class="grid" data-4>
+    @for (v of values; track v.title) {
+      <div class="val amv-card">
+        <span class="ico"><amv-icon [paths]="v.icon" /></span>
+        <h3>{{ v.title }}</h3>
+        <p>{{ v.detail }}</p>
+      </div>
+    }
+  </div>
+</section>
+
+<section class="slogan" data-pad>
+  <div class="kicker center">El lema que nos define</div>
+  <div class="big-slogan">Nuestro motivo sos vos.</div>
+</section>

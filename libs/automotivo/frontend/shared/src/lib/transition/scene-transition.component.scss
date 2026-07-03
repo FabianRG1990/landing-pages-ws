@@ -1,0 +1,57 @@
+.curtain {
+  position: fixed;
+  inset: 0;
+  z-index: 1500;
+  background: radial-gradient(130% 110% at 50% 45%, #16181d, #050506 70%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: clip-path 0.5s cubic-bezier(0.76, 0, 0.24, 1);
+}
+
+.fx { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.sweep {
+  position: absolute; top: 0; bottom: 0; left: 0; width: 60%;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.06) 45%, rgba(255, 90, 98, 0.14) 52%, transparent 62%);
+  transform: skewX(-14deg);
+  animation: amv-trsweep 0.9s cubic-bezier(0.4, 0, 0.2, 1) 0.25s both;
+}
+.glow {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  width: min(70vw, 520px); height: min(70vw, 520px);
+  background: radial-gradient(circle, rgba(225, 29, 46, 0.16), transparent 66%);
+  filter: blur(20px);
+  transition: opacity 0.5s ease;
+}
+
+.center {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+.logo {
+  height: clamp(52px, 8vw, 84px);
+  width: auto;
+  filter: drop-shadow(0 14px 46px rgba(0, 0, 0, 0.7));
+  transition: opacity 0.5s ease, transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.line {
+  height: 2px;
+  max-width: 60vw;
+  border-radius: 2px;
+  background: linear-gradient(90deg, transparent, #ff3b41 22%, #fff 50%, #ff3b41 78%, transparent);
+  box-shadow: 0 0 12px rgba(225, 29, 46, 0.7);
+  transition: width 0.55s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease;
+}
+.label {
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: 0.42em;
+  text-transform: uppercase;
+  color: #c3c6cc;
+  transition: opacity 0.5s ease 0.05s, transform 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.05s;
+}

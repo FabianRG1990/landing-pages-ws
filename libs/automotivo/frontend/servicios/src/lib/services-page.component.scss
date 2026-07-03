@@ -1,0 +1,27 @@
+:host { display: block; }
+.head { max-width: 1300px; margin: 0 auto; padding-top: clamp(120px, 15vh, 168px); padding-bottom: 30px; }
+.grid-wrap { max-width: 1300px; margin: 0 auto; padding-bottom: 40px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(288px, 1fr)); gap: 16px; }
+
+.card {
+  position: relative; padding: 28px 26px 30px; border-radius: 20px; overflow: hidden;
+  background: linear-gradient(165deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.012));
+  border: 1px solid rgba(255, 255, 255, 0.09);
+}
+.num { position: absolute; top: 22px; right: 26px; font-family: var(--font-display); font-style: italic; font-weight: 700; font-size: 34px; color: rgba(255, 255, 255, 0.06); }
+.ico { display: inline-flex; width: 52px; height: 52px; border-radius: 14px; align-items: center; justify-content: center; background: rgba(225, 29, 46, 0.12); border: 1px solid rgba(225, 29, 46, 0.25); }
+.card h3 { margin: 22px 0 0; font-family: var(--font-display); font-style: italic; font-weight: 700; text-transform: uppercase; font-size: 24px; color: #f2f3f5; }
+.card p { margin: 12px 0 0; font-family: var(--font-body); font-size: 14.5px; line-height: 1.65; color: #a9adb3; }
+
+.cta { max-width: 1300px; margin: 0 auto; padding-top: 30px; padding-bottom: clamp(70px, 10vw, 110px); }
+.cta .inner {
+  display: flex; align-items: center; justify-content: space-between; gap: 30px; flex-wrap: wrap;
+  border-radius: 24px; padding: clamp(36px, 5vw, 60px);
+  background: linear-gradient(135deg, rgba(225, 29, 46, 0.16), rgba(255, 255, 255, 0.02) 60%);
+  border: 1px solid rgba(225, 29, 46, 0.2);
+}
+.cta h3 { margin: 0; font-family: var(--font-display); font-style: italic; font-weight: 700; text-transform: uppercase; font-size: clamp(26px, 3.4vw, 40px); line-height: 1; color: #fff; }
+.cta p { margin: 14px 0 0; font-family: var(--font-body); font-size: 15.5px; line-height: 1.6; color: #d5d7db; max-width: 560px; }
+.btns { display: flex; gap: 12px; flex-wrap: wrap; }
+.amv-btn.primary { display: inline-flex; align-items: center; padding: 16px 30px; border-radius: 13px; background: linear-gradient(135deg, #ff3b41, #e11d2e 60%, #b00d1b); color: #fff; font-family: var(--font-body); font-weight: 700; font-size: 15px; box-shadow: 0 12px 30px rgba(225, 29, 46, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.28); }
+.ghost { display: inline-flex; align-items: center; padding: 16px 28px; border-radius: 13px; border: 1px solid rgba(255, 255, 255, 0.16); color: #f2f3f5; font-family: var(--font-body); font-weight: 600; font-size: 15px; }

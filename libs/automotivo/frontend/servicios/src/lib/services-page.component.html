@@ -1,0 +1,34 @@
+<section class="head" data-pad>
+  <div class="kicker"><span></span>Nuestros servicios</div>
+  <h2>Todo lo que tu carro<br />necesita, en un solo taller.</h2>
+  <p class="lead">
+    Del diagnóstico a la entrega, trabajamos con criterio y honestidad. Te explicamos qué necesita
+    tu vehículo —y qué no— antes de tocar una sola pieza.
+  </p>
+</section>
+
+<section class="grid-wrap" data-pad>
+  <div class="grid">
+    @for (s of services; track s.key) {
+      <article class="card amv-card">
+        <span class="num">{{ s.n }}</span>
+        <span class="ico"><amv-icon [paths]="s.icon" /></span>
+        <h3>{{ s.title }}</h3>
+        <p>{{ s.description }}</p>
+      </article>
+    }
+  </div>
+</section>
+
+<section class="cta" data-pad>
+  <div class="inner">
+    <div>
+      <h3>¿No sabés qué necesita tu carro?</h3>
+      <p>Contanos qué está pasando y te damos un diagnóstico claro. Sin compromiso.</p>
+    </div>
+    <div class="btns">
+      <button class="amv-btn primary" type="button" (click)="go('contacto')">Agendá tu cita</button>
+      <a class="ghost" [href]="waLink" target="_blank" rel="noopener">WhatsApp</a>
+    </div>
+  </div>
+</section>

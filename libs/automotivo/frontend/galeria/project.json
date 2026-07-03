@@ -1,0 +1,13 @@
+{
+  "name": "automotivo-ui-galeria",
+  "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/automotivo/frontend/galeria/src",
+  "prefix": "amv",
+  "projectType": "library",
+  "tags": ["scope:automotivo"],
+  "targets": {
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    }
+  }
+}

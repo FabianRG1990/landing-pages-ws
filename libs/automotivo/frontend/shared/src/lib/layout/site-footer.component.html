@@ -1,0 +1,75 @@
+<footer>
+  <div class="hair" aria-hidden="true"></div>
+  <div class="watermark" aria-hidden="true">AUTOMOTIVO</div>
+
+  <div class="inner" data-pad>
+    <div class="fgrid" data-fgrid>
+      <!-- marca -->
+      <div class="brand-col">
+        <img class="logo" src="assets/automotivo-logo.png" alt="Automotivo" />
+        <p class="motto">Nuestro motivo<br /><span>sos vos.</span></p>
+        <p class="blurb">
+          Especialistas en tu vehículo, en Santo Domingo de Heredia. Trabajo honesto, precios claros
+          y tu carro tratado como propio.
+        </p>
+        <div class="socials">
+          <a class="amv-soc" [href]="ig" target="_blank" rel="noopener" aria-label="Instagram">
+            <amv-icon [paths]="['M12 8.2a3.8 3.8 0 100 7.6 3.8 3.8 0 000-7.6z', 'M4.5 4.5h15v15h-15z', 'M16.6 7.4h.01']" [stroke]="'#e6e8ec'" />
+          </a>
+          <a class="amv-soc" [href]="fb" target="_blank" rel="noopener" aria-label="Facebook">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="#e6e8ec"><path d="M14 8.5V7c0-.7.3-1 1-1h1.5V3H14c-2.2 0-3.5 1.3-3.5 3.7V8.5H8V12h2.5v9H14v-9h2.3l.5-3.5H14z"/></svg>
+          </a>
+          <a class="amv-soc" [href]="waLink" target="_blank" rel="noopener" aria-label="WhatsApp">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="#e6e8ec"><path d="M12 2.2A9.7 9.7 0 002.3 11.9c0 1.7.44 3.35 1.29 4.82L2.2 21.8l5.2-1.36A9.65 9.65 0 1012 2.2zm0 17.6a8 8 0 01-4.08-1.12l-.29-.17-3.03.79.81-2.95-.19-.3A8.05 8.05 0 1112 19.8z"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- explorar -->
+      <div class="col">
+        <h4>Explorar</h4>
+        <div class="links">
+          @for (l of explore; track l.id) {
+            <button class="amv-flink" type="button" (click)="go(l.id)">{{ l.label }}</button>
+          }
+        </div>
+      </div>
+
+      <!-- servicios -->
+      <div class="col">
+        <h4>Servicios</h4>
+        <div class="links">
+          @for (s of svcLinks; track s) {
+            <button class="amv-flink" type="button" (click)="go('servicios')">{{ s }}</button>
+          }
+        </div>
+      </div>
+
+      <!-- contacto -->
+      <div class="col">
+        <h4>Contacto</h4>
+        <div class="links rows">
+          <a class="amv-flink row" [href]="waLink" target="_blank" rel="noopener">
+            <span class="fico"><amv-icon [paths]="['M4 5h16v11H8l-4 3z', 'M8 9.5h8M8 12.5h5']" /></span>
+            <span><span class="fk">WhatsApp</span><span class="fv">{{ wa }}</span></span>
+          </a>
+          <a class="amv-flink row" [href]="telLink">
+            <span class="fico"><amv-icon [paths]="['M6.6 10.8a15.5 15.5 0 006.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.2.4 2.4.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.6 21 3 13.4 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.4 0 .8-.2 1z']" /></span>
+            <span><span class="fk">Teléfono</span><span class="fv">{{ tel }}</span></span>
+          </a>
+          <a class="amv-flink row" [href]="mapsDir" target="_blank" rel="noopener">
+            <span class="fico"><amv-icon [paths]="['M12 21s7-5.5 7-11a7 7 0 10-14 0c0 5.5 7 11 7 11z', 'M12 12.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5z']" /></span>
+            <span><span class="fk">Taller</span><span class="fv sm">Santo Domingo · San Miguel, Heredia</span></span>
+          </a>
+        </div>
+        <div class="open-badge"><span></span>Lun–Vie · 8am a 6pm</div>
+      </div>
+    </div>
+
+    <div class="bottom">
+      <span>© {{ year }} Automotivo · Todos los derechos reservados</span>
+      <span>Hecho con dedicación en Heredia, Costa Rica 🇨🇷</span>
+      <button class="amv-flink up" type="button" (click)="scrollTop()">Volver arriba ↑</button>
+    </div>
+  </div>
+</footer>

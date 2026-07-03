@@ -1,0 +1,13 @@
+{
+  "name": "automotivo-ui-contacto",
+  "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/automotivo/frontend/contacto/src",
+  "prefix": "amv",
+  "projectType": "library",
+  "tags": ["scope:automotivo"],
+  "targets": {
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    }
+  }
+}

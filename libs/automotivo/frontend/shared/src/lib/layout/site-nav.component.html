@@ -1,0 +1,49 @@
+<header class="nav-shell" [class.is-collapsed]="!open">
+  <!-- pestaña visible cuando la barra está contraída -->
+  <button class="tab" type="button" (click)="toggleTab($event)" aria-label="Abrir menú">
+    <img src="assets/automotivo-logo-trim.png" alt="Automotivo" />
+    <span class="tab-caret"></span>
+  </button>
+
+  <!-- barra completa -->
+  <nav class="bar" aria-label="Principal">
+    <button class="brand" type="button" (click)="go('inicio')" aria-label="Inicio">
+      <img src="assets/automotivo-logo.png" alt="Automotivo" />
+    </button>
+
+    <ul class="links amv-desk">
+      @for (it of items; track it.id) {
+        <li>
+          <button
+            class="amv-navlink"
+            type="button"
+            [class.active]="screen() === it.id"
+            (click)="go(it.id)"
+          >
+            {{ it.label }}
+            <span class="ind"></span>
+          </button>
+        </li>
+      }
+    </ul>
+
+    <button class="burg amv-burg" type="button" (click)="toggleMenu()" aria-label="Menú">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+</header>
+
+<!-- menú móvil -->
+@if (menuOpen()) {
+  <div class="mobile" (click)="toggleMenu()">
+    <ul (click)="$event.stopPropagation()">
+      @for (it of items; track it.id) {
+        <li>
+          <button type="button" [class.active]="screen() === it.id" (click)="go(it.id)">
+            {{ it.label }}
+          </button>
+        </li>
+      }
+    </ul>
+  </div>
+}

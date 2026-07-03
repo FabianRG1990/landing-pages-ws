@@ -43,6 +43,27 @@
       "@velox-ui-shared": ["./libs/velox/frontend/shared/src/index.ts"],
       "@velox-ui-shared/*": ["./libs/velox/frontend/shared/src/lib/*"],
       "@velox-ui-inicio": ["./libs/velox/frontend/inicio/src/index.ts"],
+      "@automotivo-ui-shared": [
+        "./libs/automotivo/frontend/shared/src/index.ts"
+      ],
+      "@automotivo-ui-shared/*": [
+        "./libs/automotivo/frontend/shared/src/lib/*"
+      ],
+      "@automotivo-ui-inicio": [
+        "./libs/automotivo/frontend/inicio/src/index.ts"
+      ],
+      "@automotivo-ui-servicios": [
+        "./libs/automotivo/frontend/servicios/src/index.ts"
+      ],
+      "@automotivo-ui-galeria": [
+        "./libs/automotivo/frontend/galeria/src/index.ts"
+      ],
+      "@automotivo-ui-nosotros": [
+        "./libs/automotivo/frontend/nosotros/src/index.ts"
+      ],
+      "@automotivo-ui-contacto": [
+        "./libs/automotivo/frontend/contacto/src/index.ts"
+      ],
       "@interiorismo-ui-shared": [
         "./libs/interiorismo/frontend/shared/src/index.ts"
       ],

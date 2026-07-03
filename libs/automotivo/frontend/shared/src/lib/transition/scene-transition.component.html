@@ -1,0 +1,29 @@
+<div
+  class="curtain"
+  [style.clip-path]="clip()"
+  [style.pointer-events]="navigating() ? 'auto' : 'none'"
+>
+  @if (navigating()) {
+    <div class="fx" aria-hidden="true">
+      <div class="sweep"></div>
+      <div class="glow" [style.opacity]="transGlow()"></div>
+    </div>
+    <div class="center">
+      <img
+        class="logo"
+        src="assets/automotivo-logo-trim.png"
+        alt=""
+        [style.opacity]="logoOpacity()"
+        [style.transform]="'scale(' + logoScale() + ')'"
+      />
+      <div class="line" [style.width]="lineWidth()" [style.opacity]="transGlow()"></div>
+      <div
+        class="label"
+        [style.opacity]="transGlow()"
+        [style.transform]="'translateY(' + labelY() + ')'"
+      >
+        {{ label() }}
+      </div>
+    </div>
+  }
+</div>

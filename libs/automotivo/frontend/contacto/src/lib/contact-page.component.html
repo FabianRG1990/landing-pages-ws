@@ -1,0 +1,222 @@
+<section class="head" data-pad>
+  <div class="kicker"><span></span>Hablemos</div>
+  <h2>Agendá tu cita.</h2>
+  <p class="lead">
+    Contanos qué necesita tu vehículo y te respondemos rápido. También podés escribirnos directo por
+    WhatsApp o llamarnos.
+  </p>
+</section>
+
+<section class="grid" data-pad data-split>
+  <!-- ================= FORMULARIO ================= -->
+  <form class="form" (submit)="submit($event)">
+    <div class="f-head">
+      <span class="f-ico">
+        <amv-icon [paths]="['M8 3v4M16 3v4', 'M3 9h18']" [size]="22" />
+      </span>
+      <div>
+        <div class="f-t">Solicitud de cita</div>
+        <div class="f-s">Completá los datos y generamos tu orden en PDF</div>
+      </div>
+    </div>
+
+    <div class="f-body">
+      <div class="sec">Tus datos</div>
+      <div class="row2">
+        <label><span>Nombre completo *</span>
+          <input [value]="f().nombre" (input)="setField('nombre', $event)" placeholder="Ej: Juan Pérez" /></label>
+        <label><span>Teléfono / WhatsApp *</span>
+          <input [value]="f().tel" (input)="setField('tel', $event)" placeholder="8888-8888" /></label>
+      </div>
+      <label class="mt"><span>Correo <em>(opcional)</em></span>
+        <input [value]="f().correo" (input)="setField('correo', $event)" placeholder="tu@correo.com" /></label>
+
+      <div class="sec mt-lg">Tu vehículo</div>
+      <div class="row2 v">
+        <label><span>Marca y modelo *</span>
+          <input [value]="f().marca" (input)="setField('marca', $event)" placeholder="Toyota Hilux" /></label>
+        <label><span>Año *</span>
+          <input [value]="f().anio" (input)="setField('anio', $event)" placeholder="2019" /></label>
+      </div>
+      <label class="mt"><span>Placa <em>(opcional)</em></span>
+        <input [value]="f().placa" (input)="setField('placa', $event)" placeholder="ABC-123" /></label>
+
+      <div class="sec mt-lg">Preferencia de cita</div>
+      <div class="row2">
+        <label><span>Fecha preferida *</span>
+          <button class="picker" type="button" (click)="store.toggleCal()">
+            <span [class.dim]="!f().fecha">{{ fechaLabel() }}</span>
+            <amv-icon [paths]="['M8 3v4M16 3v4', 'M3 9h18']" [size]="18" />
+          </button>
+        </label>
+        <label><span>Momento del día *</span>
+          <div class="seg">
+            @for (p of periodos; track p) {
+              <button type="button" [class.on]="f().periodo === p" (click)="store.setPeriodo(p)">{{ p }}</button>
+            }
+          </div>
+        </label>
+      </div>
+
+      @if (store.calOpen()) {
+        <div class="cal">
+          <div class="cal-head">
+            <button type="button" (click)="store.calShift(-1)" aria-label="Mes anterior">‹</button>
+            <span>{{ monthLabel() }}</span>
+            <button type="button" (click)="store.calShift(1)" aria-label="Mes siguiente">›</button>
+          </div>
+          <div class="cal-dow">@for (d of dows; track $index) { <span>{{ d }}</span> }</div>
+          <div class="cal-grid">
+            @for (c of calCells(); track $index) {
+              <button
+                type="button"
+                class="cell"
+                [class.empty]="!c.d"
+                [class.disabled]="c.disabled"
+                [class.selected]="c.selected"
+                [class.today]="c.today"
+                [disabled]="c.disabled"
+                (click)="pick(c)"
+              >{{ c.d }}</button>
+            }
+          </div>
+          <div class="cal-note"><span></span>Sábados y domingos cerrado</div>
+        </div>
+      }
+
+      @if (f().periodo) {
+        <div class="hours">
+          <span class="h-lbl">Hora aproximada de llegada</span>
+          <div class="h-slots">
+            @for (h of store.hourSlots(); track h) {
+              <button type="button" [class.on]="f().hora === h" (click)="store.pickHora(h)">{{ h }}</button>
+            }
+          </div>
+        </div>
+      }
+
+      <div class="sec mt-lg">¿Qué necesitás? *</div>
+      <button class="svc-trigger" type="button" [class.has]="store.hasServices()" (click)="store.openSvc()">
+        <span class="left">
+          <span class="s-ico"><amv-icon [paths]="['M14.7 6.3a3.5 3.5 0 00-4.7 4.5l-6.3 6.3a1.8 1.8 0 002.5 2.5l6.3-6.3a3.5 3.5 0 004.5-4.7l-2 2-2-.5-.5-2 2-2z', 'M15.5 15.5l3.5 3.5']" [size]="18" /></span>
+          <span class="s-sum">{{ svcSummary() }}</span>
+        </span>
+        <span class="s-badge">{{ selectedServices().length || 'Elegir' }}</span>
+      </button>
+      @if (store.hasServices()) {
+        <div class="chips">
+          @for (name of selectedServices(); track name) {
+            <span class="chip">{{ name }}
+              <button type="button" (click)="store.toggleServicio(name)" aria-label="Quitar">✕</button>
+            </span>
+          }
+        </div>
+      }
+
+      <label class="mt-lg"><span>Contanos qué le pasa a tu carro</span>
+        <textarea rows="3" [value]="f().detalle" (input)="setField('detalle', $event)"
+          placeholder="Ej: hace un ruido al frenar, la luz del motor encendida…"></textarea></label>
+
+      @if (store.formErr()) {
+        <div class="err">
+          <strong>Faltan datos para generar la cita.</strong> Completá: {{ store.formErrList() }}
+        </div>
+      }
+
+      <button class="amv-btn submit" type="submit">Generar orden de cita</button>
+      <p class="fine">Verás tu orden en PDF lista para revisar. Luego la descargás o nos la enviás por WhatsApp.</p>
+    </div>
+  </form>
+
+  <!-- ================= RIEL DE CONTACTO ================= -->
+  <div class="rail">
+    <a class="amv-ctcard" [href]="waLink" target="_blank" rel="noopener">
+      <span class="ct-ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="#e6e8ec" aria-hidden="true"><path d="M12 2.2A9.7 9.7 0 002.3 11.9c0 1.7.44 3.35 1.29 4.82L2.2 21.8l5.2-1.36A9.65 9.65 0 1012 2.2zm0 17.6a8 8 0 01-4.08-1.12l-.29-.17-3.03.79.81-2.95-.19-.3A8.05 8.05 0 1112 19.8z"/></svg></span>
+      <span class="ct-body"><span class="ct-k">WhatsApp</span><span class="ct-v">{{ wa }}</span></span>
+    </a>
+    <a class="amv-ctcard" [href]="telLink">
+      <span class="ct-ico"><amv-icon [paths]="['M6.5 4h-2A1.5 1.5 0 003 5.6C3.3 13.9 10.1 20.7 18.4 21a1.5 1.5 0 001.6-1.5v-2a1.5 1.5 0 00-1.2-1.47l-2.3-.46a1.5 1.5 0 00-1.5.62l-.7.98a12 12 0 01-4.9-4.9l.98-.7a1.5 1.5 0 00.62-1.5l-.46-2.3A1.5 1.5 0 006.5 4z']" /></span>
+      <span class="ct-body"><span class="ct-k">Teléfono</span><span class="ct-v">{{ tel }}</span></span>
+    </a>
+    <a class="amv-ctcard" [href]="mailLink">
+      <span class="ct-ico"><amv-icon [paths]="['M3.5 5.5h17v13h-17z', 'M4 7l8 6 8-6']" /></span>
+      <span class="ct-body min"><span class="ct-k">Correo</span><span class="ct-v sm">{{ email }}</span></span>
+    </a>
+
+    <!-- horario -->
+    <div class="hrs">
+      <div class="hrs-top">
+        <span class="hrs-t"><span class="s-ico sm"><amv-icon [paths]="['M12 7.5V12l3 2']" [size]="18" /></span>Horario</span>
+        <span class="badge" [class.open]="openNow">{{ openNow ? 'Abierto ahora' : 'Cerrado ahora' }}</span>
+      </div>
+      @for (r of schedule; track r.day) {
+        <div class="hrs-row"><span>{{ r.day }}</span><span [class.closed]="r.closed">{{ r.hours }}</span></div>
+      }
+    </div>
+
+    <!-- mapa -->
+    <div class="map">
+      <iframe title="Ubicación del taller Automotivo" [src]="mapSrc" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+      <div class="map-fade"></div>
+      <div class="map-info">
+        <div>
+          <div class="m-t">Santo Domingo · San Miguel</div>
+          <div class="m-s">Heredia, Costa Rica</div>
+        </div>
+        <a class="m-go" [href]="mapsDir" target="_blank" rel="noopener">Cómo llegar →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= DIÁLOGO DE SERVICIOS ================= -->
+@if (store.svcOpen()) {
+  <div class="overlay" (click)="store.closeSvc()">
+    <div class="dialog" (click)="$event.stopPropagation()">
+      <div class="d-head">
+        <div class="d-brand">
+          <img src="assets/automotivo-logo.png" alt="Automotivo" />
+          <div><div class="d-t">¿Qué necesita tu carro?</div><div class="d-s">Elegí uno o varios servicios</div></div>
+        </div>
+        <button class="x" type="button" (click)="store.closeSvc()" aria-label="Cerrar">✕</button>
+      </div>
+      <div class="d-grid">
+        @for (s of services; track s.key) {
+          <button type="button" class="d-card" [class.on]="selectedServices().includes(s.title)" (click)="store.toggleServicio(s.title)">
+            <span class="d-ico"><amv-icon [paths]="s.icon" [stroke]="selectedServices().includes(s.title) ? '#fff' : '#E11D2E'" /></span>
+            <span class="d-txt"><span class="dc-t">{{ s.title }}</span><span class="dc-d">{{ s.short }}</span></span>
+            <span class="d-check" [class.on]="selectedServices().includes(s.title)">✓</span>
+          </button>
+        }
+      </div>
+      <div class="d-foot">
+        <span class="d-count">{{ selectedServices().length }} seleccionado(s)</span>
+        <button class="d-clear" type="button" (click)="store.clearServicios()">Limpiar</button>
+        <button class="amv-btn d-ok" type="button" (click)="store.closeSvc()">Listo</button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ================= MODAL PDF ================= -->
+@if (store.pdfOpen()) {
+  <div class="overlay">
+    <div class="pdf">
+      <div class="p-head">
+        <div class="p-title">
+          <span class="p-ico"><amv-icon [paths]="['M14 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V8z', 'M14 3v5h5M9 13h6M9 17h4']" [size]="18" [stroke]="'#E11D2E'" /></span>
+          <div><div class="pt-t">Vista previa de tu cita</div><div class="pt-s">Folio {{ store.pdfFolio() }}</div></div>
+        </div>
+        <button class="x" type="button" (click)="store.closePdf()" aria-label="Cerrar">✕</button>
+      </div>
+      @if (pdfSrc(); as src) {
+        <iframe title="Vista previa PDF" [src]="src"></iframe>
+      }
+      <div class="p-foot">
+        <span class="p-note">Revisá tu orden. Descargala o envianosla por WhatsApp y la coordinamos.</span>
+        <button class="p-dl" type="button" (click)="store.downloadPdf()">Descargar PDF</button>
+        <button class="amv-btn p-wa" type="button" (click)="store.sendWhatsappOrder()">Enviar por WhatsApp</button>
+      </div>
+    </div>
+  </div>
+}

@@ -1,0 +1,45 @@
+<section class="head" data-pad>
+  <div class="kicker"><span></span>Nuestro trabajo</div>
+  <h2>El taller por dentro.</h2>
+  <p class="lead">
+    Cada vehículo que pasa por Automotivo sale mejor de como entró. Un vistazo a lo que hacemos día
+    a día.
+  </p>
+</section>
+
+<section class="filters" data-pad>
+  <div class="chips">
+    @for (f of filters; track f.key) {
+      <button
+        class="chip"
+        type="button"
+        [class.active]="filter() === f.key"
+        (click)="setFilter(f.key)"
+      >
+        <span class="c-ico"><amv-icon [paths]="f.icon" [stroke]="filter() === f.key ? '#fff' : '#E11D2E'" /></span>
+        {{ f.label }}
+        <span class="c-count">{{ f.count }}</span>
+      </button>
+    }
+  </div>
+</section>
+
+<section class="grid-wrap" data-pad>
+  <div class="collage">
+    @for (t of tiles(); track t.id) {
+      <div class="amv-galcard" [class]="t.span" [style.animation-delay]="t.delay">
+        @if (t.src) {
+          <img [src]="t.src" [alt]="t.label" />
+        } @else {
+          <div class="ph"><span>Foto por agregar</span></div>
+        }
+        <div class="amv-galtag"><span class="d"></span>{{ t.label }}</div>
+      </div>
+    }
+  </div>
+  <p class="follow">
+    ¿Querés ver más? Seguinos en
+    <a class="amv-under" [href]="ig" target="_blank" rel="noopener">Instagram</a> y
+    <a class="amv-under" [href]="fb" target="_blank" rel="noopener">Facebook</a>.
+  </p>
+</section>

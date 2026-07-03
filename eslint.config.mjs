@@ -55,6 +55,10 @@ export default [
               sourceTag: 'scope:aros-alex',
               onlyDependOnLibsWithTags: ['scope:aros-alex', 'scope:shared'],
             },
+            {
+              sourceTag: 'scope:automotivo',
+              onlyDependOnLibsWithTags: ['scope:automotivo', 'scope:shared'],
+            },
           ],
         },
       ],

@@ -1,0 +1,100 @@
+<!-- ACERCA DE (teaser) -->
+<section class="about" data-pad>
+  <div class="grid" data-split>
+    <div data-rv="l" class="media">
+      <img src="assets/equipo.jpg" alt="Equipo de Automotivo" />
+      <div class="badge">
+        <div class="b-city">Heredia</div>
+        <div class="b-sub">Santo Domingo · San Miguel</div>
+      </div>
+    </div>
+    <div data-rv="r">
+      <div class="kicker"><span></span>Quiénes somos</div>
+      <h2>Un taller que trata tu carro<br />como si fuera propio.</h2>
+      <p>
+        En Automotivo la mecánica deja de ser un misterio. Te explicamos qué necesita tu vehículo
+        —y qué no— con honestidad y precios claros.
+      </p>
+      <div class="stats" data-4>
+        @for (a of aboutStats; track a.title) {
+          <div class="stat">
+            <div class="s-t">{{ a.title }}</div>
+            <div class="s-d">{{ a.detail }}</div>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ticker -->
+<div class="amv-mqrow ticker" aria-hidden="true">
+  <div class="amv-mq run">
+    @for (t of ticker; track $index) { <span class="chip">{{ t }}</span><span class="dot"></span> }
+  </div>
+</div>
+
+<!-- SERVICIOS (zig-zag) -->
+<section class="services" data-pad>
+  <div class="head">
+    <div class="kicker"><span></span>Lo que hacemos</div>
+    <h2>Servicios de punta a punta.</h2>
+  </div>
+  <div class="zig-list">
+    @for (z of zig; track z.key) {
+      <div class="zig" data-zig [class.flip]="z.flip">
+        <div class="zig-media" data-zigmedia [attr.data-rv]="z.flip ? 'r' : 'l'">
+          <img [src]="z.img" [alt]="z.title" />
+        </div>
+        <div class="zig-body" [attr.data-rv]="z.flip ? 'l' : 'r'">
+          <span class="zig-ico"><amv-icon [paths]="z.icon" /></span>
+          <h3>{{ z.title }}</h3>
+          <p>{{ z.description }}</p>
+          <button class="link" type="button" (click)="go('servicios')">Ver servicio →</button>
+        </div>
+      </div>
+    }
+  </div>
+</section>
+
+<!-- RESEÑAS (marquesinas) -->
+<section class="reviews">
+  <div class="head" data-pad>
+    <div class="kicker center"><span></span>Reseñas reales<span></span></div>
+    <h2>Lo que dicen en nuestras redes.</h2>
+  </div>
+  <div class="amv-mqrow">
+    <div class="amv-mq run-l">
+      @for (r of reviewsTop; track $index) {
+        <article class="rev" [attr.data-kind]="r.kind">
+          <div class="r-top"><span class="r-plat">{{ r.kind | uppercase }}</span></div>
+          <p>“{{ r.text }}”</p>
+          <div class="r-name">{{ r.name }}</div>
+        </article>
+      }
+    </div>
+  </div>
+  <div class="amv-mqrow">
+    <div class="amv-mq run-r">
+      @for (r of reviewsBottom; track $index) {
+        <article class="rev" [attr.data-kind]="r.kind">
+          <div class="r-top"><span class="r-plat">{{ r.kind | uppercase }}</span></div>
+          <p>“{{ r.text }}”</p>
+          <div class="r-name">{{ r.name }}</div>
+        </article>
+      }
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-band" data-pad>
+  <div class="inner">
+    <h2>Listos para rodar.</h2>
+    <p>Agendá tu cita o escribinos directo. Tu carro en las mejores manos.</p>
+    <div class="cta">
+      <button class="amv-btn primary" type="button" (click)="go('contacto')">Agendá tu cita</button>
+      <a class="ghost" [href]="waLink" target="_blank" rel="noopener">WhatsApp</a>
+    </div>
+  </div>
+</section>
