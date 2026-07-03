@@ -71,12 +71,20 @@ a { color: inherit; text-decoration: none; }
 @keyframes amv-rvS { from { opacity: 0; transform: scale(.9); } to { opacity: 1; transform: none; } }
 @keyframes amv-par { from { transform: translateY(-7%); } to { transform: translateY(7%); } }
 @keyframes amv-prog { from { transform: scaleX(0); } to { transform: scaleX(1); } }
-@supports (animation-timeline: view()) {
-  [data-rv] { animation: amv-rv linear both; animation-timeline: view(); animation-range: entry 2% cover 30%; }
-  [data-rv="l"] { animation-name: amv-rvL; animation-range: entry 8% cover 46%; }
-  [data-rv="r"] { animation-name: amv-rvR; animation-range: entry 8% cover 46%; }
-  [data-rv="s"] { animation-name: amv-rvS; }
-  [data-par] { animation: amv-par linear both; animation-timeline: view(); animation-range: cover; }
+/* Reveal en scroll ROBUSTO — IntersectionObserver + transición.
+   Reemplaza a `animation-timeline: view()` (soporte parcial: Chrome sí,
+   Safari/Firefox no) por un enfoque que dispara en todos los navegadores.
+   El gate `.amv-anim` (lo pone un <script> inline en <head>) hace que sin JS
+   el contenido quede visible → SSG/SEO intactos y sin parpadeo.
+   El estado revelado lo marca la clase `.amv-in` que añade el observer. */
+.amv-anim [data-rv] { opacity: 0; transform: translateY(52px); transition: opacity .85s cubic-bezier(.16,1,.3,1), transform .85s cubic-bezier(.16,1,.3,1); }
+.amv-anim [data-rv="l"] { transform: translateX(-120px) scale(.94); filter: blur(6px); transition: opacity .9s cubic-bezier(.16,1,.3,1), transform .9s cubic-bezier(.16,1,.3,1), filter .6s ease; }
+.amv-anim [data-rv="r"] { transform: translateX(120px) scale(.94); filter: blur(6px); transition: opacity .9s cubic-bezier(.16,1,.3,1), transform .9s cubic-bezier(.16,1,.3,1), filter .6s ease; }
+.amv-anim [data-rv="s"] { transform: scale(.9); }
+.amv-anim [data-rv].amv-in { opacity: 1; transform: none; filter: none; }
+[data-par] { will-change: transform; }
+@media (prefers-reduced-motion: reduce) {
+  .amv-anim [data-rv] { opacity: 1 !important; transform: none !important; filter: none !important; transition: none !important; }
 }
 @supports (animation-timeline: scroll()) {
   [data-prog] { transform-origin: left; animation: amv-prog linear both; animation-timeline: scroll(root); }
