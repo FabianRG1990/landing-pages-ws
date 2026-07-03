@@ -1,222 +1,171 @@
-<section class="head" data-pad>
-  <div class="kicker"><span></span>Hablemos</div>
-  <h2>Agendá tu cita.</h2>
-  <p class="lead">
-    Contanos qué necesita tu vehículo y te respondemos rápido. También podés escribirnos directo por
-    WhatsApp o llamarnos.
-  </p>
-</section>
+<div>
+  <section data-pad style="position:relative;max-width:1300px;margin:0 auto;padding:clamp(120px,15vh,168px) 44px 20px">
+    <div data-rv [attr.style]="kicker"><span style="width:30px;height:1.5px;background:#E11D2E"></span>Hablemos</div>
+    <h2 data-rv [attr.style]="h2Style">Agendá tu cita.</h2>
+    <p data-rv [attr.style]="lead">Contanos qué necesita tu vehículo y te respondemos rápido. También podés escribirnos directo por WhatsApp o llamarnos.</p>
+  </section>
+  <section data-pad style="max-width:1240px;margin:0 auto;padding:16px 44px clamp(80px,10vw,120px)">
+    <div data-split style="display:grid;grid-template-columns:1.14fr .86fr;gap:26px;align-items:start">
 
-<section class="grid" data-pad data-split>
-  <!-- ================= FORMULARIO ================= -->
-  <form class="form" (submit)="submit($event)">
-    <div class="f-head">
-      <span class="f-ico">
-        <amv-icon [paths]="['M8 3v4M16 3v4', 'M3 9h18']" [size]="22" />
-      </span>
-      <div>
-        <div class="f-t">Solicitud de cita</div>
-        <div class="f-s">Completá los datos y generamos tu orden en PDF</div>
-      </div>
-    </div>
+      <!-- BOOKING FORM -->
+      <form (submit)="submit($event)" style="position:relative;overflow:hidden;border-radius:24px;background:linear-gradient(168deg,rgba(255,255,255,.06),rgba(255,255,255,.015));border:1px solid rgba(255,255,255,.1);box-shadow:0 34px 90px rgba(0,0,0,.42)">
+        <div aria-hidden="true" style="position:absolute;left:0;right:0;top:0;height:2px;background:linear-gradient(90deg,transparent,rgba(225,29,46,.7) 30%,rgba(255,90,98,.95) 50%,rgba(225,29,46,.7) 70%,transparent)"></div>
+        <div style="display:flex;align-items:center;gap:15px;padding:26px clamp(22px,3vw,34px);border-bottom:1px solid rgba(255,255,255,.08)">
+          <span style="display:inline-flex;width:50px;height:50px;flex-shrink:0;border-radius:14px;align-items:center;justify-content:center;background:rgba(225,29,46,.13);border:1px solid rgba(225,29,46,.28)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#E11D2E" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2.4"/><path d="M3 10h18M8 3v4M16 3v4"/><path d="M8 14.5l2.5 2.5L16 12"/></svg></span>
+          <div><div style="font-family:'Barlow Condensed',sans-serif;font-style:italic;font-weight:700;text-transform:uppercase;font-size:25px;line-height:1;color:#fff">Solicitud de cita</div><div style="font-family:'Manrope',sans-serif;font-size:13px;color:#9a9da3;margin-top:3px">Completá los datos y generamos tu orden en PDF</div></div>
+        </div>
+        <div style="padding:clamp(22px,3vw,32px)">
+          <div [attr.style]="fsec">Tus datos</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+            <label [attr.style]="field"><span [attr.style]="label">Nombre completo *</span><input [value]="f().nombre" (input)="setField('nombre',$event)" placeholder="Ej: Juan Pérez" [attr.style]="input"></label>
+            <label [attr.style]="field"><span [attr.style]="label">Teléfono / WhatsApp *</span><input [value]="f().tel" (input)="setField('tel',$event)" placeholder="8888-8888" [attr.style]="input"></label>
+          </div>
+          <label [attr.style]="field + ';margin-top:14px'"><span [attr.style]="label">Correo <span style="color:#6b6e74;text-transform:none;letter-spacing:0">(opcional)</span></span><input [value]="f().correo" (input)="setField('correo',$event)" placeholder="tu@correo.com" [attr.style]="input"></label>
 
-    <div class="f-body">
-      <div class="sec">Tus datos</div>
-      <div class="row2">
-        <label><span>Nombre completo *</span>
-          <input [value]="f().nombre" (input)="setField('nombre', $event)" placeholder="Ej: Juan Pérez" /></label>
-        <label><span>Teléfono / WhatsApp *</span>
-          <input [value]="f().tel" (input)="setField('tel', $event)" placeholder="8888-8888" /></label>
-      </div>
-      <label class="mt"><span>Correo <em>(opcional)</em></span>
-        <input [value]="f().correo" (input)="setField('correo', $event)" placeholder="tu@correo.com" /></label>
+          <div [attr.style]="fsec + ';margin-top:26px'">Tu vehículo</div>
+          <div style="display:grid;grid-template-columns:1.7fr 1fr;gap:14px">
+            <label [attr.style]="field"><span [attr.style]="label">Marca y modelo *</span><input [value]="f().marca" (input)="setField('marca',$event)" placeholder="Toyota Hilux" [attr.style]="input"></label>
+            <label [attr.style]="field"><span [attr.style]="label">Año *</span><input [value]="f().anio" (input)="setField('anio',$event)" placeholder="2019" [attr.style]="input"></label>
+          </div>
+          <label [attr.style]="field + ';margin-top:14px'"><span [attr.style]="label">Placa <span style="color:#6b6e74;text-transform:none;letter-spacing:0">(opcional)</span></span><input [value]="f().placa" (input)="setField('placa',$event)" placeholder="ABC-123" [attr.style]="input"></label>
 
-      <div class="sec mt-lg">Tu vehículo</div>
-      <div class="row2 v">
-        <label><span>Marca y modelo *</span>
-          <input [value]="f().marca" (input)="setField('marca', $event)" placeholder="Toyota Hilux" /></label>
-        <label><span>Año *</span>
-          <input [value]="f().anio" (input)="setField('anio', $event)" placeholder="2019" /></label>
-      </div>
-      <label class="mt"><span>Placa <em>(opcional)</em></span>
-        <input [value]="f().placa" (input)="setField('placa', $event)" placeholder="ABC-123" /></label>
+          <div [attr.style]="fsec + ';margin-top:26px'">Preferencia de cita</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+            <label [attr.style]="field"><span [attr.style]="label">Fecha preferida *</span>
+              <button type="button" (click)="toggleCal()" [attr.style]="pickBtn()"><span [attr.style]="pickVal()">{{ fechaLabel() }}</span><span style="display:inline-flex;color:#E11D2E"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2.4"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></span></button>
+            </label>
+            <label [attr.style]="field"><span [attr.style]="label">Momento del día *</span>
+              <div style="display:flex;gap:8px">
+                @for (h of periodoOpts(); track h.k) {
+                  <button type="button" (click)="setPeriodo(h.k)" [attr.style]="h.style">
+                    @if (h.k === 'Mañana') { <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4 12H2M22 12h-2M5 5l1.5 1.5M17.5 17.5L19 19M19 5l-1.5 1.5M6.5 17.5L5 19"/></svg> }
+                    @else { <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M20 14.5A8 8 0 019.5 4 7 7 0 1020 14.5z"/></svg> }
+                    {{ h.k }}
+                  </button>
+                }
+              </div>
+            </label>
+          </div>
 
-      <div class="sec mt-lg">Preferencia de cita</div>
-      <div class="row2">
-        <label><span>Fecha preferida *</span>
-          <button class="picker" type="button" (click)="store.toggleCal()">
-            <span [class.dim]="!f().fecha">{{ fechaLabel() }}</span>
-            <amv-icon [paths]="['M8 3v4M16 3v4', 'M3 9h18']" [size]="18" />
+          @if (calOpen()) {
+            <div style="margin-top:12px;border-radius:16px;border:1px solid rgba(255,255,255,.12);background:linear-gradient(168deg,rgba(20,21,26,.98),rgba(14,14,18,.98));box-shadow:0 24px 60px rgba(0,0,0,.5);padding:16px 16px 14px">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+                <button type="button" (click)="calPrev()" [attr.style]="calNav"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></button>
+                <span style="font-family:'Barlow Condensed',sans-serif;font-style:italic;font-weight:700;text-transform:uppercase;font-size:18px;letter-spacing:.02em;color:#EDEFF2">{{ calMonthLabel() }}</span>
+                <button type="button" (click)="calNext()" [attr.style]="calNav"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:5px">
+                @for (d of calDows; track $index) { <span style="text-align:center;font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:11px;letter-spacing:.1em;color:#6b6e74">{{ d }}</span> }
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px">
+                @for (c of calCells(); track $index) {
+                  <button type="button" (click)="pick(c)" [disabled]="c.disabled" [attr.style]="c.style">{{ c.d }}</button>
+                }
+              </div>
+              <div style="display:flex;align-items:center;gap:7px;margin-top:12px;padding-top:11px;border-top:1px solid rgba(255,255,255,.07)"><span style="width:6px;height:6px;border-radius:50%;background:#e06a6a"></span><span style="font-family:'Manrope',sans-serif;font-size:11.5px;color:#7c7f85">Sábados y domingos cerrado</span></div>
+            </div>
+          }
+
+          @if (showHoras()) {
+            <div style="margin-top:13px">
+              <span [attr.style]="label + ';display:block;margin-bottom:9px'">Hora aproximada de llegada</span>
+              <div style="display:flex;flex-wrap:wrap;gap:8px">
+                @for (h of horaSlots(); track h.h) {
+                  <button type="button" (click)="pickHora(h.h)" [attr.style]="h.style">{{ h.h }}</button>
+                }
+              </div>
+            </div>
+          }
+
+          <div [attr.style]="fsec + ';margin-top:26px'">¿Qué necesitás? *</div>
+          <button type="button" (click)="openSvc()" [attr.style]="svcTrigger()">
+            <span style="display:flex;align-items:center;gap:12px;min-width:0"><span style="display:inline-flex;width:38px;height:38px;flex-shrink:0;border-radius:10px;align-items:center;justify-content:center;background:rgba(225,29,46,.13);border:1px solid rgba(225,29,46,.26)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E11D2E" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a3.5 3.5 0 00-4.7 4.5l-6.3 6.3a1.8 1.8 0 002.5 2.5l6.3-6.3a3.5 3.5 0 004.5-4.7l-2 2-2-.5-.5-2 2-2z"/><path d="M15.5 15.5l3.5 3.5"/></svg></span><span style="font-family:'Manrope',sans-serif;font-weight:600;font-size:14.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" [style.color]="svcSummaryColor()">{{ svcSummary() }}</span></span>
+            <span [attr.style]="svcTriggerBadge()">{{ svcBadge() }}</span>
           </button>
-        </label>
-        <label><span>Momento del día *</span>
-          <div class="seg">
-            @for (p of periodos; track p) {
-              <button type="button" [class.on]="f().periodo === p" (click)="store.setPeriodo(p)">{{ p }}</button>
-            }
-          </div>
-        </label>
-      </div>
+          @if (hasSvc()) {
+            <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:11px">
+              @for (c of svcSelChips(); track c.label) {
+                <span style="display:inline-flex;align-items:center;gap:7px;padding:7px 8px 7px 13px;border-radius:100px;background:rgba(225,29,46,.14);border:1px solid rgba(225,29,46,.35);font-family:'Manrope',sans-serif;font-weight:600;font-size:12.5px;color:#fff">{{ c.label }}<button type="button" (click)="toggleServicio(c.label)" aria-label="Quitar" style="display:inline-flex;width:18px;height:18px;border-radius:50%;align-items:center;justify-content:center;background:rgba(255,255,255,.14);border:0;color:#fff;cursor:pointer"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></span>
+              }
+            </div>
+          }
 
-      @if (store.calOpen()) {
-        <div class="cal">
-          <div class="cal-head">
-            <button type="button" (click)="store.calShift(-1)" aria-label="Mes anterior">‹</button>
-            <span>{{ monthLabel() }}</span>
-            <button type="button" (click)="store.calShift(1)" aria-label="Mes siguiente">›</button>
-          </div>
-          <div class="cal-dow">@for (d of dows; track $index) { <span>{{ d }}</span> }</div>
-          <div class="cal-grid">
-            @for (c of calCells(); track $index) {
-              <button
-                type="button"
-                class="cell"
-                [class.empty]="!c.d"
-                [class.disabled]="c.disabled"
-                [class.selected]="c.selected"
-                [class.today]="c.today"
-                [disabled]="c.disabled"
-                (click)="pick(c)"
-              >{{ c.d }}</button>
-            }
-          </div>
-          <div class="cal-note"><span></span>Sábados y domingos cerrado</div>
+          <label [attr.style]="field + ';margin-top:22px'"><span [attr.style]="label">Contanos qué le pasa a tu carro</span><textarea [value]="f().detalle" (input)="setField('detalle',$event)" rows="3" placeholder="Ej: hace un ruido al frenar, la luz del motor encendida…" [attr.style]="input + ';resize:vertical;min-height:84px;line-height:1.5'"></textarea></label>
+
+          @if (formErr()) { <div style="margin-top:14px;padding:12px 15px;border-radius:11px;background:rgba(225,29,46,.12);border:1px solid rgba(225,29,46,.32);font-family:'Manrope',sans-serif;font-size:13px;line-height:1.55;color:#ffb4b9"><strong>Faltan datos para generar la cita.</strong> Completá: {{ formErrList() }}</div> }
+
+          <button type="submit" class="amv-btn" style="margin-top:22px;width:100%;display:inline-flex;align-items:center;justify-content:center;gap:11px;padding:17px;border-radius:14px;background:linear-gradient(135deg,#FF3B41,#E11D2E 60%,#B00D1B);color:#fff;font-family:'Manrope',sans-serif;font-weight:700;font-size:15.5px;box-shadow:0 14px 34px rgba(225,29,46,.42),inset 0 1px 0 rgba(255,255,255,.3)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg> Generar orden de cita</button>
+          <p style="margin:13px 0 0;font-family:'Manrope',sans-serif;font-size:12px;line-height:1.55;color:#7c7f85;text-align:center">Verás tu orden en PDF lista para revisar. Luego la descargás o nos la enviás por WhatsApp.</p>
         </div>
-      }
+      </form>
 
-      @if (f().periodo) {
-        <div class="hours">
-          <span class="h-lbl">Hora aproximada de llegada</span>
-          <div class="h-slots">
-            @for (h of store.hourSlots(); track h) {
-              <button type="button" [class.on]="f().hora === h" (click)="store.pickHora(h)">{{ h }}</button>
-            }
-          </div>
-        </div>
-      }
+      <!-- CONTACT RAIL -->
+      <div style="display:flex;flex-direction:column;gap:13px">
+        <a [href]="waLink" target="_blank" rel="noopener" class="amv-ctcard" [attr.style]="ctCard"><span [attr.style]="ctIco"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.2A9.7 9.7 0 002.3 11.9c0 1.7.44 3.35 1.29 4.82L2.2 21.8l5.2-1.36a9.65 9.65 0 004.6 1.17h.01A9.7 9.7 0 0012 2.2zm0 17.6h-.01a8 8 0 01-4.08-1.12l-.29-.17-3.03.79.81-2.95-.19-.3a8.05 8.05 0 011.24-9.9 8 8 0 0113.6 5.66c0 4.42-3.6 8-8.05 8zm4.4-6.02c-.24-.12-1.43-.7-1.65-.78-.22-.08-.38-.12-.54.12-.16.24-.62.78-.76.94-.14.16-.28.18-.52.06-.24-.12-1.02-.38-1.94-1.2-.72-.64-1.2-1.43-1.34-1.67-.14-.24-.02-.37.1-.49.11-.11.24-.28.36-.42.12-.14.16-.24.24-.4.08-.16.04-.3-.02-.42-.06-.12-.54-1.3-.74-1.78-.2-.47-.4-.4-.54-.41l-.46-.01c-.16 0-.42.06-.64.3-.22.24-.84.82-.84 2 0 1.18.86 2.32.98 2.48.12.16 1.7 2.6 4.12 3.64.58.25 1.03.4 1.38.51.58.18 1.1.16 1.52.1.46-.07 1.43-.58 1.63-1.15.2-.56.2-1.05.14-1.15-.06-.1-.22-.16-.46-.28z"/></svg></span><span style="flex:1"><span [attr.style]="ctK">WhatsApp</span><span [attr.style]="ctV">8455-9609</span></span><span [attr.style]="ctArrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></a>
+        <a href="tel:44195703" class="amv-ctcard" [attr.style]="ctCard"><span [attr.style]="ctIco"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#E11D2E" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 4h-2A1.5 1.5 0 003 5.6C3.3 13.9 10.1 20.7 18.4 21a1.5 1.5 0 001.6-1.5v-2a1.5 1.5 0 00-1.2-1.47l-2.3-.46a1.5 1.5 0 00-1.5.62l-.7.98a12 12 0 01-4.9-4.9l.98-.7a1.5 1.5 0 00.62-1.5l-.46-2.3A1.5 1.5 0 006.5 4z"/></svg></span><span style="flex:1"><span [attr.style]="ctK">Teléfono</span><span [attr.style]="ctV">4419-5703</span></span><span [attr.style]="ctArrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></a>
+        <a [href]="mailLink" class="amv-ctcard" [attr.style]="ctCard"><span [attr.style]="ctIco"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#E11D2E" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2.4"/><path d="M3.5 7.5l7.3 5.2a2 2 0 002.4 0l7.3-5.2"/></svg></span><span style="flex:1;min-width:0"><span [attr.style]="ctK">Correo</span><span [attr.style]="ctV + ';font-size:14.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block'">servicioautomotivo&#64;gmail.com</span></span></a>
 
-      <div class="sec mt-lg">¿Qué necesitás? *</div>
-      <button class="svc-trigger" type="button" [class.has]="store.hasServices()" (click)="store.openSvc()">
-        <span class="left">
-          <span class="s-ico"><amv-icon [paths]="['M14.7 6.3a3.5 3.5 0 00-4.7 4.5l-6.3 6.3a1.8 1.8 0 002.5 2.5l6.3-6.3a3.5 3.5 0 004.5-4.7l-2 2-2-.5-.5-2 2-2z', 'M15.5 15.5l3.5 3.5']" [size]="18" /></span>
-          <span class="s-sum">{{ svcSummary() }}</span>
-        </span>
-        <span class="s-badge">{{ selectedServices().length || 'Elegir' }}</span>
-      </button>
-      @if (store.hasServices()) {
-        <div class="chips">
-          @for (name of selectedServices(); track name) {
-            <span class="chip">{{ name }}
-              <button type="button" (click)="store.toggleServicio(name)" aria-label="Quitar">✕</button>
-            </span>
+        <div style="border-radius:18px;border:1px solid rgba(255,255,255,.09);background:linear-gradient(168deg,rgba(255,255,255,.045),rgba(255,255,255,.01));padding:20px 22px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px"><div style="display:flex;align-items:center;gap:10px"><span [attr.style]="ctIcoSm"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E11D2E" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3 2"/></svg></span><span style="font-family:'Barlow Condensed',sans-serif;font-style:italic;font-weight:700;text-transform:uppercase;font-size:18px;color:#EDEFF2">Horario</span></div><span [attr.style]="openBadge()">{{ openText() }}</span></div>
+          @for (h of horario; track h.d) {
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-top:1px solid rgba(255,255,255,.06)"><span style="font-family:'Manrope',sans-serif;font-size:13.5px;font-weight:500;color:#d1d4d9">{{ h.d }}</span><span style="font-family:'Manrope',sans-serif;font-size:13.5px;font-variant-numeric:tabular-nums" [style.color]="h.c">{{ h.h }}</span></div>
           }
         </div>
-      }
 
-      <label class="mt-lg"><span>Contanos qué le pasa a tu carro</span>
-        <textarea rows="3" [value]="f().detalle" (input)="setField('detalle', $event)"
-          placeholder="Ej: hace un ruido al frenar, la luz del motor encendida…"></textarea></label>
-
-      @if (store.formErr()) {
-        <div class="err">
-          <strong>Faltan datos para generar la cita.</strong> Completá: {{ store.formErrList() }}
+        <div style="position:relative;border-radius:18px;overflow:hidden;border:1px solid rgba(255,255,255,.09);background:#0e0f13">
+          <iframe title="Ubicación del taller Automotivo" [src]="mapSrc" style="display:block;width:100%;height:300px;border:0;filter:invert(.92) hue-rotate(180deg) brightness(.95) contrast(.92)" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+          <div style="pointer-events:none;position:absolute;left:0;right:0;bottom:0;height:78px;background:linear-gradient(180deg,transparent,rgba(8,8,10,.9))"></div>
+          <div style="pointer-events:none;position:absolute;left:16px;right:16px;bottom:13px;display:flex;align-items:flex-end;justify-content:space-between;gap:12px">
+            <div><div style="font-family:'Barlow Condensed',sans-serif;font-style:italic;font-weight:700;text-transform:uppercase;font-size:17px;color:#fff;line-height:1.05">Santo Domingo · San Miguel</div><div style="font-family:'Manrope',sans-serif;font-size:12px;color:#c3c6cc;margin-top:2px">Heredia, Costa Rica</div></div>
+            <a [href]="mapLink" target="_blank" rel="noopener" style="pointer-events:auto;display:inline-flex;align-items:center;gap:6px;flex-shrink:0;padding:8px 13px;border-radius:100px;background:#E11D2E;text-decoration:none;font-family:'Manrope',sans-serif;font-weight:700;font-size:12px;color:#fff">Cómo llegar <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+          </div>
         </div>
-      }
-
-      <button class="amv-btn submit" type="submit">Generar orden de cita</button>
-      <p class="fine">Verás tu orden en PDF lista para revisar. Luego la descargás o nos la enviás por WhatsApp.</p>
-    </div>
-  </form>
-
-  <!-- ================= RIEL DE CONTACTO ================= -->
-  <div class="rail">
-    <a class="amv-ctcard" [href]="waLink" target="_blank" rel="noopener">
-      <span class="ct-ico"><svg width="22" height="22" viewBox="0 0 24 24" fill="#e6e8ec" aria-hidden="true"><path d="M12 2.2A9.7 9.7 0 002.3 11.9c0 1.7.44 3.35 1.29 4.82L2.2 21.8l5.2-1.36A9.65 9.65 0 1012 2.2zm0 17.6a8 8 0 01-4.08-1.12l-.29-.17-3.03.79.81-2.95-.19-.3A8.05 8.05 0 1112 19.8z"/></svg></span>
-      <span class="ct-body"><span class="ct-k">WhatsApp</span><span class="ct-v">{{ wa }}</span></span>
-    </a>
-    <a class="amv-ctcard" [href]="telLink">
-      <span class="ct-ico"><amv-icon [paths]="['M6.5 4h-2A1.5 1.5 0 003 5.6C3.3 13.9 10.1 20.7 18.4 21a1.5 1.5 0 001.6-1.5v-2a1.5 1.5 0 00-1.2-1.47l-2.3-.46a1.5 1.5 0 00-1.5.62l-.7.98a12 12 0 01-4.9-4.9l.98-.7a1.5 1.5 0 00.62-1.5l-.46-2.3A1.5 1.5 0 006.5 4z']" /></span>
-      <span class="ct-body"><span class="ct-k">Teléfono</span><span class="ct-v">{{ tel }}</span></span>
-    </a>
-    <a class="amv-ctcard" [href]="mailLink">
-      <span class="ct-ico"><amv-icon [paths]="['M3.5 5.5h17v13h-17z', 'M4 7l8 6 8-6']" /></span>
-      <span class="ct-body min"><span class="ct-k">Correo</span><span class="ct-v sm">{{ email }}</span></span>
-    </a>
-
-    <!-- horario -->
-    <div class="hrs">
-      <div class="hrs-top">
-        <span class="hrs-t"><span class="s-ico sm"><amv-icon [paths]="['M12 7.5V12l3 2']" [size]="18" /></span>Horario</span>
-        <span class="badge" [class.open]="openNow">{{ openNow ? 'Abierto ahora' : 'Cerrado ahora' }}</span>
       </div>
-      @for (r of schedule; track r.day) {
-        <div class="hrs-row"><span>{{ r.day }}</span><span [class.closed]="r.closed">{{ r.hours }}</span></div>
-      }
     </div>
+  </section>
 
-    <!-- mapa -->
-    <div class="map">
-      <iframe title="Ubicación del taller Automotivo" [src]="mapSrc" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
-      <div class="map-fade"></div>
-      <div class="map-info">
-        <div>
-          <div class="m-t">Santo Domingo · San Miguel</div>
-          <div class="m-s">Heredia, Costa Rica</div>
+  <!-- SERVICES DIALOG -->
+  @if (svcOpen()) {
+    <div (click)="closeSvc()" style="position:fixed;inset:0;z-index:1660;display:flex;align-items:center;justify-content:center;padding:clamp(10px,3vw,40px);background:rgba(4,4,6,.76);-webkit-backdrop-filter:blur(9px);backdrop-filter:blur(9px)">
+      <div (click)="stop($event)" style="position:relative;width:min(760px,100%);max-height:92vh;display:flex;flex-direction:column;border-radius:22px;overflow:hidden;background:linear-gradient(180deg,#16171c,#101015);border:1px solid rgba(255,255,255,.12);box-shadow:0 44px 130px rgba(0,0,0,.72)">
+        <div aria-hidden="true" style="position:absolute;left:0;right:0;top:0;height:2px;background:linear-gradient(90deg,transparent,rgba(225,29,46,.7) 30%,rgba(255,90,98,.95) 50%,rgba(225,29,46,.7) 70%,transparent)"></div>
+        <div style="position:relative;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:20px 24px;border-bottom:1px solid rgba(255,255,255,.09)">
+          <div style="display:flex;align-items:center;gap:13px"><img src="assets/automotivo-logo.png" alt="Automotivo" style="height:38px;width:auto"><div><div style="font-family:'Barlow Condensed',sans-serif;font-style:italic;font-weight:700;text-transform:uppercase;font-size:21px;color:#fff;line-height:1">¿Qué necesita tu carro?</div><div style="font-family:'Manrope',sans-serif;font-size:12.5px;color:#9a9da3;margin-top:2px">Elegí uno o varios servicios</div></div></div>
+          <button (click)="closeSvc()" aria-label="Cerrar" style="display:inline-flex;width:38px;height:38px;border-radius:10px;align-items:center;justify-content:center;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:#c3c6cc;cursor:pointer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
         </div>
-        <a class="m-go" [href]="mapsDir" target="_blank" rel="noopener">Cómo llegar →</a>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ================= DIÁLOGO DE SERVICIOS ================= -->
-@if (store.svcOpen()) {
-  <div class="overlay" (click)="store.closeSvc()">
-    <div class="dialog" (click)="$event.stopPropagation()">
-      <div class="d-head">
-        <div class="d-brand">
-          <img src="assets/automotivo-logo.png" alt="Automotivo" />
-          <div><div class="d-t">¿Qué necesita tu carro?</div><div class="d-s">Elegí uno o varios servicios</div></div>
+        <div style="position:relative;overflow-y:auto;padding:20px 24px;display:grid;grid-template-columns:1fr 1fr;gap:11px">
+          @for (c of svcCards(); track c.t) {
+            <button type="button" (click)="toggleServicio(c.t)" [attr.style]="c.style">
+              <span [attr.style]="c.iconWrap"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" [attr.stroke]="c.on ? '#fff' : '#E11D2E'" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">@for (p of c.ic; track $index) { <path [attr.d]="p"></path> }</svg></span>
+              <span style="flex:1;min-width:0;text-align:left"><span style="display:block;font-family:'Barlow Condensed',sans-serif;font-style:italic;font-weight:700;text-transform:uppercase;font-size:16.5px;color:#F2F3F5;line-height:1.05">{{ c.t }}</span><span style="display:block;font-family:'Manrope',sans-serif;font-size:12px;line-height:1.4;color:#9a9da3;margin-top:3px">{{ c.d }}</span></span>
+              <span [attr.style]="c.checkWrap">@if (c.on) { <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 6"/></svg> }</span>
+            </button>
+          }
         </div>
-        <button class="x" type="button" (click)="store.closeSvc()" aria-label="Cerrar">✕</button>
-      </div>
-      <div class="d-grid">
-        @for (s of services; track s.key) {
-          <button type="button" class="d-card" [class.on]="selectedServices().includes(s.title)" (click)="store.toggleServicio(s.title)">
-            <span class="d-ico"><amv-icon [paths]="s.icon" [stroke]="selectedServices().includes(s.title) ? '#fff' : '#E11D2E'" /></span>
-            <span class="d-txt"><span class="dc-t">{{ s.title }}</span><span class="dc-d">{{ s.short }}</span></span>
-            <span class="d-check" [class.on]="selectedServices().includes(s.title)">✓</span>
-          </button>
-        }
-      </div>
-      <div class="d-foot">
-        <span class="d-count">{{ selectedServices().length }} seleccionado(s)</span>
-        <button class="d-clear" type="button" (click)="store.clearServicios()">Limpiar</button>
-        <button class="amv-btn d-ok" type="button" (click)="store.closeSvc()">Listo</button>
-      </div>
-    </div>
-  </div>
-}
-
-<!-- ================= MODAL PDF ================= -->
-@if (store.pdfOpen()) {
-  <div class="overlay">
-    <div class="pdf">
-      <div class="p-head">
-        <div class="p-title">
-          <span class="p-ico"><amv-icon [paths]="['M14 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V8z', 'M14 3v5h5M9 13h6M9 17h4']" [size]="18" [stroke]="'#E11D2E'" /></span>
-          <div><div class="pt-t">Vista previa de tu cita</div><div class="pt-s">Folio {{ store.pdfFolio() }}</div></div>
+        <div style="position:relative;display:flex;align-items:center;gap:12px;padding:16px 24px;border-top:1px solid rgba(255,255,255,.09)">
+          <span style="flex:1;font-family:'Manrope',sans-serif;font-size:13px;color:#9a9da3">{{ svcDialogCount() }}</span>
+          <button (click)="clearSvc()" style="padding:11px 18px;border-radius:11px;background:transparent;border:1px solid rgba(255,255,255,.14);color:#c3c6cc;font-family:'Manrope',sans-serif;font-weight:600;font-size:13.5px;cursor:pointer">Limpiar</button>
+          <button (click)="closeSvc()" class="amv-btn" style="padding:11px 26px;border-radius:11px;background:linear-gradient(135deg,#FF3B41,#E11D2E 60%,#B00D1B);color:#fff;font-family:'Manrope',sans-serif;font-weight:700;font-size:14px;box-shadow:0 12px 28px rgba(225,29,46,.4),inset 0 1px 0 rgba(255,255,255,.28);cursor:pointer">Listo</button>
         </div>
-        <button class="x" type="button" (click)="store.closePdf()" aria-label="Cerrar">✕</button>
-      </div>
-      @if (pdfSrc(); as src) {
-        <iframe title="Vista previa PDF" [src]="src"></iframe>
-      }
-      <div class="p-foot">
-        <span class="p-note">Revisá tu orden. Descargala o envianosla por WhatsApp y la coordinamos.</span>
-        <button class="p-dl" type="button" (click)="store.downloadPdf()">Descargar PDF</button>
-        <button class="amv-btn p-wa" type="button" (click)="store.sendWhatsappOrder()">Enviar por WhatsApp</button>
       </div>
     </div>
-  </div>
-}
+  }
+
+  <!-- PDF PREVIEW MODAL -->
+  @if (pdfOpen()) {
+    <div style="position:fixed;inset:0;z-index:1650;display:flex;align-items:center;justify-content:center;padding:clamp(10px,3vw,40px);background:rgba(4,4,6,.74);-webkit-backdrop-filter:blur(9px);backdrop-filter:blur(9px)">
+      <div style="position:relative;width:min(940px,100%);max-height:94vh;display:flex;flex-direction:column;border-radius:20px;overflow:hidden;background:#141418;border:1px solid rgba(255,255,255,.12);box-shadow:0 44px 130px rgba(0,0,0,.72)">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px 22px;border-bottom:1px solid rgba(255,255,255,.09)">
+          <div style="display:flex;align-items:center;gap:13px"><span style="display:inline-flex;width:42px;height:42px;border-radius:11px;align-items:center;justify-content:center;background:rgba(225,29,46,.13);border:1px solid rgba(225,29,46,.28)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E11D2E" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg></span><div><div style="font-family:'Barlow Condensed',sans-serif;font-style:italic;font-weight:700;text-transform:uppercase;font-size:20px;color:#fff;line-height:1">Vista previa de tu cita</div><div style="font-family:'Manrope',sans-serif;font-size:12.5px;color:#9a9da3;font-variant-numeric:tabular-nums">Folio {{ pdfFolio() }}</div></div></div>
+          <button (click)="closePdf()" aria-label="Cerrar" style="display:inline-flex;width:38px;height:38px;border-radius:10px;align-items:center;justify-content:center;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:#c3c6cc;cursor:pointer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+        </div>
+        @if (pdfSrc(); as src) { <iframe title="Vista previa PDF" [src]="src" style="flex:1;width:100%;min-height:min(62vh,640px);border:0;background:#525659"></iframe> }
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:16px 22px;border-top:1px solid rgba(255,255,255,.09)">
+          <span style="flex:1;min-width:150px;font-family:'Manrope',sans-serif;font-size:12.5px;line-height:1.5;color:#8b8e94">Revisá tu orden. Descargala o envianosla por WhatsApp y la coordinamos.</span>
+          <button (click)="downloadPdf()" style="display:inline-flex;align-items:center;gap:9px;padding:13px 22px;border-radius:12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.16);color:#EDEFF2;font-family:'Manrope',sans-serif;font-weight:700;font-size:14px;cursor:pointer"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v12M7 11l5 5 5-5M5 20h14"/></svg> Descargar PDF</button>
+          <button (click)="sendWhatsappPdf()" class="amv-btn" style="display:inline-flex;align-items:center;gap:9px;padding:13px 24px;border-radius:12px;background:linear-gradient(135deg,#FF3B41,#E11D2E 60%,#B00D1B);color:#fff;font-family:'Manrope',sans-serif;font-weight:700;font-size:14px;box-shadow:0 12px 28px rgba(225,29,46,.4),inset 0 1px 0 rgba(255,255,255,.28);cursor:pointer"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.2A9.7 9.7 0 002.3 11.9c0 1.7.44 3.35 1.29 4.82L2.2 21.8l5.2-1.36a9.65 9.65 0 004.6 1.17h.01A9.7 9.7 0 0012 2.2zm4.4 11.58c-.24-.12-1.43-.7-1.65-.78-.22-.08-.38-.12-.54.12-.16.24-.62.78-.76.94-.14.16-.28.18-.52.06-.24-.12-1.02-.38-1.94-1.2-.72-.64-1.2-1.43-1.34-1.67-.14-.24-.02-.37.1-.49.11-.11.24-.28.36-.42.12-.14.16-.24.24-.4.08-.16.04-.3-.02-.42-.06-.12-.54-1.3-.74-1.78-.2-.47-.4-.4-.54-.41l-.46-.01c-.16 0-.42.06-.64.3-.22.24-.84.82-.84 2 0 1.18.86 2.32.98 2.48.12.16 1.7 2.6 4.12 3.64.58.25 1.03.4 1.38.51.58.18 1.1.16 1.52.1.46-.07 1.43-.58 1.63-1.15.2-.56.2-1.05.14-1.15-.06-.1-.22-.16-.46-.28z"/></svg> Enviar por WhatsApp</button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

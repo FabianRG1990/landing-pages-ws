@@ -29,6 +29,7 @@ export class SiteNavComponent {
   private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
 
   readonly screen = this.store.screen;
+  readonly menuOpen = this.store.menuOpen;
   /** true cuando el usuario bajó (>46px) y la barra se contrae a una pestaña */
   readonly navScrolled = signal(false);
   /** cuando está contraída, si el usuario la desplegó con la pestaña */
@@ -39,6 +40,18 @@ export class SiteNavComponent {
     { id: 'nosotros', label: 'Nosotros' },
     { id: 'contacto', label: 'Contacto' },
   ];
+  readonly mobileItems: { id: ScreenId; label: string; num: string }[] = [
+    { id: 'inicio', label: 'Inicio', num: '01' },
+    { id: 'servicios', label: 'Servicios', num: '02' },
+    { id: 'galeria', label: 'Galería', num: '03' },
+    { id: 'nosotros', label: 'Nosotros', num: '04' },
+    { id: 'contacto', label: 'Contacto', num: '05' },
+  ];
+  readonly mobileStyle = computed(() => {
+    const o = this.menuOpen();
+    return 'position:fixed;inset:0;z-index:1400;background:linear-gradient(160deg,#111114,#050506);display:flex;align-items:center;justify-content:center;padding:90px 30px;clip-path:' +
+      (o ? 'circle(150% at 92% 5%)' : 'circle(0% at 92% 5%)') + ';transition:clip-path .6s cubic-bezier(.76,0,.24,1);pointer-events:' + (o ? 'auto' : 'none');
+  });
 
   private readonly barShown = computed(() => !this.navScrolled() || this.navOpen());
   private readonly collapsed = computed(() => this.navScrolled() && !this.navOpen());
