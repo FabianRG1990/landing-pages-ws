@@ -1,45 +1,29 @@
-<section class="head" data-pad>
-  <div class="kicker"><span></span>Nuestro trabajo</div>
-  <h2>El taller por dentro.</h2>
-  <p class="lead">
-    Cada vehículo que pasa por Automotivo sale mejor de como entró. Un vistazo a lo que hacemos día
-    a día.
-  </p>
-</section>
-
-<section class="filters" data-pad>
-  <div class="chips">
-    @for (f of filters; track f.key) {
-      <button
-        class="chip"
-        type="button"
-        [class.active]="filter() === f.key"
-        (click)="setFilter(f.key)"
-      >
-        <span class="c-ico"><amv-icon [paths]="f.icon" [stroke]="filter() === f.key ? '#fff' : '#E11D2E'" /></span>
-        {{ f.label }}
-        <span class="c-count">{{ f.count }}</span>
-      </button>
-    }
-  </div>
-</section>
-
-<section class="grid-wrap" data-pad>
-  <div class="collage">
-    @for (t of tiles(); track t.id) {
-      <div class="amv-galcard" [class]="t.span" [style.animation-delay]="t.delay">
-        @if (t.src) {
-          <img [src]="t.src" [alt]="t.label" />
-        } @else {
-          <div class="ph"><span>Foto por agregar</span></div>
-        }
-        <div class="amv-galtag"><span class="d"></span>{{ t.label }}</div>
-      </div>
-    }
-  </div>
-  <p class="follow">
-    ¿Querés ver más? Seguinos en
-    <a class="amv-under" [href]="ig" target="_blank" rel="noopener">Instagram</a> y
-    <a class="amv-under" [href]="fb" target="_blank" rel="noopener">Facebook</a>.
-  </p>
-</section>
+<div>
+  <section data-pad style="position:relative;max-width:1300px;margin:0 auto;padding:clamp(120px,15vh,168px) 44px 30px">
+    <div data-rv [attr.style]="kicker"><span style="width:30px;height:1.5px;background:#E11D2E"></span>Nuestro trabajo</div>
+    <h2 data-rv [attr.style]="h2Style">El taller por dentro.</h2>
+    <p data-rv [attr.style]="lead">Cada vehículo que pasa por Automotivo sale mejor de como entró. Un vistazo a lo que hacemos día a día.</p>
+  </section>
+  <section data-pad style="max-width:1300px;margin:0 auto;padding:6px 44px 20px">
+    <div style="display:flex;flex-wrap:wrap;gap:9px">
+      @for (fl of galFilters(); track fl.k) {
+        <button (click)="setFilter(fl.k)" [attr.style]="fl.style"><span style="display:inline-flex" [style.color]="fl.active ? '#fff' : '#E11D2E'"><amv-icon [paths]="fl.icon" [stroke]="fl.active ? '#fff' : '#E11D2E'" /></span>{{ fl.label }}<span [attr.style]="fl.countStyle">{{ fl.count }}</span></button>
+      }
+    </div>
+  </section>
+  <section data-pad style="max-width:1300px;margin:0 auto;padding:14px 44px clamp(70px,10vw,110px)">
+    <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:12px;grid-auto-rows:min(16vw,168px);grid-auto-flow:dense">
+      @for (g of galleryVisible(); track g.id) {
+        <div class="amv-galcard" [attr.style]="g.wrap">
+          @if (g.src) {
+            <img [src]="g.src" [alt]="g.catLabel" style="width:100%;height:100%;object-fit:cover">
+          } @else {
+            <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:linear-gradient(160deg,#15161a,#0b0b0d);color:#54565c;font-family:'Manrope',sans-serif;font-size:12.5px">Foto próximamente</div>
+          }
+          <div class="amv-galtag" [attr.style]="tagStyle"><span style="width:5px;height:5px;border-radius:50%;background:#E11D2E"></span>{{ g.catLabel }}</div>
+        </div>
+      }
+    </div>
+    <p style="margin:22px 0 0;font-family:'Manrope',sans-serif;font-size:13px;color:#7c7f85">¿Querés ver más? Seguinos en <a [href]="igLink" target="_blank" rel="noopener" class="amv-under" style="color:#E11D2E;font-weight:700">Instagram</a> y <a [href]="fbLink" target="_blank" rel="noopener" class="amv-under" style="color:#E11D2E;font-weight:700">Facebook</a>.</p>
+  </section>
+</div>

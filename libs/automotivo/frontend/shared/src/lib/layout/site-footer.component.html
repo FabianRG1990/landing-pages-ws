@@ -1,75 +1,61 @@
-<footer>
-  <div class="hair" aria-hidden="true"></div>
-  <div class="watermark" aria-hidden="true">AUTOMOTIVO</div>
+<!-- FOOTER — transcripción fiel del original -->
+<footer style="position:relative;z-index:2;overflow:hidden;border-top:1px solid rgba(255,255,255,.07);background:linear-gradient(180deg,rgba(255,255,255,.015),rgba(225,29,46,.05) 320%)">
+  <div aria-hidden="true" style="position:absolute;left:0;right:0;top:0;height:1px;background:linear-gradient(90deg,transparent,rgba(225,29,46,.6) 22%,rgba(255,90,98,.9) 50%,rgba(225,29,46,.6) 78%,transparent);box-shadow:0 0 14px rgba(225,29,46,.4)"></div>
+  <div aria-hidden="true" style="position:absolute;left:50%;bottom:-6%;transform:translateX(-50%);font-family:'Barlow Condensed',sans-serif;font-style:italic;font-weight:700;font-size:clamp(90px,20vw,300px);letter-spacing:-.02em;line-height:.8;color:transparent;-webkit-text-stroke:1px rgba(255,255,255,.045);white-space:nowrap;pointer-events:none">AUTOMOTIVO</div>
 
-  <div class="inner" data-pad>
-    <div class="fgrid" data-fgrid>
-      <!-- marca -->
-      <div class="brand-col">
-        <img class="logo" src="assets/automotivo-logo.png" alt="Automotivo" />
-        <p class="motto">Nuestro motivo<br /><span>sos vos.</span></p>
-        <p class="blurb">
-          Especialistas en tu vehículo, en Santo Domingo de Heredia. Trabajo honesto, precios claros
-          y tu carro tratado como propio.
-        </p>
-        <div class="socials">
-          <a class="amv-soc" [href]="ig" target="_blank" rel="noopener" aria-label="Instagram">
-            <amv-icon [paths]="['M12 8.2a3.8 3.8 0 100 7.6 3.8 3.8 0 000-7.6z', 'M4.5 4.5h15v15h-15z', 'M16.6 7.4h.01']" [stroke]="'#e6e8ec'" />
-          </a>
-          <a class="amv-soc" [href]="fb" target="_blank" rel="noopener" aria-label="Facebook">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="#e6e8ec"><path d="M14 8.5V7c0-.7.3-1 1-1h1.5V3H14c-2.2 0-3.5 1.3-3.5 3.7V8.5H8V12h2.5v9H14v-9h2.3l.5-3.5H14z"/></svg>
-          </a>
-          <a class="amv-soc" [href]="waLink" target="_blank" rel="noopener" aria-label="WhatsApp">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="#e6e8ec"><path d="M12 2.2A9.7 9.7 0 002.3 11.9c0 1.7.44 3.35 1.29 4.82L2.2 21.8l5.2-1.36A9.65 9.65 0 1012 2.2zm0 17.6a8 8 0 01-4.08-1.12l-.29-.17-3.03.79.81-2.95-.19-.3A8.05 8.05 0 1112 19.8z"/></svg>
-          </a>
+  <div data-pad style="position:relative;max-width:1300px;margin:0 auto;padding:clamp(34px,4vw,52px) 44px 0">
+    <div data-fgrid style="display:grid;grid-template-columns:1.6fr 1fr 1fr 1.2fr;gap:clamp(30px,4vw,56px)">
+
+      <div>
+        <div style="display:flex;align-items:center;gap:14px"><img src="assets/automotivo-logo.png" alt="Automotivo" style="height:170px;width:auto;margin:-14px 0;filter:drop-shadow(0 6px 20px rgba(0,0,0,.5))"></div>
+        <p style="margin:20px 0 0;max-width:300px;font-family:'Barlow Condensed',sans-serif;font-style:italic;font-weight:700;text-transform:uppercase;font-size:clamp(22px,2.4vw,30px);line-height:1.02;color:#EDEFF2">Nuestro motivo<br><span style="color:#E11D2E">sos vos.</span></p>
+        <p style="margin:14px 0 0;max-width:320px;font-family:'Manrope',sans-serif;font-size:13.5px;line-height:1.65;color:#8b8e94">Especialistas en tu vehículo, en Santo Domingo de Heredia. Trabajo honesto, precios claros y tu carro tratado como propio.</p>
+        <div style="display:flex;gap:10px;margin-top:22px">
+          <a [href]="igLink" target="_blank" rel="noopener" aria-label="Instagram" class="amv-soc" [attr.style]="socStyle"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#e6e8ec" stroke-width="1.7"><rect x="3" y="3" width="18" height="18" rx="5.4"/><circle cx="12" cy="12" r="4"/><circle cx="17" cy="7" r="1.1" fill="#e6e8ec" stroke="none"/></svg></a>
+          <a [href]="fbLink" target="_blank" rel="noopener" aria-label="Facebook" class="amv-soc" [attr.style]="socStyle"><svg width="20" height="20" viewBox="0 0 24 24" fill="#e6e8ec"><path d="M13.5 21v-8h2.2l.4-3h-2.6V8.1c0-.86.26-1.45 1.5-1.45H16.6V4c-.3-.04-1.24-.13-2.35-.13-2.33 0-3.92 1.42-3.92 4.03V10H8v3h2.33v8h3.17z"/></svg></a>
+          <a [href]="waLink" target="_blank" rel="noopener" aria-label="WhatsApp" class="amv-soc" [attr.style]="socStyle"><svg width="21" height="21" viewBox="0 0 24 24" fill="#e6e8ec"><path d="M12 2.2A9.7 9.7 0 002.3 11.9c0 1.7.44 3.35 1.29 4.82L2.2 21.8l5.2-1.36a9.65 9.65 0 004.6 1.17h.01A9.7 9.7 0 0012 2.2zm0 17.6h-.01a8 8 0 01-4.08-1.12l-.29-.17-3.03.79.81-2.95-.19-.3a8.05 8.05 0 011.24-9.9 8 8 0 0113.6 5.66c0 4.42-3.6 8-8.05 8zm4.4-6.02c-.24-.12-1.43-.7-1.65-.78-.22-.08-.38-.12-.54.12-.16.24-.62.78-.76.94-.14.16-.28.18-.52.06-.24-.12-1.02-.38-1.94-1.2-.72-.64-1.2-1.43-1.34-1.67-.14-.24-.02-.37.1-.49.11-.11.24-.28.36-.42.12-.14.16-.24.24-.4.08-.16.04-.3-.02-.42-.06-.12-.54-1.3-.74-1.78-.2-.47-.4-.4-.54-.41l-.46-.01c-.16 0-.42.06-.64.3-.22.24-.84.82-.84 2 0 1.18.86 2.32.98 2.48.12.16 1.7 2.6 4.12 3.64.58.25 1.03.4 1.38.51.58.18 1.1.16 1.52.1.46-.07 1.43-.58 1.63-1.15.2-.56.2-1.05.14-1.15-.06-.1-.22-.16-.46-.28z"/></svg></a>
         </div>
       </div>
 
-      <!-- explorar -->
-      <div class="col">
-        <h4>Explorar</h4>
-        <div class="links">
-          @for (l of explore; track l.id) {
-            <button class="amv-flink" type="button" (click)="go(l.id)">{{ l.label }}</button>
-          }
+      <div>
+        <h4 [attr.style]="fcol">Explorar</h4>
+        <div style="display:flex;flex-direction:column;gap:11px;margin-top:20px">
+          <a (click)="go('inicio')" class="amv-flink" [attr.style]="flink">Inicio</a>
+          <a (click)="go('servicios')" class="amv-flink" [attr.style]="flink">Servicios</a>
+          <a (click)="go('galeria')" class="amv-flink" [attr.style]="flink">Galería</a>
+          <a (click)="go('nosotros')" class="amv-flink" [attr.style]="flink">Nosotros</a>
+          <a (click)="go('contacto')" class="amv-flink" [attr.style]="flink">Contacto</a>
         </div>
       </div>
 
-      <!-- servicios -->
-      <div class="col">
-        <h4>Servicios</h4>
-        <div class="links">
-          @for (s of svcLinks; track s) {
-            <button class="amv-flink" type="button" (click)="go('servicios')">{{ s }}</button>
-          }
+      <div>
+        <h4 [attr.style]="fcol">Servicios</h4>
+        <div style="display:flex;flex-direction:column;gap:11px;margin-top:20px">
+          <a (click)="go('servicios')" class="amv-flink" [attr.style]="flink">Mecánica general</a>
+          <a (click)="go('servicios')" class="amv-flink" [attr.style]="flink">Diagnóstico scanner</a>
+          <a (click)="go('servicios')" class="amv-flink" [attr.style]="flink">Frenos y suspensión</a>
+          <a (click)="go('servicios')" class="amv-flink" [attr.style]="flink">Aire acondicionado</a>
+          <a (click)="go('servicios')" class="amv-flink" [attr.style]="flink">Preparación RTV</a>
         </div>
       </div>
 
-      <!-- contacto -->
-      <div class="col">
-        <h4>Contacto</h4>
-        <div class="links rows">
-          <a class="amv-flink row" [href]="waLink" target="_blank" rel="noopener">
-            <span class="fico"><amv-icon [paths]="['M4 5h16v11H8l-4 3z', 'M8 9.5h8M8 12.5h5']" /></span>
-            <span><span class="fk">WhatsApp</span><span class="fv">{{ wa }}</span></span>
-          </a>
-          <a class="amv-flink row" [href]="telLink">
-            <span class="fico"><amv-icon [paths]="['M6.6 10.8a15.5 15.5 0 006.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.2.4 2.4.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.6 21 3 13.4 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.4 0 .8-.2 1z']" /></span>
-            <span><span class="fk">Teléfono</span><span class="fv">{{ tel }}</span></span>
-          </a>
-          <a class="amv-flink row" [href]="mapsDir" target="_blank" rel="noopener">
-            <span class="fico"><amv-icon [paths]="['M12 21s7-5.5 7-11a7 7 0 10-14 0c0 5.5 7 11 7 11z', 'M12 12.5a2.5 2.5 0 100-5 2.5 2.5 0 000 5z']" /></span>
-            <span><span class="fk">Taller</span><span class="fv sm">Santo Domingo · San Miguel, Heredia</span></span>
-          </a>
+      <div>
+        <h4 [attr.style]="fcol">Contacto</h4>
+        <div style="display:flex;flex-direction:column;gap:14px;margin-top:20px">
+          <a [href]="waLink" target="_blank" rel="noopener" class="amv-flink" [attr.style]="flinkRow"><span [attr.style]="fico"><svg width="21" height="21" viewBox="0 0 24 24" fill="#e6e8ec"><path d="M12 2.2A9.7 9.7 0 002.3 11.9c0 1.7.44 3.35 1.29 4.82L2.2 21.8l5.2-1.36a9.65 9.65 0 004.6 1.17h.01A9.7 9.7 0 0012 2.2zm4.4 11.58c-.24-.12-1.43-.7-1.65-.78-.22-.08-.38-.12-.54.12-.16.24-.62.78-.76.94-.14.16-.28.18-.52.06-.24-.12-1.02-.38-1.94-1.2-.72-.64-1.2-1.43-1.34-1.67-.14-.24-.02-.37.1-.49.11-.11.24-.28.36-.42.12-.14.16-.24.24-.4.08-.16.04-.3-.02-.42-.06-.12-.54-1.3-.74-1.78-.2-.47-.4-.4-.54-.41l-.46-.01c-.16 0-.42.06-.64.3-.22.24-.84.82-.84 2 0 1.18.86 2.32.98 2.48.12.16 1.7 2.6 4.12 3.64.58.25 1.03.4 1.38.51.58.18 1.1.16 1.52.1.46-.07 1.43-.58 1.63-1.15.2-.56.2-1.05.14-1.15-.06-.1-.22-.16-.46-.28z"/></svg></span><span><span [attr.style]="fk">WhatsApp</span><span [attr.style]="fv + ';white-space:nowrap'">8455-9609</span></span></a>
+          <a href="tel:44195703" class="amv-flink" [attr.style]="flinkRow"><span [attr.style]="fico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E11D2E" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 4h-2A1.5 1.5 0 003 5.6C3.3 13.9 10.1 20.7 18.4 21a1.5 1.5 0 001.6-1.5v-2a1.5 1.5 0 00-1.2-1.47l-2.3-.46a1.5 1.5 0 00-1.5.62l-.7.98a12 12 0 01-4.9-4.9l.98-.7a1.5 1.5 0 00.62-1.5l-.46-2.3A1.5 1.5 0 006.5 4z"/></svg></span><span><span [attr.style]="fk">Teléfono</span><span [attr.style]="fv + ';white-space:nowrap'">4419-5703</span></span></a>
+          <a [href]="mailLink" class="amv-flink" [attr.style]="flinkRow"><span [attr.style]="fico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E11D2E" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2.4"/><path d="M3.5 7.5l7.3 5.2a2 2 0 002.4 0l7.3-5.2"/></svg></span><span><span [attr.style]="fk">Correo</span><span [attr.style]="fv + ';font-size:13px'">servicioautomotivo&#64;gmail.com</span></span></a>
+          <a [href]="mapLink" target="_blank" rel="noopener" class="amv-flink" [attr.style]="flinkRow"><span [attr.style]="fico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E11D2E" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21c4-3.8 7-7.14 7-10.5A7 7 0 005 10.5C5 13.86 8 17.2 12 21z"/><circle cx="12" cy="10.5" r="2.5"/></svg></span><span><span [attr.style]="fk">Taller</span><span [attr.style]="fv + ';font-size:13px'">Santo Domingo · San Miguel, Heredia</span></span></a>
         </div>
-        <div class="open-badge"><span></span>Lun–Vie · 8am a 6pm</div>
+        <div style="display:inline-flex;align-items:center;gap:8px;margin-top:18px;padding:7px 13px;border-radius:100px;background:rgba(58,208,122,.1);border:1px solid rgba(58,208,122,.28)"><span style="width:7px;height:7px;border-radius:50%;background:#3ad07a;box-shadow:0 0 8px #3ad07a"></span><span style="font-family:'Manrope',sans-serif;font-size:12px;font-weight:600;color:#d3d6db">Lun–Vie · 8am a 6pm</span></div>
       </div>
+
     </div>
 
-    <div class="bottom">
-      <span>© {{ year }} Automotivo · Todos los derechos reservados</span>
-      <span>Hecho con dedicación en Heredia, Costa Rica 🇨🇷</span>
-      <button class="amv-flink up" type="button" (click)="scrollTop()">Volver arriba ↑</button>
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-top:clamp(26px,3vw,40px);padding:16px 0;border-top:1px solid rgba(255,255,255,.07)">
+      <span style="font-family:'Manrope',sans-serif;font-size:12.5px;color:#6b6e74">© {{ year }} Automotivo · Todos los derechos reservados</span>
+      <span style="font-family:'Manrope',sans-serif;font-size:12.5px;color:#6b6e74">Hecho con dedicación en Heredia, Costa Rica 🇨🇷</span>
+      <a (click)="scrollTop()" class="amv-flink" style="display:inline-flex;align-items:center;gap:8px;font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:#b7bac0;cursor:pointer">Volver arriba <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M6 11l6-6 6 6"/></svg></a>
     </div>
   </div>
 </footer>
