@@ -12,7 +12,7 @@
     </div>
   </section>
   <section data-pad style="max-width:1300px;margin:0 auto;padding:14px 44px clamp(70px,10vw,110px)">
-    <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:12px;grid-auto-rows:min(16vw,168px);grid-auto-flow:dense">
+    <div data-galgrid style="display:grid;grid-template-columns:repeat(6,1fr);gap:12px;grid-auto-rows:min(16vw,168px);grid-auto-flow:dense">
       @for (g of galleryVisible(); track g.id) {
         <div class="amv-galcard" [attr.style]="g.wrap">
           @if (g.src) {

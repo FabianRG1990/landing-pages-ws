@@ -189,6 +189,10 @@ a { color: inherit; text-decoration: none; }
   .hb-4 { display: none !important; }
   [data-split] { grid-template-columns: 1fr !important; gap: 34px !important; }
   [data-zig] { grid-template-columns: 1fr !important; }
+  // Al colapsar a 1 columna, los hijos traen grid-column/row inline (2, 1…) que
+  // los meten en una 2ª columna implícita y rompen el apilado. Los reseteamos
+  // para que `order:-1` (media arriba, texto abajo) funcione.
+  [data-zig] > * { grid-column: auto !important; grid-row: auto !important; }
   [data-zig] [data-zigmedia] { order: -1; }
   [data-4] { grid-template-columns: 1fr 1fr !important; }
   [data-heromedia] { min-height: 320px !important; }
@@ -198,5 +202,37 @@ a { color: inherit; text-decoration: none; }
   [data-4] { grid-template-columns: 1fr !important; }
   .hero-bar { grid-template-columns: 1fr !important; }
   .hb-3 { display: none !important; }
+}
+/* ============================================================
+   Refinamientos responsive (auditoría móvil / laptop chica).
+   Recordá: body { overflow-x: clip } → cualquier desborde horizontal se
+   CORTA en silencio (no hay scroll). Por eso los grids anchos deben colapsar.
+   ============================================================ */
+/* Galería: el collage de 6 columnas colapsa por pasos; en teléfono se resetean
+   los spans (2/3) para que las fotos destacadas no desborden y se corten. */
+@media (max-width: 900px) {
+  [data-galgrid] { grid-template-columns: repeat(4, 1fr) !important; grid-auto-rows: min(30vw, 150px) !important; }
+}
+@media (max-width: 560px) {
+  [data-galgrid] { grid-template-columns: repeat(2, 1fr) !important; grid-auto-rows: 132px !important; }
+  [data-galgrid] > * { grid-column: span 1 !important; grid-row: span 1 !important; }
+}
+/* Formulario de contacto: pares de campos + grid del diálogo de servicios pasan
+   a 1 columna en teléfono (si no, cada campo queda ~130px e ilegible). */
+@media (max-width: 560px) {
+  [data-ff2] { grid-template-columns: 1fr !important; }
+  [data-svcgrid] { grid-template-columns: 1fr !important; }
+}
+/* Footer: el logo fijo de 170px es desproporcionado en móvil. */
+@media (max-width: 560px) {
+  footer [data-fgrid] > div:first-child img { height: 112px !important; margin: -8px 0 !important; }
+}
+/* Hero "Acerca": en teléfonos angostos achicamos para que quepa ~100vh y no se
+   dispare el scroll interno anidado dentro del stage fijo. */
+@media (max-width: 560px) {
+  .vh-about { padding-top: 60px !important; }
+  .vh-about-img { height: min(30vh, 210px) !important; }
+  .vh-about-h2 { font-size: clamp(22px, 6vw, 30px) !important; }
+  .vh-about [data-4] { grid-template-columns: 1fr 1fr !important; gap: 10px !important; }
 }
 @media (prefers-reduced-motion: reduce) { * { animation-duration: .001ms !important; animation-iteration-count: 1 !important; } }
