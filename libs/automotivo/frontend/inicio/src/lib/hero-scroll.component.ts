@@ -116,12 +116,16 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
 
     // 1) cuadro objetivo en p[0.05 .. 0.72]
     this.targetF = q(0.05, 0.72);
-    // 1b) Zoom negativo del logo: al llegar a los cuadros del logotipo (final
-    //     de la secuencia), el media "se aleja" para que "automotivo" —cuadro
-    //     muy panorámico (2.33:1)— calce completo en pantallas verticales. El
-    //     encuadre real se calcula en draw(); aquí solo animamos el progreso y
-    //     forzamos un redibujo (por si el cuadro ya se asentó).
-    const fitTarget = eio(q(0.58, 0.72));
+    // 1b) Zoom negativo SINCRONIZADO con el contenido del video (no con el
+    //     scroll): arranca cuando empiezan a dibujarse las letras del logo
+    //     (~cuadro 64/143 ≈ 0.45 de la secuencia) y termina antes del último
+    //     cuadro (~0.92), para que "automotivo" —cuadro muy panorámico
+    //     (2.33:1)— quede completo y centrado justo cuando el video calza el
+    //     final. Atado a targetF (el cuadro real) para que el alejamiento
+    //     acompañe exactamente a las letras. El encuadre se calcula en draw();
+    //     aquí animamos el progreso y forzamos redibujo (por si ya se asentó).
+    const fl = Math.min(1, Math.max(0, (this.targetF - 0.45) / (0.92 - 0.45)));
+    const fitTarget = eio(fl);
     if (Math.abs(fitTarget - this.fitP) > 0.0005) {
       this.fitP = fitTarget;
       this.settled = false;
