@@ -163,14 +163,16 @@ a { color: inherit; text-decoration: none; }
    —usa el ancho horizontal y queda balanceado— en lugar de apilar (foto-tira
    ancha + tarjetas enormes y vacías, que se veía mal). Solo ≥1001px; en teléfono
    angosto sigue apilando por la regla de ancho de arriba. */
-@media (min-width: 1001px) and (max-height: 640px) {
-  .vh-about { padding-top: 40px !important; align-items: center !important; }
+@media (min-width: 1001px) and (max-height: 760px) {
+  // Contenido con HOLGURA para que quepa entero → se centra vertical y no se
+  // dispara el scroll interno (overflow-y:auto) que se sentía descoordinado.
+  .vh-about { padding-top: 32px !important; align-items: center !important; }
   .vh-about [data-split] { grid-template-columns: .82fr 1fr !important; gap: clamp(20px,3vw,40px) !important; align-items: center !important; }
-  .vh-about-img { height: min(72vh,268px) !important; }
-  .vh-about-h2 { font-size: clamp(20px,2.3vw,27px) !important; margin-top: 6px !important; }
+  .vh-about-img { height: min(58vh,240px) !important; }
+  .vh-about-h2 { font-size: clamp(19px,2.2vw,26px) !important; margin-top: 4px !important; }
   .vh-about-p { font-size: 12.5px !important; line-height: 1.5 !important; margin-top: 8px !important; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
   .vh-about [data-4] { grid-template-columns: 1fr 1fr !important; gap: 8px !important; margin-top: 12px !important; }
-  .vh-about [data-4] > div { padding: 9px 12px !important; }
+  .vh-about [data-4] > div { padding: 8px 12px !important; }
 }
 .amv-desk { display: flex; }
 .amv-flink { color: #9a9da3; text-decoration: none; transition: color .2s ease, transform .2s ease; cursor: pointer; }
