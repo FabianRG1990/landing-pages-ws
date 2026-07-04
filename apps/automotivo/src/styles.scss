@@ -152,16 +152,25 @@ a { color: inherit; text-decoration: none; }
 .vh-logo { position: absolute; left: 50%; top: 50%; width: min(44vw,420px); transform: translate(-50%,-50%) scale(.92); opacity: 0; z-index: 6; pointer-events: none; will-change: transform,opacity,filter; filter: drop-shadow(0 10px 40px rgba(0,0,0,.7)); }
 .amv-about-emerge { will-change: transform,opacity; }
 @media(max-width:768px) { .amv-vhero { height: 360vh !important; } }
-@media(max-height:780px) {
-  .vh-about { padding-top: 66px !important; }
-  .vh-about-img { height: min(34vh,300px) !important; }
-  .vh-about-h2 { font-size: clamp(24px,3vw,34px) !important; }
-  .vh-about-p { font-size: 14px !important; margin-top: 12px !important; }
+@media(max-height:820px) {
+  .vh-about { padding-top: 60px !important; }
+  .vh-about-img { height: min(48vh,300px) !important; }
+  .vh-about-h2 { font-size: clamp(22px,2.7vw,33px) !important; }
+  .vh-about-p { font-size: 13.5px !important; line-height: 1.55 !important; margin-top: 10px !important; }
+  .vh-about [data-4] { gap: 10px !important; margin-top: 16px !important; }
 }
-@media(max-height:600px) {
-  .vh-about [data-split] { grid-template-columns: 1fr !important; gap: 16px !important; align-items: start !important; }
-  .vh-about-img { height: 130px !important; }
-  .vh-about { align-items: flex-start !important; padding-top: 58px !important; }
+/* Laptop de oficina (viewport ANCHO pero BAJO): mantener el split en 2 columnas
+   —usa el ancho horizontal y queda balanceado— en lugar de apilar (foto-tira
+   ancha + tarjetas enormes y vacías, que se veía mal). Solo ≥1001px; en teléfono
+   angosto sigue apilando por la regla de ancho de arriba. */
+@media (min-width: 1001px) and (max-height: 640px) {
+  .vh-about { padding-top: 40px !important; align-items: center !important; }
+  .vh-about [data-split] { grid-template-columns: .82fr 1fr !important; gap: clamp(20px,3vw,40px) !important; align-items: center !important; }
+  .vh-about-img { height: min(72vh,268px) !important; }
+  .vh-about-h2 { font-size: clamp(20px,2.3vw,27px) !important; margin-top: 6px !important; }
+  .vh-about-p { font-size: 12.5px !important; line-height: 1.5 !important; margin-top: 8px !important; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  .vh-about [data-4] { grid-template-columns: 1fr 1fr !important; gap: 8px !important; margin-top: 12px !important; }
+  .vh-about [data-4] > div { padding: 9px 12px !important; }
 }
 .amv-desk { display: flex; }
 .amv-flink { color: #9a9da3; text-decoration: none; transition: color .2s ease, transform .2s ease; cursor: pointer; }

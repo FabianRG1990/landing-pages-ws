@@ -218,8 +218,12 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
   private renderFloat(f: number): void {
     const max = N - 1;
     const c = Math.max(0, Math.min(max, f));
-    const base = Math.floor(c);
-    this.drawFrame(base, c - base);
+    // Cuadro más cercano SIN blend: una sola pasada de drawImage por frame.
+    // Antes se dibujaban dos cuadros (base + siguiente con alpha) y al asentar
+    // se saltaba al redondeado → doble trabajo + salto visible que a 60 fps se
+    // percibe como brinco. Dibujar siempre el redondeado lo elimina y es más
+    // liviano; a 144 cuadros el scrub sigue viéndose fluido (como un video).
+    this.drawFrame(Math.round(c), 0);
   }
 
   private drawFrame(base: number, frac: number): void {
@@ -242,7 +246,10 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
     if (c.width !== cw || c.height !== ch) { c.width = cw; c.height = ch; this.ctx = null; }
     if (!this.ctx) {
       this.ctx = c.getContext('2d', { alpha: false });
-      if (this.ctx) { this.ctx.imageSmoothingEnabled = true; this.ctx.imageSmoothingQuality = 'high'; }
+      // 'medium' en lugar de 'high': el reescalado bicúbico de alta calidad en
+      // cada drawImage es caro y en laptops de 60 fps ayuda a no dropear frames;
+      // la diferencia visual en una foto a pantalla completa es imperceptible.
+      if (this.ctx) { this.ctx.imageSmoothingEnabled = true; this.ctx.imageSmoothingQuality = 'medium'; }
     }
     this.draw(baseImg, 1);
     if (frac > 0.001 && b < max) { const nx = this.imgs[b + 1]; if (ready(nx)) this.draw(nx, frac); }
