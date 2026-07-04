@@ -1,0 +1,26 @@
+<!-- Loader tipo escáner de diagnóstico -->
+<amv-preloader />
+
+<!-- Cortina cinematográfica entre segmentos -->
+<amv-scene-transition />
+
+<!-- Navbar (pestaña central que se contrae al hacer scroll) -->
+<amv-site-nav />
+
+<div class="amv-root-bg" aria-hidden="true"></div>
+<div class="amv-root-grain" aria-hidden="true"></div>
+
+<main class="amv-main">
+  @switch (store.screen()) {
+    @case ('inicio') {
+      <amv-hero-scroll />
+      <amv-home />
+    }
+    @case ('servicios') { <amv-services-page /> }
+    @case ('galeria') { <amv-gallery-page /> }
+    @case ('nosotros') { <amv-about-page /> }
+    @case ('contacto') { <amv-contact-page /> }
+  }
+</main>
+
+<amv-site-footer />

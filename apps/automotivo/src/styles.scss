@@ -1,0 +1,307 @@
+/* ============================================================
+   Automotivo — estilos globales.
+   Transcripción VERBATIM del bloque <style> del artefacto original
+   (Automotivo.dc.html). No reinterpretar: cualquier cambio visual
+   debe reflejar el original.
+   ============================================================ */
+
+/* Tokens de compatibilidad (secciones aún no reconstruidas) */
+:root {
+  --amv-red: #e11d2e;
+  --amv-red-bright: #ff3b41;
+  --amv-red-deep: #b00d1b;
+  --amv-ink: #0a0a0b;
+  --amv-ink-2: #08080a;
+  --amv-panel: #101116;
+  --amv-text: #f2f3f5;
+  --amv-text-dim: #9a9da3;
+  --amv-line: rgba(255, 255, 255, 0.09);
+  --rc: #e11d2e;
+  --font-display: 'Barlow Condensed', sans-serif;
+  --font-body: 'Manrope', sans-serif;
+}
+
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+html, body { margin: 0; padding: 0; }
+body { background: #0A0A0B; color: #F2F3F5; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; overflow-x: clip; }
+img { display: block; max-width: 100%; }
+button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+input, textarea, select { font-family: inherit; }
+a { color: inherit; text-decoration: none; }
+::selection { background: #E11D2E; color: #fff; }
+::-webkit-scrollbar { width: 10px; }
+::-webkit-scrollbar-track { background: #0A0A0B; }
+::-webkit-scrollbar-thumb { background: #26272b; border-radius: 8px; }
+::-webkit-scrollbar-thumb:hover { background: #e11d2e; }
+/* preloader + transition */
+@keyframes amv-spin { to { transform: rotate(360deg); } }
+@keyframes amv-spin-r { to { transform: rotate(-360deg); } }
+@keyframes amv-pulse { 0%,100% { opacity: .6; transform: scale(1); } 50% { opacity: 1; transform: scale(1.04); } }
+@keyframes amv-draw { to { stroke-dashoffset: 0; } }
+@keyframes amv-wheelin { from { opacity: 0; transform: scale(.4) rotate(-40deg); } to { opacity: 1; transform: scale(1) rotate(0); } }
+@keyframes amv-redwipe { 0% { transform: translateX(-120%); } 100% { transform: translateX(120%); } }
+@keyframes amv-barfill { 0% { width: 5%; } 80% { width: 82%; } 100% { width: 100%; } }
+@keyframes amv-shine { 0% { background-position: -160% 0; } 100% { background-position: 260% 0; } }
+@keyframes amv-preout { 0%,68% { opacity: 1; visibility: visible; } 100% { opacity: 0; visibility: hidden; } }
+@keyframes amv-loaderout { 0% { opacity: 1; visibility: visible; } 100% { opacity: 0; visibility: hidden; } }
+@keyframes amv-scanbeam { 0% { top: 7%; opacity: 0; } 9% { opacity: 1; } 91% { opacity: 1; } 100% { top: 87%; opacity: 0; } }
+@keyframes amv-scanreveal { 0% { clip-path: inset(0 0 100% 0); } 100% { clip-path: inset(0 0 0 0); } }
+@keyframes amv-hudin { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+@keyframes amv-flick { 0%,100% { opacity: .85; } 50% { opacity: .4; } }
+@keyframes amv-recblink { 0%,100% { opacity: 1; } 50% { opacity: .25; } }
+@keyframes amv-gridpan { from { background-position: 0 0; } to { background-position: 22px 22px; } }
+@keyframes amv-cornpulse { 0%,100% { opacity: .45; } 50% { opacity: 1; } }
+@keyframes amv-tickon { 0% { opacity: 0; transform: scale(.7); } 60% { opacity: 1; transform: scale(1.15); } 100% { opacity: 1; transform: scale(1); } }
+.amv-preloader { animation: amv-loaderout .6s ease 1.3s forwards; }
+/* motion */
+@keyframes amv-rise { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: none; } }
+@keyframes amv-rise-sm { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@keyframes amv-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes amv-scan { 0% { transform: translateY(0); } 100% { transform: translateY(24px); } }
+@keyframes amv-marq { to { transform: translateX(-50%); } }
+@keyframes amv-grain { 0%,100% { transform: translate(0,0); } 20% { transform: translate(-2%,-3%); } 40% { transform: translate(2%,-1%); } 60% { transform: translate(-1%,2%); } 80% { transform: translate(3%,1%); } }
+@keyframes amv-blink { 0%,100% { opacity: 1; } 50% { opacity: .3; } }
+@keyframes amv-trsweep { from { transform: translateX(-120%) skewX(-14deg); } to { transform: translateX(220%) skewX(-14deg); } }
+@keyframes amv-beam { 0% { opacity: 0; transform: translateX(-40%) skewX(-12deg); } 45% { opacity: .7; } 100% { opacity: 0; transform: translateX(240%) skewX(-12deg); } }
+/* scroll-driven reveals (native) */
+@keyframes amv-rv { from { opacity: 0; transform: translateY(52px); } to { opacity: 1; transform: none; } }
+@keyframes amv-rvL { from { opacity: 0; transform: translateX(-120px) scale(.94); filter: blur(6px); } 60% { filter: blur(0); } to { opacity: 1; transform: none; filter: blur(0); } }
+@keyframes amv-rvR { from { opacity: 0; transform: translateX(120px) scale(.94); filter: blur(6px); } 60% { filter: blur(0); } to { opacity: 1; transform: none; filter: blur(0); } }
+@keyframes amv-rvS { from { opacity: 0; transform: scale(.9); } to { opacity: 1; transform: none; } }
+@keyframes amv-par { from { transform: translateY(-7%); } to { transform: translateY(7%); } }
+@keyframes amv-prog { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+/* Reveal en scroll ROBUSTO — IntersectionObserver + transición.
+   Reemplaza a `animation-timeline: view()` (soporte parcial: Chrome sí,
+   Safari/Firefox no) por un enfoque que dispara en todos los navegadores.
+   El gate `.amv-anim` (lo pone un <script> inline en <head>) hace que sin JS
+   el contenido quede visible → SSG/SEO intactos y sin parpadeo.
+   El estado revelado lo marca la clase `.amv-in` que añade el observer. */
+.amv-anim [data-rv] { opacity: 0; transform: translateY(52px); transition: opacity .85s cubic-bezier(.16,1,.3,1), transform .85s cubic-bezier(.16,1,.3,1); }
+.amv-anim [data-rv="l"] { transform: translateX(-120px) scale(.94); filter: blur(6px); transition: opacity .9s cubic-bezier(.16,1,.3,1), transform .9s cubic-bezier(.16,1,.3,1), filter .6s ease; }
+.amv-anim [data-rv="r"] { transform: translateX(120px) scale(.94); filter: blur(6px); transition: opacity .9s cubic-bezier(.16,1,.3,1), transform .9s cubic-bezier(.16,1,.3,1), filter .6s ease; }
+.amv-anim [data-rv="s"] { transform: scale(.9); }
+.amv-anim [data-rv].amv-in { opacity: 1; transform: none; filter: none; }
+[data-par] { will-change: transform; }
+/* En móvil/tablet el reveal direccional arranca con translateX(±120px). En un
+   viewport angosto eso empuja el contenido FUERA del borde derecho → scroll
+   lateral (el overflow-x:clip del body no contiene bien el desborde por
+   transform). Usamos reveal vertical: sin empuje horizontal, sin desborde. */
+@media (max-width: 1000px) {
+  .amv-anim [data-rv="l"],
+  .amv-anim [data-rv="r"] { transform: translateY(46px); filter: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .amv-anim [data-rv] { opacity: 1 !important; transform: none !important; filter: none !important; transition: none !important; }
+}
+@supports (animation-timeline: scroll()) {
+  [data-prog] { transform-origin: left; animation: amv-prog linear both; animation-timeline: scroll(root); }
+}
+/* hover systems */
+.amv-card { transition: transform .4s cubic-bezier(.16,1,.3,1), border-color .4s, box-shadow .4s, background .4s; }
+.amv-card:hover { transform: translateY(-7px); border-color: rgba(225,29,46,.5); box-shadow: 0 26px 60px rgba(0,0,0,.55); }
+.amv-link { transition: color .25s, opacity .25s; }
+.amv-link:hover { color: #E11D2E; }
+.amv-mag { transition: transform .25s cubic-bezier(.16,1,.3,1); }
+.amv-under { position: relative; }
+.amv-under::after { content: ""; position: absolute; left: 0; bottom: -4px; height: 1.5px; width: 0; background: #E11D2E; transition: width .3s cubic-bezier(.16,1,.3,1); }
+.amv-under:hover::after { width: 100%; }
+@keyframes amv-lightsweep { 0% { transform: translateX(-58vw) skewX(-20deg); } 100% { transform: translateX(114vw) skewX(-20deg); } }
+.amv-herowrap { pointer-events: auto; }
+.amv-reveal { -webkit-mask-image: url(/assets/automotivo-logo.png); mask-image: url(/assets/automotivo-logo.png); -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; -webkit-mask-position: right -7% bottom 2%; mask-position: right -7% bottom 2%; -webkit-mask-size: min(74vw,920px) auto; mask-size: min(74vw,920px) auto; }
+.amv-reveal-band { position: absolute; top: -15%; bottom: -15%; left: 5vw; width: 26vw; background: linear-gradient(90deg,transparent,rgba(230,236,245,.5) 40%,rgba(255,120,128,.92) 50%,rgba(230,236,245,.5) 60%,transparent); filter: blur(4px); transform: translateX(-58vw) skewX(-20deg); animation: amv-lightsweep 7s linear 1.2s infinite; }
+.amv-beam2 { background: linear-gradient(90deg,transparent,rgba(225,29,46,.42) 50%,transparent); filter: blur(30px); transform: translateX(-58vw) skewX(-20deg); animation: amv-lightsweep 7s linear 1.2s infinite; }
+.amv-herologo-full { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; opacity: 0; filter: grayscale(1) brightness(1.35) blur(10px); transform: scale(1.035); transition: opacity .9s cubic-bezier(.16,1,.3,1), filter .9s cubic-bezier(.16,1,.3,1), transform .9s cubic-bezier(.16,1,.3,1); }
+
+/* ROAD SCENE */
+@keyframes rd-dash { from { background-position: center 0; } to { background-position: center 240px; } }
+@keyframes rd-streak { 0% { transform: translateY(-40%) scaleY(1); opacity: 0; } 18% { opacity: .9; } 100% { transform: translateY(150%) scaleY(2.6); opacity: 0; } }
+.amv-road-stage { will-change: filter; }
+.rd-line { position: absolute; left: 50%; top: 36%; transform: translate(-50%,-50%); width: min(72vw,780px); opacity: 0; will-change: transform,opacity; z-index: 4; }
+.rd-line path { fill: none; stroke: var(--rc,#E11D2E); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0 0 14px var(--rc,#E11D2E)); }
+.rd-persp { position: absolute; inset: 0; perspective: 460px; perspective-origin: 50% 38%; opacity: 0; z-index: 2; }
+.rd-floor { position: absolute; left: 50%; bottom: -2%; width: 360vw; height: 220vh; transform: translateX(-50%) rotateX(80deg); transform-origin: bottom center; background: linear-gradient(180deg,#111318 0%,#070709 62%); box-shadow: inset 0 0 220px 50px rgba(0,0,0,.72); }
+.rd-floor::before { content: ""; position: absolute; left: calc(50% - 4px); top: 0; bottom: 0; width: 8px; background: repeating-linear-gradient(0deg,rgba(255,255,255,.95) 0 44px,transparent 44px 120px); filter: drop-shadow(0 0 9px rgba(255,255,255,.7)); animation: rd-dash .42s linear infinite; }
+.rd-floor::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg,transparent 45.6%,rgba(225,29,46,.6) 46.3%,transparent 47%,transparent 53%,rgba(240,244,250,.5) 53.7%,transparent 54.4%); filter: blur(.5px); mix-blend-mode: screen; }
+.rd-streaks { position: absolute; inset: 0; overflow: hidden; opacity: 0; z-index: 3; }
+.rd-streaks i { position: absolute; top: 0; width: 3px; height: 26vh; border-radius: 4px; filter: blur(1.2px); animation: rd-streak 1.1s linear infinite; }
+.rd-glow { position: absolute; inset: 0; background: radial-gradient(48% 40% at 50% 44%,rgba(225,29,46,.22),transparent 70%); opacity: 0; z-index: 3; }
+.rd-flash { position: absolute; left: 0; right: 0; top: 44%; height: 2px; transform: translateY(-50%); background: linear-gradient(90deg,transparent,rgba(255,150,156,.5) 28%,#fff 50%,rgba(255,150,156,.5) 72%,transparent); box-shadow: 0 0 26px 5px rgba(255,255,255,.5),0 0 72px 18px rgba(225,29,46,.4); opacity: 0; pointer-events: none; z-index: 7; }
+.rd-hint { position: absolute; left: 50%; bottom: 30px; transform: translateX(-50%); z-index: 4; font-family: 'Barlow Condensed',sans-serif; font-style: italic; font-weight: 600; font-size: 12px; letter-spacing: .4em; text-transform: uppercase; color: #8f9298; display: flex; flex-direction: column; align-items: center; gap: 9px; }
+/* PINNED HERO (camera into logo) */
+.hs-logo { position: absolute; left: 50%; top: 50%; width: min(82vw,760px); transform: translate(-50%,-50%); opacity: .1; filter: grayscale(1) brightness(1.2); z-index: 3; pointer-events: none; will-change: transform,opacity,filter; }
+.hs-carline { position: absolute; left: 50%; top: 42%; transform: translate(-50%,-50%); width: min(64vw,600px); z-index: 4; pointer-events: none; opacity: 0; will-change: transform,opacity; }
+.hs-carline path { fill: none; stroke: var(--rc,#E11D2E); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; filter: drop-shadow(0 0 12px var(--rc,#E11D2E)); }
+.rd-fog { position: absolute; inset: 0; pointer-events: none; z-index: 5; opacity: 0; background: radial-gradient(42% 30% at 50% 44%,rgba(225,29,46,.28),transparent 70%),radial-gradient(120% 92% at 50% 100%,transparent 38%,rgba(5,5,6,.88) 100%); }
+.hs-text { position: absolute; inset: 0; display: flex; align-items: center; z-index: 6; will-change: transform,opacity; }
+.hs-hint { position: absolute; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 6; display: flex; flex-direction: column; align-items: center; gap: 8px; font-family: 'Barlow Condensed',sans-serif; font-size: 11px; letter-spacing: .3em; text-transform: uppercase; color: #7c7f85; }
+/* ARRIVAL — llegás al taller (garage door reveal) */
+.ar-content { position: absolute; inset: 0; display: flex; align-items: center; z-index: 3; will-change: transform,opacity,filter; }
+.ar-portal { position: absolute; inset: 0; z-index: 5; pointer-events: none; background: radial-gradient(42% 48% at 50% 46%,rgba(255,226,214,.55),rgba(225,29,46,.2) 42%,transparent 72%); }
+.ar-door { position: absolute; left: 0; right: 0; top: 0; height: 118%; z-index: 6; will-change: transform; background: repeating-linear-gradient(180deg,#22252b 0 24px,#15171c 24px 27px,#2b2f36 27px 51px,#15171c 51px 54px); box-shadow: inset 0 0 160px 30px rgba(0,0,0,.6),inset 90px 0 120px -60px rgba(255,255,255,.05),inset -90px 0 120px -60px rgba(255,255,255,.05); }
+.ar-door::before { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 140px; background: linear-gradient(0deg,rgba(255,238,230,.18),transparent); pointer-events: none; }
+.ar-door::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: linear-gradient(90deg,transparent,#E11D2E,#fff,#E11D2E,transparent); box-shadow: 0 0 26px 5px rgba(225,29,46,.6),0 0 60px 12px rgba(225,29,46,.3); }
+.amv-navlink { transition: color .25s; }
+.amv-navlink:hover { color: #fff !important; }
+.amv-btn { position: relative; overflow: hidden; transition: transform .3s cubic-bezier(.16,1,.3,1), box-shadow .3s ease; }
+.amv-btn::before { content: ""; position: absolute; top: 0; left: 0; width: 45%; height: 100%; background: linear-gradient(105deg,transparent,rgba(255,255,255,.6),transparent); transform: skewX(-18deg) translateX(-260%); transition: transform .65s cubic-bezier(.16,1,.3,1); pointer-events: none; }
+.amv-btn:hover { transform: translateY(-2px); box-shadow: 0 16px 42px rgba(225,29,46,.5),0 0 24px rgba(225,29,46,.45),inset 0 1px 0 rgba(255,255,255,.4) !important; }
+.amv-btn:hover::before { transform: skewX(-18deg) translateX(420%); }
+.amv-btn:active { transform: translateY(0) scale(.985); }
+@keyframes amv-tail { 0%,100% { opacity: .82; box-shadow: 0 0 7px 1px rgba(225,29,46,.55),0 1px 16px 3px rgba(225,29,46,.28); } 50% { opacity: 1; box-shadow: 0 0 10px 1px rgba(255,80,90,.85),0 1px 22px 5px rgba(225,29,46,.42); } }
+@keyframes amv-mqL { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+@keyframes amv-mqR { from { transform: translateX(-50%); } to { transform: translateX(0); } }
+.amv-mqrow { position: relative; overflow: hidden; -webkit-mask-image: linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent); mask-image: linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent); }
+.amv-mq { display: flex; gap: 16px; width: max-content; will-change: transform; }
+.amv-mqrow:hover .amv-mq { animation-play-state: paused; }
+.vh-video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center; z-index: 0; background: #0A0A0B; transition: opacity .45s ease; }
+.vh-mediawrap { position: absolute; inset: 0; z-index: 0; will-change: transform,opacity,filter; }
+.vh-canvas { position: absolute; inset: 0; width: 100%; height: 100%; z-index: 0; background: transparent; }
+.vh-logo { position: absolute; left: 50%; top: 50%; width: min(44vw,420px); transform: translate(-50%,-50%) scale(.92); opacity: 0; z-index: 6; pointer-events: none; will-change: transform,opacity,filter; filter: drop-shadow(0 10px 40px rgba(0,0,0,.7)); }
+.amv-about-emerge { will-change: transform,opacity; }
+@media(max-width:768px) { .amv-vhero { height: 360vh !important; } }
+@media(max-height:820px) {
+  .vh-about { padding-top: 60px !important; }
+  .vh-about-img { height: min(48vh,300px) !important; }
+  .vh-about-h2 { font-size: clamp(22px,2.7vw,33px) !important; }
+  .vh-about-p { font-size: 13.5px !important; line-height: 1.55 !important; margin-top: 10px !important; }
+  .vh-about [data-4] { gap: 10px !important; margin-top: 16px !important; }
+}
+/* Viewport ANCHO pero BAJO (laptop de oficina Y teléfono en horizontal):
+   mantener el split en 2 columnas —usa el ancho y queda balanceado— en lugar de
+   apilar (foto-tira ancha + tarjetas enormes y vacías, que se veía mal). Con
+   min-width:640px cubre laptops chicas y teléfonos apaisados; un teléfono en
+   VERTICAL es alto (max-height falla) y no entra aquí, sigue apilando. */
+@media (min-width: 640px) and (max-height: 760px) {
+  // Contenido con HOLGURA para que quepa entero → se centra vertical y no se
+  // dispara el scroll interno (overflow-y:auto) que se sentía descoordinado.
+  .vh-about { padding-top: 32px !important; align-items: center !important; }
+  .vh-about [data-split] { grid-template-columns: .82fr 1fr !important; gap: clamp(20px,3vw,40px) !important; align-items: center !important; }
+  .vh-about-img { height: min(58vh,240px) !important; }
+  .vh-about-h2 { font-size: clamp(19px,2.2vw,26px) !important; margin-top: 4px !important; }
+  .vh-about-p { font-size: 12.5px !important; line-height: 1.5 !important; margin-top: 8px !important; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  .vh-about [data-4] { grid-template-columns: 1fr 1fr !important; gap: 8px !important; margin-top: 12px !important; }
+  .vh-about [data-4] > div { padding: 8px 12px !important; }
+}
+.amv-desk { display: flex; }
+.amv-flink { color: #9a9da3; text-decoration: none; transition: color .2s ease, transform .2s ease; cursor: pointer; }
+.amv-flink:hover { color: #fff; }
+.amv-soc { transition: transform .2s ease, border-color .2s ease, background .2s ease; }
+.amv-soc:hover { transform: translateY(-3px); border-color: rgba(225,29,46,.55); background: rgba(225,29,46,.14); }
+.amv-ctcard { transition: transform .2s ease, border-color .2s ease, background .2s ease; }
+.amv-ctcard:hover { transform: translateY(-2px); border-color: rgba(225,29,46,.4); }
+.amv-galcard { position: relative; border-radius: 16px; overflow: hidden; border: 1px solid rgba(255,255,255,.09); background: rgba(255,255,255,.02); animation: amv-galin .45s cubic-bezier(.16,1,.3,1) both; }
+.amv-galcard image-slot { transition: transform .5s cubic-bezier(.16,1,.3,1); }
+.amv-galcard:hover image-slot { transform: scale(1.05); }
+.amv-galtag { opacity: 0; transform: translateY(6px); transition: opacity .25s ease, transform .25s ease; }
+.amv-galcard:hover .amv-galtag { opacity: 1; transform: translateY(0); }
+@keyframes amv-galin { from { opacity: 0; transform: scale(.96); } to { opacity: 1; transform: scale(1); } }
+@media(max-width:900px) { footer [data-fgrid] { grid-template-columns: 1fr 1fr !important; gap: 36px 30px !important; } }
+@media(max-width:560px) { footer [data-fgrid] { grid-template-columns: 1fr !important; } }
+.amv-burg { display: none; }
+.amv-mega { opacity: 0; visibility: hidden; transform: translateY(8px); transition: opacity .3s, transform .3s, visibility .3s; }
+.amv-megawrap:hover .amv-mega { opacity: 1; visibility: visible; transform: none; }
+.amv-megawrap:hover .amv-chev { transform: rotate(180deg); opacity: 1; }
+@media(max-width:1000px) {
+  .amv-desk { display: none !important; }
+  .amv-burg { display: flex !important; }
+  .hero-bar { grid-template-columns: 1fr 1fr !important; }
+  .hb-4 { display: none !important; }
+  [data-4] { grid-template-columns: 1fr 1fr !important; }
+  [data-heromedia] { min-height: 320px !important; }
+}
+/* El apilado a 1 columna es SOLO para pantallas angostas en VERTICAL. Un
+   teléfono en HORIZONTAL (apaisado) es ANCHO pero muy bajo —se parece a una
+   laptop chica, no a un teléfono vertical— y con `max-width:1000px` se apilaba
+   todo y quedaba mal. Al condicionar a `orientation:portrait`, en horizontal se
+   mantiene el layout de 2 columnas tipo laptop (la alternancia del zigzag vive
+   en los estilos inline: grid-column por hijo + ratio de columnas). */
+@media(max-width:1000px) and (orientation:portrait) {
+  [data-split] { grid-template-columns: 1fr !important; gap: 34px !important; }
+  [data-zig] { grid-template-columns: 1fr !important; }
+  // Al colapsar a 1 columna, los hijos traen grid-column/row inline (2, 1…) que
+  // los meten en una 2ª columna implícita y rompen el apilado. Los reseteamos
+  // para que `order:-1` (media arriba, texto abajo) funcione.
+  [data-zig] > * { grid-column: auto !important; grid-row: auto !important; }
+  [data-zig] [data-zigmedia] { order: -1; }
+}
+@media(max-width:620px) {
+  [data-pad] { padding-left: 20px !important; padding-right: 20px !important; }
+  [data-4] { grid-template-columns: 1fr !important; }
+  .hero-bar { grid-template-columns: 1fr !important; }
+  .hb-3 { display: none !important; }
+}
+/* ============================================================
+   Refinamientos responsive (auditoría móvil / laptop chica).
+   Recordá: body { overflow-x: clip } → cualquier desborde horizontal se
+   CORTA en silencio (no hay scroll). Por eso los grids anchos deben colapsar.
+   ============================================================ */
+/* Galería: el collage de 6 columnas colapsa por pasos; en teléfono se resetean
+   los spans (2/3) para que las fotos destacadas no desborden y se corten. */
+@media (max-width: 900px) {
+  [data-galgrid] { grid-template-columns: repeat(4, 1fr) !important; grid-auto-rows: min(30vw, 150px) !important; }
+}
+@media (max-width: 560px) {
+  [data-galgrid] { grid-template-columns: repeat(2, 1fr) !important; grid-auto-rows: 132px !important; }
+  [data-galgrid] > * { grid-column: span 1 !important; grid-row: span 1 !important; }
+}
+/* Formulario de contacto: pares de campos + grid del diálogo de servicios pasan
+   a 1 columna en teléfono (si no, cada campo queda ~130px e ilegible). */
+@media (max-width: 560px) {
+  [data-ff2] { grid-template-columns: 1fr !important; }
+  [data-svcgrid] { grid-template-columns: 1fr !important; }
+}
+/* Footer: el logo (ahora wordmark) se mantiene chico también en móvil. */
+@media (max-width: 560px) {
+  footer [data-fgrid] > div:first-child img { height: 34px !important; margin: 0 !important; }
+}
+/* Hero "Acerca": en teléfonos angostos achicamos para que quepa ~100vh y no se
+   dispare el scroll interno anidado dentro del stage fijo. */
+@media (max-width: 560px) {
+  .vh-about { padding-top: 60px !important; }
+  .vh-about-img { height: min(30vh, 210px) !important; }
+  .vh-about-h2 { font-size: clamp(22px, 6vw, 30px) !important; }
+  .vh-about [data-4] { grid-template-columns: 1fr 1fr !important; gap: 10px !important; }
+}
+/* ============================================================
+   Teléfono en HORIZONTAL (apaisado, viewport muy bajo): dos arreglos.
+   ============================================================ */
+@media (orientation: landscape) and (max-height: 500px) {
+  /* (1) Menú hamburguesa: los ítems a tamaño de vertical (≈46px) no caben —5
+     ítems se cortaban arriba/abajo—. Compactamos y usamos 2 columnas para
+     aprovechar el ancho, de modo que todo entra sin cortarse ni scroll. */
+  .amv-mobmenu { padding: 58px 44px 22px !important; }
+  .amv-mobmenu-inner {
+    max-width: 720px !important;
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    column-gap: 46px !important;
+    row-gap: 0 !important;
+  }
+  .amv-mobitem { padding: 11px 4px !important; }
+  .amv-mobitem-lb { font-size: clamp(24px, 6.4vh, 32px) !important; }
+
+  /* (2) Hero: el H1 gigante llenaba el alto y chocaba con el logo del navbar
+     (arriba-izquierda). Compactamos el bloque de texto para que quede abajo,
+     sin sobreponerse al logo ni a la barra. */
+  .vh-text > div { padding-bottom: 14px !important; }
+  .vh-text h1 { font-size: clamp(24px, 5vw, 40px) !important; margin-top: 10px !important; }
+  .vh-text p { font-size: 12.5px !important; line-height: 1.5 !important; margin-top: 8px !important; }
+  .vh-text > div > div:last-child { margin-top: 16px !important; }
+}
+
+/* ============================================================
+   Footer en teléfono VERTICAL: quedaba enorme (todo apilado a 1 columna).
+   Ocultamos la columna "Servicios" (redundante con el menú y muy larga) y
+   apretamos separaciones para que no se vea tan grande. "Explorar" se queda.
+   ============================================================ */
+@media (max-width: 560px) {
+  footer [data-fgrid] { gap: 24px !important; }
+  /* Ocultamos "Servicios" (3ª col) en vertical: redundante con el menú y alarga. */
+  footer [data-fgrid] > div:nth-child(3) { display: none !important; }
+  footer [data-pad] { padding-top: 26px !important; }
+  footer [data-fgrid] > div > div[style*="gap:11px"] { gap: 9px !important; }
+  footer [data-fgrid] > div > div[style*="gap:14px"] { gap: 12px !important; }
+}
+
+@media (prefers-reduced-motion: reduce) { * { animation-duration: .001ms !important; animation-iteration-count: 1 !important; } }

@@ -1,0 +1,207 @@
+<div>
+  <section data-pad style="position:relative;max-width:1300px;margin:0 auto;padding:clamp(120px,15vh,168px) 44px 20px">
+    <div data-rv [attr.style]="kicker"><span style="width:30px;height:1.5px;background:#E11D2E"></span>Hablemos</div>
+    <h2 data-rv [attr.style]="h2Style">Agendá tu cita.</h2>
+    <p data-rv [attr.style]="lead">Contanos qué necesita tu vehículo y te respondemos rápido. También podés escribirnos directo por WhatsApp o llamarnos.</p>
+  </section>
+  <section data-pad style="max-width:1240px;margin:0 auto;padding:16px 44px clamp(80px,10vw,120px)">
+    <div data-split style="display:grid;grid-template-columns:1.14fr .86fr;gap:26px;align-items:start">
+
+      <!-- BOOKING FORM -->
+      <form (submit)="submit($event)" style="position:relative;overflow:hidden;border-radius:24px;background:linear-gradient(168deg,rgba(255,255,255,.06),rgba(255,255,255,.015));border:1px solid rgba(255,255,255,.1);box-shadow:0 34px 90px rgba(0,0,0,.42)">
+        <div aria-hidden="true" style="position:absolute;left:0;right:0;top:0;height:2px;background:linear-gradient(90deg,transparent,rgba(225,29,46,.7) 30%,rgba(255,90,98,.95) 50%,rgba(225,29,46,.7) 70%,transparent)"></div>
+        <div style="display:flex;align-items:center;gap:15px;padding:26px clamp(22px,3vw,34px);border-bottom:1px solid rgba(255,255,255,.08)">
+          <span style="display:inline-flex;width:50px;height:50px;flex-shrink:0;border-radius:14px;align-items:center;justify-content:center;background:rgba(225,29,46,.13);border:1px solid rgba(225,29,46,.28)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#E11D2E" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2.4"/><path d="M3 10h18M8 3v4M16 3v4"/><path d="M8 14.5l2.5 2.5L16 12"/></svg></span>
+          <div><div style="font-family:'Barlow Condensed',sans-serif;font-style:italic;font-weight:700;text-transform:uppercase;font-size:25px;line-height:1;color:#fff">Solicitud de cita</div><div style="font-family:'Manrope',sans-serif;font-size:13px;color:#9a9da3;margin-top:3px">Completá los datos y generamos tu orden en PDF</div></div>
+        </div>
+        <div style="padding:clamp(22px,3vw,32px)">
+          <div [attr.style]="fsec">Tus datos</div>
+          <div data-ff2 style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+            <label [attr.style]="field"><span [attr.style]="label">Nombre completo *</span><input [value]="f().nombre" (input)="setField('nombre',$event)" placeholder="Ej: Juan Pérez" [attr.style]="input"></label>
+            <label [attr.style]="field"><span [attr.style]="label">Teléfono / WhatsApp *</span><input [value]="f().tel" (input)="setField('tel',$event)" placeholder="8888-8888" [attr.style]="input"></label>
+          </div>
+          <label [attr.style]="field + ';margin-top:14px'"><span [attr.style]="label">Correo <span style="color:#6b6e74;text-transform:none;letter-spacing:0">(opcional)</span></span><input [value]="f().correo" (input)="setField('correo',$event)" placeholder="tu@correo.com" [attr.style]="input"></label>
+
+          <div [attr.style]="fsec + ';margin-top:26px'">Tu vehículo</div>
+          <div data-ff2 style="display:grid;grid-template-columns:1.7fr 1fr;gap:14px">
+            <label [attr.style]="field"><span [attr.style]="label">Marca y modelo *</span><input [value]="f().marca" (input)="setField('marca',$event)" placeholder="Toyota Hilux" [attr.style]="input"></label>
+            <label [attr.style]="field"><span [attr.style]="label">Año *</span><input [value]="f().anio" (input)="setField('anio',$event)" placeholder="2019" [attr.style]="input"></label>
+          </div>
+          <label [attr.style]="field + ';margin-top:14px'"><span [attr.style]="label">Placa <span style="color:#6b6e74;text-transform:none;letter-spacing:0">(opcional)</span></span><input [value]="f().placa" (input)="setField('placa',$event)" placeholder="ABC-123" [attr.style]="input"></label>
+
+          <div [attr.style]="fsec + ';margin-top:26px'">Preferencia de cita</div>
+          <div data-ff2 style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+            <label [attr.style]="field"><span [attr.style]="label">Fecha preferida *</span>
+              <button type="button" (click)="toggleCal()" [attr.style]="pickBtn()"><span [attr.style]="pickVal()">{{ fechaLabel() }}</span><span style="display:inline-flex;color:#E11D2E"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2.4"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></span></button>
+            </label>
+            <label [attr.style]="field"><span [attr.style]="label">Momento del día *</span>
+              <div style="display:flex;gap:8px">
+                @for (h of periodoOpts(); track h.k) {
+                  <button type="button" (click)="setPeriodo(h.k)" [attr.style]="h.style">
+                    @if (h.k === 'Mañana') { <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4 12H2M22 12h-2M5 5l1.5 1.5M17.5 17.5L19 19M19 5l-1.5 1.5M6.5 17.5L5 19"/></svg> }
+                    @else { <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0"><path d="M20 14.5A8 8 0 019.5 4 7 7 0 1020 14.5z"/></svg> }
+                    {{ h.k }}
+                  </button>
+                }
+              </div>
+            </label>
+          </div>
+
+          @if (calOpen()) {
+            <div style="margin-top:12px;border-radius:16px;border:1px solid rgba(255,255,255,.12);background:linear-gradient(168deg,rgba(20,21,26,.98),rgba(14,14,18,.98));box-shadow:0 24px 60px rgba(0,0,0,.5);padding:16px 16px 14px">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+                <button type="button" (click)="calPrev()" [attr.style]="calNav"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 6l-6 6 6 6"/></svg></button>
+                <span style="font-family:'Barlow Condensed',sans-serif;font-style:italic;font-weight:700;text-transform:uppercase;font-size:18px;letter-spacing:.02em;color:#EDEFF2">{{ calMonthLabel() }}</span>
+                <button type="button" (click)="calNext()" [attr.style]="calNav"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg></button>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:5px">
+                @for (d of calDows; track $index) { <span style="text-align:center;font-family:'Barlow Condensed',sans-serif;font-weight:600;font-size:11px;letter-spacing:.1em;color:#6b6e74">{{ d }}</span> }
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px">
+                @for (c of calCells(); track $index) {
+                  <button type="button" (click)="pick(c)" [disabled]="c.disabled" [attr.style]="c.style">{{ c.d }}</button>
+                }
+              </div>
+              <div style="display:flex;align-items:center;gap:7px;margin-top:12px;padding-top:11px;border-top:1px solid rgba(255,255,255,.07)"><span style="width:6px;height:6px;border-radius:50%;background:#e06a6a"></span><span style="font-family:'Manrope',sans-serif;font-size:11.5px;color:#7c7f85">Sábados y domingos cerrado</span></div>
+            </div>
+          }
+
+          @if (showHoras()) {
+            <div style="margin-top:13px">
+              <span [attr.style]="label + ';display:block;margin-bottom:9px'">Hora aproximada de llegada</span>
+              <div style="display:flex;flex-wrap:wrap;gap:8px">
+                @for (h of horaSlots(); track h.h) {
+                  <button type="button" (click)="pickHora(h.h)" [attr.style]="h.style">{{ h.h }}</button>
+                }
+              </div>
+            </div>
+          }
+
+          <div [attr.style]="fsec + ';margin-top:26px'">¿Qué necesitás? *</div>
+          <button type="button" (click)="openSvc()" [attr.style]="svcTrigger()">
+            <span style="display:flex;align-items:center;gap:12px;min-width:0"><span style="display:inline-flex;width:38px;height:38px;flex-shrink:0;border-radius:10px;align-items:center;justify-content:center;background:rgba(225,29,46,.13);border:1px solid rgba(225,29,46,.26)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E11D2E" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a3.5 3.5 0 00-4.7 4.5l-6.3 6.3a1.8 1.8 0 002.5 2.5l6.3-6.3a3.5 3.5 0 004.5-4.7l-2 2-2-.5-.5-2 2-2z"/><path d="M15.5 15.5l3.5 3.5"/></svg></span><span style="font-family:'Manrope',sans-serif;font-weight:600;font-size:14.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" [style.color]="svcSummaryColor()">{{ svcSummary() }}</span></span>
+            <span [attr.style]="svcTriggerBadge()">{{ svcBadge() }}</span>
+          </button>
+          @if (hasSvc()) {
+            <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:11px">
+              @for (c of svcSelChips(); track c.label) {
+                <span style="display:inline-flex;align-items:center;gap:7px;padding:7px 8px 7px 13px;border-radius:100px;background:rgba(225,29,46,.14);border:1px solid rgba(225,29,46,.35);font-family:'Manrope',sans-serif;font-weight:600;font-size:12.5px;color:#fff">{{ c.label }}<button type="button" (click)="toggleServicio(c.label)" aria-label="Quitar" style="display:inline-flex;width:18px;height:18px;border-radius:50%;align-items:center;justify-content:center;background:rgba(255,255,255,.14);border:0;color:#fff;cursor:pointer"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></span>
+              }
+            </div>
+          }
+
+          <label [attr.style]="field + ';margin-top:22px'"><span [attr.style]="label">Contanos qué le pasa a tu carro</span><textarea [value]="f().detalle" (input)="setField('detalle',$event)" rows="3" placeholder="Ej: hace un ruido al frenar, la luz del motor encendida…" [attr.style]="input + ';resize:vertical;min-height:84px;line-height:1.5'"></textarea></label>
+
+          @if (formErr()) { <div style="margin-top:14px;padding:12px 15px;border-radius:11px;background:rgba(225,29,46,.12);border:1px solid rgba(225,29,46,.32);font-family:'Manrope',sans-serif;font-size:13px;line-height:1.55;color:#ffb4b9"><strong>Faltan datos para generar la cita.</strong> Completá: {{ formErrList() }}</div> }
+
+          <button type="submit" class="amv-btn" style="margin-top:22px;width:100%;display:inline-flex;align-items:center;justify-content:center;gap:11px;padding:17px;border-radius:14px;background:linear-gradient(135deg,#FF3B41,#E11D2E 60%,#B00D1B);color:#fff;font-family:'Manrope',sans-serif;font-weight:700;font-size:15.5px;box-shadow:0 14px 34px rgba(225,29,46,.42),inset 0 1px 0 rgba(255,255,255,.3)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg> Generar orden de cita</button>
+          <p style="margin:13px 0 0;font-family:'Manrope',sans-serif;font-size:12px;line-height:1.55;color:#7c7f85;text-align:center">Tu orden en PDF se descarga automáticamente al generarla y la ves acá para revisarla. Después podés enviárnosla por WhatsApp.</p>
+        </div>
+      </form>
+
+      <!-- CONTACT RAIL -->
+      <div style="display:flex;flex-direction:column;gap:13px">
+        <a [href]="waLink" target="_blank" rel="noopener" class="amv-ctcard" [attr.style]="ctCard"><span [attr.style]="ctIco"><svg width="22" height="22" viewBox="0 0 24 24" fill="#3ad07a"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.885-9.885 9.885M20.52 3.449C18.24 1.245 15.24 0 12.045 0 5.463 0 .103 5.359.1 11.947c0 2.096.547 4.142 1.588 5.945L0 24l6.335-1.652a11.94 11.94 0 005.71 1.454h.006c6.585 0 11.946-5.36 11.949-11.948a11.9 11.9 0 00-3.495-8.407z"/></svg></span><span style="flex:1"><span [attr.style]="ctK">WhatsApp</span><span [attr.style]="ctV">8455-9609</span></span><span [attr.style]="ctArrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></a>
+        <a href="tel:44195703" class="amv-ctcard" [attr.style]="ctCard"><span [attr.style]="ctIco"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#E11D2E" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 4h-2A1.5 1.5 0 003 5.6C3.3 13.9 10.1 20.7 18.4 21a1.5 1.5 0 001.6-1.5v-2a1.5 1.5 0 00-1.2-1.47l-2.3-.46a1.5 1.5 0 00-1.5.62l-.7.98a12 12 0 01-4.9-4.9l.98-.7a1.5 1.5 0 00.62-1.5l-.46-2.3A1.5 1.5 0 006.5 4z"/></svg></span><span style="flex:1"><span [attr.style]="ctK">Teléfono</span><span [attr.style]="ctV">4419-5703</span></span><span [attr.style]="ctArrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></a>
+        <a [href]="mailLink" class="amv-ctcard" [attr.style]="ctCard"><span [attr.style]="ctIco"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#E11D2E" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2.4"/><path d="M3.5 7.5l7.3 5.2a2 2 0 002.4 0l7.3-5.2"/></svg></span><span style="flex:1;min-width:0"><span [attr.style]="ctK">Correo</span><span [attr.style]="ctV + ';font-size:14.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block'">servicioautomotivo&#64;gmail.com</span></span></a>
+
+        <div style="border-radius:18px;border:1px solid rgba(255,255,255,.09);background:linear-gradient(168deg,rgba(255,255,255,.045),rgba(255,255,255,.01));padding:20px 22px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px"><div style="display:flex;align-items:center;gap:10px"><span [attr.style]="ctIcoSm"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E11D2E" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7.5V12l3 2"/></svg></span><span style="font-family:'Barlow Condensed',sans-serif;font-style:italic;font-weight:700;text-transform:uppercase;font-size:18px;color:#EDEFF2">Horario</span></div><span [attr.style]="openBadge()">{{ openText() }}</span></div>
+          @for (h of horario; track h.d) {
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-top:1px solid rgba(255,255,255,.06)"><span style="font-family:'Manrope',sans-serif;font-size:13.5px;font-weight:500;color:#d1d4d9">{{ h.d }}</span><span style="font-family:'Manrope',sans-serif;font-size:13.5px;font-variant-numeric:tabular-nums" [style.color]="h.c">{{ h.h }}</span></div>
+          }
+        </div>
+
+        <!-- El mapa sigue siendo interactivo (se mueve con dos dedos). El botón
+             rojo "Cómo llegar" abre el selector de app (Waze / Maps / navegador). -->
+        <div style="position:relative;border-radius:18px;overflow:hidden;border:1px solid rgba(255,255,255,.09);background:#0e0f13">
+          <iframe title="Ubicación del taller Automotivo" [src]="mapSrc" style="display:block;width:100%;height:300px;border:0;filter:invert(.92) hue-rotate(180deg) brightness(.95) contrast(.92)" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+          <div style="pointer-events:none;position:absolute;left:0;right:0;bottom:0;height:78px;background:linear-gradient(180deg,transparent,rgba(8,8,10,.9))"></div>
+          <div style="pointer-events:none;position:absolute;left:16px;right:16px;bottom:13px;display:flex;align-items:flex-end;justify-content:space-between;gap:12px">
+            <div><div style="font-family:'Barlow Condensed',sans-serif;font-style:italic;font-weight:700;text-transform:uppercase;font-size:17px;color:#fff;line-height:1.05">Santo Domingo · San Miguel</div><div style="font-family:'Manrope',sans-serif;font-size:12px;color:#c3c6cc;margin-top:2px">Heredia, Costa Rica</div></div>
+            <button type="button" (click)="openMapSheet()" aria-label="Cómo llegar: abrir en Waze, Google Maps o el navegador" style="pointer-events:auto;cursor:pointer;display:inline-flex;align-items:center;gap:6px;flex-shrink:0;padding:9px 14px;border:0;border-radius:100px;background:#E11D2E;box-shadow:0 8px 20px rgba(225,29,46,.32);font-family:'Manrope',sans-serif;font-weight:700;font-size:12px;color:#fff">Cómo llegar <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MAP APP CHOOSER (diálogo centrado: Waze / Google Maps / navegador) -->
+  @if (mapSheet()) {
+    <div (click)="closeMapSheet()" style="position:fixed;inset:0;z-index:1680;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(4,4,6,.76);-webkit-backdrop-filter:blur(11px);backdrop-filter:blur(11px)">
+      <div (click)="stop($event)" role="dialog" aria-modal="true" aria-label="Cómo llegar al taller" class="amv-mapsheet" style="position:relative;width:min(430px,100%);border-radius:24px;overflow:hidden;background:linear-gradient(180deg,#17181d,#0e0e13);border:1px solid rgba(255,255,255,.12);box-shadow:0 50px 140px rgba(0,0,0,.78)">
+        <div aria-hidden="true" style="position:absolute;left:0;right:0;top:0;height:2px;background:linear-gradient(90deg,transparent,rgba(225,29,46,.7) 30%,rgba(255,90,98,.95) 50%,rgba(225,29,46,.7) 70%,transparent)"></div>
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:14px;padding:22px 22px 16px;border-bottom:1px solid rgba(255,255,255,.08)">
+          <div style="display:flex;align-items:center;gap:13px;min-width:0">
+            <span style="display:inline-flex;width:46px;height:46px;flex-shrink:0;border-radius:14px;align-items:center;justify-content:center;background:rgba(225,29,46,.13);border:1px solid rgba(225,29,46,.26)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#E11D2E" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s7-5.686 7-11a7 7 0 10-14 0c0 5.314 7 11 7 11z"/><circle cx="12" cy="10" r="2.6"/></svg></span>
+            <div style="min-width:0"><div style="font-family:'Barlow Condensed',sans-serif;font-style:italic;font-weight:700;text-transform:uppercase;font-size:21px;color:#fff;line-height:1">Cómo llegar</div><div style="font-family:'Manrope',sans-serif;font-size:12.5px;color:#9a9da3;margin-top:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">Santo Domingo · San Miguel, Heredia</div></div>
+          </div>
+          <button (click)="closeMapSheet()" aria-label="Cerrar" class="amv-mapx" style="flex-shrink:0;display:inline-flex;width:38px;height:38px;border-radius:11px;align-items:center;justify-content:center;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:#c3c6cc;cursor:pointer;transition:background .16s,color .16s"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+        </div>
+        <div style="padding:14px;display:flex;flex-direction:column;gap:9px">
+          <a [href]="wazeLink" target="_blank" rel="noopener" (click)="closeMapSheet()" class="amv-mapopt" style="display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:14px;text-decoration:none;border:1px solid rgba(255,255,255,.09);background:linear-gradient(168deg,rgba(255,255,255,.05),rgba(255,255,255,.012))">
+            <span style="display:inline-flex;width:44px;height:44px;flex-shrink:0;border-radius:12px;align-items:center;justify-content:center;background:rgba(51,204,255,.14);border:1px solid rgba(51,204,255,.3)"><svg width="24" height="24" viewBox="0 0 24 24" fill="#33CCFF"><path d="M13.218 0C9.915 0 6.835 1.49 4.723 4.148c-1.515 1.913-2.31 4.272-2.31 6.706v1.739c0 .894-.62 1.738-1.862 1.813-.298.025-.547.224-.547.522-.05.82.82 2.31 2.012 3.502.82.844 1.788 1.515 2.832 2.036a3 3 0 0 0 2.955 3.528 2.966 2.966 0 0 0 2.931-2.385h2.509c.323 1.689 2.086 2.856 3.974 2.21 1.64-.546 2.36-2.409 1.763-3.924a12.84 12.84 0 0 0 1.838-1.465 10.73 10.73 0 0 0 3.18-7.65c0-2.882-1.118-5.589-3.155-7.625A10.899 10.899 0 0 0 13.218 0zm0 1.217c2.558 0 4.967.994 6.78 2.807a9.525 9.525 0 0 1 2.807 6.78A9.526 9.526 0 0 1 20 17.585a9.647 9.647 0 0 1-6.78 2.807h-2.46a3.008 3.008 0 0 0-2.93-2.41 3.03 3.03 0 0 0-2.534 1.367v.024a8.945 8.945 0 0 1-2.41-1.788c-.844-.844-1.316-1.614-1.515-2.11a2.858 2.858 0 0 0 1.441-.846 2.959 2.959 0 0 0 .795-2.036v-1.789c0-2.11.696-4.197 2.012-5.861 1.863-2.385 4.62-3.726 7.6-3.726zm-2.41 5.986a1.192 1.192 0 0 0-1.191 1.192 1.192 1.192 0 0 0 1.192 1.193A1.192 1.192 0 0 0 12 8.395a1.192 1.192 0 0 0-1.192-1.192zm7.204 0a1.192 1.192 0 0 0-1.192 1.192 1.192 1.192 0 0 0 1.192 1.193 1.192 1.192 0 0 0 1.192-1.193 1.192 1.192 0 0 0-1.192-1.192zm-7.377 4.769a.596.596 0 0 0-.546.845 4.813 4.813 0 0 0 4.346 2.757 4.77 4.77 0 0 0 4.347-2.757.596.596 0 0 0-.547-.845h-.025a.561.561 0 0 0-.521.348 3.59 3.59 0 0 1-3.254 2.061 3.591 3.591 0 0 1-3.254-2.061.64.64 0 0 0-.546-.348z"/></svg></span>
+            <span style="flex:1;min-width:0"><span style="display:block;font-family:'Manrope',sans-serif;font-weight:700;font-size:15.5px;color:#F2F3F5">Waze</span><span style="display:block;font-family:'Manrope',sans-serif;font-size:12.5px;color:#9a9da3;margin-top:1px">Navegación en tiempo real</span></span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6b6e74" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </a>
+          <a [href]="mapLink" target="_blank" rel="noopener" (click)="closeMapSheet()" class="amv-mapopt" style="display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:14px;text-decoration:none;border:1px solid rgba(255,255,255,.09);background:linear-gradient(168deg,rgba(255,255,255,.05),rgba(255,255,255,.012))">
+            <span style="display:inline-flex;width:44px;height:44px;flex-shrink:0;border-radius:12px;align-items:center;justify-content:center;background:rgba(66,133,244,.14);border:1px solid rgba(66,133,244,.3)"><svg width="22" height="22" viewBox="0 0 24 24" fill="#4285F4"><path d="M19.527 4.799c1.212 2.608.937 5.678-.405 8.173-1.101 2.047-2.744 3.74-4.098 5.614-.619.858-1.244 1.75-1.669 2.727-.141.325-.263.658-.383.992-.121.333-.224.673-.34 1.008-.109.314-.236.684-.627.687h-.007c-.466-.001-.579-.53-.695-.887-.284-.874-.581-1.713-1.019-2.525-.51-.944-1.145-1.817-1.79-2.671L19.527 4.799zM8.545 7.705l-3.959 4.707c.724 1.54 1.821 2.863 2.871 4.18.247.31.494.622.737.936l4.984-5.925-.029.01c-1.741.601-3.691-.291-4.392-1.987a3.377 3.377 0 0 1-.209-.716c-.063-.437-.077-.761-.004-1.198l.001-.007zM5.492 3.149l-.003.004c-1.947 2.466-2.281 5.88-1.117 8.77l4.785-5.689-.058-.05-3.607-3.035zM14.661.436l-3.838 4.563a.295.295 0 0 1 .027-.01c1.6-.551 3.403.15 4.22 1.626.176.319.323.683.377 1.045.068.446.085.773.012 1.22l-.003.016 3.836-4.561A8.382 8.382 0 0 0 14.67.439l-.009-.003zM9.466 5.868L14.162.285l-.047-.012A8.31 8.31 0 0 0 11.986 0a8.439 8.439 0 0 0-6.169 2.766l-.016.018 3.665 3.084z"/></svg></span>
+            <span style="flex:1;min-width:0"><span style="display:block;font-family:'Manrope',sans-serif;font-weight:700;font-size:15.5px;color:#F2F3F5">Google Maps</span><span style="display:block;font-family:'Manrope',sans-serif;font-size:12.5px;color:#9a9da3;margin-top:1px">Cómo llegar paso a paso</span></span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6b6e74" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </a>
+          <a [href]="mapsWebLink" target="_blank" rel="noopener" (click)="closeMapSheet()" class="amv-mapopt" style="display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:14px;text-decoration:none;border:1px solid rgba(255,255,255,.09);background:linear-gradient(168deg,rgba(255,255,255,.05),rgba(255,255,255,.012))">
+            <span style="display:inline-flex;width:44px;height:44px;flex-shrink:0;border-radius:12px;align-items:center;justify-content:center;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#c3c6cc" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a15 15 0 0 1 0 18a15 15 0 0 1 0-18z"/></svg></span>
+            <span style="flex:1;min-width:0"><span style="display:block;font-family:'Manrope',sans-serif;font-weight:700;font-size:15.5px;color:#F2F3F5">Abrir en el navegador</span><span style="display:block;font-family:'Manrope',sans-serif;font-size:12.5px;color:#9a9da3;margin-top:1px">Ver el mapa en el navegador</span></span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6b6e74" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </a>
+        </div>
+        <div style="padding:2px 22px 18px"><div style="font-family:'Manrope',sans-serif;font-size:11.5px;color:#6b6e74;text-align:center">Se abrirá la app que elijas si la tenés instalada.</div></div>
+      </div>
+    </div>
+  }
+
+  <!-- SERVICES DIALOG -->
+  @if (svcOpen()) {
+    <div (click)="closeSvc()" style="position:fixed;inset:0;z-index:1660;display:flex;align-items:center;justify-content:center;padding:clamp(10px,3vw,40px);background:rgba(4,4,6,.76);-webkit-backdrop-filter:blur(9px);backdrop-filter:blur(9px)">
+      <div (click)="stop($event)" style="position:relative;width:min(760px,100%);max-height:92vh;display:flex;flex-direction:column;border-radius:22px;overflow:hidden;background:linear-gradient(180deg,#16171c,#101015);border:1px solid rgba(255,255,255,.12);box-shadow:0 44px 130px rgba(0,0,0,.72)">
+        <div aria-hidden="true" style="position:absolute;left:0;right:0;top:0;height:2px;background:linear-gradient(90deg,transparent,rgba(225,29,46,.7) 30%,rgba(255,90,98,.95) 50%,rgba(225,29,46,.7) 70%,transparent)"></div>
+        <div style="position:relative;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:20px 24px;border-bottom:1px solid rgba(255,255,255,.09)">
+          <div style="display:flex;align-items:center;gap:13px"><img src="assets/automotivo-logo.png" alt="Automotivo" style="height:38px;width:auto"><div><div style="font-family:'Barlow Condensed',sans-serif;font-style:italic;font-weight:700;text-transform:uppercase;font-size:21px;color:#fff;line-height:1">¿Qué necesita tu carro?</div><div style="font-family:'Manrope',sans-serif;font-size:12.5px;color:#9a9da3;margin-top:2px">Elegí uno o varios servicios</div></div></div>
+          <button (click)="closeSvc()" aria-label="Cerrar" style="display:inline-flex;width:38px;height:38px;border-radius:10px;align-items:center;justify-content:center;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:#c3c6cc;cursor:pointer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+        </div>
+        <div data-svcgrid style="position:relative;overflow-y:auto;padding:20px 24px;display:grid;grid-template-columns:1fr 1fr;gap:11px">
+          @for (c of svcCards(); track c.t) {
+            <button type="button" (click)="toggleServicio(c.t)" [attr.style]="c.style">
+              <span [attr.style]="c.iconWrap"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" [attr.stroke]="c.on ? '#fff' : '#E11D2E'" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">@for (p of c.ic; track $index) { <path [attr.d]="p"></path> }</svg></span>
+              <span style="flex:1;min-width:0;text-align:left"><span style="display:block;font-family:'Barlow Condensed',sans-serif;font-style:italic;font-weight:700;text-transform:uppercase;font-size:16.5px;color:#F2F3F5;line-height:1.05">{{ c.t }}</span><span style="display:block;font-family:'Manrope',sans-serif;font-size:12px;line-height:1.4;color:#9a9da3;margin-top:3px">{{ c.d }}</span></span>
+              <span [attr.style]="c.checkWrap">@if (c.on) { <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 6"/></svg> }</span>
+            </button>
+          }
+        </div>
+        <div style="position:relative;display:flex;align-items:center;gap:12px;padding:16px 24px;border-top:1px solid rgba(255,255,255,.09)">
+          <span style="flex:1;font-family:'Manrope',sans-serif;font-size:13px;color:#9a9da3">{{ svcDialogCount() }}</span>
+          <button (click)="clearSvc()" style="padding:11px 18px;border-radius:11px;background:transparent;border:1px solid rgba(255,255,255,.14);color:#c3c6cc;font-family:'Manrope',sans-serif;font-weight:600;font-size:13.5px;cursor:pointer">Limpiar</button>
+          <button (click)="closeSvc()" class="amv-btn" style="padding:11px 26px;border-radius:11px;background:linear-gradient(135deg,#FF3B41,#E11D2E 60%,#B00D1B);color:#fff;font-family:'Manrope',sans-serif;font-weight:700;font-size:14px;box-shadow:0 12px 28px rgba(225,29,46,.4),inset 0 1px 0 rgba(255,255,255,.28);cursor:pointer">Listo</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- PDF PREVIEW MODAL -->
+  @if (pdfOpen()) {
+    <div style="position:fixed;inset:0;z-index:1650;display:flex;align-items:center;justify-content:center;padding:clamp(10px,3vw,40px);background:rgba(4,4,6,.74);-webkit-backdrop-filter:blur(9px);backdrop-filter:blur(9px)">
+      <div style="position:relative;width:min(940px,100%);max-height:94vh;display:flex;flex-direction:column;border-radius:20px;overflow:hidden;background:#141418;border:1px solid rgba(255,255,255,.12);box-shadow:0 44px 130px rgba(0,0,0,.72)">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px 22px;border-bottom:1px solid rgba(255,255,255,.09)">
+          <div style="display:flex;align-items:center;gap:13px"><span style="display:inline-flex;width:42px;height:42px;border-radius:11px;align-items:center;justify-content:center;background:rgba(225,29,46,.13);border:1px solid rgba(225,29,46,.28)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#E11D2E" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V8z"/><path d="M14 3v5h5M9 13h6M9 17h4"/></svg></span><div><div style="font-family:'Barlow Condensed',sans-serif;font-style:italic;font-weight:700;text-transform:uppercase;font-size:20px;color:#fff;line-height:1">Vista previa de tu cita</div><div style="font-family:'Manrope',sans-serif;font-size:12.5px;color:#9a9da3;font-variant-numeric:tabular-nums">Folio {{ pdfFolio() }}</div></div></div>
+          <button (click)="closePdf()" aria-label="Cerrar" style="display:inline-flex;width:38px;height:38px;border-radius:10px;align-items:center;justify-content:center;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:#c3c6cc;cursor:pointer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+        </div>
+        @if (pdfSrc(); as src) { <iframe title="Vista previa PDF" [src]="src" style="flex:1;width:100%;min-height:min(62vh,640px);border:0;background:#525659"></iframe> }
+        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:16px 22px;border-top:1px solid rgba(255,255,255,.09)">
+          <span style="flex:1;min-width:150px;font-family:'Manrope',sans-serif;font-size:12.5px;line-height:1.5;color:#8b8e94">Tu orden ya se descargó a tu dispositivo. Revisala acá y envianosla por WhatsApp para coordinar la cita.</span>
+          <button (click)="downloadPdf()" style="display:inline-flex;align-items:center;gap:9px;padding:13px 22px;border-radius:12px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.16);color:#EDEFF2;font-family:'Manrope',sans-serif;font-weight:700;font-size:14px;cursor:pointer"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v12M7 11l5 5 5-5M5 20h14"/></svg> Descargar de nuevo</button>
+          <button (click)="sendWhatsappPdf()" class="amv-btn" style="display:inline-flex;align-items:center;gap:9px;padding:13px 24px;border-radius:12px;background:linear-gradient(135deg,#FF3B41,#E11D2E 60%,#B00D1B);color:#fff;font-family:'Manrope',sans-serif;font-weight:700;font-size:14px;box-shadow:0 12px 28px rgba(225,29,46,.4),inset 0 1px 0 rgba(255,255,255,.28);cursor:pointer"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.885-9.885 9.885M20.52 3.449C18.24 1.245 15.24 0 12.045 0 5.463 0 .103 5.359.1 11.947c0 2.096.547 4.142 1.588 5.945L0 24l6.335-1.652a11.94 11.94 0 005.71 1.454h.006c6.585 0 11.946-5.36 11.949-11.948a11.9 11.9 0 00-3.495-8.407z"/></svg> Enviar por WhatsApp</button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

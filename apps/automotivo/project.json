@@ -1,0 +1,70 @@
+{
+  "name": "automotivo",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "prefix": "amv",
+  "sourceRoot": "apps/automotivo/src",
+  "tags": ["scope:automotivo"],
+  "targets": {
+    "build": {
+      "executor": "@angular/build:application",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/apps/automotivo",
+        "browser": "apps/automotivo/src/main.ts",
+        "index": "apps/automotivo/src/index.html",
+        "tsConfig": "apps/automotivo/tsconfig.app.json",
+        "polyfills": ["zone.js"],
+        "inlineStyleLanguage": "scss",
+        "assets": [
+          {
+            "glob": "**/*",
+            "input": "apps/automotivo/public"
+          }
+        ],
+        "styles": ["apps/automotivo/src/styles.scss"],
+        "server": "apps/automotivo/src/main.server.ts",
+        "outputMode": "static",
+        "prerender": true
+      },
+      "configurations": {
+        "production": {
+          "budgets": [
+            { "type": "initial", "maximumWarning": "1mb", "maximumError": "1.5mb" },
+            { "type": "anyComponentStyle", "maximumWarning": "18kb", "maximumError": "24kb" }
+          ],
+          "outputHashing": "all"
+        },
+        "development": {
+          "optimization": false,
+          "extractLicenses": false,
+          "sourceMap": true
+        }
+      },
+      "defaultConfiguration": "production"
+    },
+    "serve": {
+      "continuous": true,
+      "executor": "@angular/build:dev-server",
+      "options": { "port": 4210 },
+      "configurations": {
+        "production": { "buildTarget": "automotivo:build:production" },
+        "development": { "buildTarget": "automotivo:build:development" }
+      },
+      "defaultConfiguration": "development"
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    },
+    "serve-static": {
+      "continuous": true,
+      "executor": "@nx/web:file-server",
+      "options": {
+        "buildTarget": "automotivo:build",
+        "port": 4210,
+        "staticFilePath": "dist/apps/automotivo/browser",
+        "spa": true
+      }
+    }
+  }
+}

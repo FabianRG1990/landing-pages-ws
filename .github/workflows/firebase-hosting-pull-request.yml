@@ -59,9 +59,23 @@ jobs:
             | sed -E 's/[^a-z0-9]+/-/g; s/^-+//; s/-+$//; s/-{2,}/-/g')"
           sanitized_branch_name="${sanitized_branch_name:-preview}"
           channel_id="pr${{ github.event.number }}-${sanitized_branch_name}"
+          firebase_cli_pkg='firebase-tools@15.22.4'
+
+          for attempt in 1 2 3; do
+            if npx "$firebase_cli_pkg" --version >/dev/null 2>&1; then
+              break
+            fi
+
+            if [ "$attempt" -eq 3 ]; then
+              echo "Failed to install $firebase_cli_pkg via npx after 3 attempts" >&2
+              npx "$firebase_cli_pkg" --version
+            fi
+
+            sleep 5
+          done
 
           set +e
-          npx firebase-tools@latest hosting:channel:deploy "$channel_id" \
+          npx "$firebase_cli_pkg" hosting:channel:deploy "$channel_id" \
             --project landing-pages-79afc \
             --only acuario \
             --expires 7d \
@@ -78,7 +92,7 @@ jobs:
             exit "$status"
           fi
 
-          npx firebase-tools@latest hosting:channel:list \
+          npx "$firebase_cli_pkg" hosting:channel:list \
             --project landing-pages-79afc \
             --site landing-pages-79afc \
             --json >"$channels_output"

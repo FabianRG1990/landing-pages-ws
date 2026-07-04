@@ -1,0 +1,56 @@
+:host {
+  display: block;
+  position: relative;
+  min-height: 100vh;
+  background: var(--amv-ink);
+}
+
+// Fondo continuo (una sola capa, evita costuras entre segmentos).
+.amv-root-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  // Radiales del original + matices rojos anchos y de baja opacidad (≤0.07)
+  // para dar calidez sin verse "videojuego". Una sola capa continua: sin costuras.
+  background:
+    radial-gradient(58% 34% at 80% 4%, rgba(230, 140, 70, 0.06), transparent 60%),
+    radial-gradient(52% 32% at 6% 26%, rgba(225, 29, 46, 0.07), transparent 62%),
+    radial-gradient(70% 48% at 52% 118%, rgba(225, 29, 46, 0.055), transparent 60%),
+    radial-gradient(48% 40% at 96% 62%, rgba(225, 29, 46, 0.04), transparent 60%),
+    radial-gradient(60% 30% at 60% 88%, rgba(120, 140, 180, 0.045), transparent 62%),
+    linear-gradient(180deg, #0c0d10 0%, #0a0a0b 46%, #08080a 100%);
+}
+
+// Grano/ruido animado (capa del original que faltaba): da textura sutil al
+// fondo para que no se lea plano. Fijo al viewport, mezcla overlay, opacidad baja.
+.amv-root-grain {
+  position: fixed;
+  inset: 0; // ANTES: -15% → se salía del viewport y, al ser fixed, el
+            // overflow-x:clip del body NO lo recortaba → scroll lateral en móvil.
+            // Con inset:0 nunca desborda; el shimmer se hace por background-position.
+  z-index: 8;
+  pointer-events: none;
+  opacity: 0.045;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 180px;
+  // El ruido se repite (background-repeat por defecto), así que desplazar la
+  // posición hace el "grano" sin mover la caja (sin bordes, sin desborde).
+  animation: amv-grainshift 1.6s steps(2) infinite;
+}
+@keyframes amv-grainshift {
+  0%, 100% { background-position: 0 0; }
+  20% { background-position: -18px -12px; }
+  40% { background-position: 12px -7px; }
+  60% { background-position: -7px 15px; }
+  80% { background-position: 16px 6px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .amv-root-grain { animation: none; }
+}
+
+.amv-main {
+  position: relative;
+  z-index: 1;
+}
