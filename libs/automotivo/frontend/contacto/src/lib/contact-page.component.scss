@@ -1,2 +1,25 @@
 /* Contacto usa estilos globales + inline del original. */
 :host { display: block; }
+
+/* Diálogo "Cómo llegar": entrada suave y estados hover/activo de las opciones. */
+.amv-mapsheet {
+  animation: amv-mapsheet-in 0.24s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+@keyframes amv-mapsheet-in {
+  from { opacity: 0; transform: translateY(12px) scale(0.97); }
+  to { opacity: 1; transform: none; }
+}
+.amv-mapopt {
+  transition: background 0.16s ease, border-color 0.16s ease, transform 0.14s ease;
+}
+.amv-mapopt:hover {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border-color: rgba(255, 255, 255, 0.18) !important;
+  transform: translateY(-1px);
+}
+.amv-mapopt:active { transform: translateY(0); }
+.amv-mapx:hover { background: rgba(255, 255, 255, 0.1) !important; color: #fff !important; }
+@media (prefers-reduced-motion: reduce) {
+  .amv-mapsheet { animation: none; }
+  .amv-mapopt { transition: none; }
+}

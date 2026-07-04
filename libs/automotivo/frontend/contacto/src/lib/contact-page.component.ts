@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, PLATFORM_ID, computed, effect, inject, signal } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import {
   AutomotivoStore, BrandService, AppointmentForm,
@@ -36,6 +37,21 @@ export class ContactPageComponent {
   readonly store = inject(AutomotivoStore);
   private readonly brand = inject(BrandService);
   private readonly sanitizer = inject(DomSanitizer);
+  private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
+
+  constructor() {
+    // Aislar el diálogo "Cómo llegar": mientras esté abierto, bloqueamos el
+    // scroll del fondo para que no aparezca el footer por detrás ni se pueda
+    // desplazar la página. El diálogo es el diálogo y punto.
+    effect((onCleanup) => {
+      if (!this.isBrowser) return;
+      if (this.mapSheet()) {
+        const prev = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
+        onCleanup(() => { document.body.style.overflow = prev; });
+      }
+    });
+  }
 
   readonly waLink = WHATSAPP_LINK;
   readonly mailLink = MAIL_LINK;
