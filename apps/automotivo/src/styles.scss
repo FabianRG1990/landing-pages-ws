@@ -83,6 +83,14 @@ a { color: inherit; text-decoration: none; }
 .amv-anim [data-rv="s"] { transform: scale(.9); }
 .amv-anim [data-rv].amv-in { opacity: 1; transform: none; filter: none; }
 [data-par] { will-change: transform; }
+/* En móvil/tablet el reveal direccional arranca con translateX(±120px). En un
+   viewport angosto eso empuja el contenido FUERA del borde derecho → scroll
+   lateral (el overflow-x:clip del body no contiene bien el desborde por
+   transform). Usamos reveal vertical: sin empuje horizontal, sin desborde. */
+@media (max-width: 1000px) {
+  .amv-anim [data-rv="l"],
+  .amv-anim [data-rv="r"] { transform: translateY(46px); filter: none; }
+}
 @media (prefers-reduced-motion: reduce) {
   .amv-anim [data-rv] { opacity: 1 !important; transform: none !important; filter: none !important; transition: none !important; }
 }

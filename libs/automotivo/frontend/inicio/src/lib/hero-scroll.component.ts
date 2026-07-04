@@ -58,6 +58,7 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
   private settled = false;
   private frameW = 0;
   private frameH = 0;
+  private fitP = 0; // 0 = cover (full-bleed); 1 = logo encuadrado (zoom negativo)
   private seqReady = false;
   private ticking = false;
   private vloop = 0;
@@ -115,6 +116,18 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
 
     // 1) cuadro objetivo en p[0.05 .. 0.72]
     this.targetF = q(0.05, 0.72);
+    // 1b) Zoom negativo del logo: al llegar a los cuadros del logotipo (final
+    //     de la secuencia), el media "se aleja" para que "automotivo" —cuadro
+    //     muy panorámico (2.33:1)— calce completo en pantallas verticales. El
+    //     encuadre real se calcula en draw(); aquí solo animamos el progreso y
+    //     forzamos un redibujo (por si el cuadro ya se asentó).
+    const fitTarget = eio(q(0.58, 0.72));
+    if (Math.abs(fitTarget - this.fitP) > 0.0005) {
+      this.fitP = fitTarget;
+      this.settled = false;
+      this.restRef = -999;
+      this.renderFloat(this.lastF);
+    }
     // 2) el texto se desliza al costado + se desvanece en p[0 .. 0.17].
     //    En reposo (e1≈0) NO promovemos la capa ni aplicamos transform: así el
     //    H1 se rasteriza nítido (evita el blur de will-change en DPR fraccional
@@ -259,15 +272,46 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
     const ctx = this.ctx, c = this.canvas;
     if (!ctx || !c) return;
     const cw = c.width, ch = c.height;
-    const s = Math.max(cw / img.naturalWidth, ch / img.naturalHeight);
+    const cover = Math.max(cw / img.naturalWidth, ch / img.naturalHeight);
+    // Encuadre del logo (zoom negativo): objetivo = ajustar por ancho con un
+    // pequeño overscan (1.12) para que el logotipo completo entre y solo se
+    // recorten las puntas. min(cover, …) => en pantallas anchas donde el ancho
+    // ya cabe (desktop) el objetivo == cover y NO cambia nada; en vertical se
+    // aleja y revela "automotivo" entero. Se interpola cover→ajuste con fitP.
+    const fit = Math.min(cover, (cw / img.naturalWidth) * 1.12);
+    const s = cover + (fit - cover) * this.fitP;
     const dw = img.naturalWidth * s, dh = img.naturalHeight * s;
-    if (alpha < 1) ctx.globalAlpha = alpha;
-    ctx.drawImage(img, (cw - dw) * 0.5, (ch - dh) * 0.5, dw, dh);
-    if (alpha < 1) ctx.globalAlpha = 1;
+    const dx = (cw - dw) * 0.5, dy = (ch - dh) * 0.5;
+    if (alpha < 1) {
+      ctx.globalAlpha = alpha;
+      ctx.drawImage(img, dx, dy, dw, dh);
+      ctx.globalAlpha = 1;
+      return;
+    }
+    const letterbox = this.fitP > 0.001 && dh < ch - 1;
+    if (letterbox) {
+      // Relleno oscuro (ink del fondo) en las franjas superior e inferior. El
+      // fondo del propio cuadro ya es casi negro, así que no hay costura de color.
+      ctx.fillStyle = '#0a0a0c';
+      ctx.fillRect(0, 0, cw, Math.ceil(dy) + 1);
+      ctx.fillRect(0, Math.floor(dy + dh) - 1, cw, ch);
+    }
+    ctx.drawImage(img, dx, dy, dw, dh);
+    if (letterbox) {
+      // Difuminado de la unión imagen↔fondo: degradé al ink en el borde de arriba
+      // y de abajo del cuadro, para que el "corte" del video no se lea como línea.
+      const fade = Math.max(1, Math.round(dh * 0.16));
+      const gTop = ctx.createLinearGradient(0, dy, 0, dy + fade);
+      gTop.addColorStop(0, '#0a0a0c'); gTop.addColorStop(1, 'rgba(10,10,12,0)');
+      ctx.fillStyle = gTop; ctx.fillRect(0, dy, cw, fade);
+      const gBot = ctx.createLinearGradient(0, dy + dh, 0, dy + dh - fade);
+      gBot.addColorStop(0, '#0a0a0c'); gBot.addColorStop(1, 'rgba(10,10,12,0)');
+      ctx.fillStyle = gBot; ctx.fillRect(0, dy + dh - fade, cw, fade);
+    }
   }
 
   private resetHero(): void {
-    this.targetF = 0; this.lastF = 0; this.restRef = -999; this.settled = false; this.stillCount = 0;
+    this.targetF = 0; this.lastF = 0; this.restRef = -999; this.settled = false; this.stillCount = 0; this.fitP = 0;
     this.canvas = this.canvasRef().nativeElement; this.ctx = null;
     if (this.canvas && this.imgs) this.renderFloat(0);
     const text = this.textRef().nativeElement;
