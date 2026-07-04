@@ -156,15 +156,20 @@ export const AutomotivoStore = signalStore(
         const order = pdf.buildOrder(f);
         if (_blobUrl) { try { URL.revokeObjectURL(_blobUrl); } catch { /* noop */ } }
         _blobUrl = order.url;
+        // Descarga AUTOMÁTICA al generar: el cliente recibe el archivo sí o sí,
+        // sin depender de que sepa/recuerde pulsar "Descargar". Se ejecuta dentro
+        // del gesto de submit, así que el navegador no la bloquea.
+        try { order.save(); } catch { /* noop */ }
         patchState(store, {
           formErr: false, pdfOpen: true, pdfUrl: order.url, pdfFolio: order.folio,
         });
         return [];
       },
       closePdf: () => patchState(store, { pdfOpen: false }),
+      /** Re-descarga manual (la orden ya se descargó al generarse). */
       downloadPdf: () => pdf.lastOrder?.save(),
       sendWhatsappOrder() {
-        pdf.lastOrder?.save();
+        // El PDF ya se descargó al generar la orden; aquí solo abrimos WhatsApp.
         window.open(pdf.whatsappText(store.form()), '_blank', 'noopener');
       },
 
