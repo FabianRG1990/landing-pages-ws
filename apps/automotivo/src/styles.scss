@@ -263,4 +263,47 @@ a { color: inherit; text-decoration: none; }
   .vh-about-h2 { font-size: clamp(22px, 6vw, 30px) !important; }
   .vh-about [data-4] { grid-template-columns: 1fr 1fr !important; gap: 10px !important; }
 }
+/* ============================================================
+   Teléfono en HORIZONTAL (apaisado, viewport muy bajo): dos arreglos.
+   ============================================================ */
+@media (orientation: landscape) and (max-height: 500px) {
+  /* (1) Menú hamburguesa: los ítems a tamaño de vertical (≈46px) no caben —5
+     ítems se cortaban arriba/abajo—. Compactamos y usamos 2 columnas para
+     aprovechar el ancho, de modo que todo entra sin cortarse ni scroll. */
+  .amv-mobmenu { padding: 58px 44px 22px !important; }
+  .amv-mobmenu-inner {
+    max-width: 720px !important;
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    column-gap: 46px !important;
+    row-gap: 0 !important;
+  }
+  .amv-mobitem { padding: 11px 4px !important; }
+  .amv-mobitem-lb { font-size: clamp(24px, 6.4vh, 32px) !important; }
+
+  /* (2) Hero: el H1 gigante llenaba el alto y chocaba con el logo del navbar
+     (arriba-izquierda). Compactamos el bloque de texto para que quede abajo,
+     sin sobreponerse al logo ni a la barra. */
+  .vh-text > div { padding-bottom: 14px !important; }
+  .vh-text h1 { font-size: clamp(24px, 5vw, 40px) !important; margin-top: 10px !important; }
+  .vh-text p { font-size: 12.5px !important; line-height: 1.5 !important; margin-top: 8px !important; }
+  .vh-text > div > div:last-child { margin-top: 16px !important; }
+}
+
+/* ============================================================
+   Footer en teléfono VERTICAL: quedaba enorme (todo apilado a 1 columna).
+   Ocultamos la columna "Servicios" (redundante con el menú y muy larga) y
+   apretamos separaciones para que no se vea tan grande. "Explorar" se queda.
+   ============================================================ */
+@media (max-width: 560px) {
+  footer [data-fgrid] { gap: 22px !important; }
+  footer [data-fgrid] > div:nth-child(3) { display: none !important; }
+  footer [data-pad] { padding-top: 24px !important; }
+  /* logo un poco más chico y descripción/enlaces más apretados: menos alto. */
+  footer [data-fgrid] > div:first-child img { height: 96px !important; margin: -8px 0 !important; }
+  footer [data-fgrid] > div:first-child p:last-of-type { margin-top: 10px !important; }
+  footer [data-fgrid] > div > div[style*="gap:11px"] { gap: 8px !important; }
+  footer [data-fgrid] > div > div[style*="gap:14px"] { gap: 11px !important; }
+}
+
 @media (prefers-reduced-motion: reduce) { * { animation-duration: .001ms !important; animation-iteration-count: 1 !important; } }
