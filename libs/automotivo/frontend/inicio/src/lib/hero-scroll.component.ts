@@ -20,7 +20,7 @@ import { AutomotivoStore } from '@automotivo-ui-shared';
  * La lógica es un port directo de `updateVideo`/`tickSeq`/`drawFrame` del
  * runtime (support.js) del original.
  */
-const N = 144;
+const N = 145;
 
 @Component({
   selector: 'amv-hero-scroll',
