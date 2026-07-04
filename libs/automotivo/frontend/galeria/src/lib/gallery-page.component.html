@@ -16,7 +16,7 @@
       @for (g of galleryVisible(); track g.id) {
         <div class="amv-galcard" [attr.style]="g.wrap">
           @if (g.src) {
-            <img [src]="g.src" [alt]="g.catLabel" style="width:100%;height:100%;object-fit:cover">
+            <img [src]="g.src" [alt]="g.catLabel" loading="lazy" decoding="async" style="width:100%;height:100%;object-fit:cover">
           } @else {
             <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:linear-gradient(160deg,#15161a,#0b0b0d);color:#54565c;font-family:'Manrope',sans-serif;font-size:12.5px">Foto próximamente</div>
           }

@@ -182,10 +182,11 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
       this.restRef = -999;
       this.renderFloat(this.lastF || 0);
     };
-    const cap = setTimeout(done, 9000);
-    for (let i = 0; i < N; i++) {
+    const cap = setTimeout(done, 12000);
+    const load = (i: number, priority: 'high' | 'low') => {
       const im = new Image();
       im.decoding = 'async';
+      im.setAttribute('fetchpriority', priority);
       im.onload = im.onerror = () => {
         loaded++;
         if (i === 0 && im.naturalWidth) {
@@ -196,9 +197,22 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
         }
         if (loaded >= N) { clearTimeout(cap); done(); }
       };
-      im.src = 'assets/frames/f' + String(i).padStart(3, '0') + '.jpg';
+      // WebP (~55% más liviano que el JPEG original): 20MB → 9MB en total.
+      im.src = 'assets/frames/f' + String(i).padStart(3, '0') + '.webp';
       this.imgs[i] = im;
-    }
+    };
+    // El PRIMER cuadro con prioridad alta → el hero pinta de inmediato. Los 143
+    // restantes se cargan DESPUÉS del primer pintado y con prioridad baja, para
+    // no ahogar el ancho de banda de la carga inicial (fuentes, JS, above-fold).
+    // Antes se disparaban los 144 a la vez y competían con todo → primera carga
+    // lenta. El scrub conserva el fallback al cuadro cargado más cercano.
+    load(0, 'high');
+    const rest = () => { for (let i = 1; i < N; i++) load(i, 'low'); };
+    const w = window as typeof window & {
+      requestIdleCallback?: (cb: () => void, opts?: { timeout: number }) => number;
+    };
+    if (w.requestIdleCallback) w.requestIdleCallback(rest, { timeout: 1200 });
+    else setTimeout(rest, 300);
   }
 
   // ---- render loop: cuadro sigue al scroll 1:1 (port de tickSeq) ----

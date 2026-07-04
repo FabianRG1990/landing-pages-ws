@@ -34,9 +34,10 @@ export class PreloaderComponent implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     if (!this.isBrowser) return;
-    // contador de % sincronizado al barrido (~0.35s de retraso, ~1.9s de sweep)
-    const start = performance.now() + 350;
-    const dur = 1900;
+    // contador de % sincronizado al barrido. Acortado (antes 0.35s+1.9s ≈ 2.55s
+    // de intro fija): la primera carga se sentía lenta por este retraso artificial.
+    const start = performance.now() + 200;
+    const dur = 1100;
     const step = (t: number) => {
       const p = Math.max(0, Math.min(1, (t - start) / dur));
       const eased = 1 - Math.pow(1 - p, 2);
@@ -49,7 +50,7 @@ export class PreloaderComponent implements AfterViewInit, OnDestroy {
       else { if (pctEl) pctEl.textContent = '100%'; if (barEl) barEl.style.width = '100%'; }
     };
     this.raf = requestAnimationFrame(step);
-    this.timers.push(setTimeout(() => this.gone.set(true), 3300));
+    this.timers.push(setTimeout(() => this.gone.set(true), 1850));
   }
 
   ngOnDestroy(): void {
