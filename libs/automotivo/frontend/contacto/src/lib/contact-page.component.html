@@ -112,17 +112,50 @@
           }
         </div>
 
-        <div style="position:relative;border-radius:18px;overflow:hidden;border:1px solid rgba(255,255,255,.09);background:#0e0f13">
-          <iframe title="Ubicación del taller Automotivo" [src]="mapSrc" style="display:block;width:100%;height:300px;border:0;filter:invert(.92) hue-rotate(180deg) brightness(.95) contrast(.92)" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+        <!-- Toda la tarjeta del mapa es un botón: al tocarla abre el selector de
+             app (Waze / Google Maps / navegador). El iframe queda sin eventos
+             (pointer-events:none) para que el toque caiga en el botón. -->
+        <button type="button" (click)="openMapSheet()" aria-label="Cómo llegar: abrir la ubicación en Waze, Google Maps o el navegador" style="position:relative;display:block;width:100%;padding:0;text-align:left;border-radius:18px;overflow:hidden;border:1px solid rgba(255,255,255,.09);background:#0e0f13;cursor:pointer">
+          <iframe title="Ubicación del taller Automotivo" [src]="mapSrc" style="display:block;width:100%;height:300px;border:0;pointer-events:none;filter:invert(.92) hue-rotate(180deg) brightness(.95) contrast(.92)" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
           <div style="pointer-events:none;position:absolute;left:0;right:0;bottom:0;height:78px;background:linear-gradient(180deg,transparent,rgba(8,8,10,.9))"></div>
           <div style="pointer-events:none;position:absolute;left:16px;right:16px;bottom:13px;display:flex;align-items:flex-end;justify-content:space-between;gap:12px">
             <div><div style="font-family:'Barlow Condensed',sans-serif;font-style:italic;font-weight:700;text-transform:uppercase;font-size:17px;color:#fff;line-height:1.05">Santo Domingo · San Miguel</div><div style="font-family:'Manrope',sans-serif;font-size:12px;color:#c3c6cc;margin-top:2px">Heredia, Costa Rica</div></div>
-            <a [href]="mapLink" target="_blank" rel="noopener" style="pointer-events:auto;display:inline-flex;align-items:center;gap:6px;flex-shrink:0;padding:8px 13px;border-radius:100px;background:#E11D2E;text-decoration:none;font-family:'Manrope',sans-serif;font-weight:700;font-size:12px;color:#fff">Cómo llegar <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+            <span style="display:inline-flex;align-items:center;gap:6px;flex-shrink:0;padding:8px 13px;border-radius:100px;background:#E11D2E;font-family:'Manrope',sans-serif;font-weight:700;font-size:12px;color:#fff">Cómo llegar <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
           </div>
-        </div>
+        </button>
       </div>
     </div>
   </section>
+
+  <!-- MAP APP CHOOSER (hoja inferior: Waze / Google Maps / navegador) -->
+  @if (mapSheet()) {
+    <div (click)="closeMapSheet()" style="position:fixed;inset:0;z-index:1680;display:flex;align-items:flex-end;justify-content:center;padding:0 12px 12px;background:rgba(4,4,6,.72);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)">
+      <div (click)="stop($event)" style="position:relative;width:min(460px,100%);border-radius:22px;overflow:hidden;background:linear-gradient(180deg,#16171c,#101015);border:1px solid rgba(255,255,255,.12);box-shadow:0 44px 130px rgba(0,0,0,.72)">
+        <div aria-hidden="true" style="position:absolute;left:0;right:0;top:0;height:2px;background:linear-gradient(90deg,transparent,rgba(225,29,46,.7) 30%,rgba(255,90,98,.95) 50%,rgba(225,29,46,.7) 70%,transparent)"></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px 20px;border-bottom:1px solid rgba(255,255,255,.09)">
+          <div><div style="font-family:'Barlow Condensed',sans-serif;font-style:italic;font-weight:700;text-transform:uppercase;font-size:20px;color:#fff;line-height:1">Cómo llegar</div><div style="font-family:'Manrope',sans-serif;font-size:12.5px;color:#9a9da3;margin-top:2px">Elegí con qué app abrir la ubicación</div></div>
+          <button (click)="closeMapSheet()" aria-label="Cerrar" style="display:inline-flex;width:38px;height:38px;border-radius:10px;align-items:center;justify-content:center;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);color:#c3c6cc;cursor:pointer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+        </div>
+        <div style="padding:12px;display:flex;flex-direction:column;gap:9px">
+          <a [href]="wazeLink" target="_blank" rel="noopener" (click)="closeMapSheet()" style="display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:14px;text-decoration:none;border:1px solid rgba(255,255,255,.09);background:linear-gradient(168deg,rgba(255,255,255,.05),rgba(255,255,255,.012))">
+            <span style="display:inline-flex;width:44px;height:44px;flex-shrink:0;border-radius:12px;align-items:center;justify-content:center;background:rgba(51,204,255,.14);border:1px solid rgba(51,204,255,.3)"><svg width="24" height="24" viewBox="0 0 24 24" fill="#33CCFF"><path d="M13.218 0C9.915 0 6.835 1.49 4.723 4.148c-1.515 1.913-2.31 4.272-2.31 6.706v1.739c0 .894-.62 1.738-1.862 1.813-.298.025-.547.224-.547.522-.05.82.82 2.31 2.012 3.502.82.844 1.788 1.515 2.832 2.036a3 3 0 0 0 2.955 3.528 2.966 2.966 0 0 0 2.931-2.385h2.509c.323 1.689 2.086 2.856 3.974 2.21 1.64-.546 2.36-2.409 1.763-3.924a12.84 12.84 0 0 0 1.838-1.465 10.73 10.73 0 0 0 3.18-7.65c0-2.882-1.118-5.589-3.155-7.625A10.899 10.899 0 0 0 13.218 0zm0 1.217c2.558 0 4.967.994 6.78 2.807a9.525 9.525 0 0 1 2.807 6.78A9.526 9.526 0 0 1 20 17.585a9.647 9.647 0 0 1-6.78 2.807h-2.46a3.008 3.008 0 0 0-2.93-2.41 3.03 3.03 0 0 0-2.534 1.367v.024a8.945 8.945 0 0 1-2.41-1.788c-.844-.844-1.316-1.614-1.515-2.11a2.858 2.858 0 0 0 1.441-.846 2.959 2.959 0 0 0 .795-2.036v-1.789c0-2.11.696-4.197 2.012-5.861 1.863-2.385 4.62-3.726 7.6-3.726zm-2.41 5.986a1.192 1.192 0 0 0-1.191 1.192 1.192 1.192 0 0 0 1.192 1.193A1.192 1.192 0 0 0 12 8.395a1.192 1.192 0 0 0-1.192-1.192zm7.204 0a1.192 1.192 0 0 0-1.192 1.192 1.192 1.192 0 0 0 1.192 1.193 1.192 1.192 0 0 0 1.192-1.193 1.192 1.192 0 0 0-1.192-1.192zm-7.377 4.769a.596.596 0 0 0-.546.845 4.813 4.813 0 0 0 4.346 2.757 4.77 4.77 0 0 0 4.347-2.757.596.596 0 0 0-.547-.845h-.025a.561.561 0 0 0-.521.348 3.59 3.59 0 0 1-3.254 2.061 3.591 3.591 0 0 1-3.254-2.061.64.64 0 0 0-.546-.348z"/></svg></span>
+            <span style="flex:1"><span style="display:block;font-family:'Manrope',sans-serif;font-weight:700;font-size:15.5px;color:#F2F3F5">Waze</span><span style="display:block;font-family:'Manrope',sans-serif;font-size:12.5px;color:#9a9da3;margin-top:1px">Navegación en tiempo real</span></span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6b6e74" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </a>
+          <a [href]="mapLink" target="_blank" rel="noopener" (click)="closeMapSheet()" style="display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:14px;text-decoration:none;border:1px solid rgba(255,255,255,.09);background:linear-gradient(168deg,rgba(255,255,255,.05),rgba(255,255,255,.012))">
+            <span style="display:inline-flex;width:44px;height:44px;flex-shrink:0;border-radius:12px;align-items:center;justify-content:center;background:rgba(66,133,244,.14);border:1px solid rgba(66,133,244,.3)"><svg width="22" height="22" viewBox="0 0 24 24" fill="#4285F4"><path d="M19.527 4.799c1.212 2.608.937 5.678-.405 8.173-1.101 2.047-2.744 3.74-4.098 5.614-.619.858-1.244 1.75-1.669 2.727-.141.325-.263.658-.383.992-.121.333-.224.673-.34 1.008-.109.314-.236.684-.627.687h-.007c-.466-.001-.579-.53-.695-.887-.284-.874-.581-1.713-1.019-2.525-.51-.944-1.145-1.817-1.79-2.671L19.527 4.799zM8.545 7.705l-3.959 4.707c.724 1.54 1.821 2.863 2.871 4.18.247.31.494.622.737.936l4.984-5.925-.029.01c-1.741.601-3.691-.291-4.392-1.987a3.377 3.377 0 0 1-.209-.716c-.063-.437-.077-.761-.004-1.198l.001-.007zM5.492 3.149l-.003.004c-1.947 2.466-2.281 5.88-1.117 8.77l4.785-5.689-.058-.05-3.607-3.035zM14.661.436l-3.838 4.563a.295.295 0 0 1 .027-.01c1.6-.551 3.403.15 4.22 1.626.176.319.323.683.377 1.045.068.446.085.773.012 1.22l-.003.016 3.836-4.561A8.382 8.382 0 0 0 14.67.439l-.009-.003zM9.466 5.868L14.162.285l-.047-.012A8.31 8.31 0 0 0 11.986 0a8.439 8.439 0 0 0-6.169 2.766l-.016.018 3.665 3.084z"/></svg></span>
+            <span style="flex:1"><span style="display:block;font-family:'Manrope',sans-serif;font-weight:700;font-size:15.5px;color:#F2F3F5">Google Maps</span><span style="display:block;font-family:'Manrope',sans-serif;font-size:12.5px;color:#9a9da3;margin-top:1px">Cómo llegar paso a paso</span></span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6b6e74" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </a>
+          <a [href]="mapsWebLink" target="_blank" rel="noopener" (click)="closeMapSheet()" style="display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:14px;text-decoration:none;border:1px solid rgba(255,255,255,.09);background:linear-gradient(168deg,rgba(255,255,255,.05),rgba(255,255,255,.012))">
+            <span style="display:inline-flex;width:44px;height:44px;flex-shrink:0;border-radius:12px;align-items:center;justify-content:center;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14)"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#c3c6cc" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a15 15 0 0 1 0 18a15 15 0 0 1 0-18z"/></svg></span>
+            <span style="flex:1"><span style="display:block;font-family:'Manrope',sans-serif;font-weight:700;font-size:15.5px;color:#F2F3F5">Abrir en el navegador</span><span style="display:block;font-family:'Manrope',sans-serif;font-size:12.5px;color:#9a9da3;margin-top:1px">Ver el mapa en el navegador</span></span>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6b6e74" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+          </a>
+        </div>
+      </div>
+    </div>
+  }
 
   <!-- SERVICES DIALOG -->
   @if (svcOpen()) {

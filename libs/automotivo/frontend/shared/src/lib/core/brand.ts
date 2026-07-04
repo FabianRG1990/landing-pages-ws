@@ -25,6 +25,10 @@ export const WHATSAPP_LINK = `https://wa.me/${BRAND.whatsappRaw}?text=${encodeUR
 )}`;
 export const MAPS_DIR_LINK = `https://www.google.com/maps/dir/?api=1&destination=${BRAND.geo.lat},${BRAND.geo.lng}`;
 export const MAPS_EMBED_SRC = `https://maps.google.com/maps?q=${BRAND.geo.lat},${BRAND.geo.lng}&z=16&output=embed`;
+// Enlace universal de Waze: abre la app si está instalada (móvil) o Waze web.
+export const WAZE_LINK = `https://waze.com/ul?ll=${BRAND.geo.lat},${BRAND.geo.lng}&navigate=yes`;
+// Ubicación en el navegador (Google Maps web / app de mapas por defecto).
+export const MAPS_WEB_LINK = `https://www.google.com/maps/search/?api=1&query=${BRAND.geo.lat},${BRAND.geo.lng}`;
 export const MAIL_LINK = `mailto:${BRAND.email}`;
 
 @Injectable({ providedIn: 'root' })

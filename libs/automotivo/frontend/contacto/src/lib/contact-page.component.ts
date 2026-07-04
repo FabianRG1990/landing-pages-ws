@@ -1,8 +1,8 @@
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import {
   AutomotivoStore, BrandService, AppointmentForm,
-  MAIL_LINK, MAPS_DIR_LINK, MAPS_EMBED_SRC, WHATSAPP_LINK,
+  MAIL_LINK, MAPS_DIR_LINK, MAPS_EMBED_SRC, MAPS_WEB_LINK, WAZE_LINK, WHATSAPP_LINK,
 } from '@automotivo-ui-shared';
 
 /** Pantalla "Contacto" — form de cita + calendario + rail + mapa + diálogo de
@@ -40,6 +40,12 @@ export class ContactPageComponent {
   readonly waLink = WHATSAPP_LINK;
   readonly mailLink = MAIL_LINK;
   readonly mapLink = MAPS_DIR_LINK;
+  readonly wazeLink = WAZE_LINK;
+  readonly mapsWebLink = MAPS_WEB_LINK;
+  // Hoja de opciones "Cómo llegar" (Waze / Google Maps / navegador). Estado
+  // local de la vista: al tocar el mapa mostramos las tres apps para que el
+  // usuario elija, en vez de forzar una sola. Funciona igual en iOS y Android.
+  readonly mapSheet = signal(false);
   readonly f = this.store.form;
   readonly calOpen = this.store.calOpen;
   readonly svcOpen = this.store.svcOpen;
@@ -199,4 +205,6 @@ export class ContactPageComponent {
   downloadPdf(): void { this.store.downloadPdf(); }
   sendWhatsappPdf(): void { this.store.sendWhatsappOrder(); }
   stop(ev: Event): void { ev.stopPropagation(); }
+  openMapSheet(ev?: Event): void { ev?.preventDefault(); this.mapSheet.set(true); }
+  closeMapSheet(): void { this.mapSheet.set(false); }
 }
