@@ -167,11 +167,12 @@ a { color: inherit; text-decoration: none; }
   .vh-about-p { font-size: 13.5px !important; line-height: 1.55 !important; margin-top: 10px !important; }
   .vh-about [data-4] { gap: 10px !important; margin-top: 16px !important; }
 }
-/* Laptop de oficina (viewport ANCHO pero BAJO): mantener el split en 2 columnas
-   —usa el ancho horizontal y queda balanceado— en lugar de apilar (foto-tira
-   ancha + tarjetas enormes y vacías, que se veía mal). Solo ≥1001px; en teléfono
-   angosto sigue apilando por la regla de ancho de arriba. */
-@media (min-width: 1001px) and (max-height: 760px) {
+/* Viewport ANCHO pero BAJO (laptop de oficina Y teléfono en horizontal):
+   mantener el split en 2 columnas —usa el ancho y queda balanceado— en lugar de
+   apilar (foto-tira ancha + tarjetas enormes y vacías, que se veía mal). Con
+   min-width:640px cubre laptops chicas y teléfonos apaisados; un teléfono en
+   VERTICAL es alto (max-height falla) y no entra aquí, sigue apilando. */
+@media (min-width: 640px) and (max-height: 760px) {
   // Contenido con HOLGURA para que quepa entero → se centra vertical y no se
   // dispara el scroll interno (overflow-y:auto) que se sentía descoordinado.
   .vh-about { padding-top: 32px !important; align-items: center !important; }
@@ -206,6 +207,16 @@ a { color: inherit; text-decoration: none; }
   .amv-burg { display: flex !important; }
   .hero-bar { grid-template-columns: 1fr 1fr !important; }
   .hb-4 { display: none !important; }
+  [data-4] { grid-template-columns: 1fr 1fr !important; }
+  [data-heromedia] { min-height: 320px !important; }
+}
+/* El apilado a 1 columna es SOLO para pantallas angostas en VERTICAL. Un
+   teléfono en HORIZONTAL (apaisado) es ANCHO pero muy bajo —se parece a una
+   laptop chica, no a un teléfono vertical— y con `max-width:1000px` se apilaba
+   todo y quedaba mal. Al condicionar a `orientation:portrait`, en horizontal se
+   mantiene el layout de 2 columnas tipo laptop (la alternancia del zigzag vive
+   en los estilos inline: grid-column por hijo + ratio de columnas). */
+@media(max-width:1000px) and (orientation:portrait) {
   [data-split] { grid-template-columns: 1fr !important; gap: 34px !important; }
   [data-zig] { grid-template-columns: 1fr !important; }
   // Al colapsar a 1 columna, los hijos traen grid-column/row inline (2, 1…) que
@@ -213,8 +224,6 @@ a { color: inherit; text-decoration: none; }
   // para que `order:-1` (media arriba, texto abajo) funcione.
   [data-zig] > * { grid-column: auto !important; grid-row: auto !important; }
   [data-zig] [data-zigmedia] { order: -1; }
-  [data-4] { grid-template-columns: 1fr 1fr !important; }
-  [data-heromedia] { min-height: 320px !important; }
 }
 @media(max-width:620px) {
   [data-pad] { padding-left: 20px !important; padding-right: 20px !important; }
