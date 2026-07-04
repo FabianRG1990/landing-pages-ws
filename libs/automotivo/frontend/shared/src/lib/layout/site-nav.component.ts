@@ -59,23 +59,27 @@ export class SiteNavComponent {
   readonly navStyle = 'position:fixed;top:0;left:0;right:0;height:86px;z-index:1000;pointer-events:none';
   readonly navWrapStyle = 'position:absolute;left:50%;top:0;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;pointer-events:none';
 
+  // En reposo usamos transform:none (sin will-change) para que el texto de la
+  // barra se rasterice nítido: will-change + un transform identidad promueven la
+  // capa y, en DPR fraccional (escalado de Windows), reescalan la textura → blur.
+  // La animación de colapso sigue funcionando (none ↔ translateY interpolan).
   readonly navBarStyle = computed(() => {
     const b = this.barShown();
-    return 'display:flex;align-items:stretch;height:58px;transform:' + (b ? 'translateY(0)' : 'translateY(-104%)') +
+    return 'display:flex;align-items:stretch;height:58px;transform:' + (b ? 'none' : 'translateY(-104%)') +
       ';opacity:' + (b ? 1 : 0) + ';transition:transform .55s cubic-bezier(.16,1,.3,1),opacity .35s ease;pointer-events:' +
-      (b ? 'auto' : 'none') + ';will-change:transform,opacity;filter:drop-shadow(0 14px 34px rgba(0,0,0,.4))';
+      (b ? 'auto' : 'none') + ';filter:drop-shadow(0 14px 34px rgba(0,0,0,.4))';
   });
   readonly navTabStyle = computed(() => {
     const c = this.collapsed();
-    return 'position:absolute;top:0;transform:' + (c ? 'translateY(0)' : 'translateY(-150%)') +
+    return 'position:absolute;top:0;transform:' + (c ? 'none' : 'translateY(-150%)') +
       ';opacity:' + (c ? 1 : 0) + ';transition:transform .55s cubic-bezier(.16,1,.3,1),opacity .3s ease;pointer-events:' +
-      (c ? 'auto' : 'none') + ';will-change:transform,opacity';
+      (c ? 'auto' : 'none');
   });
   readonly navLogoStyle = computed(() => {
     const b = this.barShown();
     return 'position:absolute;left:clamp(20px,4vw,54px);top:23px;display:flex;align-items:center;padding:0;pointer-events:' +
-      (b ? 'auto' : 'none') + ';transform:' + (b ? 'translateY(0)' : 'translateY(-140%)') + ';opacity:' + (b ? 1 : 0) +
-      ';transition:transform .55s cubic-bezier(.16,1,.3,1),opacity .35s ease;will-change:transform,opacity';
+      (b ? 'auto' : 'none') + ';transform:' + (b ? 'none' : 'translateY(-140%)') + ';opacity:' + (b ? 1 : 0) +
+      ';transition:transform .55s cubic-bezier(.16,1,.3,1),opacity .35s ease';
   });
 
   linkBase(active: boolean): string {

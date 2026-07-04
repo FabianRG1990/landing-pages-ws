@@ -115,9 +115,18 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
 
     // 1) cuadro objetivo en p[0.05 .. 0.72]
     this.targetF = q(0.05, 0.72);
-    // 2) el texto se desliza al costado + se desvanece en p[0 .. 0.17]
+    // 2) el texto se desliza al costado + se desvanece en p[0 .. 0.17].
+    //    En reposo (e1≈0) NO promovemos la capa ni aplicamos transform: así el
+    //    H1 se rasteriza nítido (evita el blur de will-change en DPR fraccional
+    //    de Windows). Solo promovemos mientras hay movimiento real.
     const e1 = eio(q(0, 0.17));
-    text.style.transform = 'translateX(' + (-e1 * 190).toFixed(1) + 'px)';
+    if (e1 <= 0.0001) {
+      text.style.transform = 'none';
+      text.style.willChange = 'auto';
+    } else {
+      text.style.willChange = 'transform, opacity';
+      text.style.transform = 'translateX(' + (-e1 * 190).toFixed(1) + 'px)';
+    }
     text.style.opacity = (1 - e1).toFixed(3);
     text.style.pointerEvents = e1 > 0.4 ? 'none' : '';
     hint.style.opacity = (1 - q(0, 0.1)).toFixed(3);
@@ -258,7 +267,7 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
     const vig = this.vigRef().nativeElement;
     const about = this.aboutRef().nativeElement;
     const mediaw = this.mediaRef().nativeElement;
-    text.style.transform = 'translateX(0)'; text.style.opacity = '1'; text.style.pointerEvents = '';
+    text.style.transform = 'none'; text.style.willChange = 'auto'; text.style.opacity = '1'; text.style.pointerEvents = '';
     vig.style.opacity = '1';
     mediaw.style.transform = 'none'; mediaw.style.opacity = '1'; mediaw.style.filter = 'none'; mediaw.style.borderRadius = '0px';
     about.style.opacity = '0'; about.style.transform = 'scale(.55)'; about.style.pointerEvents = 'none';
