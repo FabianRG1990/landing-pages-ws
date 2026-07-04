@@ -4,8 +4,8 @@
 
   <div class="amv-nav-wrap" [attr.style]="navWrapStyle">
     <div class="amv-desk amv-navbar" [attr.style]="navBarStyle()">
-      <svg width="70" height="58" viewBox="0 0 70 58" preserveAspectRatio="none" style="display:block;margin-right:-1px"><path d="M0 0 L70 0 L70 58 L22 58 C10 58 8 3 0 0 Z" fill="rgba(18,19,23,.82)"></path></svg>
-      <div class="amv-navbody" style="display:flex;align-items:stretch;height:58px;background:rgba(18,19,23,.82);-webkit-backdrop-filter:blur(22px) saturate(1.4);backdrop-filter:blur(22px) saturate(1.4);box-shadow:inset 0 1px 0 rgba(255,255,255,.06);padding-right:4px">
+      <svg width="70" height="58" viewBox="0 0 70 58" preserveAspectRatio="none" style="display:block;margin-right:-1px;filter:drop-shadow(0 14px 34px rgba(0,0,0,.4))"><path d="M0 0 L70 0 L70 58 L22 58 C10 58 8 3 0 0 Z" fill="rgba(18,19,23,.82)"></path></svg>
+      <div class="amv-navbody" style="display:flex;align-items:stretch;height:58px;padding-right:4px;position:relative">
         <nav style="display:flex;align-items:stretch;gap:1px">
           <button (click)="go('inicio')" class="amv-navlink" [attr.style]="linkBase(screen()==='inicio')">Inicio<span [attr.style]="indStyle(screen()==='inicio')"></span></button>
           <button (click)="go('servicios')" class="amv-navlink" [attr.style]="linkBase(screen()==='servicios')">Servicios<span [attr.style]="indStyle(screen()==='servicios')"></span></button>
@@ -19,7 +19,7 @@
           Agendar cita
         </button>
       </div>
-      <svg width="70" height="58" viewBox="0 0 70 58" preserveAspectRatio="none" style="display:block;margin-left:-1px"><path d="M70 0 L0 0 L0 58 L48 58 C60 58 62 3 70 0 Z" fill="rgba(18,19,23,.82)"></path></svg>
+      <svg width="70" height="58" viewBox="0 0 70 58" preserveAspectRatio="none" style="display:block;margin-left:-1px;filter:drop-shadow(0 14px 34px rgba(0,0,0,.4))"><path d="M70 0 L0 0 L0 58 L48 58 C60 58 62 3 70 0 Z" fill="rgba(18,19,23,.82)"></path></svg>
     </div>
 
     <button (click)="toggleNavOpen($event)" class="amv-desk amv-nav-tab" [attr.style]="navTabStyle()" aria-label="Mostrar menú">

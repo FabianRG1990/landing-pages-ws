@@ -1,3 +1,21 @@
 /* El nav usa clases globales (.amv-navlink/.amv-desk/.amv-burg) + estilos
    inline transcritos del original; el <header> maneja su propio position:fixed. */
 :host { display: contents; }
+
+/* Vidrio esmerilado + sombra en una capa de FONDO (::before), NO en el elemento
+   que contiene el texto. Así el backdrop-filter difumina el hero por detrás pero
+   las letras quedan en una capa limpia (sin filtro) → nítidas en cualquier DPR.
+   El texto se eleva con z-index sobre el vidrio. */
+.amv-navbody { position: relative; }
+.amv-navbody::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: rgba(18, 19, 23, 0.82);
+  -webkit-backdrop-filter: blur(22px) saturate(1.4);
+  backdrop-filter: blur(22px) saturate(1.4);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  pointer-events: none;
+}
+.amv-navbody > * { position: relative; z-index: 1; }

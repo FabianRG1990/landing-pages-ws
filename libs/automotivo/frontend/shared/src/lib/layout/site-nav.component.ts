@@ -57,7 +57,10 @@ export class SiteNavComponent {
   private readonly collapsed = computed(() => this.navScrolled() && !this.navOpen());
 
   readonly navStyle = 'position:fixed;top:0;left:0;right:0;height:86px;z-index:1000;pointer-events:none';
-  readonly navWrapStyle = 'position:absolute;left:50%;top:0;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;pointer-events:none';
+  // Centrado por márgenes automáticos (NO por translateX(-50%)): el transform de
+  // centrado deja el texto en media-fracción de píxel y lo pone en una capa GPU →
+  // borroso en DPR fraccional (escalado de Windows). Con auto-margins no hay capa.
+  readonly navWrapStyle = 'position:absolute;left:0;right:0;top:0;margin:0 auto;width:max-content;display:flex;flex-direction:column;align-items:center;pointer-events:none';
 
   // En reposo usamos transform:none (sin will-change) para que el texto de la
   // barra se rasterice nítido: will-change + un transform identidad promueven la
@@ -67,7 +70,7 @@ export class SiteNavComponent {
     const b = this.barShown();
     return 'display:flex;align-items:stretch;height:58px;transform:' + (b ? 'none' : 'translateY(-104%)') +
       ';opacity:' + (b ? 1 : 0) + ';transition:transform .55s cubic-bezier(.16,1,.3,1),opacity .35s ease;pointer-events:' +
-      (b ? 'auto' : 'none') + ';filter:drop-shadow(0 14px 34px rgba(0,0,0,.4))';
+      (b ? 'auto' : 'none');
   });
   readonly navTabStyle = computed(() => {
     const c = this.collapsed();
