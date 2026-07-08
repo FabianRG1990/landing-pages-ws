@@ -283,3 +283,6 @@ Join the Nx community:
 - [YouTube](https://www.youtube.com/@nxdevtools)
 - [Blog](https://nx.dev/blog)
 # landing-pages-ws
+
+<!-- CI workflow smoke test: verifica que el pipeline (lint, test, build, typecheck, e2e) pasa en PRs. -->
+
