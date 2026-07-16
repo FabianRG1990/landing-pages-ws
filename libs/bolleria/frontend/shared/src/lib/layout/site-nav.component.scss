@@ -1,0 +1,165 @@
+.bol-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 900;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px clamp(20px, 4vw, 40px);
+  background: rgba(250, 246, 236, 0.55);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid transparent;
+  transition:
+    padding 0.3s,
+    background 0.3s,
+    border-color 0.3s;
+
+  &--compact {
+    padding: 10px clamp(20px, 4vw, 40px);
+    background: rgba(250, 246, 236, 0.9);
+    border-bottom-color: rgba(46, 42, 28, 0.08);
+  }
+}
+
+.bol-nav__brand {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  line-height: 0;
+}
+
+.bol-nav__logo {
+  height: 44px;
+  width: auto;
+  display: block;
+  transition: height 0.3s;
+
+  .bol-nav--compact & {
+    height: 34px;
+  }
+}
+
+.bol-nav__links {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+}
+
+.bol-nav__link {
+  font: 500 12px 'Jost', sans-serif;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #4a4433;
+
+  &--active {
+    color: var(--acc, #c8912a);
+  }
+}
+
+.bol-nav__cart {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: 1.5px solid rgba(46, 42, 28, 0.18);
+  border-radius: 999px;
+  padding: 8px 14px;
+  cursor: pointer;
+  color: #2e2a1c;
+  font-weight: 500;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+
+  span {
+    font-variant-numeric: lining-nums tabular-nums;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      border-color: var(--acc, #c8912a);
+    }
+  }
+}
+
+.bol-nav__cta {
+  font: 500 12px 'Jost', sans-serif;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 11px 22px;
+  border-radius: 999px;
+  background: var(--acc, #c8912a);
+  color: #fff;
+  box-shadow: 0 8px 20px -8px color-mix(in srgb, var(--acc, #c8912a) 80%, transparent);
+
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      background: var(--accd, #a5761c);
+    }
+  }
+}
+
+.bol-nav__hamburger {
+  display: none;
+  background: none;
+  border: none;
+  color: #2e2a1c;
+  cursor: pointer;
+}
+
+@media (max-width: 768px) {
+  .bol-nav__links {
+    display: none;
+  }
+  .bol-nav__hamburger {
+    display: block;
+  }
+}
+
+.bol-mobile-menu {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  background: linear-gradient(160deg, #5e6a34, #3a4220);
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  transition: clip-path 0.55s cubic-bezier(0.7, 0, 0.3, 1);
+  clip-path: circle(0% at calc(100% - 40px) 40px);
+  display: flex;
+
+  &--open {
+    clip-path: circle(150% at calc(100% - 40px) 40px);
+  }
+}
+
+.bol-mobile-menu__close {
+  position: absolute;
+  top: 22px;
+  right: 22px;
+  background: none;
+  border: none;
+  color: var(--cream);
+  cursor: pointer;
+}
+
+.bol-mobile-menu__mark {
+  width: 96px;
+  margin-bottom: 14px;
+  opacity: 0.95;
+}
+
+.bol-mobile-menu__link {
+  font: 500 34px 'Cormorant Garamond', serif;
+  color: var(--cream);
+}
+
+.bol-mobile-menu__tag {
+  margin-top: 20px;
+  font: 600 10px 'Cinzel', serif;
+  letter-spacing: 0.3em;
+  color: #e0b84a;
+}

@@ -1,0 +1,69 @@
+.bol-footer {
+  background: linear-gradient(160deg, #454e24, #2f3618);
+  color: #d3d8bd;
+  margin-top: 40px;
+}
+
+.bol-footer__grid {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 52px 40px 30px;
+  display: grid;
+  grid-template-columns: 1.4fr 1fr 1fr;
+  gap: 34px;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.bol-footer__logo {
+  height: 56px;
+  width: auto;
+}
+
+.bol-footer__blurb {
+  font: 300 13px/1.6 'Jost', sans-serif;
+  color: #b8bf9a;
+  margin: 18px 0 0;
+  max-width: 260px;
+}
+
+.bol-footer__heading {
+  font: 600 11px 'Cinzel', serif;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #e0b84a;
+  margin-bottom: 14px;
+}
+
+.bol-footer__links,
+.bol-footer__info {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.bol-footer__links a {
+  color: #d3d8bd;
+  font: 400 13px 'Jost', sans-serif;
+
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      color: #fff;
+    }
+  }
+}
+
+.bol-footer__info {
+  font: 400 13px 'Jost', sans-serif;
+  color: #d3d8bd;
+}
+
+.bol-footer__bottom {
+  border-top: 1px solid rgba(250, 246, 236, 0.1);
+  padding: 18px 40px;
+  text-align: center;
+  font: 300 11px 'Jost', sans-serif;
+  color: #8f9670;
+}

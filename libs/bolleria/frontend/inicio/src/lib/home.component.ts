@@ -1,0 +1,27 @@
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { BolleriaStore, formatColones } from '@bolleria-ui-shared';
+
+@Component({
+  selector: 'bol-home',
+  standalone: true,
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  templateUrl: './home.component.html',
+  styleUrl: './home.component.scss',
+})
+export class HomeComponent {
+  private readonly store = inject(BolleriaStore);
+
+  readonly waDirect = this.store.waDirect;
+  readonly favorites = this.store.favorites;
+  readonly fmt = formatColones;
+
+  goMenu(): void {
+    this.store.go('menu');
+  }
+  goCategory(cat: string): void {
+    this.store.go('menu', cat);
+  }
+  addToCart(id: string): void {
+    this.store.addToCart(id);
+  }
+}

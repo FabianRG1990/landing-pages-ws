@@ -1,0 +1,90 @@
+<!-- Intro copy tras la secuencia -->
+<div class="bol-intro">
+  <div data-rv class="bol-intro__eyebrow">Panadería artesanal · San José</div>
+  <h1 data-rv class="bol-intro__title">Del boceto al horno,<br /><em>hecho a mano cada mañana</em></h1>
+  <p data-rv class="bol-intro__lead">Croissants de mantequilla, masa madre fermentada con paciencia y pan dulce de casa.</p>
+  <div data-rv class="bol-intro__ctas">
+    <a href="#" (click)="$event.preventDefault(); goMenu()" class="bol-intro__cta-primary">Ver el menú</a>
+    <a [href]="waDirect()" target="_blank" rel="noopener" class="bol-intro__cta-secondary">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15l-1.3 4.7 4.8-1.3A10 10 0 1 0 12 2zm0 18a8 8 0 0 1-4.1-1.1l-.3-.2-2.8.7.8-2.7-.2-.3A8 8 0 1 1 12 20zm4.5-5.8c-.2-.1-1.4-.7-1.7-.8s-.4-.1-.5.1-.6.8-.8 1-.3.2-.5.1a6.5 6.5 0 0 1-3.2-2.8c-.2-.4.2-.4.6-1.2a.5.5 0 0 0 0-.5c0-.1-.5-1.3-.7-1.7s-.4-.4-.5-.4h-.5a.9.9 0 0 0-.7.3 2.8 2.8 0 0 0-.9 2.1 4.9 4.9 0 0 0 1 2.6 11 11 0 0 0 4.3 3.8c1.6.7 2.2.7 3 .6a2.5 2.5 0 0 0 1.6-1.2 2 2 0 0 0 .2-1.2c-.1-.1-.3-.2-.5-.3z"/></svg>
+      WhatsApp
+    </a>
+  </div>
+</div>
+
+<!-- CATEGORÍAS -->
+<div class="bol-cats">
+  <div data-rv class="bol-cats__head">
+    <h2>Nuestras especialidades</h2>
+    <a href="#" (click)="$event.preventDefault(); goMenu()">Ver todo el menú →</a>
+  </div>
+  <div class="bol-cats__grid">
+    <a href="#" (click)="$event.preventDefault(); goCategory('pan-dulce')" data-rv class="bol-cats__card">
+      <svg width="34" height="34" viewBox="0 0 40 40" fill="none" stroke="var(--acc,#C8912A)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 24c0-7 5.4-12 12-12s12 5 12 12"/><path d="M6 24h28l-2.4 7.5a2 2 0 0 1-1.9 1.5H10.3a2 2 0 0 1-1.9-1.5z"/><path d="M14 18.5c1.2-1.4 3-2.2 6-2.2s4.8.8 6 2.2"/></svg>
+      <div class="bol-cats__name">Pan Dulce</div>
+      <div class="bol-cats__count">11 variedades</div>
+    </a>
+    <a href="#" (click)="$event.preventDefault(); goCategory('pan-salado')" data-rv class="bol-cats__card">
+      <svg width="34" height="34" viewBox="0 0 40 40" fill="none" stroke="var(--olive)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14c-3 0-5 2.5-5 6s2 6 6 6h18c4 0 6-2.5 6-6s-2-6-5-6z"/><path d="M13 20h1.5M19 20h1.5M25 20h1.5"/></svg>
+      <div class="bol-cats__name">Pan Salado</div>
+      <div class="bol-cats__count">10 variedades</div>
+    </a>
+    <a href="#" (click)="$event.preventDefault(); goCategory('masa-madre')" data-rv class="bol-cats__card">
+      <svg width="34" height="34" viewBox="0 0 40 40" fill="none" stroke="var(--acc,#C8912A)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 26c0-8 6-14 13-14s13 6 13 14"/><path d="M7 26h26v3a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2z"/><path d="M15 20l2 3M20 18l0 4M25 20l-2 3"/></svg>
+      <div class="bol-cats__name">Masa Madre</div>
+      <div class="bol-cats__count">10 variedades</div>
+    </a>
+    <a href="#" (click)="$event.preventDefault(); goCategory('saltenas')" data-rv class="bol-cats__card">
+      <svg width="34" height="34" viewBox="0 0 40 40" fill="none" stroke="var(--olive)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 9l9 5.5v9L20 29l-9-4.5v-9z"/><path d="M11 14.5L20 20l9-5.5M20 20v9"/></svg>
+      <div class="bol-cats__name">Salteñas</div>
+      <div class="bol-cats__count">6 variedades</div>
+    </a>
+  </div>
+</div>
+
+<!-- HISTORIA -->
+<div class="bol-story-wrap">
+  <div data-rv class="bol-story">
+    <img src="assets/mark-white.png" alt="" class="bol-story__mark" />
+    <div class="bol-story__content">
+      <div class="bol-story__eyebrow">De nuestro horno</div>
+      <p class="bol-story__lead">Cada pieza empieza la noche anterior. Fermentamos despacio para que el sabor sea real y la miga, viva.</p>
+      <div class="bol-story__stats">
+        <div><div class="bol-story__stat-num">7am</div><div class="bol-story__stat-label">recién horneado</div></div>
+        <div><div class="bol-story__stat-num">37</div><div class="bol-story__stat-label">variedades</div></div>
+        <div><div class="bol-story__stat-num">Express</div><div class="bol-story__stat-label">servicio a domicilio</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FAVORITOS -->
+<div class="bol-favs">
+  <h2 data-rv class="bol-favs__title">Favoritos de la casa</h2>
+  <div class="bol-favs__grid">
+    @for (f of favorites(); track f.id) {
+      <div data-rv class="bol-favs__card">
+        <div class="bol-favs__thumb">
+          <img src="assets/mark.png" alt="" />
+          <span class="bol-favs__badge">{{ f.cat }}</span>
+        </div>
+        <div class="bol-favs__body">
+          <div class="bol-favs__name">{{ f.name }}</div>
+          <div class="bol-favs__row">
+            <div class="bol-favs__price">{{ fmt(f.price) }}</div>
+            <button type="button" (click)="addToCart(f.id)" class="bol-favs__add">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Agregar
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+</div>
+
+<!-- CTA -->
+<div data-rv class="bol-cta">
+  <h2>¿Con hambre? Armá tu pedido.</h2>
+  <p>Elegí tus favoritos y lo enviamos directo por WhatsApp. Servicio express disponible.</p>
+  <a href="#" (click)="$event.preventDefault(); goMenu()" class="bol-cta__link">Ir al menú</a>
+</div>

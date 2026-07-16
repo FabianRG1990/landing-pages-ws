@@ -1,0 +1,23 @@
+<bol-preloader />
+<bol-curtain />
+<bol-site-nav />
+
+<main>
+  @switch (store.screen()) {
+    @case ('inicio') {
+      <section data-screen="inicio">
+        <bol-hero-scroll />
+        <bol-home />
+      </section>
+    }
+    @case ('menu') {
+      <bol-menu-page />
+    }
+    @case ('contacto') {
+      <bol-contact-page />
+    }
+  }
+</main>
+
+<bol-site-footer />
+<bol-cart-drawer />

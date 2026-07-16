@@ -1,0 +1,29 @@
+<header class="bol-nav" [class.bol-nav--compact]="scrolled()">
+  <a href="#" (click)="$event.preventDefault(); go('inicio')" class="bol-nav__brand">
+    <img src="assets/logo.png" alt="Bollería Panadería" class="bol-nav__logo" />
+  </a>
+  <nav class="bol-nav__links">
+    <a href="#" (click)="$event.preventDefault(); go('inicio')" class="bol-nav__link" [class.bol-nav__link--active]="screen() === 'inicio'">Inicio</a>
+    <a href="#" (click)="$event.preventDefault(); go('menu')" class="bol-nav__link" [class.bol-nav__link--active]="screen() === 'menu'">Menú</a>
+    <a href="#" (click)="$event.preventDefault(); go('contacto')" class="bol-nav__link" [class.bol-nav__link--active]="screen() === 'contacto'">Contacto</a>
+    <button type="button" (click)="openCart()" class="bol-nav__cart" aria-label="Ver pedido">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h2l1.6 11.2a1.5 1.5 0 0 0 1.5 1.3h8.3a1.5 1.5 0 0 0 1.5-1.2L21 8H6"/><circle cx="9.5" cy="20" r="1"/><circle cx="18" cy="20" r="1"/></svg>
+      <span>{{ cartCount() }}</span>
+    </button>
+    <a href="#" (click)="$event.preventDefault(); go('menu')" class="bol-nav__cta">Pedir</a>
+  </nav>
+  <button type="button" (click)="toggleMobile()" class="bol-nav__hamburger" aria-label="Menú">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+  </button>
+</header>
+
+<div class="bol-mobile-menu" [class.bol-mobile-menu--open]="mobileOpen()">
+  <button type="button" (click)="closeMobile()" class="bol-mobile-menu__close" aria-label="Cerrar">
+    <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+  </button>
+  <img src="assets/mark-white.png" alt="" class="bol-mobile-menu__mark" />
+  <a href="#" (click)="$event.preventDefault(); go('inicio')" class="bol-mobile-menu__link">Inicio</a>
+  <a href="#" (click)="$event.preventDefault(); go('menu')" class="bol-mobile-menu__link">Menú</a>
+  <a href="#" (click)="$event.preventDefault(); go('contacto')" class="bol-mobile-menu__link">Contacto</a>
+  <div class="bol-mobile-menu__tag">SERVICIO EXPRESS · SAN JOSÉ</div>
+</div>

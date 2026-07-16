@@ -1,0 +1,193 @@
+// Tokens y estilos globales — transcripción fiel del <style> del artefacto original.
+:root {
+  --acc: #c8912a;
+  --accd: #a5761c;
+  --olive: #5e6a34;
+  --oliveD: #454e24;
+  --ink: #2e2a1c;
+  --cream: #faf6ec;
+  --hf: 'Cormorant Garamond';
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: #faf6ec;
+  color: #2e2a1c;
+  font-family: 'Jost', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: var(--acc, #c8912a);
+  text-decoration: none;
+
+  &:hover {
+    color: var(--accd, #a5761c);
+  }
+}
+
+::selection {
+  background: #e0b84a;
+  color: #2e2a1c;
+}
+
+input,
+textarea,
+button,
+select {
+  font-family: 'Jost', sans-serif;
+}
+
+input,
+textarea {
+  width: 100%;
+  background: #faf6ec;
+  border: 1.5px solid rgba(46, 42, 28, 0.16);
+  border-radius: 12px;
+  padding: 13px 15px;
+  font-size: 14px;
+  color: #2e2a1c;
+  transition: border-color 0.2s;
+
+  &:focus {
+    outline: none;
+    border-color: var(--acc, #c8912a);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--acc, #c8912a) 16%, transparent);
+  }
+}
+
+::placeholder {
+  color: #a89e86;
+}
+
+@keyframes bspin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes bpulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.92;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 1;
+  }
+}
+@keyframes bfloat {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-12px);
+  }
+}
+@keyframes heroLogoIn {
+  0% {
+    opacity: 0;
+    transform: translateY(22px) scale(0.9);
+    filter: blur(8px);
+  }
+  60% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+@keyframes hbob {
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.7;
+  }
+  50% {
+    transform: translateY(7px);
+    opacity: 1;
+  }
+}
+
+// --- Brand loader build sequence ---
+@keyframes ldCrShape {
+  0% {
+    opacity: 0;
+    transform: translate(10%, -9%) scale(1.14) rotate(-8deg);
+  }
+  45% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes ldReal {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+@keyframes ldBIn {
+  0% {
+    opacity: 0;
+    transform: translate(-11%, 3%) scale(0.86);
+  }
+  55% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes ldTextIn {
+  0% {
+    opacity: 0;
+    clip-path: inset(0 100% 0 0);
+    transform: translateY(6px);
+  }
+  100% {
+    opacity: 1;
+    clip-path: inset(0 0 0 0);
+    transform: none;
+  }
+}
+@keyframes ldRise {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+@keyframes ldBar {
+  0% {
+    transform: scaleX(0);
+  }
+  100% {
+    transform: scaleX(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    animation-delay: 0ms !important;
+    transition-duration: 0.05ms !important;
+  }
+}

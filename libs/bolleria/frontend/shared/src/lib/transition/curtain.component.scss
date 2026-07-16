@@ -1,0 +1,22 @@
+.bol-curtain {
+  position: fixed;
+  inset: 0;
+  z-index: 1500;
+  background: linear-gradient(160deg, #5e6a34, #454e24);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.5s cubic-bezier(0.7, 0, 0.3, 1);
+  transform: translateY(-100%);
+  pointer-events: none;
+
+  &--in {
+    transform: translateY(0);
+  }
+}
+
+.bol-curtain__mark {
+  width: min(46vw, 420px);
+  opacity: 0.9;
+  transform: scale(0.92);
+}

@@ -1,0 +1,346 @@
+.bol-menu {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 120px 40px 60px;
+}
+
+.bol-menu__head {
+  text-align: center;
+  margin-bottom: 8px;
+
+  .bol-menu__eyebrow {
+    font: 600 12px 'Cinzel', serif;
+    letter-spacing: 0.34em;
+    text-transform: uppercase;
+    color: var(--olive);
+  }
+
+  h1 {
+    font: 500 clamp(46px, 6vw, 76px) / 1 var(--hf, 'Cormorant Garamond'), serif;
+    margin: 14px 0 0;
+  }
+
+  p {
+    font: 300 15px / 1.6 'Jost', sans-serif;
+    color: #6b6552;
+    margin: 12px auto 0;
+    max-width: 420px;
+
+    b {
+      color: var(--acc, #c8912a);
+      font-weight: 600;
+    }
+  }
+}
+
+.bol-menu__tabs {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+  margin: 34px 0 40px;
+  position: sticky;
+  top: 74px;
+  z-index: 20;
+  padding: 8px 0;
+  background: linear-gradient(#faf6ec 70%, transparent);
+}
+
+.bol-menu__tab {
+  font: 500 12.5px 'Jost', sans-serif;
+  letter-spacing: 0.06em;
+  padding: 11px 20px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border: 1.5px solid rgba(46, 42, 28, 0.16);
+  background: transparent;
+  color: #4a4433;
+
+  &--active {
+    border-color: transparent;
+    background: var(--ink);
+    color: var(--cream);
+  }
+}
+
+.bol-menu__layout {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 34px;
+  align-items: start;
+
+  @media (max-width: 860px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.bol-menu__cat-title {
+  font: 500 30px var(--hf, 'Cormorant Garamond'), serif;
+  margin: 0 0 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+
+  span {
+    flex: 1;
+    height: 1px;
+    background: rgba(46, 42, 28, 0.12);
+  }
+}
+
+.bol-menu__grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.bol-menu__item {
+  background: #fff;
+  border: 1px solid rgba(46, 42, 28, 0.08);
+  border-radius: 16px;
+  padding: 18px 18px 16px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+
+.bol-menu__item-bar {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+}
+
+.bol-menu__item-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.bol-menu__item-name {
+  font: 600 18px / 1.2 var(--hf, 'Cormorant Garamond'), serif;
+  padding-left: 8px;
+}
+
+.bol-menu__item-price {
+  font: 600 16px 'Jost', sans-serif;
+  color: var(--acc, #c8912a);
+  font-variant-numeric: lining-nums tabular-nums;
+  white-space: nowrap;
+}
+
+.bol-menu__item-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 16px;
+  padding-left: 8px;
+}
+
+.bol-menu__in-cart {
+  font: 500 11px 'Jost', sans-serif;
+  color: var(--olive);
+}
+
+.bol-menu__add {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--ink);
+  color: var(--cream);
+  border: none;
+  border-radius: 999px;
+  padding: 9px 15px;
+  font: 500 11px 'Jost', sans-serif;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      background: var(--acc, #c8912a);
+    }
+  }
+}
+
+.bol-menu__cart {
+  position: sticky;
+  top: 130px;
+  background: linear-gradient(165deg, #5e6a34, #454e24);
+  border-radius: 22px;
+  padding: 24px 22px;
+  color: var(--cream);
+  overflow: hidden;
+
+  @media (max-width: 860px) {
+    position: static;
+  }
+}
+
+.bol-menu__cart-mark {
+  position: absolute;
+  right: -46px;
+  bottom: -40px;
+  width: 200px;
+  opacity: 0.08;
+}
+
+.bol-menu__cart-inner {
+  position: relative;
+  z-index: 1;
+}
+
+.bol-menu__cart-title {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font: 600 11px 'Cinzel', serif;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: #e0b84a;
+}
+
+.bol-menu__cart-empty {
+  font: 300 13.5px / 1.6 'Jost', sans-serif;
+  color: #d3d8bd;
+  margin: 16px 0 6px;
+
+  b {
+    color: #e0b84a;
+    font-weight: 600;
+  }
+}
+
+.bol-menu__cart-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 16px 0 4px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.bol-menu__cart-line {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(250, 246, 236, 0.12);
+}
+
+.bol-menu__cart-line-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.bol-menu__cart-line-name {
+  font: 500 14px / 1.25 'Cormorant Garamond', serif;
+  color: var(--cream);
+}
+
+.bol-menu__cart-line-price {
+  font: 400 11px 'Jost', sans-serif;
+  color: #c3caa0;
+  font-variant-numeric: lining-nums tabular-nums;
+}
+
+.bol-menu__cart-qty {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  button {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 1px solid rgba(250, 246, 236, 0.3);
+    background: none;
+    color: var(--cream);
+    cursor: pointer;
+    font-size: 14px;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    @media (hover: hover) and (pointer: fine) {
+      &:hover {
+        background: rgba(250, 246, 236, 0.14);
+      }
+    }
+  }
+
+  span {
+    min-width: 16px;
+    text-align: center;
+    font: 600 13px 'Jost', sans-serif;
+    color: var(--cream);
+    font-variant-numeric: lining-nums tabular-nums;
+  }
+}
+
+.bol-menu__cart-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin: 14px 0 4px;
+
+  span:first-child {
+    font: 400 12px 'Jost', sans-serif;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #c3caa0;
+  }
+  span:last-child {
+    font: 600 24px 'Jost', sans-serif;
+    color: #e0b84a;
+    font-variant-numeric: lining-nums tabular-nums;
+  }
+}
+
+.bol-menu__cart-checkout {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  margin-top: 12px;
+  font: 600 12.5px 'Jost', sans-serif;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 14px;
+  border-radius: 999px;
+  background: #e0b84a;
+  color: #2b3016;
+
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      background: #f0cd66;
+    }
+  }
+}
+
+.bol-menu__cart-clear {
+  width: 100%;
+  margin-top: 8px;
+  background: none;
+  border: none;
+  color: #c3caa0;
+  font: 400 11px 'Jost', sans-serif;
+  letter-spacing: 0.06em;
+  cursor: pointer;
+  padding: 6px;
+
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      color: var(--cream);
+    }
+  }
+}

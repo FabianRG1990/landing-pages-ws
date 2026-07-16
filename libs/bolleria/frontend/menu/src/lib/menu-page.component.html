@@ -1,0 +1,84 @@
+<section class="bol-menu">
+  <div class="bol-menu__head">
+    <div class="bol-menu__eyebrow">Carta completa</div>
+    <h1>Menú</h1>
+    <p>Tocá <b>Agregar</b> y armamos tu pedido. Precios en colones.</p>
+  </div>
+
+  <div class="bol-menu__tabs">
+    @for (c of categories(); track c.key) {
+      <button type="button" (click)="setActiveCat(c.key)" class="bol-menu__tab" [class.bol-menu__tab--active]="c.active">
+        {{ c.label }}
+      </button>
+    }
+  </div>
+
+  <div class="bol-menu__layout">
+    <div class="bol-menu__items">
+      <h2 class="bol-menu__cat-title">
+        {{ activeCategory().label }}
+        <span></span>
+      </h2>
+      <div class="bol-menu__grid">
+        @for (it of activeItems(); track it.id) {
+          <div class="bol-menu__item">
+            <div class="bol-menu__item-bar" [style.background]="it.tag"></div>
+            <div class="bol-menu__item-top">
+              <div class="bol-menu__item-name">{{ it.name }}</div>
+              <div class="bol-menu__item-price">{{ fmt(it.price) }}</div>
+            </div>
+            <div class="bol-menu__item-bottom">
+              @if (it.qty > 0) {
+                <span class="bol-menu__in-cart">{{ it.qty }} en tu pedido</span>
+              } @else {
+                <span></span>
+              }
+              <button type="button" (click)="addToCart(it.id)" class="bol-menu__add">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Agregar
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+
+    <aside class="bol-menu__cart">
+      <img src="assets/mark-white.png" alt="" class="bol-menu__cart-mark" />
+      <div class="bol-menu__cart-inner">
+        <div class="bol-menu__cart-title">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h2l1.6 11.2a1.5 1.5 0 0 0 1.5 1.3h8.3a1.5 1.5 0 0 0 1.5-1.2L21 8H6"/><circle cx="9.5" cy="20" r="1"/><circle cx="18" cy="20" r="1"/></svg>
+          Tu pedido
+        </div>
+        @if (cartEmpty()) {
+          <p class="bol-menu__cart-empty">Todavía no agregaste nada. Tocá <b>Agregar</b> en cualquier producto.</p>
+        }
+        @if (cartHas()) {
+          <div class="bol-menu__cart-lines">
+            @for (l of cartLines(); track l.id) {
+              <div class="bol-menu__cart-line">
+                <div class="bol-menu__cart-line-info">
+                  <div class="bol-menu__cart-line-name">{{ l.item.name }}</div>
+                  <div class="bol-menu__cart-line-price">{{ fmt(l.item.price) }}</div>
+                </div>
+                <div class="bol-menu__cart-qty">
+                  <button type="button" (click)="dec(l.id)" aria-label="Quitar uno">−</button>
+                  <span>{{ l.qty }}</span>
+                  <button type="button" (click)="inc(l.id)" aria-label="Agregar uno">+</button>
+                </div>
+              </div>
+            }
+          </div>
+          <div class="bol-menu__cart-total">
+            <span>Total</span>
+            <span>{{ cartTotalFmt() }}</span>
+          </div>
+          <a [href]="waCheckout()" target="_blank" rel="noopener" class="bol-menu__cart-checkout">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15l-1.3 4.7 4.8-1.3A10 10 0 1 0 12 2zm0 18a8 8 0 0 1-4.1-1.1l-.3-.2-2.8.7.8-2.7-.2-.3A8 8 0 1 1 12 20zm4.5-5.8c-.2-.1-1.4-.7-1.7-.8s-.4-.1-.5.1-.6.8-.8 1-.3.2-.5.1a6.5 6.5 0 0 1-3.2-2.8c-.2-.4.2-.4.6-1.2a.5.5 0 0 0 0-.5c0-.1-.5-1.3-.7-1.7s-.4-.4-.5-.4h-.5a.9.9 0 0 0-.7.3 2.8 2.8 0 0 0-.9 2.1 4.9 4.9 0 0 0 1 2.6 11 11 0 0 0 4.3 3.8c1.6.7 2.2.7 3 .6a2.5 2.5 0 0 0 1.6-1.2 2 2 0 0 0 .2-1.2c-.1-.1-.3-.2-.5-.3z"/></svg>
+            Pedir por WhatsApp
+          </a>
+          <button type="button" (click)="clearCart()" class="bol-menu__cart-clear">Vaciar pedido</button>
+        }
+      </div>
+    </aside>
+  </div>
+</section>
