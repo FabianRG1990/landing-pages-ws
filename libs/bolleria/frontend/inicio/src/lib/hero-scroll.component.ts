@@ -472,8 +472,8 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
 
     const aOutT = ease(this.clamp01((rawFrac - 0.4) / 0.08));
     const bInT = this.clamp01((rawFrac - 0.44) / 0.16);
-    let alphaImgA = 1 - aOutT,
-      alphaImgB = Math.pow(bInT, 2.0);
+    let alphaImgA = 1 - aOutT;
+    const alphaImgB = Math.pow(bInT, 2.0);
     const scaleImgA = 1 - 0.15 * aOutT,
       scaleImgB = 0.9 + 0.1 * bInT;
     const blurImgA = 5 * aOutT,
@@ -632,10 +632,10 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
     const c = this.canvasRef()?.nativeElement;
     const max = N - 1;
     const b = Math.max(0, Math.min(max, Math.round(base)));
-    let baseImg = this.frames[b];
+    let baseImg: HTMLImageElement | null = this.frames[b] ?? null;
     if (!baseImg) {
       this.ensureHeroFrame(b);
-      baseImg = this.nearestGoodHeroFrame(b) ?? undefined!;
+      baseImg = this.nearestGoodHeroFrame(b);
     }
     if (!baseImg || !ctx || !c) return;
     ctx.clearRect(0, 0, c.width, c.height);
