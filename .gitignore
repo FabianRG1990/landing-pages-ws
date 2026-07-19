@@ -64,3 +64,8 @@ vitest.config.*.timestamp*
 
 # Caché local de deploy de Firebase Hosting (no commitear)
 .firebase
+
+# Secrets / credenciales locales (no commitear)
+.env
+.env.local
+.env.*.local

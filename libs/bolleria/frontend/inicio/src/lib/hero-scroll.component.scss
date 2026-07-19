@@ -1,6 +1,13 @@
 .bol-hero-wrap {
   position: relative;
-  height: 340vh; // sobreescrito a 1531vh por JS (ver ngAfterViewInit) salvo prefers-reduced-motion
+  // Recortado ~13% (1781vh -> 1556vh) quitando scroll a los tramos ESTÁTICOS
+  // (carrusel de sabores en espera + cierre de masa madre); el scrubbing del
+  // video del pan no se tocó, para no perder fluidez de frames.
+  height: 1556vh;
+
+  @media (prefers-reduced-motion: reduce) {
+    height: 340vh;
+  }
 }
 
 .bol-hero-stage {
@@ -78,6 +85,36 @@
   font: italic 500 clamp(28px, 3.9vw, 46px) / 1.22 'Cormorant Garamond', serif;
   letter-spacing: -0.008em;
   color: #2e2a1c;
+}
+
+.bol-hero-masa {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  z-index: 1; // detrás del canvas (z-index 6): el pan queda siempre en primer plano
+  width: min(88vw, 640px);
+  transform: translateX(-50%);
+  text-align: center;
+  margin: 0;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  // La posición vertical (translateY) la controla JS cada frame para mantener
+  // centrada la palabra bajo el foco — por eso no hay flex/justify-content
+  // aquí, y por eso el ancho es angosto: fuerza el wrap natural en líneas
+  // cortas con letra grande, en vez de cortar el texto a mano en trozos chicos.
+}
+
+.bol-hero-masa__word {
+  display: inline-block;
+  // El espacio entre palabras NO puede ser un carácter final dentro del propio
+  // span: un inline-block forma su propia línea de layout, y el navegador
+  // colapsa a cero el espacio final de esa línea (aunque esté en el texto),
+  // pegando una palabra con la siguiente. Por eso el espacio va como margen.
+  margin-right: 0.28em;
+  font: italic 600 clamp(30px, 5vw, 58px) / 1.18 'Cormorant Garamond', serif;
+  color: #9a8f72;
+  opacity: 0;
+  will-change: opacity, filter, color;
 }
 
 .bol-hero-canvas {

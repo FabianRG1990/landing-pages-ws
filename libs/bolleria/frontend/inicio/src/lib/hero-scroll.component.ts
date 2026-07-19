@@ -121,8 +121,24 @@ const FREEZE_FRAME = 80;
 const FREEZE_FRAME_EXIT = 108;
 const FREEZE_FRAME_FOR_SCALE_RAMP = 70;
 const RISE_LIFT_PX = 72;
-const CAROUSEL_VH = 600;
-const PRE_CAROUSEL_GAP_VH = 35;
+const CAROUSEL_VH = 450;
+const PRE_CAROUSEL_GAP_VH = 20;
+
+// Cierre del hero: con el pan de masa madre ya horneado y quieto en la tabla
+// (último cuadro, N-1), el scroll se detiene un tramo extra y un párrafo sobre
+// sus beneficios aparece DETRÁS del pan (z-index por debajo del canvas), en
+// letra grande, palabra por palabra — igual que lepainquotidien.com/be/en:
+// columna angosta que fuerza el wrap en líneas cortas de forma natural (no
+// líneas pre-cortadas a mano), y un cursor continuo recorre las palabras
+// enfocándolas (nítidas + opacas) y desenfocándolas de nuevo según se alejan.
+const MASA_TEXT_VH = 190;
+const MASA_ZOOM_MAX = 0.12;
+const MASA_TEXT =
+  'La masa madre es un fermento natural de harina y agua que transforma el pan en un ' +
+  'alimento de mayor valor nutricional. Sus beneficios principales incluyen una digestión ' +
+  'más ligera, menor impacto en el azúcar en sangre, mejor absorción de minerales y una ' +
+  'conservación natural superior.';
+const MASA_WORDS = MASA_TEXT.split(' ');
 
 const FLAVOR_GEOM: Record<FlavorKey, FlavorGeom> = {
   dulce: { src: '', W: 0, CX: 0, CY: 0, name: 'Dulce de leche' }, // usa el cuadro congelado (croiFor), no una foto
@@ -194,6 +210,9 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
   private readonly captionEyebrowRef = viewChild.required<ElementRef<HTMLElement>>('captionEyebrow');
   private readonly captionTextRef = viewChild.required<ElementRef<HTMLElement>>('captionText');
   private readonly captionUnderlineRef = viewChild.required<ElementRef<HTMLElement>>('captionUnderline');
+  private readonly masaWrapRef = viewChild.required<ElementRef<HTMLElement>>('masaWrap');
+
+  readonly masaWords = MASA_WORDS;
 
   // ---- motor de frames ----
   private frames: HTMLImageElement[] = [];
@@ -219,6 +238,8 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
   private heroInDone = false;
   private plDone = false;
   private raf = 0;
+  private masaZoom = 1;
+  private masaActive = false;
 
   constructor() {
     // Al terminar el preloader: revela el logo del hero y calcula la posición inicial.
@@ -245,7 +266,6 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
 
   ngAfterViewInit(): void {
     if (!this.isBrowser) return;
-    if (!this.reduced()) this.wrapRef().nativeElement.style.height = '1531vh';
     this.bootHeroFrames();
     const loop = () => {
       this.raf = requestAnimationFrame(loop);
@@ -253,6 +273,12 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
       if (!this.ready || !this.active || !this.ctx) return;
       if (this.carouselActive) {
         this.renderFlavorCarousel();
+        return;
+      }
+      if (this.masaActive) {
+        // El frame queda fijo en N-1 pero el zoom del pan sigue avanzando con el
+        // scroll: hay que redibujar cada tick, sin el atajo de "quieto" de abajo.
+        this.drawHeroFrame(this.targetF);
         return;
       }
       const max = N - 1;
@@ -645,7 +671,7 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
     const squishY = b >= SPLIT_B && b < SPLIT_C ? CROI2_SQUISH_Y : 1;
     const bandS0 = this.getCarouselBand();
     const ramp0 = this.clamp01(b / FREEZE_FRAME_FOR_SCALE_RAMP);
-    const scaleMulRamp = bandS0 ? 1 + (bandS0.scaleMul - 1) * ramp0 : 1;
+    const scaleMulRamp = (bandS0 ? 1 + (bandS0.scaleMul - 1) * ramp0 : 1) * this.masaZoom;
     this.drawHeroImg(baseImg, 1, yOffset, cW, cCX, cCY, squishY, scaleMulRamp);
     this.drawEligeTuSaborTitle(b);
   }
@@ -732,6 +758,7 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
       captionEyebrow: this.captionEyebrowRef()?.nativeElement,
       captionText: this.captionTextRef()?.nativeElement,
       captionUnderline: this.captionUnderlineRef()?.nativeElement,
+      masaWrap: this.masaWrapRef()?.nativeElement,
     };
     if (!R.wrap || !R.stage) return;
     const rect = R.wrap.getBoundingClientRect();
@@ -818,7 +845,8 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
     const total = Math.max(1, R.wrap.offsetHeight - vh);
     const CAROUSEL_PX = (CAROUSEL_VH / 100) * vh;
     const PRE_GAP_PX = (PRE_CAROUSEL_GAP_VH / 100) * vh;
-    const VID_ORIGINAL = Math.max(1, total - VID_START - CAROUSEL_PX - PRE_GAP_PX);
+    const MASA_PX = (MASA_TEXT_VH / 100) * vh;
+    const VID_ORIGINAL = Math.max(1, total - VID_START - CAROUSEL_PX - PRE_GAP_PX - MASA_PX);
     const pv0 = CUM[FREEZE_FRAME];
     const freezeStart = VID_START + pv0 * VID_ORIGINAL;
     const holdStart = freezeStart + PRE_GAP_PX;
@@ -914,6 +942,81 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
         }
       }
     }
-    R.stage.style.opacity = String(1 - this.clamp01((pv - 0.985) / 0.015));
+    // ── Cierre: pan horneado quieto en la tabla + texto de masa madre detrás ──
+    // El video real termina (frame N-1) después del hold del carrusel, no en
+    // VID_START+VID_ORIGINAL: ese tramo (PRE_GAP_PX+CAROUSEL_PX) se suma aparte
+    // porque congela pv, y luego el video retoma desde FREEZE_FRAME_EXIT.
+    const videoEnd = holdEnd + (1 - CUM[FREEZE_FRAME_EXIT]) * VID_ORIGINAL;
+    const masaEnd = videoEnd + MASA_PX;
+    const masaT = this.clamp01((scrolled - videoEnd) / MASA_PX);
+    this.masaActive = scrolled >= videoEnd - 40;
+    const zoomEase = masaT * masaT * (3 - 2 * masaT);
+    this.masaZoom = 1 + MASA_ZOOM_MAX * zoomEase;
+    if (R.masaWrap) {
+      // Foco viajero por RENGLÓN COMPLETO (no por palabra): un cursor continuo
+      // recorre los renglones tal como los partió el wrap del navegador, y
+      // todas las palabras de un mismo renglón comparten exactamente el mismo
+      // estado — el renglón entero aparece de golpe en negro, no palabra por
+      // palabra. Asimétrico, como la referencia: lo ya leído se apaga a gris
+      // NÍTIDO (sin blur, solo pierde tinta) y se queda visible detrás; lo que
+      // aún no llega se pierde rápido con blur — una sola franja borrosa a la
+      // vez, la del renglón que está por entrar.
+      const wordEls = Array.from(R.masaWrap.children) as HTMLElement[];
+      const lines: HTMLElement[][] = [];
+      for (const el of wordEls) {
+        const top = el.offsetTop;
+        const currentLine = lines[lines.length - 1];
+        if (currentLine && Math.abs(currentLine[0].offsetTop - top) < 1) {
+          currentLine.push(el);
+        } else {
+          lines.push([el]);
+        }
+      }
+      const nLines = lines.length;
+      const cursor = masaT * nLines;
+      const PEAK_RADIUS = 0.75; // ancho (en renglones) de la franja siempre nítida al 100%
+      const PAST_FADE = 4; // cuántos renglones tarda en apagarse a gris
+      const PAST_FLOOR = 0.35; // gris mínimo del texto ya leído (no desaparece)
+      const FUTURE_BLUR_SPAN = 1; // cuántos renglones tarda en desenfocarse el que entra
+      lines.forEach((lineEls, li) => {
+        const d = li + 0.5 - cursor; // negativo = ya leído, positivo = por llegar
+        let focus: number;
+        let blurPx: number;
+        if (Math.abs(d) <= PEAK_RADIUS) {
+          focus = 1;
+          blurPx = 0;
+        } else if (d < 0) {
+          const t = this.clamp01((-d - PEAK_RADIUS) / PAST_FADE);
+          focus = 1 - t * (1 - PAST_FLOOR);
+          blurPx = 0;
+        } else {
+          const t = this.clamp01((d - PEAK_RADIUS) / FUTURE_BLUR_SPAN);
+          focus = 1 - t;
+          blurPx = t * 8;
+        }
+        const opacity = String(focus);
+        const filter = blurPx > 0.05 ? `blur(${blurPx}px)` : 'none';
+        const color = d < -PEAK_RADIUS && focus < 0.7 ? '#9a8f72' : 'var(--ink)';
+        lineEls.forEach((el) => {
+          el.style.opacity = opacity;
+          el.style.filter = filter;
+          el.style.color = color;
+        });
+      });
+      if (nLines) {
+        const idxF = Math.max(0, Math.min(nLines - 1, cursor - 0.5));
+        const i0 = Math.floor(idxF);
+        const i1 = Math.min(nLines - 1, i0 + 1);
+        const frac = idxF - i0;
+        const centerOf = (li: number) => lines[li][0].offsetTop + lines[li][0].offsetHeight / 2;
+        const y0 = centerOf(i0);
+        const y1 = centerOf(i1);
+        const lineCenterY = y0 + (y1 - y0) * frac;
+        R.masaWrap.style.transform = `translate(-50%, ${vh / 2 - lineCenterY}px)`;
+      }
+      R.masaWrap.style.opacity = this.masaActive ? '1' : '0';
+    }
+    const fadeT = scrolled >= masaEnd ? this.clamp01((scrolled - masaEnd) / (0.12 * vh)) : 0;
+    R.stage.style.opacity = String(1 - fadeT);
   }
 }

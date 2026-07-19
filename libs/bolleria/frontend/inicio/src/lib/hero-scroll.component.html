@@ -11,6 +11,11 @@
         </div>
       </div>
     </div>
+    <p #masaWrap class="bol-hero-masa" aria-hidden="true">
+      @for (word of masaWords; track $index) {
+        <span class="bol-hero-masa__word">{{ word }}</span>
+      }
+    </p>
     <canvas #heroCanvas aria-hidden="true" class="bol-hero-canvas"></canvas>
     <div #heroCaption class="bol-hero-caption">
       <span #captionEyebrow class="bol-hero-caption__eyebrow"></span>
