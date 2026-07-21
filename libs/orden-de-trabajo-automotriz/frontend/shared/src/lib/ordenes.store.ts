@@ -1,4 +1,4 @@
-import { Injectable, computed, signal } from '@angular/core';
+import { patchState, signalStore, withMethods, withState } from '@ngrx/signals';
 import { Cliente, EstadoOrden, OrdenTrabajo, Vehiculo } from './models';
 
 /** Datos de ejemplo para probar las pantallas mientras no hay backend. */
@@ -42,52 +42,62 @@ const ORDENES_MOCK: OrdenTrabajo[] = [
   },
 ];
 
-let contadorOrden = ORDENES_MOCK.length;
-
-@Injectable({ providedIn: 'root' })
-export class OrdenesStore {
-  private readonly _ordenes = signal<OrdenTrabajo[]>(ORDENES_MOCK);
-
-  readonly ordenes = computed(() => this._ordenes());
-
-  obtenerPorNumero(numero: string): OrdenTrabajo | undefined {
-    return this._ordenes().find((o) => o.numero === numero);
-  }
-
-  /** Busca por placa (coincidencia exacta) o por nombre de cliente (parcial, sin distinguir mayúsculas). */
-  buscarPorPlacaOCliente(query: string): OrdenTrabajo[] {
-    const q = query.trim().toLowerCase();
-    if (!q) return [];
-    return this._ordenes().filter(
-      (o) =>
-        o.vehiculo.placa.toLowerCase() === q ||
-        o.cliente.nombre.toLowerCase().includes(q),
-    );
-  }
-
-  crearOrden(datos: {
-    cliente: Cliente;
-    vehiculo: Vehiculo;
-    motivoIngreso: string;
-  }): OrdenTrabajo {
-    contadorOrden += 1;
-    const nueva: OrdenTrabajo = {
-      numero: `OT-${String(contadorOrden).padStart(4, '0')}`,
-      cliente: datos.cliente,
-      vehiculo: datos.vehiculo,
-      fechaIngreso: new Date().toISOString().slice(0, 10),
-      estado: 'recibido',
-      motivoIngreso: datos.motivoIngreso,
-      servicios: [],
-      repuestos: [],
-    };
-    this._ordenes.update((ordenes) => [nueva, ...ordenes]);
-    return nueva;
-  }
-
-  cambiarEstado(numero: string, estado: EstadoOrden): void {
-    this._ordenes.update((ordenes) =>
-      ordenes.map((o) => (o.numero === numero ? { ...o, estado } : o)),
-    );
-  }
+interface OrdenesState {
+  ordenes: OrdenTrabajo[];
+  contador: number;
 }
+
+const initialState: OrdenesState = {
+  ordenes: ORDENES_MOCK,
+  contador: ORDENES_MOCK.length,
+};
+
+export const OrdenesStore = signalStore(
+  { providedIn: 'root' },
+  withState(initialState),
+
+  withMethods((store) => ({
+    obtenerPorNumero(numero: string): OrdenTrabajo | undefined {
+      return store.ordenes().find((o) => o.numero === numero);
+    },
+
+    /** Busca por placa (coincidencia exacta) o por nombre de cliente (parcial, sin distinguir mayúsculas). */
+    buscarPorPlacaOCliente(query: string): OrdenTrabajo[] {
+      const q = query.trim().toLowerCase();
+      if (!q) return [];
+      return store.ordenes().filter(
+        (o) =>
+          o.vehiculo.placa.toLowerCase() === q ||
+          o.cliente.nombre.toLowerCase().includes(q),
+      );
+    },
+
+    crearOrden(datos: {
+      cliente: Cliente;
+      vehiculo: Vehiculo;
+      motivoIngreso: string;
+    }): OrdenTrabajo {
+      const contador = store.contador() + 1;
+      const nueva: OrdenTrabajo = {
+        numero: `OT-${String(contador).padStart(4, '0')}`,
+        cliente: datos.cliente,
+        vehiculo: datos.vehiculo,
+        fechaIngreso: new Date().toISOString().slice(0, 10),
+        estado: 'recibido',
+        motivoIngreso: datos.motivoIngreso,
+        servicios: [],
+        repuestos: [],
+      };
+      patchState(store, { ordenes: [nueva, ...store.ordenes()], contador });
+      return nueva;
+    },
+
+    cambiarEstado(numero: string, estado: EstadoOrden): void {
+      patchState(store, {
+        ordenes: store
+          .ordenes()
+          .map((o) => (o.numero === numero ? { ...o, estado } : o)),
+      });
+    },
+  })),
+);
