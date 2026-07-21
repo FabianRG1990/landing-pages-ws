@@ -6,6 +6,7 @@
   "packageManager": "yarn@4.14.1",
   "dependencies": {
     "@angular-devkit/build-angular": "21.2.7",
+    "@angular/cdk": "21.2.9",
     "@angular/common": "21.2.9",
     "@angular/compiler": "21.2.9",
     "@angular/core": "21.2.9",
