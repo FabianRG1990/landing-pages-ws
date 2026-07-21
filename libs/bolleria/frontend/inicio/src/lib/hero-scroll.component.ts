@@ -29,6 +29,7 @@ interface HeroCaption {
   outB: number;
   eyebrow: string;
   flavor: 'drip' | 'rise' | 'plain';
+  position: 'top' | 'bottom';
   words?: string[];
   text?: string;
 }
@@ -123,6 +124,8 @@ const FREEZE_FRAME_FOR_SCALE_RAMP = 70;
 const RISE_LIFT_PX = 72;
 const CAROUSEL_VH = 450;
 const PRE_CAROUSEL_GAP_VH = 20;
+const CAPTION_STAGE_SHRINK = 0.32;
+const CAPTION_STAGE_LIFT_PX = 90;
 
 // Cierre del hero: con el pan de masa madre ya horneado y quieto en la tabla
 // (último cuadro, N-1), el scroll se detiene un tramo extra y un párrafo sobre
@@ -164,7 +167,8 @@ const HERO_CAPTIONS: HeroCaption[] = [
     outB: 154,
     eyebrow: '',
     flavor: 'drip',
-    words: 'Aquí el relleno nunca se queda corto. — nunca somos tacaños con el relleno.'.split(' '),
+    position: 'bottom',
+    words: 'Aquí el relleno nunca se queda corto.'.split(' '),
   },
   {
     inA: 160,
@@ -173,6 +177,7 @@ const HERO_CAPTIONS: HeroCaption[] = [
     outB: 200,
     eyebrow: 'Fermentación',
     flavor: 'rise',
+    position: 'top',
     text: 'La masa madre descansa, fermenta y crece a su propio ritmo.',
   },
   {
@@ -182,6 +187,7 @@ const HERO_CAPTIONS: HeroCaption[] = [
     outB: 224,
     eyebrow: 'Horneado',
     flavor: 'plain',
+    position: 'top',
     text: 'Recién salido del horno, listo cada mañana.',
   },
 ];
@@ -209,7 +215,6 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
   private readonly captionRef = viewChild.required<ElementRef<HTMLElement>>('heroCaption');
   private readonly captionEyebrowRef = viewChild.required<ElementRef<HTMLElement>>('captionEyebrow');
   private readonly captionTextRef = viewChild.required<ElementRef<HTMLElement>>('captionText');
-  private readonly captionUnderlineRef = viewChild.required<ElementRef<HTMLElement>>('captionUnderline');
   private readonly masaWrapRef = viewChild.required<ElementRef<HTMLElement>>('masaWrap');
 
   readonly masaWords = MASA_WORDS;
@@ -653,6 +658,19 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
     ctx.restore();
   }
 
+  // Solo el caption de abajo (derrame) encoge y sube la escena para abrir
+  // aire real debajo. Los de arriba (fermentación/horneado) ya tienen aire
+  // de sobra arriba de forma natural — el texto se ubica ahí sin tocar la
+  // imagen; no tiene sentido encoger el pan sin motivo.
+  private dripCaptionOp(b: number): number {
+    for (const cap of HERO_CAPTIONS) {
+      if (cap.position !== 'bottom') continue;
+      const o = this.capOpacity(b, cap.inA, cap.inB, cap.outA, cap.outB);
+      if (o > 0.001) return o;
+    }
+    return 0;
+  }
+
   private drawHeroFrame(base: number): void {
     const ctx = this.ctx;
     const c = this.canvasRef()?.nativeElement;
@@ -666,12 +684,18 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
     if (!baseImg || !ctx || !c) return;
     ctx.clearRect(0, 0, c.width, c.height);
     const band = this.getCarouselBand();
-    const yOffset = (band ? band.croissantCy - c.height / 2 : 0) + this.extraLift(b) - this.introSettle(b);
+    const dpr = this.dpr || 1;
+    // Mientras el caption de abajo (derrame) está activo, la escena se
+    // encoge y sube un poco para abrir aire real debajo, en vez de que el
+    // texto se encime con la animación.
+    const dripOp = this.dripCaptionOp(b);
+    const yOffset =
+      (band ? band.croissantCy - c.height / 2 : 0) + this.extraLift(b) - this.introSettle(b) - CAPTION_STAGE_LIFT_PX * dpr * dripOp;
     const [cW, cCX, cCY] = this.croiFor(b);
     const squishY = b >= SPLIT_B && b < SPLIT_C ? CROI2_SQUISH_Y : 1;
     const bandS0 = this.getCarouselBand();
     const ramp0 = this.clamp01(b / FREEZE_FRAME_FOR_SCALE_RAMP);
-    const scaleMulRamp = (bandS0 ? 1 + (bandS0.scaleMul - 1) * ramp0 : 1) * this.masaZoom;
+    const scaleMulRamp = (bandS0 ? 1 + (bandS0.scaleMul - 1) * ramp0 : 1) * this.masaZoom * (1 - CAPTION_STAGE_SHRINK * dripOp);
     this.drawHeroImg(baseImg, 1, yOffset, cW, cCX, cCY, squishY, scaleMulRamp);
     this.drawEligeTuSaborTitle(b);
   }
@@ -757,7 +781,6 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
       caption: this.captionRef()?.nativeElement,
       captionEyebrow: this.captionEyebrowRef()?.nativeElement,
       captionText: this.captionTextRef()?.nativeElement,
-      captionUnderline: this.captionUnderlineRef()?.nativeElement,
       masaWrap: this.masaWrapRef()?.nativeElement,
     };
     if (!R.wrap || !R.stage) return;
@@ -808,17 +831,6 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
       R.photo.style.transform = 'scale(1)';
     }
     if (R.hint) R.hint.style.opacity = String(1 - seg(0.02, 0.12));
-    if (R.photoBox) {
-      const band = this.getCarouselBand();
-      if (band) {
-        const ramp = this.clamp01((p - 0.2) / (0.55 - 0.2));
-        const dpr = this.dpr || 1;
-        R.photoBox.style.transform =
-          ramp > 0.001 || riseLiftPx > 0.001
-            ? `translateY(${ramp * (band.croissantCy / dpr - vh / 2) - riseLiftPx}px)`
-            : '';
-      }
-    }
     if (R.introCap) {
       const ico = this.capOpacity(p, 0.5, 0.505, RISE_A, RISE_B);
       R.introCap.style.opacity = String(ico);
@@ -901,9 +913,22 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
         break;
       }
     }
+    if (R.photoBox) {
+      const band = this.getCarouselBand();
+      if (band) {
+        const ramp = this.clamp01((p - 0.2) / (0.55 - 0.2));
+        const dpr = this.dpr || 1;
+        R.photoBox.style.transform =
+          ramp > 0.001 || riseLiftPx > 0.001
+            ? `translateY(${ramp * (band.croissantCy / dpr - vh / 2) - riseLiftPx}px)`
+            : '';
+      }
+    }
     if (R.caption) {
       R.caption.style.opacity = String(canvasOn ? activeOp : 0);
-      R.caption.style.transform = `translateY(${(1 - activeOp) * 10}px)`;
+      const dirSign = activeCap?.position === 'top' ? -1 : 1;
+      R.caption.style.transform = `translateY(${dirSign * (1 - activeOp) * 10}px)`;
+      R.caption.classList.toggle('bol-hero-caption--top', activeCap?.position === 'top');
       const capIdx = activeCap ? HERO_CAPTIONS.indexOf(activeCap) : -1;
       if (activeCap && this.lastCapIdx !== capIdx) {
         this.lastCapIdx = capIdx;
@@ -930,15 +955,11 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
             el.style.opacity = String(wp);
             el.style.transform = `translateY(${-(1 - wp) * 14}px)`;
           });
-          if (R.captionUnderline) R.captionUnderline.style.width = activeOp * 72 + 'px';
-        } else if (activeCap.flavor === 'rise') {
+        } else if (activeCap.flavor === 'rise' || activeCap.flavor === 'plain') {
           if (R.captionText) {
             R.captionText.style.transform = `scale(${0.95 + 0.05 * activeOp})`;
             R.captionText.style.filter = `blur(${(1 - activeOp) * 3}px)`;
           }
-          if (R.captionUnderline) R.captionUnderline.style.width = '0';
-        } else {
-          if (R.captionUnderline) R.captionUnderline.style.width = '0';
         }
       }
     }

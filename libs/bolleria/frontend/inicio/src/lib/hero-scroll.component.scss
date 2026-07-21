@@ -31,6 +31,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  transform-origin: 50% 0%;
 }
 
 .bol-hero-img {
@@ -132,7 +133,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  padding: 70px 32px 60px;
+  padding: 104px 32px 68px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -141,7 +142,16 @@
   z-index: 7;
   opacity: 0;
   pointer-events: none;
-  background: linear-gradient(to top, rgba(250, 246, 236, 0.96) 0%, rgba(250, 246, 236, 0.75) 42%, rgba(250, 246, 236, 0) 100%);
+  background: linear-gradient(to top, rgba(250, 246, 236, 0.97) 0%, rgba(250, 246, 236, 0.95) 66%, rgba(250, 246, 236, 0) 100%);
+
+  // Fermentación / Horneado: la foto ya deja aire arriba, así que el texto se
+  // ubica ahí en vez de abajo — mismo tratamiento tipográfico, espejado.
+  &--top {
+    top: 0;
+    bottom: auto;
+    padding: 128px 32px 32px;
+    background: linear-gradient(to bottom, rgba(250, 246, 236, 0.97) 0%, rgba(250, 246, 236, 0.95) 66%, rgba(250, 246, 236, 0) 100%);
+  }
 }
 
 .bol-hero-caption__eyebrow {
@@ -149,26 +159,21 @@
   letter-spacing: 0.3em;
   text-transform: uppercase;
   color: var(--olive);
+
+  &:empty {
+    display: none;
+  }
 }
 
 .bol-hero-caption__text {
-  font: italic 500 clamp(26px, 3.5vw, 40px) / 1.24 'Cormorant Garamond', serif;
+  font: italic 500 clamp(30px, 4.4vw, 48px) / 1.26 'Cormorant Garamond', serif;
   letter-spacing: -0.008em;
   color: #2e2a1c;
-  max-width: 600px;
+  max-width: 640px;
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
   gap: 0.32em;
-}
-
-.bol-hero-caption__underline {
-  display: block;
-  width: 0;
-  height: 2px;
-  background: var(--acc, #c8912a);
-  border-radius: 2px;
-  transition: width 0.2s linear;
 }
 
 .bol-hero-hint {
