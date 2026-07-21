@@ -42,10 +42,7 @@ export default [
             },
             {
               sourceTag: 'scope:interiorismo',
-              onlyDependOnLibsWithTags: [
-                'scope:interiorismo',
-                'scope:shared',
-              ],
+              onlyDependOnLibsWithTags: ['scope:interiorismo', 'scope:shared'],
             },
             {
               sourceTag: 'scope:cafe-rosa',

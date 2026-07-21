@@ -1,0 +1,9 @@
+{
+  "name": "orden-de-trabajo-automotriz-e2e",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "sourceRoot": "apps/orden-de-trabajo-automotriz-e2e/src",
+  "implicitDependencies": ["orden-de-trabajo-automotriz"],
+  "// targets": "to see all targets run: nx show project orden-de-trabajo-automotriz-e2e --web",
+  "targets": {}
+}
