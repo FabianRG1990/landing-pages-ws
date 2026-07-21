@@ -1,0 +1,80 @@
+<div class="tablero" [style.--color-area]="'var(' + colorVar() + ')'">
+  @for (columna of columnas(); track columna.estado) {
+    <section class="columna">
+      <header class="columna-header">
+        <h2>{{ columna.titulo }}</h2>
+        <span class="contador">{{ tarjetasDe(columna.estado).length }}</span>
+      </header>
+
+      <div class="tarjetas">
+        @for (tarjeta of tarjetasDe(columna.estado); track tarjeta.numero) {
+          <article class="tarjeta">
+            <div class="tarjeta-cabecera">
+              <span class="numero">{{ tarjeta.numero }}</span>
+              <a class="expediente-link" routerLink="/expediente" [queryParams]="{ q: tarjeta.placa }">Expediente</a>
+            </div>
+
+            <h3 class="vehiculo">{{ tarjeta.placa }} — {{ tarjeta.descripcionVehiculo }}</h3>
+            <p class="cliente">{{ tarjeta.cliente }}</p>
+            <p class="motivo">{{ tarjeta.motivo }}</p>
+
+            <dl class="detalle">
+              @if (tarjeta.tecnico) {
+                <div>
+                  <dt>Técnico</dt>
+                  <dd>{{ tarjeta.tecnico }}</dd>
+                </div>
+              }
+              @if (tarjeta.fechaEstimada) {
+                <div>
+                  <dt>Entrega est.</dt>
+                  <dd>{{ tarjeta.fechaEstimada }}</dd>
+                </div>
+              }
+              <div>
+                <dt>Total</dt>
+                <dd>₡{{ tarjeta.total | number: '1.0-0' }}</dd>
+              </div>
+            </dl>
+
+            @if (tarjeta.chips.length > 0) {
+              <div class="chips">
+                @for (chip of tarjeta.chips; track chip) {
+                  <span class="chip">{{ chip }}</span>
+                }
+              </div>
+            }
+
+            <div class="tarjeta-acciones">
+              @if (siguienteEstado(tarjeta.estado); as siguiente) {
+                <button
+                  type="button"
+                  class="boton-avanzar"
+                  (click)="avanzar.emit({ numero: tarjeta.numero, estado: siguiente.estado })"
+                >
+                  Avanzar a: {{ siguiente.titulo }}
+                </button>
+              }
+              @if (tarjeta.agregarArea; as ag) {
+                <button
+                  type="button"
+                  class="boton-agregar-area"
+                  (click)="agregarAreaClick.emit({ numero: tarjeta.numero, area: ag.area })"
+                >
+                  + {{ ag.label }}
+                </button>
+              }
+              @if (!esTerminal(tarjeta.estado)) {
+                <button type="button" class="boton-cancelar" (click)="cancelar.emit(tarjeta.numero)">
+                  Cancelar
+                </button>
+              }
+            </div>
+          </article>
+        } @empty {
+          <p class="columna-vacia">Sin órdenes en esta etapa.</p>
+        }
+      </div>
+    </section>
+  }
+</div>
