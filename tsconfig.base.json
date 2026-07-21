@@ -118,6 +118,9 @@
       ],
       "@orden-de-trabajo-automotriz-ui-shared": [
         "./libs/orden-de-trabajo-automotriz/frontend/shared/src/index.ts"
+      ],
+      "@orden-de-trabajo-automotriz-ui-nueva-orden": [
+        "./libs/orden-de-trabajo-automotriz/frontend/nueva-orden/src/index.ts"
       ]
     }
   },

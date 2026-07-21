@@ -28,6 +28,14 @@ export type NivelCombustible =
   | 'tres-cuartos'
   | 'lleno';
 
+export const NIVELES_COMBUSTIBLE: { value: NivelCombustible; label: string }[] = [
+  { value: 'vacio', label: 'Vacío' },
+  { value: 'un-cuarto', label: '1/4' },
+  { value: 'medio', label: '1/2' },
+  { value: 'tres-cuartos', label: '3/4' },
+  { value: 'lleno', label: 'Lleno' },
+];
+
 export type EstadoOrden =
   | 'recibido'
   | 'diagnostico'

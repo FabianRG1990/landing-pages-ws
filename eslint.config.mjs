@@ -56,6 +56,13 @@ export default [
               sourceTag: 'scope:automotivo',
               onlyDependOnLibsWithTags: ['scope:automotivo', 'scope:shared'],
             },
+            {
+              sourceTag: 'scope:orden-de-trabajo-automotriz',
+              onlyDependOnLibsWithTags: [
+                'scope:orden-de-trabajo-automotriz',
+                'scope:shared',
+              ],
+            },
           ],
         },
       ],

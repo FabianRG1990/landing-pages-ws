@@ -1,0 +1,112 @@
+@if (ordenCreada(); as orden) {
+  <section class="confirmacion">
+    <h1>Orden {{ orden.numero }} creada</h1>
+    <p>
+      Vehículo <strong>{{ orden.vehiculo.placa }}</strong> ({{ orden.vehiculo.marca }}
+      {{ orden.vehiculo.modelo }}) recibido a nombre de
+      <strong>{{ orden.cliente.nombre }}</strong>.
+    </p>
+    <div class="acciones">
+      <button type="button" (click)="recibirOtroVehiculo()">Recibir otro vehículo</button>
+      <a routerLink="/ordenes">Ver listado de órdenes</a>
+    </div>
+  </section>
+} @else {
+  <form class="orden-form" [formGroup]="form" (ngSubmit)="submit()">
+    <h1>Recibir vehículo — nueva orden de trabajo</h1>
+
+    <fieldset formGroupName="cliente">
+      <legend>Datos del cliente</legend>
+
+      <label>
+        Nombre completo *
+        <input type="text" formControlName="nombre" placeholder="Ej. Andrés Mora" />
+      </label>
+
+      <label>
+        Teléfono *
+        <input type="tel" formControlName="telefono" placeholder="8888-1234" />
+      </label>
+
+      <label>
+        Correo
+        <input type="email" formControlName="correo" placeholder="opcional" />
+      </label>
+
+      <label>
+        Identificación
+        <input type="text" formControlName="identificacion" placeholder="opcional" />
+      </label>
+    </fieldset>
+
+    <fieldset formGroupName="vehiculo">
+      <legend>Datos del vehículo</legend>
+
+      <label>
+        Placa *
+        <input type="text" formControlName="placa" placeholder="Ej. BCK123" />
+      </label>
+
+      <label>
+        Marca *
+        <input type="text" formControlName="marca" placeholder="Ej. Toyota" />
+      </label>
+
+      <label>
+        Modelo *
+        <input type="text" formControlName="modelo" placeholder="Ej. Corolla" />
+      </label>
+
+      <label>
+        Año *
+        <input type="text" formControlName="anio" placeholder="Ej. 2020" />
+      </label>
+
+      <label>
+        Color
+        <input type="text" formControlName="color" />
+      </label>
+
+      <label>
+        Kilometraje de ingreso
+        <input type="number" formControlName="kilometrajeIngreso" min="0" />
+      </label>
+
+      <label>
+        Nivel de combustible
+        <select formControlName="nivelCombustible">
+          @for (nivel of nivelesCombustible; track nivel.value) {
+            <option [value]="nivel.value">{{ nivel.label }}</option>
+          }
+        </select>
+      </label>
+
+      <label>
+        Llaves entregadas
+        <input type="number" formControlName="llavesEntregadas" min="0" />
+      </label>
+
+      <label class="ancho-completo">
+        Pertenencias dejadas en el vehículo
+        <textarea formControlName="pertenencias" rows="2"></textarea>
+      </label>
+
+      <label class="ancho-completo">
+        Daños o rayones previos observados al ingreso
+        <textarea formControlName="danosPrevios" rows="2"></textarea>
+      </label>
+    </fieldset>
+
+    <fieldset>
+      <legend>Motivo de ingreso</legend>
+      <label class="ancho-completo">
+        Descripción del problema reportado por el cliente *
+        <textarea formControlName="motivoIngreso" rows="3"></textarea>
+      </label>
+    </fieldset>
+
+    <div class="acciones">
+      <button type="submit">Recibir vehículo y crear orden</button>
+    </div>
+  </form>
+}

@@ -1,0 +1,72 @@
+:host {
+  display: block;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 24px 16px 64px;
+  font-family: system-ui, sans-serif;
+}
+
+h1 {
+  font-size: 1.4rem;
+  margin-bottom: 16px;
+}
+
+fieldset {
+  border: 1px solid #d8dbe0;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 20px;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px 16px;
+}
+
+legend {
+  font-weight: 600;
+  padding: 0 4px;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.85rem;
+  color: #444;
+}
+
+.ancho-completo {
+  grid-column: 1 / -1;
+}
+
+input,
+select,
+textarea {
+  padding: 8px 10px;
+  border: 1px solid #c4c8cd;
+  border-radius: 6px;
+  font-size: 0.95rem;
+  font-family: inherit;
+}
+
+.acciones {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+button {
+  padding: 10px 20px;
+  border-radius: 6px;
+  border: none;
+  background: #1f6feb;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.confirmacion {
+  padding: 24px;
+  border: 1px solid #2ea043;
+  border-radius: 8px;
+  background: #ecfdf3;
+}
