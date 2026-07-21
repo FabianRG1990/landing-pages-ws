@@ -122,8 +122,11 @@
       "@orden-de-trabajo-automotriz-ui-nueva-orden": [
         "./libs/orden-de-trabajo-automotriz/frontend/nueva-orden/src/index.ts"
       ],
-      "@orden-de-trabajo-automotriz-ui-ordenes": [
-        "./libs/orden-de-trabajo-automotriz/frontend/ordenes/src/index.ts"
+      "@orden-de-trabajo-automotriz-ui-tablero-mecanica": [
+        "./libs/orden-de-trabajo-automotriz/frontend/tablero-mecanica/src/index.ts"
+      ],
+      "@orden-de-trabajo-automotriz-ui-tablero-pintura": [
+        "./libs/orden-de-trabajo-automotriz/frontend/tablero-pintura/src/index.ts"
       ],
       "@orden-de-trabajo-automotriz-ui-expediente": [
         "./libs/orden-de-trabajo-automotriz/frontend/expediente/src/index.ts"

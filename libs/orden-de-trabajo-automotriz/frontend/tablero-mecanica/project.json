@@ -1,7 +1,7 @@
 {
-  "name": "orden-de-trabajo-automotriz-ui-ordenes",
+  "name": "orden-de-trabajo-automotriz-ui-tablero-mecanica",
   "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
-  "sourceRoot": "libs/orden-de-trabajo-automotriz/frontend/ordenes/src",
+  "sourceRoot": "libs/orden-de-trabajo-automotriz/frontend/tablero-mecanica/src",
   "prefix": "ota",
   "projectType": "library",
   "tags": ["scope:orden-de-trabajo-automotriz"],

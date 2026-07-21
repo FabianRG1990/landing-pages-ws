@@ -152,7 +152,7 @@ export function areasDeOrden(orden: OrdenTrabajo): Area[] {
 
 export const IVA = 0.13;
 
-function subtotalSubOrden(sub: SubOrdenArea<unknown> | undefined): number {
+export function subtotalSubOrden(sub: SubOrdenArea<unknown> | undefined): number {
   if (!sub) return 0;
   const servicios = sub.servicios.reduce((sum, s) => sum + s.horas * s.tarifaHora, 0);
   const repuestos = sub.repuestos.reduce(

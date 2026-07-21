@@ -7,14 +7,10 @@ import { nxCopyAssetsPlugin } from '@nx/vite/plugins/nx-copy-assets.plugin';
 export default defineConfig(() => ({
   root: __dirname,
   cacheDir:
-    '../../../../node_modules/.vite/libs/orden-de-trabajo-automotriz/frontend/ordenes',
+    '../../../../node_modules/.vite/libs/orden-de-trabajo-automotriz/frontend/tablero-mecanica',
   plugins: [angular(), nxViteTsPaths(), nxCopyAssetsPlugin(['*.md'])],
-  // Uncomment this if you are using workers.
-  // worker: {
-  //   plugins: () => [ nxViteTsPaths() ],
-  // },
   test: {
-    name: 'orden-de-trabajo-automotriz-ui-ordenes',
+    name: 'orden-de-trabajo-automotriz-ui-tablero-mecanica',
     watch: false,
     globals: true,
     environment: 'jsdom',
@@ -23,7 +19,7 @@ export default defineConfig(() => ({
     reporters: ['default'],
     coverage: {
       reportsDirectory:
-        '../../../../coverage/libs/orden-de-trabajo-automotriz/frontend/ordenes',
+        '../../../../coverage/libs/orden-de-trabajo-automotriz/frontend/tablero-mecanica',
       provider: 'v8' as const,
     },
   },

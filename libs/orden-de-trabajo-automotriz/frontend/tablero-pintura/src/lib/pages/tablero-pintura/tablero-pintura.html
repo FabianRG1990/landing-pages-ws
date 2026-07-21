@@ -1,0 +1,20 @@
+<section class="cabecera">
+  <div>
+    <span class="etiqueta-area">Pintura</span>
+    <h1>Tablero de órdenes</h1>
+  </div>
+  <a class="boton-primario" routerLink="/recibir" [queryParams]="{ area: 'pintura' }">+ Recibir vehículo</a>
+</section>
+
+@if (tarjetas().length === 0) {
+  <p class="vacio">Todavía no hay órdenes en Pintura.</p>
+} @else {
+  <ota-kanban-board
+    [columnas]="columnas"
+    [tarjetas]="tarjetas()"
+    colorVar="--ota-pintura"
+    (avanzar)="avanzar($event)"
+    (cancelar)="cancelar($event)"
+    (agregarAreaClick)="agregarArea($event)"
+  />
+}

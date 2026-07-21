@@ -1,0 +1,44 @@
+:host {
+  display: block;
+  padding: 32px 32px 48px;
+}
+
+.cabecera {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  gap: 16px;
+}
+
+.etiqueta-area {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--ota-mecanica);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 4px;
+}
+
+h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.boton-primario {
+  padding: 10px 20px;
+  border-radius: var(--ota-radius-md);
+  background: var(--ota-mecanica);
+  color: #0a0a0c;
+  font-weight: 600;
+  font-size: 0.88rem;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.vacio {
+  color: var(--ota-text-muted);
+}
