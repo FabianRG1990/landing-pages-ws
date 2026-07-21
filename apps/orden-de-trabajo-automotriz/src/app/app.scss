@@ -20,9 +20,31 @@
 
 .marca {
   display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 8px;
+}
+
+.marca-mini {
+  display: none;
+  flex: 0 0 auto;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--ota-radius-sm);
+  background: var(--ota-accent-soft);
+  color: var(--ota-accent-strong);
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.marca-texto {
+  display: flex;
   flex-direction: column;
   gap: 2px;
-  padding: 0 8px;
+  min-width: 0;
 }
 
 .marca-nombre {
@@ -123,19 +145,19 @@
     padding: 20px 8px;
   }
 
-  .marca-subtitulo,
+  .marca-texto,
   .area-titulo,
   .sub-link span {
     display: none;
   }
 
   .marca {
-    align-items: center;
-    text-align: center;
+    justify-content: center;
+    padding: 0;
   }
 
-  .marca-nombre {
-    font-size: 0.7rem;
+  .marca-mini {
+    display: flex;
   }
 
   .sub-link {
