@@ -115,6 +115,9 @@
       ],
       "@aros-alex-ui-contacto": [
         "./libs/aros-alex/frontend/contacto/src/index.ts"
+      ],
+      "@orden-de-trabajo-automotriz-ui-shared": [
+        "./libs/orden-de-trabajo-automotriz/frontend/shared/src/index.ts"
       ]
     }
   },
