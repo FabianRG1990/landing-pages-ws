@@ -1,1 +1,74 @@
-/* You can add global styles to this file, and also import other style files */
+/* Tokens de diseño — dark UI premium (referencia: Linear / Vercel). */
+
+:root {
+  color-scheme: dark;
+
+  /* Fondos */
+  --ota-bg: #0a0a0c;
+  --ota-bg-elevated: #0e0f11;
+  --ota-surface: #17181b;
+  --ota-surface-hover: #1d1e22;
+
+  /* Bordes */
+  --ota-border: rgba(255, 255, 255, 0.08);
+  --ota-border-strong: rgba(255, 255, 255, 0.14);
+
+  /* Texto */
+  --ota-text: #f2f2f3;
+  --ota-text-muted: #9a9aa2;
+  --ota-text-faint: #67676f;
+
+  /* Acento de marca */
+  --ota-accent: #6e6bf4;
+  --ota-accent-strong: #837fff;
+  --ota-accent-contrast: #ffffff;
+  --ota-accent-soft: rgba(110, 107, 244, 0.14);
+
+  /* Colores por área */
+  --ota-mecanica: #5b8cff;
+  --ota-mecanica-soft: rgba(91, 140, 255, 0.14);
+  --ota-pintura: #f2a65a;
+  --ota-pintura-soft: rgba(242, 166, 90, 0.14);
+
+  /* Estado */
+  --ota-success: #3ecf8e;
+  --ota-success-soft: rgba(62, 207, 142, 0.14);
+  --ota-warning: #f2b84b;
+  --ota-warning-soft: rgba(242, 184, 75, 0.14);
+  --ota-danger: #f2545b;
+  --ota-danger-soft: rgba(242, 84, 91, 0.14);
+
+  /* Forma y elevación */
+  --ota-radius-sm: 6px;
+  --ota-radius-md: 10px;
+  --ota-radius-lg: 16px;
+  --ota-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --ota-shadow-md: 0 8px 24px rgba(0, 0, 0, 0.35);
+
+  --ota-font: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--ota-bg);
+  color: var(--ota-text);
+  font-family: var(--ota-font);
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: inherit;
+}
+
+button {
+  font-family: inherit;
+}
