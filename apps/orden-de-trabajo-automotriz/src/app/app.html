@@ -1,12 +1,62 @@
-<header class="topbar">
-  <span class="marca">{{ title }}</span>
-  <nav>
-    <a routerLink="/" routerLinkActive="activo" [routerLinkActiveOptions]="{ exact: true }">Recibir vehículo</a>
-    <a routerLink="/ordenes" routerLinkActive="activo">Órdenes</a>
-    <a routerLink="/expediente" routerLinkActive="activo">Expediente</a>
-  </nav>
-</header>
+<div class="shell">
+  <aside class="sidebar">
+    <div class="marca">
+      <span class="marca-nombre">{{ title }}</span>
+      <span class="marca-subtitulo">{{ subtitulo }}</span>
+    </div>
 
-<main>
-  <router-outlet></router-outlet>
-</main>
+    <nav class="nav-areas">
+      <div class="area-grupo area-grupo-mecanica">
+        <h2 class="area-titulo">
+          <ng-icon name="phosphorWrench" size="16" />
+          Mecánica
+        </h2>
+        <a class="sub-link" routerLink="/mecanica" routerLinkActive="activo">
+          <ng-icon name="phosphorSquaresFour" size="18" />
+          <span>Tablero</span>
+        </a>
+        <a
+          class="sub-link"
+          routerLink="/recibir"
+          [queryParams]="{ area: 'mecanica' }"
+          routerLinkActive="activo"
+        >
+          <ng-icon name="phosphorPlusCircle" size="18" />
+          <span>Recibir vehículo</span>
+        </a>
+        <a class="sub-link" routerLink="/expediente" routerLinkActive="activo">
+          <ng-icon name="phosphorFolderUser" size="18" />
+          <span>Expediente</span>
+        </a>
+      </div>
+
+      <div class="area-grupo area-grupo-pintura">
+        <h2 class="area-titulo">
+          <ng-icon name="phosphorPaintRoller" size="16" />
+          Pintura
+        </h2>
+        <a class="sub-link" routerLink="/pintura" routerLinkActive="activo">
+          <ng-icon name="phosphorSquaresFour" size="18" />
+          <span>Tablero</span>
+        </a>
+        <a
+          class="sub-link"
+          routerLink="/recibir"
+          [queryParams]="{ area: 'pintura' }"
+          routerLinkActive="activo"
+        >
+          <ng-icon name="phosphorPlusCircle" size="18" />
+          <span>Recibir vehículo</span>
+        </a>
+        <a class="sub-link" routerLink="/expediente" routerLinkActive="activo">
+          <ng-icon name="phosphorFolderUser" size="18" />
+          <span>Expediente</span>
+        </a>
+      </div>
+    </nav>
+  </aside>
+
+  <main class="contenido">
+    <router-outlet></router-outlet>
+  </main>
+</div>

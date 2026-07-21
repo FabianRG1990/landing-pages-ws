@@ -1,36 +1,150 @@
 :host {
   display: block;
-  font-family: system-ui, sans-serif;
-  color: #1c1e21;
-  background: #fafbfc;
   min-height: 100vh;
 }
 
-.topbar {
+.shell {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 14px 24px;
-  background: #14161a;
-  color: #fff;
+  min-height: 100vh;
+}
+
+.sidebar {
+  flex: 0 0 248px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  padding: 24px 16px;
+  background: var(--ota-bg-elevated);
+  border-right: 1px solid var(--ota-border);
 }
 
 .marca {
-  font-weight: 700;
-}
-
-nav {
   display: flex;
-  gap: 20px;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0 8px;
 }
 
-nav a {
-  color: #cfd3d8;
+.marca-nombre {
+  font-weight: 700;
+  font-size: 0.98rem;
+  letter-spacing: -0.01em;
+  color: var(--ota-text);
+}
+
+.marca-subtitulo {
+  font-size: 0.75rem;
+  color: var(--ota-text-faint);
+}
+
+.nav-areas {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.area-grupo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.area-titulo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 6px;
+  padding: 0 8px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ota-text-muted);
+}
+
+.area-grupo-mecanica .area-titulo ng-icon {
+  color: var(--ota-mecanica);
+}
+
+.area-grupo-pintura .area-titulo ng-icon {
+  color: var(--ota-pintura);
+}
+
+.sub-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: var(--ota-radius-sm);
+  color: var(--ota-text-muted);
   text-decoration: none;
-  font-size: 0.9rem;
+  font-size: 0.87rem;
+  font-weight: 500;
+  transition: background 0.12s ease, color 0.12s ease;
+
+  ng-icon {
+    flex: 0 0 auto;
+    opacity: 0.85;
+  }
+
+  &:hover {
+    background: var(--ota-surface-hover);
+    color: var(--ota-text);
+  }
+
+  &.activo {
+    background: var(--ota-surface);
+    color: var(--ota-text);
+    font-weight: 600;
+
+    ng-icon {
+      opacity: 1;
+    }
+  }
 }
 
-nav a.activo {
-  color: #fff;
-  font-weight: 600;
+.area-grupo-mecanica .sub-link.activo {
+  box-shadow: inset 2px 0 0 var(--ota-mecanica);
+}
+
+.area-grupo-pintura .sub-link.activo {
+  box-shadow: inset 2px 0 0 var(--ota-pintura);
+}
+
+.contenido {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+@media (max-width: 720px) {
+  .sidebar {
+    flex-basis: 76px;
+    align-items: center;
+    padding: 20px 8px;
+  }
+
+  .marca-subtitulo,
+  .area-titulo,
+  .sub-link span {
+    display: none;
+  }
+
+  .marca {
+    align-items: center;
+    text-align: center;
+  }
+
+  .marca-nombre {
+    font-size: 0.7rem;
+  }
+
+  .sub-link {
+    justify-content: center;
+    padding: 10px;
+  }
+
+  .area-grupo-mecanica .sub-link.activo,
+  .area-grupo-pintura .sub-link.activo {
+    box-shadow: none;
+  }
 }
