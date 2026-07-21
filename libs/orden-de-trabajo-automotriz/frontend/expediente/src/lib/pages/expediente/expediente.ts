@@ -1,16 +1,20 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import {
+  AREAS,
+  Area,
+  OrdenTrabajo,
   OrdenesStore,
-  estadoLabel,
+  estadoMecanicaLabel,
+  estadoPinturaLabel,
   totalOrden,
 } from '@orden-de-trabajo-automotriz-ui-shared';
 
 @Component({
   selector: 'ota-expediente-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, DecimalPipe],
+  imports: [DecimalPipe],
   templateUrl: './expediente.html',
   styleUrl: './expediente.scss',
 })
@@ -22,8 +26,8 @@ export class ExpedientePage {
   protected readonly query = signal(
     this.route.snapshot.queryParamMap.get('q') ?? '',
   );
+  protected readonly areas = AREAS;
   protected readonly totalOrden = totalOrden;
-  protected readonly estadoLabel = estadoLabel;
 
   protected readonly resultados = computed(() =>
     [...this.store.buscarPorPlacaOCliente(this.query())].sort((a, b) =>
@@ -40,5 +44,12 @@ export class ExpedientePage {
       queryParams: { q: valor || null },
       queryParamsHandling: 'merge',
     });
+  }
+
+  protected estadoDeArea(orden: OrdenTrabajo, area: Area): string | null {
+    if (area === 'mecanica') {
+      return orden.areas.mecanica ? estadoMecanicaLabel(orden.areas.mecanica.estado) : null;
+    }
+    return orden.areas.pintura ? estadoPinturaLabel(orden.areas.pintura.estado) : null;
   }
 }

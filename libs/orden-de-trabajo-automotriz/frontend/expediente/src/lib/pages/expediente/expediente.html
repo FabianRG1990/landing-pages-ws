@@ -1,6 +1,5 @@
 <section class="cabecera">
   <h1>Expediente de cliente / vehículo</h1>
-  <a routerLink="/ordenes">← Volver al listado</a>
 </section>
 
 <form class="buscador" (ngSubmit)="buscar(campo.value)">
@@ -26,26 +25,25 @@
     </section>
   }
 
-  <table>
-    <thead>
-      <tr>
-        <th>N.º orden</th>
-        <th>Ingreso</th>
-        <th>Motivo</th>
-        <th>Estado</th>
-        <th>Total est.</th>
-      </tr>
-    </thead>
-    <tbody>
-      @for (orden of resultados(); track orden.numero) {
-        <tr>
-          <td>{{ orden.numero }}</td>
-          <td>{{ orden.fechaIngreso }}</td>
-          <td class="motivo">{{ orden.motivoIngreso }}</td>
-          <td>{{ estadoLabel(orden.estado) }}</td>
-          <td>₡{{ totalOrden(orden) | number: '1.0-0' }}</td>
-        </tr>
-      }
-    </tbody>
-  </table>
+  <div class="historial">
+    @for (orden of resultados(); track orden.numero) {
+      <article class="orden-card">
+        <div class="orden-card-cabecera">
+          <span class="numero">{{ orden.numero }}</span>
+          <span class="fecha">{{ orden.fechaIngreso }}</span>
+        </div>
+        <p class="motivo">{{ orden.motivoIngreso }}</p>
+        <div class="areas-estado">
+          @for (area of areas; track area.value) {
+            @if (estadoDeArea(orden, area.value); as estado) {
+              <span class="chip" [class]="'chip-' + area.value">{{ area.label }}: {{ estado }}</span>
+            }
+          }
+        </div>
+        <div class="orden-card-pie">
+          <span class="total">₡{{ totalOrden(orden) | number: '1.0-0' }}</span>
+        </div>
+      </article>
+    }
+  </div>
 }
