@@ -1,19 +1,41 @@
 @if (ordenCreada(); as orden) {
   <section class="confirmacion">
+    <div class="icono-check" aria-hidden="true">✓</div>
     <h1>Orden {{ orden.numero }} creada</h1>
     <p>
       Vehículo <strong>{{ orden.vehiculo.placa }}</strong> ({{ orden.vehiculo.marca }}
       {{ orden.vehiculo.modelo }}) recibido a nombre de
       <strong>{{ orden.cliente.nombre }}</strong>.
     </p>
+    <p class="areas-creadas">
+      Ingresó a:
+      @for (area of areasDeOrden(orden); track area) {
+        <span class="chip" [class]="'chip-' + area">{{ area === 'mecanica' ? 'Mecánica' : 'Pintura' }}</span>
+      }
+    </p>
     <div class="acciones">
-      <button type="button" (click)="recibirOtroVehiculo()">Recibir otro vehículo</button>
-      <a routerLink="/ordenes">Ver listado de órdenes</a>
+      <button type="button" class="boton-secundario" (click)="recibirOtroVehiculo()">Recibir otro vehículo</button>
+      <a class="boton-primario" routerLink="/expediente" [queryParams]="{ q: orden.vehiculo.placa }">Ver expediente</a>
     </div>
   </section>
 } @else {
   <form class="orden-form" [formGroup]="form" (ngSubmit)="submit()">
     <h1>Recibir vehículo — nueva orden de trabajo</h1>
+
+    <fieldset formGroupName="areas" class="areas-fieldset">
+      <legend>¿Qué área necesita este vehículo? *</legend>
+      <div class="areas-opciones">
+        @for (area of areas; track area.value) {
+          <label class="area-check" [class]="'area-check-' + area.value">
+            <input type="checkbox" [formControlName]="area.value" />
+            <span>{{ area.label }}</span>
+          </label>
+        }
+      </div>
+      @if (intentoEnviar() && form.controls.areas.invalid) {
+        <p class="error">Seleccioná al menos un área para continuar.</p>
+      }
+    </fieldset>
 
     <fieldset formGroupName="cliente">
       <legend>Datos del cliente</legend>
@@ -106,7 +128,7 @@
     </fieldset>
 
     <div class="acciones">
-      <button type="submit">Recibir vehículo y crear orden</button>
+      <button type="submit" class="boton-primario">Recibir vehículo y crear orden</button>
     </div>
   </form>
 }

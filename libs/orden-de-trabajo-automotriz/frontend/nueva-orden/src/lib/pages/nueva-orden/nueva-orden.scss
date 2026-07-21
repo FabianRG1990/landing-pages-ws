@@ -1,37 +1,43 @@
 :host {
   display: block;
-  max-width: 720px;
+  max-width: 760px;
   margin: 0 auto;
-  padding: 24px 16px 64px;
-  font-family: system-ui, sans-serif;
+  padding: 40px 24px 80px;
 }
 
 h1 {
-  font-size: 1.4rem;
-  margin-bottom: 16px;
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin: 0 0 24px;
 }
 
 fieldset {
-  border: 1px solid #d8dbe0;
-  border-radius: 8px;
-  padding: 16px;
-  margin-bottom: 20px;
+  border: 1px solid var(--ota-border);
+  border-radius: var(--ota-radius-lg);
+  background: var(--ota-surface);
+  padding: 20px 24px 24px;
+  margin: 0 0 20px;
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 12px 16px;
+  gap: 16px 20px;
 }
 
 legend {
   font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--ota-text-muted);
   padding: 0 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
 }
 
 label {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
   font-size: 0.85rem;
-  color: #444;
+  color: var(--ota-text-muted);
 }
 
 .ancho-completo {
@@ -41,11 +47,77 @@ label {
 input,
 select,
 textarea {
-  padding: 8px 10px;
-  border: 1px solid #c4c8cd;
-  border-radius: 6px;
+  padding: 10px 12px;
+  border: 1px solid var(--ota-border-strong);
+  border-radius: var(--ota-radius-sm);
+  background: var(--ota-bg-elevated);
+  color: var(--ota-text);
   font-size: 0.95rem;
   font-family: inherit;
+  transition: border-color 0.15s ease;
+
+  &:focus-visible {
+    outline: none;
+    border-color: var(--ota-accent);
+  }
+}
+
+textarea {
+  resize: vertical;
+  font-family: inherit;
+}
+
+.areas-fieldset {
+  grid-template-columns: 1fr;
+}
+
+.areas-opciones {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.area-check {
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 20px;
+  border: 1px solid var(--ota-border-strong);
+  border-radius: var(--ota-radius-md);
+  background: var(--ota-bg-elevated);
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--ota-text);
+  transition: border-color 0.15s ease, background 0.15s ease;
+
+  input {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--ota-accent);
+  }
+
+  &:has(input:checked) {
+    border-color: var(--ota-accent);
+    background: var(--ota-accent-soft);
+  }
+}
+
+.area-check-mecanica:has(input:checked) {
+  border-color: var(--ota-mecanica);
+  background: var(--ota-mecanica-soft);
+}
+
+.area-check-pintura:has(input:checked) {
+  border-color: var(--ota-pintura);
+  background: var(--ota-pintura-soft);
+}
+
+.error {
+  grid-column: 1 / -1;
+  margin: 4px 0 0;
+  font-size: 0.85rem;
+  color: var(--ota-danger);
 }
 
 .acciones {
@@ -54,19 +126,102 @@ textarea {
   align-items: center;
 }
 
-button {
-  padding: 10px 20px;
-  border-radius: 6px;
+.boton-primario,
+.boton-secundario {
+  padding: 12px 22px;
+  border-radius: var(--ota-radius-md);
   border: none;
-  background: #1f6feb;
-  color: #fff;
   font-weight: 600;
+  font-size: 0.9rem;
   cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.1s ease, opacity 0.15s ease;
+
+  &:hover {
+    opacity: 0.9;
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+.boton-primario {
+  background: var(--ota-accent);
+  color: var(--ota-accent-contrast);
+}
+
+.boton-secundario {
+  background: var(--ota-surface-hover);
+  color: var(--ota-text);
+  border: 1px solid var(--ota-border-strong);
 }
 
 .confirmacion {
-  padding: 24px;
-  border: 1px solid #2ea043;
-  border-radius: 8px;
-  background: #ecfdf3;
+  padding: 40px;
+  border: 1px solid var(--ota-border);
+  border-radius: var(--ota-radius-lg);
+  background: var(--ota-surface);
+  text-align: center;
+
+  h1 {
+    margin: 0 0 8px;
+  }
+
+  p {
+    color: var(--ota-text-muted);
+    margin: 0 0 16px;
+  }
+}
+
+.icono-check {
+  width: 48px;
+  height: 48px;
+  margin: 0 auto 16px;
+  border-radius: 50%;
+  background: var(--ota-success-soft);
+  color: var(--ota-success);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  font-weight: 700;
+}
+
+.areas-creadas {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.chip {
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.chip-mecanica {
+  background: var(--ota-mecanica-soft);
+  color: var(--ota-mecanica);
+}
+
+.chip-pintura {
+  background: var(--ota-pintura-soft);
+  color: var(--ota-pintura);
+}
+
+.acciones {
+  justify-content: center;
+}
+
+@media (max-width: 640px) {
+  fieldset {
+    grid-template-columns: 1fr;
+  }
 }

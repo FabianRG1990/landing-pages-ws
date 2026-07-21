@@ -1,11 +1,25 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { RouterLink } from '@angular/router';
 import {
+  AbstractControl,
+  FormBuilder,
+  ReactiveFormsModule,
+  ValidationErrors,
+  Validators,
+} from '@angular/forms';
+import { ActivatedRoute, RouterLink } from '@angular/router';
+import {
+  AREAS,
+  Area,
   NIVELES_COMBUSTIBLE,
   OrdenTrabajo,
   OrdenesStore,
+  areasDeOrden,
 } from '@orden-de-trabajo-automotriz-ui-shared';
+
+function alMenosUnArea(control: AbstractControl): ValidationErrors | null {
+  const value = control.value as { mecanica: boolean; pintura: boolean };
+  return value.mecanica || value.pintura ? null : { ningunArea: true };
+}
 
 @Component({
   selector: 'ota-nueva-orden-page',
@@ -17,11 +31,24 @@ import {
 export class NuevaOrdenPage {
   private readonly fb = inject(FormBuilder);
   private readonly store = inject(OrdenesStore);
+  private readonly route = inject(ActivatedRoute);
 
+  private readonly areaInicial = this.route.snapshot.queryParamMap.get('area') as Area | null;
+
+  protected readonly areas = AREAS;
   protected readonly nivelesCombustible = NIVELES_COMBUSTIBLE;
   protected readonly ordenCreada = signal<OrdenTrabajo | null>(null);
+  protected readonly intentoEnviar = signal(false);
+  protected readonly areasDeOrden = areasDeOrden;
 
   protected readonly form = this.fb.nonNullable.group({
+    areas: this.fb.nonNullable.group(
+      {
+        mecanica: [this.areaInicial === 'mecanica' || this.areaInicial === null],
+        pintura: [this.areaInicial === 'pintura'],
+      },
+      { validators: alMenosUnArea },
+    ),
     cliente: this.fb.nonNullable.group({
       nombre: ['', Validators.required],
       telefono: ['', Validators.required],
@@ -45,7 +72,12 @@ export class NuevaOrdenPage {
 
   protected recibirOtroVehiculo(): void {
     this.ordenCreada.set(null);
+    this.intentoEnviar.set(false);
     this.form.reset({
+      areas: {
+        mecanica: this.areaInicial === 'mecanica' || this.areaInicial === null,
+        pintura: this.areaInicial === 'pintura',
+      },
       cliente: { nombre: '', telefono: '', correo: '', identificacion: '' },
       vehiculo: {
         placa: '',
@@ -64,12 +96,17 @@ export class NuevaOrdenPage {
   }
 
   protected submit(): void {
+    this.intentoEnviar.set(true);
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
     }
 
-    const { cliente, vehiculo, motivoIngreso } = this.form.getRawValue();
+    const { areas, cliente, vehiculo, motivoIngreso } = this.form.getRawValue();
+    const areasSeleccionadas: Area[] = this.areas
+      .map((a) => a.value)
+      .filter((value) => areas[value]);
+
     const orden = this.store.crearOrden({
       cliente,
       vehiculo: {
@@ -77,6 +114,7 @@ export class NuevaOrdenPage {
         kilometrajeIngreso: vehiculo.kilometrajeIngreso ?? undefined,
       },
       motivoIngreso,
+      areas: areasSeleccionadas,
     });
     this.ordenCreada.set(orden);
   }
