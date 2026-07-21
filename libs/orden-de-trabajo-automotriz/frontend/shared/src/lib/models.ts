@@ -57,6 +57,10 @@ export const ESTADOS_ORDEN: { value: EstadoOrden; label: string }[] = [
   { value: 'cancelado', label: 'Cancelado' },
 ];
 
+export function estadoLabel(estado: EstadoOrden): string {
+  return ESTADOS_ORDEN.find((e) => e.value === estado)?.label ?? estado;
+}
+
 export interface LineaServicio {
   descripcion: string;
   horas: number;

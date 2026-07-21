@@ -1,0 +1,51 @@
+<section class="cabecera">
+  <h1>Expediente de cliente / vehículo</h1>
+  <a routerLink="/ordenes">← Volver al listado</a>
+</section>
+
+<form class="buscador" (ngSubmit)="buscar(campo.value)">
+  <input #campo type="text" [value]="query()" placeholder="Buscar por placa o nombre del cliente" />
+  <button type="submit">Buscar</button>
+</form>
+
+@if (!query()) {
+  <p class="vacio">Buscá una placa o el nombre de un cliente para ver su historial.</p>
+} @else if (resultados().length === 0) {
+  <p class="vacio">No hay órdenes para "{{ query() }}".</p>
+} @else {
+  @if (ficha(); as f) {
+    <section class="ficha">
+      <h2>{{ f.cliente.nombre }} — {{ f.vehiculo.placa }}</h2>
+      <p>
+        {{ f.vehiculo.marca }} {{ f.vehiculo.modelo }} ({{ f.vehiculo.anio }}) ·
+        Tel. {{ f.cliente.telefono }}
+        @if (f.cliente.correo) {
+          · {{ f.cliente.correo }}
+        }
+      </p>
+    </section>
+  }
+
+  <table>
+    <thead>
+      <tr>
+        <th>N.º orden</th>
+        <th>Ingreso</th>
+        <th>Motivo</th>
+        <th>Estado</th>
+        <th>Total est.</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (orden of resultados(); track orden.numero) {
+        <tr>
+          <td>{{ orden.numero }}</td>
+          <td>{{ orden.fechaIngreso }}</td>
+          <td class="motivo">{{ orden.motivoIngreso }}</td>
+          <td>{{ estadoLabel(orden.estado) }}</td>
+          <td>₡{{ totalOrden(orden) | number: '1.0-0' }}</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+}

@@ -124,6 +124,9 @@
       ],
       "@orden-de-trabajo-automotriz-ui-ordenes": [
         "./libs/orden-de-trabajo-automotriz/frontend/ordenes/src/index.ts"
+      ],
+      "@orden-de-trabajo-automotriz-ui-expediente": [
+        "./libs/orden-de-trabajo-automotriz/frontend/expediente/src/index.ts"
       ]
     }
   },

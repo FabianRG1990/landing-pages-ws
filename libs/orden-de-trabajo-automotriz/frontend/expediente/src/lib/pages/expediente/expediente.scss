@@ -1,0 +1,83 @@
+:host {
+  display: block;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 24px 16px 64px;
+  font-family: system-ui, sans-serif;
+}
+
+.cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+h1 {
+  font-size: 1.4rem;
+}
+
+.buscador {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.buscador input {
+  flex: 1;
+  padding: 10px 12px;
+  border: 1px solid #c4c8cd;
+  border-radius: 6px;
+  font-size: 0.95rem;
+}
+
+.buscador button {
+  padding: 10px 20px;
+  border-radius: 6px;
+  border: none;
+  background: #1f6feb;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.vacio {
+  color: #666;
+}
+
+.ficha {
+  padding: 16px;
+  border-radius: 8px;
+  background: #f4f6f8;
+  margin-bottom: 20px;
+}
+
+.ficha h2 {
+  font-size: 1.1rem;
+  margin-bottom: 4px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+th,
+td {
+  text-align: left;
+  padding: 10px 12px;
+  border-bottom: 1px solid #e3e5e8;
+}
+
+th {
+  color: #555;
+  font-weight: 600;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+}
+
+.motivo {
+  max-width: 320px;
+  color: #555;
+}
