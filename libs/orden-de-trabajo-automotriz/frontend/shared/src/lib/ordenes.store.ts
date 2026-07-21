@@ -1,5 +1,14 @@
 import { patchState, signalStore, withMethods, withState } from '@ngrx/signals';
-import { Cliente, EstadoOrden, OrdenTrabajo, Vehiculo } from './models';
+import {
+  Area,
+  Cliente,
+  EstadoMecanica,
+  EstadoPintura,
+  OrdenTrabajo,
+  SubOrdenMecanica,
+  SubOrdenPintura,
+  Vehiculo,
+} from './models';
 
 /** Datos de ejemplo para probar las pantallas mientras no hay backend. */
 const ORDENES_MOCK: OrdenTrabajo[] = [
@@ -15,13 +24,21 @@ const ORDENES_MOCK: OrdenTrabajo[] = [
       nivelCombustible: 'medio',
     },
     fechaIngreso: '2026-07-15',
-    fechaEstimadaEntrega: '2026-07-17',
-    estado: 'en-reparacion',
-    tecnicoAsignado: 'Luis Araya',
     motivoIngreso: 'Ruido en frenos delanteros al frenar.',
-    diagnostico: 'Pastillas delanteras desgastadas, discos con rayado leve.',
-    servicios: [{ descripcion: 'Cambio de pastillas y rectificado de discos', horas: 2, tarifaHora: 15000 }],
-    repuestos: [{ descripcion: 'Juego de pastillas delanteras', cantidad: 1, precioUnitario: 28000 }],
+    areas: {
+      mecanica: {
+        estado: 'en-reparacion',
+        tecnicoAsignado: 'Luis Araya',
+        fechaEstimadaEntrega: '2026-07-17',
+        diagnostico: 'Pastillas delanteras desgastadas, discos con rayado leve.',
+        servicios: [
+          { descripcion: 'Cambio de pastillas y rectificado de discos', horas: 2, tarifaHora: 15000 },
+        ],
+        repuestos: [
+          { descripcion: 'Juego de pastillas delanteras', cantidad: 1, precioUnitario: 28000 },
+        ],
+      },
+    },
   },
   {
     numero: 'OT-0002',
@@ -35,10 +52,20 @@ const ORDENES_MOCK: OrdenTrabajo[] = [
       nivelCombustible: 'tres-cuartos',
     },
     fechaIngreso: '2026-07-18',
-    estado: 'recibido',
-    motivoIngreso: 'Servicio de mantenimiento preventivo (cambio de aceite y filtros).',
-    servicios: [],
-    repuestos: [],
+    motivoIngreso: 'Colisión leve en puerta delantera derecha, requiere enderezado y pintura.',
+    areas: {
+      mecanica: {
+        estado: 'diagnostico',
+        tecnicoAsignado: 'Karla Vindas',
+        servicios: [],
+        repuestos: [],
+      },
+      pintura: {
+        estado: 'recibido',
+        servicios: [],
+        repuestos: [],
+      },
+    },
   },
 ];
 
@@ -51,6 +78,14 @@ const initialState: OrdenesState = {
   ordenes: ORDENES_MOCK,
   contador: ORDENES_MOCK.length,
 };
+
+function nuevaSubOrdenMecanica(): SubOrdenMecanica {
+  return { estado: 'recibido', servicios: [], repuestos: [] };
+}
+
+function nuevaSubOrdenPintura(): SubOrdenPintura {
+  return { estado: 'recibido', servicios: [], repuestos: [] };
+}
 
 export const OrdenesStore = signalStore(
   { providedIn: 'root' },
@@ -72,31 +107,69 @@ export const OrdenesStore = signalStore(
       );
     },
 
+    /** Órdenes que tienen un sub-flujo activo (no entregado/cancelado) en el área dada. */
+    ordenesPorArea(area: Area): OrdenTrabajo[] {
+      return store.ordenes().filter((o) => !!o.areas[area]);
+    },
+
     crearOrden(datos: {
       cliente: Cliente;
       vehiculo: Vehiculo;
       motivoIngreso: string;
+      areas: Area[];
     }): OrdenTrabajo {
+      if (datos.areas.length === 0) {
+        throw new Error('Debe seleccionarse al menos un área (Mecánica o Pintura).');
+      }
       const contador = store.contador() + 1;
       const nueva: OrdenTrabajo = {
         numero: `OT-${String(contador).padStart(4, '0')}`,
         cliente: datos.cliente,
         vehiculo: datos.vehiculo,
         fechaIngreso: new Date().toISOString().slice(0, 10),
-        estado: 'recibido',
         motivoIngreso: datos.motivoIngreso,
-        servicios: [],
-        repuestos: [],
+        areas: {
+          mecanica: datos.areas.includes('mecanica') ? nuevaSubOrdenMecanica() : undefined,
+          pintura: datos.areas.includes('pintura') ? nuevaSubOrdenPintura() : undefined,
+        },
       };
       patchState(store, { ordenes: [nueva, ...store.ordenes()], contador });
       return nueva;
     },
 
-    cambiarEstado(numero: string, estado: EstadoOrden): void {
+    /** Agrega un área a una orden existente que todavía no la tenía (ej. daño oculto encontrado). */
+    agregarArea(numero: string, area: Area): void {
       patchState(store, {
-        ordenes: store
-          .ordenes()
-          .map((o) => (o.numero === numero ? { ...o, estado } : o)),
+        ordenes: store.ordenes().map((o) => {
+          if (o.numero !== numero || o.areas[area]) return o;
+          return {
+            ...o,
+            areas: {
+              ...o.areas,
+              [area]: area === 'mecanica' ? nuevaSubOrdenMecanica() : nuevaSubOrdenPintura(),
+            },
+          };
+        }),
+      });
+    },
+
+    cambiarEstadoMecanica(numero: string, estado: EstadoMecanica): void {
+      patchState(store, {
+        ordenes: store.ordenes().map((o) =>
+          o.numero === numero && o.areas.mecanica
+            ? { ...o, areas: { ...o.areas, mecanica: { ...o.areas.mecanica, estado } } }
+            : o,
+        ),
+      });
+    },
+
+    cambiarEstadoPintura(numero: string, estado: EstadoPintura): void {
+      patchState(store, {
+        ordenes: store.ordenes().map((o) =>
+          o.numero === numero && o.areas.pintura
+            ? { ...o, areas: { ...o.areas, pintura: { ...o.areas.pintura, estado } } }
+            : o,
+        ),
       });
     },
   })),
