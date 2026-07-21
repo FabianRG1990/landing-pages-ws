@@ -1,2 +1,12 @@
-<ota-nx-welcome></ota-nx-welcome>
-<router-outlet></router-outlet>
+<header class="topbar">
+  <span class="marca">{{ title }}</span>
+  <nav>
+    <a routerLink="/" routerLinkActive="activo" [routerLinkActiveOptions]="{ exact: true }">Recibir vehículo</a>
+    <a routerLink="/ordenes" routerLinkActive="activo">Órdenes</a>
+    <a routerLink="/expediente" routerLinkActive="activo">Expediente</a>
+  </nav>
+</header>
+
+<main>
+  <router-outlet></router-outlet>
+</main>

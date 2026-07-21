@@ -1,0 +1,36 @@
+:host {
+  display: block;
+  font-family: system-ui, sans-serif;
+  color: #1c1e21;
+  background: #fafbfc;
+  min-height: 100vh;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 24px;
+  background: #14161a;
+  color: #fff;
+}
+
+.marca {
+  font-weight: 700;
+}
+
+nav {
+  display: flex;
+  gap: 20px;
+}
+
+nav a {
+  color: #cfd3d8;
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+
+nav a.activo {
+  color: #fff;
+  font-weight: 600;
+}
