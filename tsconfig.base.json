@@ -121,6 +121,9 @@
       ],
       "@orden-de-trabajo-automotriz-ui-nueva-orden": [
         "./libs/orden-de-trabajo-automotriz/frontend/nueva-orden/src/index.ts"
+      ],
+      "@orden-de-trabajo-automotriz-ui-ordenes": [
+        "./libs/orden-de-trabajo-automotriz/frontend/ordenes/src/index.ts"
       ]
     }
   },

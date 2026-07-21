@@ -1,0 +1,13 @@
+{
+  "name": "orden-de-trabajo-automotriz-ui-ordenes",
+  "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/orden-de-trabajo-automotriz/frontend/ordenes/src",
+  "prefix": "ota",
+  "projectType": "library",
+  "tags": ["scope:orden-de-trabajo-automotriz"],
+  "targets": {
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    }
+  }
+}

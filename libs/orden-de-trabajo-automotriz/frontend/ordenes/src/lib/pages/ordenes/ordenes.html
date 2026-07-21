@@ -1,0 +1,48 @@
+<section class="cabecera">
+  <h1>Órdenes de trabajo</h1>
+  <a class="boton" routerLink="/nueva-orden">+ Recibir vehículo</a>
+</section>
+
+@if (ordenes().length === 0) {
+  <p class="vacio">Todavía no hay órdenes registradas.</p>
+} @else {
+  <table>
+    <thead>
+      <tr>
+        <th>N.º orden</th>
+        <th>Ingreso</th>
+        <th>Cliente</th>
+        <th>Vehículo</th>
+        <th>Motivo</th>
+        <th>Estado</th>
+        <th>Total est.</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (orden of ordenes(); track orden.numero) {
+        <tr>
+          <td>{{ orden.numero }}</td>
+          <td>{{ orden.fechaIngreso }}</td>
+          <td>{{ orden.cliente.nombre }}</td>
+          <td>{{ orden.vehiculo.placa }} — {{ orden.vehiculo.marca }} {{ orden.vehiculo.modelo }}</td>
+          <td class="motivo">{{ orden.motivoIngreso }}</td>
+          <td>
+            <select
+              [value]="orden.estado"
+              (change)="cambiarEstado(orden.numero, $any($event.target).value)"
+            >
+              @for (estado of estados; track estado.value) {
+                <option [value]="estado.value">{{ estado.label }}</option>
+              }
+            </select>
+          </td>
+          <td>₡{{ totalOrden(orden) | number: '1.0-0' }}</td>
+          <td>
+            <a routerLink="/expediente" [queryParams]="{ q: orden.vehiculo.placa }">Ver expediente</a>
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+}
