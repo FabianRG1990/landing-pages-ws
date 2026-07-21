@@ -162,9 +162,9 @@ const HERO_CAPTIONS: HeroCaption[] = [
     inB: 120,
     outA: 142,
     outB: 154,
-    eyebrow: 'Relleno',
+    eyebrow: '',
     flavor: 'drip',
-    words: 'Dulce de leche, crema pastelera o nutella — nunca somos tacaños con el relleno.'.split(' '),
+    words: 'Aquí el relleno nunca se queda corto. — nunca somos tacaños con el relleno.'.split(' '),
   },
   {
     inA: 160,
