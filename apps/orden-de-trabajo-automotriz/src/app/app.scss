@@ -9,11 +9,11 @@
 }
 
 .sidebar {
-  flex: 0 0 248px;
+  flex: 0 0 260px;
   display: flex;
   flex-direction: column;
-  gap: 28px;
-  padding: 24px 16px;
+  gap: 32px;
+  padding: 28px 18px;
   background: var(--ota-bg-elevated);
   border-right: 1px solid var(--ota-border);
 }
@@ -21,92 +21,95 @@
 .marca {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 0 8px;
+  gap: 12px;
+  padding: 0 6px;
 }
 
 .marca-mini {
-  display: none;
   flex: 0 0 auto;
-  width: 32px;
-  height: 32px;
+  display: flex;
+  width: 34px;
+  height: 34px;
   border-radius: var(--ota-radius-sm);
   background: var(--ota-accent-soft);
   color: var(--ota-accent-strong);
   align-items: center;
   justify-content: center;
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   font-weight: 700;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.03em;
 }
 
 .marca-texto {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 1px;
   min-width: 0;
 }
 
 .marca-nombre {
   font-weight: 700;
-  font-size: 0.98rem;
+  font-size: 0.95rem;
   letter-spacing: -0.01em;
   color: var(--ota-text);
 }
 
 .marca-subtitulo {
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   color: var(--ota-text-faint);
 }
 
 .nav-areas {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 22px;
 }
 
 .area-grupo {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
+  padding-top: 18px;
+  border-top: 1px solid var(--ota-border);
+
+  &:first-child {
+    padding-top: 0;
+    border-top: none;
+  }
 }
 
 .area-titulo {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin: 0 0 6px;
-  padding: 0 8px;
-  font-size: 0.72rem;
+  margin: 0 0 8px;
+  padding: 0 10px;
+  font-size: 0.7rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--ota-text-muted);
-}
+  letter-spacing: 0.07em;
+  color: var(--ota-text-faint);
 
-.area-grupo-mecanica .area-titulo ng-icon {
-  color: var(--ota-mecanica);
-}
-
-.area-grupo-pintura .area-titulo ng-icon {
-  color: var(--ota-pintura);
+  ng-icon {
+    opacity: 0.8;
+  }
 }
 
 .sub-link {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 9px 12px;
+  padding: 8px 10px;
   border-radius: var(--ota-radius-sm);
   color: var(--ota-text-muted);
   text-decoration: none;
-  font-size: 0.87rem;
+  font-size: 0.86rem;
   font-weight: 500;
   transition: background 0.12s ease, color 0.12s ease;
 
   ng-icon {
     flex: 0 0 auto;
-    opacity: 0.85;
+    opacity: 0.75;
   }
 
   &:hover {
@@ -115,22 +118,14 @@
   }
 
   &.activo {
-    background: var(--ota-surface);
-    color: var(--ota-text);
+    background: var(--ota-accent-soft);
+    color: var(--ota-accent-strong);
     font-weight: 600;
 
     ng-icon {
       opacity: 1;
     }
   }
-}
-
-.area-grupo-mecanica .sub-link.activo {
-  box-shadow: inset 2px 0 0 var(--ota-mecanica);
-}
-
-.area-grupo-pintura .sub-link.activo {
-  box-shadow: inset 2px 0 0 var(--ota-pintura);
 }
 
 .contenido {
@@ -140,7 +135,7 @@
 
 @media (max-width: 720px) {
   .sidebar {
-    flex-basis: 76px;
+    flex-basis: 72px;
     align-items: center;
     padding: 20px 8px;
   }
@@ -156,17 +151,13 @@
     padding: 0;
   }
 
-  .marca-mini {
-    display: flex;
+  .area-grupo {
+    align-items: center;
+    padding-top: 16px;
   }
 
   .sub-link {
     justify-content: center;
     padding: 10px;
-  }
-
-  .area-grupo-mecanica .sub-link.activo,
-  .area-grupo-pintura .sub-link.activo {
-    box-shadow: none;
   }
 }
