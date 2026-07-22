@@ -10,6 +10,8 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import {
   AREAS,
   Area,
+  CarConfigurator3d,
+  MarcaPiezaCarroceria,
   NIVELES_COMBUSTIBLE,
   OrdenTrabajo,
   OrdenesStore,
@@ -24,7 +26,7 @@ function alMenosUnArea(control: AbstractControl): ValidationErrors | null {
 @Component({
   selector: 'ota-nueva-orden-page',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule, RouterLink],
+  imports: [ReactiveFormsModule, RouterLink, CarConfigurator3d],
   templateUrl: './nueva-orden.html',
   styleUrl: './nueva-orden.scss',
 })
@@ -40,6 +42,8 @@ export class NuevaOrdenPage {
   protected readonly ordenCreada = signal<OrdenTrabajo | null>(null);
   protected readonly intentoEnviar = signal(false);
   protected readonly areasDeOrden = areasDeOrden;
+  protected readonly pinturaMarcada = signal(this.areaInicial === 'pintura');
+  protected readonly piezasCarroceria = signal<MarcaPiezaCarroceria[]>([]);
 
   protected readonly form = this.fb.nonNullable.group({
     areas: this.fb.nonNullable.group(
@@ -70,9 +74,15 @@ export class NuevaOrdenPage {
     motivoIngreso: ['', Validators.required],
   });
 
+  protected onAreasChange(): void {
+    this.pinturaMarcada.set(this.form.controls.areas.controls.pintura.value);
+  }
+
   protected recibirOtroVehiculo(): void {
     this.ordenCreada.set(null);
     this.intentoEnviar.set(false);
+    this.piezasCarroceria.set([]);
+    this.pinturaMarcada.set(this.areaInicial === 'pintura');
     this.form.reset({
       areas: {
         mecanica: this.areaInicial === 'mecanica' || this.areaInicial === null,
@@ -115,6 +125,7 @@ export class NuevaOrdenPage {
       },
       motivoIngreso,
       areas: areasSeleccionadas,
+      piezasCarroceria: this.pinturaMarcada() ? this.piezasCarroceria() : undefined,
     });
     this.ordenCreada.set(orden);
   }

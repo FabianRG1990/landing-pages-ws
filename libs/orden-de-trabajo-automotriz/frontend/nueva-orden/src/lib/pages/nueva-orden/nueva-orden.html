@@ -27,7 +27,7 @@
       <div class="areas-opciones">
         @for (area of areas; track area.value) {
           <label class="area-check" [class]="'area-check-' + area.value">
-            <input type="checkbox" [formControlName]="area.value" />
+            <input type="checkbox" [formControlName]="area.value" (change)="onAreasChange()" />
             <span>{{ area.label }}</span>
           </label>
         }
@@ -114,10 +114,17 @@
       </label>
 
       <label class="ancho-completo">
-        Daños o rayones previos observados al ingreso
+        Notas adicionales sobre el vehículo (opcional)
         <textarea formControlName="danosPrevios" rows="2"></textarea>
       </label>
     </fieldset>
+
+    @if (pinturaMarcada()) {
+      <fieldset class="pintura-3d-fieldset">
+        <legend>Diagrama de daños — Pintura</legend>
+        <ota-car-configurator-3d (cambio)="piezasCarroceria.set($event)" />
+      </fieldset>
+    }
 
     <fieldset>
       <legend>Motivo de ingreso</legend>

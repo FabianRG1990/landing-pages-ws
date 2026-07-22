@@ -1,0 +1,61 @@
+@if (!soportaWebgl()) {
+  <div class="fallback">
+    Tu navegador no soporta gráficos 3D. Describí los daños en el campo de notas de abajo.
+  </div>
+} @else {
+  <div class="envoltorio">
+    <div class="lienzo-contenedor" #contenedor>
+      <canvas #lienzo></canvas>
+      <p class="pista">Arrastrá para rotar el auto · clic en una pieza para marcarla</p>
+    </div>
+
+    @if (marcasLista().length > 0) {
+      <ul class="resumen">
+        @for (marca of marcasLista(); track marca.pieza) {
+          <li>
+            <span class="resumen-pieza">{{ piezaCarroceriaLabel(marca.pieza) }}</span>
+            <span class="resumen-estado">{{ estadoPiezaLabel(marca.estado) }}</span>
+            <button type="button" (click)="quitarMarca(marca.pieza)" aria-label="Quitar marca">✕</button>
+          </li>
+        }
+      </ul>
+    }
+  </div>
+
+  @if (popover(); as p) {
+    <div class="popover" [style.left.px]="p.x" [style.top.px]="p.y">
+      <header>
+        <strong>{{ piezaCarroceriaLabel(p.pieza) }}</strong>
+        <button type="button" class="cerrar" (click)="cerrarPopover()" aria-label="Cerrar">✕</button>
+      </header>
+
+      <label>
+        Estado
+        <select [ngModel]="formEstado()" (ngModelChange)="formEstado.set($event)">
+          @for (e of estados; track e.value) {
+            <option [value]="e.value">{{ e.label }}</option>
+          }
+        </select>
+      </label>
+
+      <label>
+        Acción
+        <select [ngModel]="formAccion()" (ngModelChange)="formAccion.set($event)">
+          @for (a of acciones; track a.value) {
+            <option [value]="a.value">{{ a.label }}</option>
+          }
+        </select>
+      </label>
+
+      <label>
+        Nota
+        <input type="text" [ngModel]="formNota()" (ngModelChange)="formNota.set($event)" placeholder="opcional" />
+      </label>
+
+      <div class="popover-acciones">
+        <button type="button" class="guardar" (click)="guardarMarca()">Guardar</button>
+        <button type="button" class="quitar" (click)="quitarMarca()">Quitar marca</button>
+      </div>
+    </div>
+  }
+}
