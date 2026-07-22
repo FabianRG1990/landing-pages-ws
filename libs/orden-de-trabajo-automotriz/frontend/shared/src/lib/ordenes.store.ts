@@ -4,10 +4,12 @@ import {
   Cliente,
   EstadoMecanica,
   EstadoPintura,
+  MarcaPiezaCarroceria,
   OrdenTrabajo,
   SubOrdenMecanica,
   SubOrdenPintura,
   Vehiculo,
+  serviciosSugeridosDesdeCarroceria,
 } from './models';
 
 /** Datos de ejemplo para probar las pantallas mientras no hay backend. */
@@ -83,8 +85,13 @@ function nuevaSubOrdenMecanica(): SubOrdenMecanica {
   return { estado: 'recibido', servicios: [], repuestos: [] };
 }
 
-function nuevaSubOrdenPintura(): SubOrdenPintura {
-  return { estado: 'recibido', servicios: [], repuestos: [] };
+function nuevaSubOrdenPintura(piezas?: MarcaPiezaCarroceria[]): SubOrdenPintura {
+  return {
+    estado: 'recibido',
+    servicios: piezas ? serviciosSugeridosDesdeCarroceria(piezas) : [],
+    repuestos: [],
+    piezas,
+  };
 }
 
 export const OrdenesStore = signalStore(
@@ -117,6 +124,7 @@ export const OrdenesStore = signalStore(
       vehiculo: Vehiculo;
       motivoIngreso: string;
       areas: Area[];
+      piezasCarroceria?: MarcaPiezaCarroceria[];
     }): OrdenTrabajo {
       if (datos.areas.length === 0) {
         throw new Error('Debe seleccionarse al menos un área (Mecánica o Pintura).');
@@ -130,7 +138,9 @@ export const OrdenesStore = signalStore(
         motivoIngreso: datos.motivoIngreso,
         areas: {
           mecanica: datos.areas.includes('mecanica') ? nuevaSubOrdenMecanica() : undefined,
-          pintura: datos.areas.includes('pintura') ? nuevaSubOrdenPintura() : undefined,
+          pintura: datos.areas.includes('pintura')
+            ? nuevaSubOrdenPintura(datos.piezasCarroceria)
+            : undefined,
         },
       };
       patchState(store, { ordenes: [nueva, ...store.ordenes()], contador });

@@ -114,6 +114,110 @@ export interface LineaRepuesto {
   precioUnitario: number;
 }
 
+/** Piezas de carrocería marcables desde el configurador 3D de Pintura. */
+export type PiezaCarroceria =
+  | 'capo'
+  | 'techo'
+  | 'cofre-trasero'
+  | 'parachoques-delantero'
+  | 'parachoques-trasero'
+  | 'guardabarros-delantero-izquierdo'
+  | 'guardabarros-delantero-derecho'
+  | 'panel-trasero-izquierdo'
+  | 'panel-trasero-derecho'
+  | 'puerta-delantera-izquierda'
+  | 'puerta-delantera-derecha'
+  | 'puerta-trasera-izquierda'
+  | 'puerta-trasera-derecha'
+  | 'parabrisas'
+  | 'vidrio-trasero'
+  | 'espejo-izquierdo'
+  | 'espejo-derecho';
+
+export const PIEZAS_CARROCERIA: { value: PiezaCarroceria; label: string }[] = [
+  { value: 'capo', label: 'Capó' },
+  { value: 'techo', label: 'Techo' },
+  { value: 'cofre-trasero', label: 'Cofre/tapa trasera' },
+  { value: 'parachoques-delantero', label: 'Parachoques delantero' },
+  { value: 'parachoques-trasero', label: 'Parachoques trasero' },
+  { value: 'guardabarros-delantero-izquierdo', label: 'Guardabarros delantero izquierdo' },
+  { value: 'guardabarros-delantero-derecho', label: 'Guardabarros delantero derecho' },
+  { value: 'panel-trasero-izquierdo', label: 'Panel trasero izquierdo' },
+  { value: 'panel-trasero-derecho', label: 'Panel trasero derecho' },
+  { value: 'puerta-delantera-izquierda', label: 'Puerta delantera izquierda' },
+  { value: 'puerta-delantera-derecha', label: 'Puerta delantera derecha' },
+  { value: 'puerta-trasera-izquierda', label: 'Puerta trasera izquierda' },
+  { value: 'puerta-trasera-derecha', label: 'Puerta trasera derecha' },
+  { value: 'parabrisas', label: 'Parabrisas' },
+  { value: 'vidrio-trasero', label: 'Vidrio trasero' },
+  { value: 'espejo-izquierdo', label: 'Espejo izquierdo' },
+  { value: 'espejo-derecho', label: 'Espejo derecho' },
+];
+
+export function piezaCarroceriaLabel(pieza: PiezaCarroceria): string {
+  return PIEZAS_CARROCERIA.find((p) => p.value === pieza)?.label ?? pieza;
+}
+
+export type EstadoPieza = 'sin-dano' | 'rayon' | 'abolladura' | 'oxido' | 'dano-estructural';
+
+export const ESTADOS_PIEZA: { value: EstadoPieza; label: string }[] = [
+  { value: 'sin-dano', label: 'Sin daño' },
+  { value: 'rayon', label: 'Rayón' },
+  { value: 'abolladura', label: 'Abolladura' },
+  { value: 'oxido', label: 'Óxido' },
+  { value: 'dano-estructural', label: 'Daño estructural' },
+];
+
+export function estadoPiezaLabel(estado: EstadoPieza): string {
+  return ESTADOS_PIEZA.find((e) => e.value === estado)?.label ?? estado;
+}
+
+/** Severidad visual de un estado de pieza — alimenta la rampa de color cálida del configurador 3D. */
+export type SeveridadPieza = 'ninguna' | 'leve' | 'media' | 'alta';
+
+const SEVERIDAD_POR_ESTADO: Record<EstadoPieza, SeveridadPieza> = {
+  'sin-dano': 'ninguna',
+  rayon: 'leve',
+  oxido: 'media',
+  abolladura: 'media',
+  'dano-estructural': 'alta',
+};
+
+export function severidadDePieza(estado: EstadoPieza): SeveridadPieza {
+  return SEVERIDAD_POR_ESTADO[estado];
+}
+
+export type AccionPieza = 'pintura' | 'reparar-pintar' | 'reemplazar' | 'pulido';
+
+export const ACCIONES_PIEZA: { value: AccionPieza; label: string }[] = [
+  { value: 'pintura', label: 'Solo pintura' },
+  { value: 'reparar-pintar', label: 'Reparar y pintar' },
+  { value: 'reemplazar', label: 'Reemplazar pieza' },
+  { value: 'pulido', label: 'Pulido' },
+];
+
+export function accionPiezaLabel(accion: AccionPieza): string {
+  return ACCIONES_PIEZA.find((a) => a.value === accion)?.label ?? accion;
+}
+
+export interface MarcaPiezaCarroceria {
+  pieza: PiezaCarroceria;
+  estado: EstadoPieza;
+  accion: AccionPieza;
+  nota?: string;
+}
+
+/** Convierte las piezas marcadas (con daño real) en líneas de servicio sugeridas, sin precio asignado. */
+export function serviciosSugeridosDesdeCarroceria(piezas: MarcaPiezaCarroceria[]): LineaServicio[] {
+  return piezas
+    .filter((p) => p.estado !== 'sin-dano')
+    .map((p) => ({
+      descripcion: `${accionPiezaLabel(p.accion)} — ${piezaCarroceriaLabel(p.pieza)}`,
+      horas: 0,
+      tarifaHora: 0,
+    }));
+}
+
 /** Sub-flujo de una orden dentro de un área (Mecánica o Pintura). */
 export interface SubOrdenArea<TEstado> {
   estado: TEstado;
@@ -127,7 +231,11 @@ export interface SubOrdenArea<TEstado> {
 }
 
 export type SubOrdenMecanica = SubOrdenArea<EstadoMecanica>;
-export type SubOrdenPintura = SubOrdenArea<EstadoPintura>;
+
+export interface SubOrdenPintura extends SubOrdenArea<EstadoPintura> {
+  /** Piezas de carrocería marcadas en el configurador 3D al recibir el vehículo. */
+  piezas?: MarcaPiezaCarroceria[];
+}
 
 export interface OrdenTrabajo {
   numero: string;
