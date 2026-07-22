@@ -126,14 +126,10 @@ h1 {
   border-radius: 999px;
 }
 
-.chip-mecanica {
-  background: var(--ota-mecanica-soft);
-  color: var(--ota-mecanica);
-}
-
+.chip-mecanica,
 .chip-pintura {
-  background: var(--ota-pintura-soft);
-  color: var(--ota-pintura);
+  background: var(--ota-accent-soft);
+  color: var(--ota-accent-strong);
 }
 
 .orden-card-pie {

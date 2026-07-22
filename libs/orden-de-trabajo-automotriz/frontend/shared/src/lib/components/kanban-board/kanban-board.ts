@@ -40,7 +40,6 @@ export interface TarjetaKanban {
 export class KanbanBoard {
   readonly columnas = input.required<ColumnaKanban[]>();
   readonly tarjetas = input.required<TarjetaKanban[]>();
-  readonly colorVar = input<string>('--ota-accent');
 
   readonly avanzar = output<{ numero: string; estado: string }>();
   readonly cancelar = output<string>();

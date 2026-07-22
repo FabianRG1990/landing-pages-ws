@@ -103,16 +103,6 @@ textarea {
   }
 }
 
-.area-check-mecanica:has(input:checked) {
-  border-color: var(--ota-mecanica);
-  background: var(--ota-mecanica-soft);
-}
-
-.area-check-pintura:has(input:checked) {
-  border-color: var(--ota-pintura);
-  background: var(--ota-pintura-soft);
-}
-
 .error {
   grid-column: 1 / -1;
   margin: 4px 0 0;
@@ -206,14 +196,10 @@ textarea {
   font-weight: 600;
 }
 
-.chip-mecanica {
-  background: var(--ota-mecanica-soft);
-  color: var(--ota-mecanica);
-}
-
+.chip-mecanica,
 .chip-pintura {
-  background: var(--ota-pintura-soft);
-  color: var(--ota-pintura);
+  background: var(--ota-accent-soft);
+  color: var(--ota-accent-strong);
 }
 
 .acciones {

@@ -27,7 +27,7 @@
   gap: 8px;
   padding: 14px 16px;
   border-bottom: 1px solid var(--ota-border);
-  border-top: 3px solid var(--color-area);
+  border-top: 3px solid var(--ota-accent);
   border-top-left-radius: var(--ota-radius-lg);
   border-top-right-radius: var(--ota-radius-lg);
 
@@ -88,7 +88,7 @@
 .numero {
   font-size: 0.75rem;
   font-weight: 700;
-  color: var(--color-area);
+  color: var(--ota-accent);
   letter-spacing: 0.02em;
 }
 
@@ -195,8 +195,8 @@ button {
 
 .boton-avanzar {
   flex: 1 1 auto;
-  background: var(--color-area);
-  color: #0a0a0c;
+  background: var(--ota-accent);
+  color: var(--ota-accent-contrast);
 }
 
 .boton-agregar-area {

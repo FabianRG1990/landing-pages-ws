@@ -15,7 +15,7 @@
   display: inline-block;
   font-size: 0.75rem;
   font-weight: 700;
-  color: var(--ota-pintura);
+  color: var(--ota-text-faint);
   text-transform: uppercase;
   letter-spacing: 0.04em;
   margin-bottom: 4px;
@@ -31,8 +31,8 @@ h1 {
 .boton-primario {
   padding: 10px 20px;
   border-radius: var(--ota-radius-md);
-  background: var(--ota-pintura);
-  color: #0a0a0c;
+  background: var(--ota-accent);
+  color: var(--ota-accent-contrast);
   font-weight: 600;
   font-size: 0.88rem;
   text-decoration: none;
