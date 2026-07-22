@@ -1,44 +1,49 @@
-/* Tokens de diseño — dark UI premium (referencia: Linear / Vercel). */
+/* Tokens de diseño — "Taller premium, cálido". Grafito con tono espresso,
+   un único acento cobre/latón usado con disciplina (sin colores de sección
+   compitiendo entre sí). Mecánica/Pintura se distinguen por ícono y
+   tipografía, no por hues distintos. */
 
 :root {
   color-scheme: dark;
 
-  /* Fondos */
-  --ota-bg: #0a0a0c;
-  --ota-bg-elevated: #0e0f11;
-  --ota-surface: #17181b;
-  --ota-surface-hover: #1d1e22;
+  /* Fondos — grafito con temperatura cálida, no negro puro/frío. */
+  --ota-bg: #14100e;
+  --ota-bg-elevated: #1b1613;
+  --ota-surface: #221c18;
+  --ota-surface-hover: #2a231d;
 
-  /* Bordes */
-  --ota-border: rgba(255, 255, 255, 0.08);
-  --ota-border-strong: rgba(255, 255, 255, 0.14);
+  /* Bordes — blanco cálido translúcido. */
+  --ota-border: rgba(255, 245, 235, 0.08);
+  --ota-border-strong: rgba(255, 245, 235, 0.14);
 
-  /* Texto */
-  --ota-text: #f2f2f3;
-  --ota-text-muted: #9a9aa2;
-  --ota-text-faint: #67676f;
+  /* Texto — hueso cálido, no blanco azulado. */
+  --ota-text: #f5efe7;
+  --ota-text-muted: #a89c8f;
+  --ota-text-faint: #6f6459;
 
-  /* Acento de marca */
-  --ota-accent: #6e6bf4;
-  --ota-accent-strong: #837fff;
-  --ota-accent-contrast: #ffffff;
-  --ota-accent-soft: rgba(110, 107, 244, 0.14);
+  /* Acento único — cobre/latón. */
+  --ota-accent: #c17f4a;
+  --ota-accent-strong: #d69463;
+  --ota-accent-contrast: #1b1310;
+  --ota-accent-soft: rgba(193, 127, 74, 0.14);
 
-  /* Colores por área */
-  --ota-mecanica: #5b8cff;
-  --ota-mecanica-soft: rgba(91, 140, 255, 0.14);
-  --ota-pintura: #f2a65a;
-  --ota-pintura-soft: rgba(242, 166, 90, 0.14);
+  /* Rampa de severidad — misma familia cálida, sin colores ajenos. */
+  --ota-severidad-leve: #d9a441;
+  --ota-severidad-leve-soft: rgba(217, 164, 65, 0.14);
+  --ota-severidad-media: #c1652f;
+  --ota-severidad-media-soft: rgba(193, 101, 47, 0.14);
+  --ota-severidad-alta: #a8402e;
+  --ota-severidad-alta-soft: rgba(168, 64, 46, 0.14);
 
-  /* Estado */
-  --ota-success: #3ecf8e;
-  --ota-success-soft: rgba(62, 207, 142, 0.14);
-  --ota-warning: #f2b84b;
-  --ota-warning-soft: rgba(242, 184, 75, 0.14);
-  --ota-danger: #f2545b;
-  --ota-danger-soft: rgba(242, 84, 91, 0.14);
+  /* Estado semántico general. */
+  --ota-success: #7c9a5c;
+  --ota-success-soft: rgba(124, 154, 92, 0.14);
+  --ota-warning: var(--ota-severidad-leve);
+  --ota-warning-soft: var(--ota-severidad-leve-soft);
+  --ota-danger: #b0483a;
+  --ota-danger-soft: rgba(176, 72, 58, 0.14);
 
-  /* Forma y elevación */
+  /* Forma y elevación. */
   --ota-radius-sm: 6px;
   --ota-radius-md: 10px;
   --ota-radius-lg: 16px;
