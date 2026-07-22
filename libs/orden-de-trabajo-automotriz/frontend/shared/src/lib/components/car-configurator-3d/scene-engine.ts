@@ -29,7 +29,7 @@ export class SceneEngine {
     private readonly contenedor: HTMLElement,
   ) {
     this.camera = new THREE.PerspectiveCamera(32, 1, 0.1, 100);
-    this.camera.position.set(4.6, 2.5, 5.2);
+    this.camera.position.set(3.3, 1.85, 3.7);
 
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));

@@ -111,14 +111,17 @@ export class CarConfigurator3d {
     this.engine = new SceneEngine(canvas, contenedor);
     this.engine.scene.background = null;
 
-    const hemi = new THREE.HemisphereLight(0xfff0dd, 0x1b1310, 1.0);
+    const hemi = new THREE.HemisphereLight(0xfff0dd, 0x1b1310, 1.15);
     this.engine.scene.add(hemi);
-    const key = new THREE.DirectionalLight(0xffe4c4, 1.9);
+    const key = new THREE.DirectionalLight(0xffe4c4, 3.1);
     key.position.set(4.5, 6, 3.2);
     this.engine.scene.add(key);
-    const fill = new THREE.DirectionalLight(0xcfd9ff, 0.32);
+    const fill = new THREE.DirectionalLight(0xcfd9ff, 0.55);
     fill.position.set(-5, 3, -4.5);
     this.engine.scene.add(fill);
+    const rim = new THREE.DirectionalLight(0xffb87a, 1.3);
+    rim.position.set(-2.5, 2.2, -5.5);
+    this.engine.scene.add(rim);
 
     const { grupo, meshesPorPieza } = construirAuto();
     this.meshesPorPieza = meshesPorPieza;
