@@ -5,6 +5,7 @@ import {
   ElementRef,
   afterNextRender,
   computed,
+  effect,
   inject,
   input,
   output,
@@ -25,18 +26,22 @@ import {
   piezaCarroceriaLabel,
   severidadDePieza,
 } from '../../models';
-import { construirAuto } from './car-body.builder';
+import { AnclasCarroceria, cargarCarroceriaYZonas, clasificarPunto, construirEscenaBase } from './car-body.builder';
 import { SceneEngine } from './scene-engine';
 
-const COLOR_NEUTRO = 0x5a4d40;
 const COLOR_POR_SEVERIDAD: Record<string, number> = {
-  ninguna: COLOR_NEUTRO,
   leve: 0xd9a441,
   media: 0xc1652f,
   alta: 0xa8402e,
 };
 
 interface PopoverEstado {
+  pieza: PiezaCarroceria;
+  x: number;
+  y: number;
+}
+
+interface HoverEstado {
   pieza: PiezaCarroceria;
   x: number;
   y: number;
@@ -66,6 +71,7 @@ export class CarConfigurator3d {
   protected readonly soportaWebgl = signal(true);
   protected readonly marcas = signal(new Map<PiezaCarroceria, MarcaPiezaCarroceria>());
   protected readonly popover = signal<PopoverEstado | null>(null);
+  protected readonly hover = signal<HoverEstado | null>(null);
 
   protected readonly marcasLista = computed(() => Array.from(this.marcas().values()));
 
@@ -75,6 +81,9 @@ export class CarConfigurator3d {
 
   private engine?: SceneEngine;
   private meshesPorPieza = new Map<PiezaCarroceria, THREE.Mesh>();
+  private marcadoresPorPieza = new Map<PiezaCarroceria, THREE.Mesh>();
+  private resaltador?: THREE.Mesh;
+  private anclas?: AnclasCarroceria;
 
   constructor() {
     const iniciales = this.valorInicial();
@@ -90,6 +99,14 @@ export class CarConfigurator3d {
         return;
       }
       this.iniciarEscena();
+    });
+
+    // La pieza resaltada es la que está bajo el mouse, o si no hay hover, la que
+    // se está editando en el popover — así no se pierde el resaltado al mover el
+    // mouse hacia el formulario.
+    effect(() => {
+      const piezaActiva = this.hover()?.pieza ?? this.popover()?.pieza ?? null;
+      this.aplicarResaltado(piezaActiva);
     });
 
     this.destroyRef.onDestroy(() => this.engine?.dispose());
@@ -123,16 +140,30 @@ export class CarConfigurator3d {
     rim.position.set(-2.5, 2.2, -5.5);
     this.engine.scene.add(rim);
 
-    const { grupo, meshesPorPieza } = construirAuto();
-    this.meshesPorPieza = meshesPorPieza;
+    const { grupo, resaltador } = construirEscenaBase();
+    this.resaltador = resaltador;
     this.engine.scene.add(grupo);
-    this.engine.setInteractivos(Array.from(meshesPorPieza.values()));
 
-    this.aplicarColoresIniciales();
+    this.engine.onHover = (interseccion) => this.manejarHover(interseccion);
+    this.engine.onSelect = (interseccion) => this.seleccionar(interseccion);
+    this.engine.onFrame = () => {
+      this.actualizarPosicionPopover();
+      this.actualizarPosicionHover();
+    };
 
-    this.engine.onHover = (objeto) => this.resaltar(objeto);
-    this.engine.onSelect = (objeto) => this.seleccionar(objeto);
-    this.engine.onFrame = () => this.actualizarPosicionPopover();
+    // Las zonas de click/marcadores dependen de puntos de referencia reales del
+    // modelo (ejes, ancho, alto) — recién existen cuando termina de cargar.
+    cargarCarroceriaYZonas(grupo)
+      .then(({ meshesPorPieza, marcadoresPorPieza, meshesInteractivos, anclas }) => {
+        this.meshesPorPieza = meshesPorPieza;
+        this.marcadoresPorPieza = marcadoresPorPieza;
+        this.anclas = anclas;
+        this.engine?.setInteractivos(meshesInteractivos);
+        this.aplicarColoresIniciales();
+      })
+      .catch((error: unknown) => {
+        console.warn('No se pudo cargar el modelo 3D de la carrocería', error);
+      });
   }
 
   private aplicarColoresIniciales(): void {
@@ -141,37 +172,70 @@ export class CarConfigurator3d {
     }
   }
 
+  /** Muestra/oculta el indicador translúcido de daño de una pieza (el modelo visual es un solo mesh, no se puede repintar por pieza). */
   private pintarPieza(pieza: PiezaCarroceria, estado: EstadoPieza): void {
+    const marcador = this.marcadoresPorPieza.get(pieza);
+    if (!marcador) return;
+    const severidad = severidadDePieza(estado);
+    if (severidad === 'ninguna') {
+      marcador.visible = false;
+      return;
+    }
+    (marcador.material as THREE.MeshBasicMaterial).color.setHex(COLOR_POR_SEVERIDAD[severidad]);
+    marcador.visible = true;
+  }
+
+  /** Ubica el único mesh de resaltado sobre la pieza activa (hover o en edición), o lo oculta si no hay ninguna. */
+  private aplicarResaltado(pieza: PiezaCarroceria | null): void {
+    if (!this.resaltador) return;
+    const mesh = pieza ? this.meshesPorPieza.get(pieza) : undefined;
+    if (!mesh) {
+      this.resaltador.visible = false;
+      return;
+    }
+    const { width, height, depth } = (mesh.geometry as THREE.BoxGeometry).parameters;
+    this.resaltador.position.copy(mesh.position);
+    this.resaltador.scale.set(width * 1.1, height * 1.1, depth * 1.1);
+    this.resaltador.visible = true;
+  }
+
+  /** El impacto es sobre el modelo visual real, no sobre una caja por pieza: se clasifica el punto exacto (ver `clasificarPunto`). */
+  private clasificar(interseccion: THREE.Intersection | null): PiezaCarroceria | null {
+    if (!interseccion || !this.anclas) return null;
+    return clasificarPunto(interseccion.point, this.anclas);
+  }
+
+  private manejarHover(interseccion: THREE.Intersection | null): void {
+    const pieza = this.clasificar(interseccion);
+    if (!pieza) {
+      this.hover.set(null);
+      return;
+    }
     const mesh = this.meshesPorPieza.get(pieza);
-    if (!mesh) return;
-    const material = mesh.material as THREE.MeshStandardMaterial;
-    material.color.setHex(COLOR_POR_SEVERIDAD[severidadDePieza(estado)]);
+    const pos = mesh ? (this.engine?.proyectarAPantalla(mesh) ?? { x: 0, y: 0 }) : { x: 0, y: 0 };
+    this.hover.set({ pieza, x: pos.x, y: pos.y });
   }
 
-  private resaltar(objeto: THREE.Object3D | null): void {
-    for (const mesh of this.meshesPorPieza.values()) {
-      (mesh.material as THREE.MeshStandardMaterial).emissiveIntensity = 0;
-      (mesh.material as THREE.MeshStandardMaterial).emissive.setHex(0x000000);
-    }
-    if (objeto instanceof THREE.Mesh) {
-      const material = objeto.material as THREE.MeshStandardMaterial;
-      material.emissive.setHex(0xc17f4a);
-      material.emissiveIntensity = 0.35;
-    }
-  }
-
-  private seleccionar(objeto: THREE.Object3D | null): void {
-    if (!objeto) {
+  private seleccionar(interseccion: THREE.Intersection | null): void {
+    const pieza = this.clasificar(interseccion);
+    if (!pieza) {
       this.popover.set(null);
       return;
     }
-    const pieza = objeto.userData['pieza'] as PiezaCarroceria;
+    this.editarMarca(pieza);
+  }
+
+  /** Abre el popover de edición para una pieza — desde un click en el 3D o desde la lista resumen. */
+  protected editarMarca(pieza: PiezaCarroceria): void {
+    const mesh = this.meshesPorPieza.get(pieza);
+    if (!mesh || !this.engine) return;
+
     const marcaActual = this.marcas().get(pieza);
     this.formEstado.set(marcaActual?.estado ?? 'rayon');
     this.formAccion.set(marcaActual?.accion ?? 'pintura');
     this.formNota.set(marcaActual?.nota ?? '');
 
-    const pos = this.engine?.proyectarAPantalla(objeto) ?? { x: 0, y: 0 };
+    const pos = this.engine.proyectarAPantalla(mesh);
     this.popover.set({ pieza, x: pos.x, y: pos.y });
   }
 
@@ -183,6 +247,17 @@ export class CarConfigurator3d {
     const pos = this.engine.proyectarAPantalla(mesh);
     if (Math.abs(pos.x - actual.x) > 0.5 || Math.abs(pos.y - actual.y) > 0.5) {
       this.popover.set({ ...actual, x: pos.x, y: pos.y });
+    }
+  }
+
+  private actualizarPosicionHover(): void {
+    const actual = this.hover();
+    if (!actual || !this.engine) return;
+    const mesh = this.meshesPorPieza.get(actual.pieza);
+    if (!mesh) return;
+    const pos = this.engine.proyectarAPantalla(mesh);
+    if (Math.abs(pos.x - actual.x) > 0.5 || Math.abs(pos.y - actual.y) > 0.5) {
+      this.hover.set({ ...actual, x: pos.x, y: pos.y });
     }
   }
 

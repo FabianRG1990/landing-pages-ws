@@ -13,8 +13,8 @@ export class SceneEngine {
   readonly renderer: THREE.WebGLRenderer;
   readonly controls: OrbitControls;
 
-  onSelect?: (objeto: THREE.Object3D | null) => void;
-  onHover?: (objeto: THREE.Object3D | null) => void;
+  onSelect?: (interseccion: THREE.Intersection | null) => void;
+  onHover?: (interseccion: THREE.Intersection | null) => void;
   onFrame?: () => void;
 
   private interactivos: THREE.Object3D[] = [];
@@ -84,20 +84,24 @@ export class SceneEngine {
     this.puntero.y = -((evento.clientY - rect.top) / rect.height) * 2 + 1;
   }
 
-  private seleccionar(): THREE.Object3D | null {
+  private seleccionar(): THREE.Intersection | null {
     this.raycaster.setFromCamera(this.puntero, this.camera);
     const impactos = this.raycaster.intersectObjects(this.interactivos, false);
-    return impactos.length > 0 ? impactos[0].object : null;
+    return impactos.length > 0 ? impactos[0] : null;
   }
 
   private manejarMovimiento = (evento: PointerEvent): void => {
     this.actualizarPuntero(evento);
-    const objeto = this.seleccionar();
+    const interseccion = this.seleccionar();
+    const objeto = interseccion?.object ?? null;
     if (objeto !== this.hover) {
-      this.hover = objeto;
-      this.onHover?.(objeto);
       this.renderer.domElement.style.cursor = objeto ? 'pointer' : 'grab';
     }
+    this.hover = objeto;
+    // Se notifica en cada movimiento (no solo al cambiar de objeto): el rayo
+    // puede seguir pegando en el mismo mesh visible mientras el punto de
+    // impacto se mueve de una pieza clasificada a otra.
+    this.onHover?.(interseccion);
   };
 
   private manejarSalida = (): void => {

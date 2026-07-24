@@ -13,14 +13,24 @@
       <ul class="resumen">
         @for (marca of marcasLista(); track marca.pieza) {
           <li>
-            <span class="resumen-pieza">{{ piezaCarroceriaLabel(marca.pieza) }}</span>
-            <span class="resumen-estado">{{ estadoPiezaLabel(marca.estado) }}</span>
+            <button type="button" class="resumen-etiqueta" (click)="editarMarca(marca.pieza)">
+              <span class="resumen-pieza">{{ piezaCarroceriaLabel(marca.pieza) }}</span>
+              <span class="resumen-estado">{{ estadoPiezaLabel(marca.estado) }}</span>
+            </button>
             <button type="button" (click)="quitarMarca(marca.pieza)" aria-label="Quitar marca">✕</button>
           </li>
         }
       </ul>
     }
   </div>
+
+  @if (hover(); as h) {
+    @if (!popover()) {
+      <div class="tooltip" [style.left.px]="h.x" [style.top.px]="h.y">
+        {{ piezaCarroceriaLabel(h.pieza) }}
+      </div>
+    }
+  }
 
   @if (popover(); as p) {
     <div class="popover" [style.left.px]="p.x" [style.top.px]="p.y">

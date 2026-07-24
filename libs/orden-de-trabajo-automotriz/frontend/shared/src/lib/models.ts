@@ -125,14 +125,17 @@ export type PiezaCarroceria =
   | 'guardabarros-delantero-derecho'
   | 'panel-trasero-izquierdo'
   | 'panel-trasero-derecho'
-  | 'puerta-delantera-izquierda'
-  | 'puerta-delantera-derecha'
-  | 'puerta-trasera-izquierda'
-  | 'puerta-trasera-derecha'
+  | 'puerta-izquierda'
+  | 'puerta-derecha'
   | 'parabrisas'
   | 'vidrio-trasero'
   | 'espejo-izquierdo'
-  | 'espejo-derecho';
+  | 'espejo-derecho'
+  | 'parrilla'
+  | 'faro-delantero-izquierdo'
+  | 'faro-delantero-derecho'
+  | 'luz-trasera-izquierda'
+  | 'luz-trasera-derecha';
 
 export const PIEZAS_CARROCERIA: { value: PiezaCarroceria; label: string }[] = [
   { value: 'capo', label: 'Capó' },
@@ -144,14 +147,17 @@ export const PIEZAS_CARROCERIA: { value: PiezaCarroceria; label: string }[] = [
   { value: 'guardabarros-delantero-derecho', label: 'Guardabarros delantero derecho' },
   { value: 'panel-trasero-izquierdo', label: 'Panel trasero izquierdo' },
   { value: 'panel-trasero-derecho', label: 'Panel trasero derecho' },
-  { value: 'puerta-delantera-izquierda', label: 'Puerta delantera izquierda' },
-  { value: 'puerta-delantera-derecha', label: 'Puerta delantera derecha' },
-  { value: 'puerta-trasera-izquierda', label: 'Puerta trasera izquierda' },
-  { value: 'puerta-trasera-derecha', label: 'Puerta trasera derecha' },
+  { value: 'puerta-izquierda', label: 'Puerta izquierda' },
+  { value: 'puerta-derecha', label: 'Puerta derecha' },
   { value: 'parabrisas', label: 'Parabrisas' },
   { value: 'vidrio-trasero', label: 'Vidrio trasero' },
   { value: 'espejo-izquierdo', label: 'Espejo izquierdo' },
   { value: 'espejo-derecho', label: 'Espejo derecho' },
+  { value: 'parrilla', label: 'Parrilla' },
+  { value: 'faro-delantero-izquierdo', label: 'Faro delantero izquierdo' },
+  { value: 'faro-delantero-derecho', label: 'Faro delantero derecho' },
+  { value: 'luz-trasera-izquierda', label: 'Luz trasera izquierda' },
+  { value: 'luz-trasera-derecha', label: 'Luz trasera derecha' },
 ];
 
 export function piezaCarroceriaLabel(pieza: PiezaCarroceria): string {
