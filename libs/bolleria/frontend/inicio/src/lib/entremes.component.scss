@@ -1,0 +1,76 @@
+// La foto es un background-image con attachment:fixed: no se mueve, no se
+// deforma, no hace zoom. La sección mide 200vh para que haya recorrido de
+// scroll suficiente y el texto (sticky, más abajo) tenga tiempo de quedarse
+// quieto sobre la imagen antes de que el resto de la página lo cubra.
+.bol-entremes {
+  position: relative;
+  height: 200vh;
+  background-image: url('/assets/entremes-mostrador.png');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+
+  @media (max-width: 900px), (prefers-reduced-motion: reduce) {
+    // background-attachment:fixed y sticky no rinden bien en móviles
+    // (Safari/Chrome iOS los ignoran o degradan el rendimiento): se cae a un
+    // bloque normal y corto, con el texto centrado adentro.
+    height: auto;
+    background-attachment: scroll;
+  }
+}
+
+.bol-entremes__scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, rgba(46, 42, 28, 0.1) 0%, rgba(46, 42, 28, 0.5) 100%);
+}
+
+// El texto queda "pegado" a la imagen durante el mismo tramo de scroll en el
+// que la imagen se ve fija: position:sticky, sin una línea de JavaScript, sin
+// transición ni fade — lo cubre el resto de la página de forma natural en
+// cuanto termina el recorrido, igual que a la propia imagen.
+.bol-entremes__sticky {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 32px;
+  pointer-events: none;
+
+  @media (max-width: 900px), (prefers-reduced-motion: reduce) {
+    position: static;
+    height: auto;
+    padding: 96px 32px;
+  }
+}
+
+.bol-entremes__copy {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  max-width: 760px;
+  text-align: center;
+}
+
+.bol-entremes__line1 {
+  margin: 0;
+  font: italic 500 clamp(24px, 3.4vw, 42px) / 1.32 'Cormorant Garamond', serif;
+  color: var(--cream, #faf6ec);
+  text-shadow:
+    0 2px 6px rgba(0, 0, 0, 0.55),
+    0 12px 34px rgba(0, 0, 0, 0.45);
+}
+
+.bol-entremes__line2 {
+  margin: 0;
+  font: 500 12.5px 'Jost', sans-serif;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--acc, #c8912a);
+  text-shadow:
+    0 2px 6px rgba(0, 0, 0, 0.5),
+    0 8px 24px rgba(0, 0, 0, 0.4);
+}

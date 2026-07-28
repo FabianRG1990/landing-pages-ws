@@ -14,7 +14,7 @@ import {
   SiteFooterComponent,
   SiteNavComponent,
 } from '@bolleria-ui-shared';
-import { HeroScrollComponent, HomeComponent } from '@bolleria-ui-inicio';
+import { EntremesComponent, HeroScrollComponent, HomeComponent } from '@bolleria-ui-inicio';
 import { MenuPageComponent } from '@bolleria-ui-menu';
 import { ContactPageComponent } from '@bolleria-ui-contacto';
 
@@ -29,6 +29,7 @@ import { ContactPageComponent } from '@bolleria-ui-contacto';
     SiteFooterComponent,
     CartDrawerComponent,
     HeroScrollComponent,
+    EntremesComponent,
     HomeComponent,
     MenuPageComponent,
     ContactPageComponent,
