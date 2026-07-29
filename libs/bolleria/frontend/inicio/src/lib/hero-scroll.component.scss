@@ -152,6 +152,33 @@
   pointer-events: none;
 }
 
+// Scrim del caption: un fade lineal de 2-3 paradas se ve como un panel con
+// borde duro (el ojo percibe el tramo final, donde más cambia por pixel,
+// como un corte). El estándar para "texto sobre foto" (scrim de Material
+// Design, técnica de "easing gradients" de CSS-Tricks) usa muchas paradas
+// seguidas de una curva de easing en vez de una interpolación lineal, para
+// que el ojo no perciba ningún punto de quiebre. Paradas tomadas de esa
+// referencia (ease-out estándar), escaladas a un pico de 94% en vez de 97%
+// para un scrim más tenue.
+@mixin hero-caption-scrim($direction) {
+  background: linear-gradient(
+    $direction,
+    color-mix(in srgb, var(--cream) 94%, transparent) 0%,
+    color-mix(in srgb, var(--cream) 69.4%, transparent) 19%,
+    color-mix(in srgb, var(--cream) 50.8%, transparent) 34%,
+    color-mix(in srgb, var(--cream) 35.9%, transparent) 47%,
+    color-mix(in srgb, var(--cream) 26.1%, transparent) 56.5%,
+    color-mix(in srgb, var(--cream) 18.2%, transparent) 65%,
+    color-mix(in srgb, var(--cream) 11.8%, transparent) 73%,
+    color-mix(in srgb, var(--cream) 7.1%, transparent) 80.2%,
+    color-mix(in srgb, var(--cream) 3.9%, transparent) 86.1%,
+    color-mix(in srgb, var(--cream) 2%, transparent) 91%,
+    color-mix(in srgb, var(--cream) 0.8%, transparent) 95.2%,
+    color-mix(in srgb, var(--cream) 0.2%, transparent) 98.2%,
+    transparent 100%
+  );
+}
+
 .bol-hero-caption {
   position: absolute;
   left: 0;
@@ -166,7 +193,7 @@
   z-index: 7;
   opacity: 0;
   pointer-events: none;
-  background: linear-gradient(to top, rgba(250, 246, 236, 0.97) 0%, rgba(250, 246, 236, 0.95) 66%, rgba(250, 246, 236, 0) 100%);
+  @include hero-caption-scrim(to top);
 
   // Fermentación / Horneado: la foto ya deja aire arriba, así que el texto se
   // ubica ahí en vez de abajo — mismo tratamiento tipográfico, espejado.
@@ -174,7 +201,7 @@
     top: 0;
     bottom: auto;
     padding: 128px 32px 32px;
-    background: linear-gradient(to bottom, rgba(250, 246, 236, 0.97) 0%, rgba(250, 246, 236, 0.95) 66%, rgba(250, 246, 236, 0) 100%);
+    @include hero-caption-scrim(to bottom);
   }
 }
 
