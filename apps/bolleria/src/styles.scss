@@ -18,12 +18,36 @@ html {
   background: #faf6ec;
 }
 
+// Mismo fondo artístico (espigas + listón + harina) del hero, ahora detrás de
+// TODA la app: así el tramo en el que el hero termina de desvanecerse su
+// contenido (croissant/texto ya en opacity:0) antes de que el sticky se
+// suelte del todo ya no deja una pantalla plana en blanco — se ve la misma
+// ilustración de siempre — y el resto del sitio (huecos entre tarjetas,
+// footer, otras páginas) queda visualmente consistente con el hero en vez de
+// cortar a un cream liso.
+// `fixed` solo desde 900px: en iOS Safari los fondos fixed en body se
+// ignoran o degradan el rendimiento (mismo motivo documentado en
+// entremes.component.scss), así que en mobile se deja `scroll` normal.
 body {
   margin: 0;
-  background: #faf6ec;
+  background-color: #faf6ec;
+  background-image: url('/assets/hero-bg-mobile.webp');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: scroll;
   color: #2e2a1c;
   font-family: 'Jost', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
+
+  @media (min-width: 900px) {
+    background-image: url('/assets/hero-bg-desktop.webp');
+    background-attachment: fixed;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    background-attachment: scroll;
+  }
 }
 
 a {
