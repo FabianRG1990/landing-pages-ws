@@ -7,7 +7,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px clamp(20px, 4vw, 40px);
+  padding: 22px clamp(20px, 4vw, 40px);
   background: rgba(250, 246, 236, 0.55);
   backdrop-filter: blur(14px);
   border-bottom: 1px solid transparent;
@@ -16,10 +16,12 @@
     background 0.3s,
     border-color 0.3s;
 
+  // Filete dorado fino en vez de la línea gris genérica: el mismo acento de
+  // "metal pulido" que ya separa el wordmark del logo ("BOLLERIA ─ PANADERÍA").
   &--compact {
-    padding: 10px clamp(20px, 4vw, 40px);
-    background: rgba(250, 246, 236, 0.9);
-    border-bottom-color: rgba(46, 42, 28, 0.08);
+    padding: 12px clamp(20px, 4vw, 40px);
+    background: rgba(250, 246, 236, 0.92);
+    border-bottom-color: color-mix(in srgb, var(--acc, #c8912a) 28%, transparent);
   }
 }
 
@@ -47,56 +49,131 @@
   gap: 30px;
 }
 
+// Versalitas Cinzel, el mismo lenguaje de los "eyebrows" del sitio
+// ("FERMENTACIÓN", "DE NUESTRO HORNO") — antes el nav usaba Jost, una
+// tipografía de UI genérica que no tenía relación con el resto de la marca.
+//
+// El trazo bajo el link activo/hover no es una línea recta: es un SVG de un
+// trazo de tinta con leve ondulación, el mismo vocabulario de línea fina que
+// dibuja las espigas y el listón del fondo — "se dibuja" con un scaleX en vez
+// de aparecer de golpe, como una pincelada.
 .bol-nav__link {
-  font: 500 12px 'Jost', sans-serif;
-  letter-spacing: 0.14em;
+  position: relative;
+  padding-bottom: 7px;
+  font: 600 11.5px 'Cinzel', serif;
+  letter-spacing: 0.22em;
   text-transform: uppercase;
   color: #4a4433;
+
+  &::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 7px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 10'%3E%3Cpath d='M2 5 C 20 2, 35 8, 50 5 S 80 2, 98 5 S 112 7, 118 5' stroke='%23C8912A' stroke-width='1.8' fill='none' stroke-linecap='round'/%3E%3C/svg%3E")
+      center / 100% 100% no-repeat;
+    transform: scaleX(0);
+    transform-origin: left center;
+    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  &--active::after {
+    transform: scaleX(1);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    &:hover::after {
+      transform: scaleX(1);
+    }
+  }
 
   &--active {
     color: var(--acc, #c8912a);
   }
 }
 
+// Sello circular de doble anillo (como un sello de cera de panadería), en vez
+// de la píldora genérica de siempre: el anillo interno se logra con un
+// box-shadow inset en el color del fondo del nav, "cortando" un aro de aire
+// entre dos bordes dorados.
 .bol-nav__cart {
   position: relative;
   display: flex;
   align-items: center;
-  gap: 8px;
-  background: none;
-  border: 1.5px solid rgba(46, 42, 28, 0.18);
-  border-radius: 999px;
-  padding: 8px 14px;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  flex: none;
+  background: rgba(250, 246, 236, 0.6);
+  border: 1.5px solid color-mix(in srgb, var(--acc, #c8912a) 55%, transparent);
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 3px rgba(250, 246, 236, 0.85);
   cursor: pointer;
   color: #2e2a1c;
-  font-weight: 500;
-  font-size: 12px;
-  letter-spacing: 0.06em;
+  transition:
+    border-color 0.3s,
+    transform 0.2s;
 
-  span {
+  .bol-nav__cart-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    min-width: 17px;
+    height: 17px;
+    padding: 0 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    background: var(--acc, #c8912a);
+    color: #fff;
+    font: 600 10px 'Jost', sans-serif;
     font-variant-numeric: lining-nums tabular-nums;
+    box-shadow: 0 0 0 2px rgba(250, 246, 236, 0.95);
   }
 
   @media (hover: hover) and (pointer: fine) {
     &:hover {
       border-color: var(--acc, #c8912a);
+      transform: translateY(-1px);
     }
   }
 }
 
+// CTA con el mismo tratamiento "metal grabado" del logo (degradado dorado +
+// filo claro arriba), en vez del relleno plano de antes. El ícono es una
+// espiga mínima, no un glifo genérico — coherente con la ilustración del
+// fondo, no decorativo porque sí.
 .bol-nav__cta {
-  font: 500 12px 'Jost', sans-serif;
-  letter-spacing: 0.12em;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font: 600 11.5px 'Cinzel', serif;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
-  padding: 11px 22px;
+  padding: 12px 24px;
   border-radius: 999px;
-  background: var(--acc, #c8912a);
-  color: #fff;
-  box-shadow: 0 8px 20px -8px color-mix(in srgb, var(--acc, #c8912a) 80%, transparent);
+  background: linear-gradient(160deg, #ddb15a 0%, var(--acc, #c8912a) 45%, var(--accd, #a5761c) 100%);
+  color: #fffaf0;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.4),
+    0 8px 20px -8px color-mix(in srgb, var(--acc, #c8912a) 80%, transparent);
+  transition:
+    box-shadow 0.3s,
+    transform 0.2s;
+
+  &-icon {
+    opacity: 0.9;
+  }
 
   @media (hover: hover) and (pointer: fine) {
     &:hover {
-      background: var(--accd, #a5761c);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.5),
+        0 10px 24px -8px color-mix(in srgb, var(--acc, #c8912a) 90%, transparent);
+      transform: translateY(-1px);
     }
   }
 }
