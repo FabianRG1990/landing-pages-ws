@@ -24,6 +24,30 @@
   background: #faf6ec;
 }
 
+// Fondo artístico (espigas + listones + harina) detrás de todo el recorrido
+// del hero: el canvas de 233 frames y las fotos/ilustraciones del croissant
+// son recortes con fondo transparente, así que este fondo se ve consistente
+// durante todo el scroll, sin cortes al activarse el canvas.
+//
+// Es una <img> real (con <picture> para el swap responsive), no un
+// `background-image` de CSS: en un contenedor `position: sticky` de scroll
+// muy largo, `background-size: cover` tiene un bug de repintado en Chromium
+// (el layout queda correcto pero el pintado se corta a mitad de pantalla).
+// El elemento <img> usa otra ruta de render y no lo sufre.
+.bol-hero-bg {
+  position: absolute;
+  inset: 0;
+  display: block;
+
+  img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+  }
+}
+
 .bol-hero-photobox {
   position: relative;
   width: min(90vw, 720px);

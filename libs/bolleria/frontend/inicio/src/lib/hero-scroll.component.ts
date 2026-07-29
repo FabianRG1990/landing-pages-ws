@@ -124,8 +124,16 @@ const FREEZE_FRAME_FOR_SCALE_RAMP = 70;
 const RISE_LIFT_PX = 72;
 const CAROUSEL_VH = 450;
 const PRE_CAROUSEL_GAP_VH = 20;
-const CAPTION_STAGE_SHRINK = 0.32;
-const CAPTION_STAGE_LIFT_PX = 90;
+// Antes achicaba la escena hasta un 32% y la subía 90px durante todo el
+// derrame, pensado para dejar aire bajo el croissant completo del comienzo.
+// Pero ese achicamiento estaba atado a la aparición del caption (dripCaptionOp),
+// así que el croissant se veía encoger "empujado" por el texto justo al salir
+// del carrusel — un cambio de tamaño injustificado en la transición más visible
+// de toda la secuencia. Se quita del todo: el tamaño ahora es continuo entre el
+// carrusel y el derrame. Solo se conserva un levantamiento vertical mínimo (no
+// es un cambio de escala) para dejarle aire al texto debajo.
+const CAPTION_STAGE_SHRINK = 0;
+const CAPTION_STAGE_LIFT_PX = 30;
 
 // Cierre del hero: con el pan de masa madre ya horneado y quieto en la tabla
 // (último cuadro, N-1), el scroll se detiene un tramo extra y un párrafo sobre
@@ -230,6 +238,13 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
   private settled = false;
   private lastF = 0;
   private targetF = 0;
+  // Cuadro efectivamente mostrado. Normalmente sigue a `targetF` 1:1, pero
+  // cuando termina el carrusel de sabores, `targetF` da un salto brusco de
+  // cuadro (80 -> 108) en un solo tick de scroll — es un salto real en la
+  // matemática de scroll->cuadro, no una animación. Si detectamos un salto
+  // así de grande lo suavizamos acá, en el render, sin tocar esa matemática.
+  private displayF = 0;
+  private smoothingJump = false;
   private active = false;
   private dpr = 1;
   private ctx: CanvasRenderingContext2D | null = null;
@@ -286,8 +301,22 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
         this.drawHeroFrame(this.targetF);
         return;
       }
+      const JUMP_FRAMES = 12,
+        JUMP_RATE = 0.12,
+        JUMP_SETTLE = 0.4;
+      const delta = this.targetF - this.displayF;
+      if (!this.smoothingJump && Math.abs(delta) > JUMP_FRAMES) this.smoothingJump = true;
+      if (this.smoothingJump) {
+        this.displayF += (this.targetF - this.displayF) * JUMP_RATE;
+        if (Math.abs(this.targetF - this.displayF) < JUMP_SETTLE) {
+          this.displayF = this.targetF;
+          this.smoothingJump = false;
+        }
+      } else {
+        this.displayF = this.targetF;
+      }
       const max = N - 1;
-      const f = Math.max(0, Math.min(max, this.targetF));
+      const f = Math.max(0, Math.min(max, this.displayF));
       const REST_WINDOW = 0.05,
         STILL_TICKS = 6;
       if (Math.abs(f - this.restRef) > REST_WINDOW) {
@@ -405,6 +434,7 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
     yOffset: number,
     scaleMul: number,
     blurPx: number,
+    squishY = 1,
   ): void {
     const ctx = this.ctx;
     const c = this.canvasRef().nativeElement;
@@ -416,9 +446,9 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
     const targetCroiW = PHOTO_FRAC_W * boxCss * dpr * (scaleMul || 1);
     const s = targetCroiW / croiW;
     const dw = img.naturalWidth * s,
-      dh = img.naturalHeight * s;
+      dh = img.naturalHeight * s * squishY;
     const dx = cw / 2 - croiCx * s,
-      dy = ch / 2 - croiCy * s + (yOffset || 0);
+      dy = ch / 2 - croiCy * s * squishY + (yOffset || 0);
     try {
       if (alpha < 1) ctx.globalAlpha = alpha;
       if (blurPx) ctx.filter = `blur(${blurPx}px)`;
@@ -465,18 +495,22 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
     }
   }
 
-  private flavorKeyframe(key: FlavorKey): { img?: HTMLImageElement; W: number; CX: number; CY: number } {
-    if (key === 'dulce') {
-      const [w, cx, cy] = this.croiFor(FREEZE_FRAME);
-      return { img: this.frames[FREEZE_FRAME], W: w, CX: cx, CY: cy };
-    }
-    const g = FLAVOR_GEOM[key];
-    return { img: this.flavorImgs[key], W: g.W, CX: g.CX, CY: g.CY };
+  private squishFor(b: number): number {
+    return b >= SPLIT_B && b < SPLIT_C ? CROI2_SQUISH_Y : 1;
   }
 
-  private flavorKeyframeExit(): { img?: HTMLImageElement; W: number; CX: number; CY: number } {
+  private flavorKeyframe(key: FlavorKey): { img?: HTMLImageElement; W: number; CX: number; CY: number; squishY: number } {
+    if (key === 'dulce') {
+      const [w, cx, cy] = this.croiFor(FREEZE_FRAME);
+      return { img: this.frames[FREEZE_FRAME], W: w, CX: cx, CY: cy, squishY: this.squishFor(FREEZE_FRAME) };
+    }
+    const g = FLAVOR_GEOM[key];
+    return { img: this.flavorImgs[key], W: g.W, CX: g.CX, CY: g.CY, squishY: 1 };
+  }
+
+  private flavorKeyframeExit(): { img?: HTMLImageElement; W: number; CX: number; CY: number; squishY: number } {
     const [w, cx, cy] = this.croiFor(FREEZE_FRAME_EXIT);
-    return { img: this.frames[FREEZE_FRAME_EXIT], W: w, CX: cx, CY: cy };
+    return { img: this.frames[FREEZE_FRAME_EXIT], W: w, CX: cx, CY: cy, squishY: this.squishFor(FREEZE_FRAME_EXIT) };
   }
 
   private renderFlavorCarousel(): void {
@@ -540,8 +574,8 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
     const yOffB = isExit
       ? band.croissantCy - c.height / 2 + this.extraLift(FREEZE_FRAME_EXIT) - this.introSettle(FREEZE_FRAME_EXIT)
       : yOff;
-    if (A.img) this.drawGenericCroissant(A.img, A.W, A.CX, A.CY, alphaImgA, yOff + riseImgA * 0.5, scaleMul * scaleImgA, blurImgA);
-    if (B.img) this.drawGenericCroissant(B.img, B.W, B.CX, B.CY, alphaImgB, yOffB + riseImgB, scaleMul * scaleImgB, blurImgB);
+    if (A.img) this.drawGenericCroissant(A.img, A.W, A.CX, A.CY, alphaImgA, yOff + riseImgA * 0.5, scaleMul * scaleImgA, blurImgA, A.squishY);
+    if (B.img) this.drawGenericCroissant(B.img, B.W, B.CX, B.CY, alphaImgB, yOffB + riseImgB, scaleMul * scaleImgB, blurImgB, B.squishY);
     this.drawLettering(this.letteringImgs[seq[idx]], gA.W, gA.CX, gA.CY, alphaTxtA, riseTxtA, letteringCy, scaleMul * scaleTxtA);
     if (!isExit) this.drawLettering(this.letteringImgs[seq[idx + 1]], gB.W, gB.CX, gB.CY, alphaTxtB, riseTxtB, letteringCy, scaleMul * scaleTxtB);
     this.captionRef().nativeElement.style.opacity = '0';
@@ -591,6 +625,15 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
     const scaleMul = scaleMulOverride != null ? scaleMulOverride : this.getCarouselBand()?.scaleMul ?? 1;
     const boxCss = Math.min(0.9 * window.innerWidth, 720);
     const targetCroiW = PHOTO_FRAC_W * boxCss * dpr * scaleMul;
+    // Escalado solo por ancho, igual que en el resto de la secuencia (incluida
+    // la apertura del croissant antes del carrusel, que usa esta misma fórmula
+    // sin ningún límite de alto). Hubo un intento de agregar un límite basado en
+    // el alto natural de la imagen para un cuadro que parecía "cortado", pero
+    // esos cuadros del set retrato (CROI2) tienen mucho margen transparente
+    // arriba/abajo en el archivo — ese límite miraba el alto de la imagen
+    // completa (con margen y todo), no el del croissant visible, así que achicaba
+    // el croissant sin necesidad y rompía la consistencia de tamaño con el resto
+    // de la animación. Se quita: el ancho es la única referencia real acá.
     const s = targetCroiW / CW;
     const dw = img.naturalWidth * s,
       dh = img.naturalHeight * s * SQY;
@@ -692,7 +735,7 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
     const yOffset =
       (band ? band.croissantCy - c.height / 2 : 0) + this.extraLift(b) - this.introSettle(b) - CAPTION_STAGE_LIFT_PX * dpr * dripOp;
     const [cW, cCX, cCY] = this.croiFor(b);
-    const squishY = b >= SPLIT_B && b < SPLIT_C ? CROI2_SQUISH_Y : 1;
+    const squishY = this.squishFor(b);
     const bandS0 = this.getCarouselBand();
     const ramp0 = this.clamp01(b / FREEZE_FRAME_FOR_SCALE_RAMP);
     const scaleMulRamp = (bandS0 ? 1 + (bandS0.scaleMul - 1) * ramp0 : 1) * this.masaZoom * (1 - CAPTION_STAGE_SHRINK * dripOp);

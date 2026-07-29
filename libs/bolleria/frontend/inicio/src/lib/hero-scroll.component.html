@@ -1,5 +1,9 @@
 <div #heroWrap class="bol-hero-wrap">
   <div #heroStage class="bol-hero-stage">
+    <picture class="bol-hero-bg" aria-hidden="true">
+      <source media="(min-width: 900px)" srcset="assets/hero-bg-desktop.webp" />
+      <img src="assets/hero-bg-mobile.webp" alt="" />
+    </picture>
     <div #photoBox class="bol-hero-photobox">
       <img #heroPhoto src="assets/cr-photo-reg.png" alt="Croissant recién horneado" class="bol-hero-img bol-hero-img--photo" />
       <img #heroIllus src="assets/cr-illus-reg.png" alt="Croissant ilustrado" class="bol-hero-img bol-hero-img--illus" />
