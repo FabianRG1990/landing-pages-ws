@@ -81,13 +81,21 @@
     0 12px 34px rgba(0, 0, 0, 0.45);
 }
 
+// Vuelve al dorado de marca (el crema se veía "correcto" pero soso). Lo que
+// realmente le faltaba contraste no era el matiz, era el refuerzo alrededor
+// de cada letra: un filo negro grueso (stroke, no solo shadow) más una
+// sombra dura y cercana, así el dorado se recorta contra cualquier tramo de
+// la foto (vidrio claro o pan oscuro) en vez de mezclarse con él.
 .bol-entremes__line2 {
   margin: 0;
-  font: 500 12.5px 'Jost', sans-serif;
-  letter-spacing: 0.24em;
+  font: 700 14.5px 'Jost', sans-serif;
+  letter-spacing: 0.26em;
   text-transform: uppercase;
-  color: var(--acc, #c8912a);
+  color: #e8c168;
+  -webkit-text-stroke: 1px rgba(20, 15, 5, 0.85);
+  paint-order: stroke fill;
   text-shadow:
-    0 2px 6px rgba(0, 0, 0, 0.5),
-    0 8px 24px rgba(0, 0, 0, 0.4);
+    0 1px 3px rgba(0, 0, 0, 0.9),
+    0 3px 10px rgba(0, 0, 0, 0.75),
+    0 12px 28px rgba(0, 0, 0, 0.5);
 }
