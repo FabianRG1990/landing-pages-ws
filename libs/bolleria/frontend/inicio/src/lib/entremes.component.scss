@@ -7,11 +7,11 @@
 // El velo oscuro va fusionado como otra capa de fondo, con el mismo
 // attachment:fixed que la foto: así queda anclado a la pantalla exactamente
 // igual que la imagen, y no cambia de tono a medida que se hace scroll (antes
-// era una capa aparte que cubría toda la sección de 300vh, y por eso su
-// gradiente se iba revelando distinto según cuánto se hubiera scrolleado).
+// era una capa aparte que cubría toda la sección, y por eso su gradiente se
+// iba revelando distinto según cuánto se hubiera scrolleado).
 .bol-entremes {
   position: relative;
-  height: 300vh;
+  height: 122vh;
   background-image: linear-gradient(to bottom, rgba(46, 42, 28, 0.1) 0%, rgba(46, 42, 28, 0.5) 100%),
     url('/assets/entremes-mostrador.png');
   background-size:
