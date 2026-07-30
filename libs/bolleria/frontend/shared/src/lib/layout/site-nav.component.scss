@@ -1,3 +1,15 @@
+// El logo sigue suelto sobre la página, sin tarjeta ni sombra de "componente
+// flotante" debajo — igual que en el hero. Pero los links + carrito + CTA
+// ahora sí viven dentro de un objeto real: una píldora con doble filo dorado
+// y espigas a los costados, el mismo vocabulario del sello de cera del CTA y
+// del punto "•B" del logo, no una tarjeta de vidrio genérica. La diferencia
+// con la versión anterior (rechazada por "desentonar") es material: esto no
+// es blur/glass de UI, es una moldura grabada — opaca, con borde metálico
+// doble y ornamento de espiga, como una medalla o un sello de repostería.
+//
+// Al hacer scroll no aparece una tarjeta nueva: la franja superior sigue con
+// el mismo lavado suave de antes detrás del logo suelto; la píldora de la
+// derecha es un objeto permanente, no algo que aparece con el scroll.
 .bol-nav {
   position: fixed;
   top: 0;
@@ -7,51 +19,96 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 22px clamp(20px, 4vw, 40px);
-  background: rgba(250, 246, 236, 0.55);
-  backdrop-filter: blur(14px);
-  border-bottom: 1px solid transparent;
+  padding: 26px clamp(20px, 4vw, 44px);
+  background: linear-gradient(
+    to bottom,
+    rgba(250, 246, 236, 0) 0%,
+    rgba(250, 246, 236, 0) 100%
+  );
   transition:
-    padding 0.3s,
-    background 0.3s,
-    border-color 0.3s;
+    padding 0.35s,
+    background 0.35s;
 
-  // Filete dorado fino en vez de la línea gris genérica: el mismo acento de
-  // "metal pulido" que ya separa el wordmark del logo ("BOLLERIA ─ PANADERÍA").
   &--compact {
-    padding: 12px clamp(20px, 4vw, 40px);
-    background: rgba(250, 246, 236, 0.92);
-    border-bottom-color: color-mix(in srgb, var(--acc, #c8912a) 28%, transparent);
+    padding: 15px clamp(20px, 4vw, 44px);
+    background: linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--cream) 88%, transparent) 0%,
+      color-mix(in srgb, var(--cream) 61%, transparent) 34%,
+      color-mix(in srgb, var(--cream) 24%, transparent) 65%,
+      transparent 100%
+    );
   }
 }
 
 .bol-nav__brand {
   display: flex;
   align-items: center;
-  gap: 0;
   line-height: 0;
+  filter: drop-shadow(0 2px 6px rgba(46, 42, 28, 0.2));
 }
 
 .bol-nav__logo {
-  height: 44px;
+  height: 58px;
   width: auto;
   display: block;
-  transition: height 0.3s;
+  transition: height 0.35s;
 
   .bol-nav--compact & {
-    height: 34px;
+    height: 46px;
   }
 }
 
+// Píldora corta y flotante, no una barra de borde a borde: un objeto joya,
+// no un componente de app. El "doble filo" se logra con dos anillos de
+// box-shadow (hairline dorado + hueco color crema + hairline dorado exterior)
+// en vez de un `border` + `outline`, porque box-shadow sí sigue el
+// border-radius de una píldora sin artefactos en las esquinas.
 .bol-nav__links {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 30px;
+  gap: 28px;
+  padding: 10px 44px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #fffdf8 0%, #faf3e2 100%);
+  box-shadow:
+    0 0 0 1px rgba(168, 124, 42, 0.6),
+    0 0 0 3.5px rgba(255, 253, 248, 0.97),
+    0 0 0 4.5px rgba(168, 124, 42, 0.35),
+    0 10px 24px -8px rgba(46, 42, 28, 0.3);
+
+  // Recorte real de la imagen de referencia (no un ícono redibujado): los
+  // intentos vectoriales no llegaban a "idéntico", así que esto es el
+  // laurel exacto, recortado del PNG que pasó el usuario, con un
+  // desvanecido suave en el borde del recorte (no en el laurel) para que
+  // encaje sin costura sobre el crema de la píldora.
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: 34px;
+    height: 34px;
+    background: url('nav-laurel.png') center / contain no-repeat;
+  }
+
+  &::before {
+    left: 8px;
+    transform: translateY(-50%);
+  }
+
+  &::after {
+    right: 8px;
+    transform: translateY(-50%) scaleX(-1);
+  }
 }
 
 // Versalitas Cinzel, el mismo lenguaje de los "eyebrows" del sitio
 // ("FERMENTACIÓN", "DE NUESTRO HORNO") — antes el nav usaba Jost, una
 // tipografía de UI genérica que no tenía relación con el resto de la marca.
+// El separador entre links es la misma espiga del ornamento de la píldora,
+// en miniatura, no un punto ni una barra genérica.
 //
 // El trazo bajo el link activo/hover no es una línea recta: es un SVG de un
 // trazo de tinta con leve ondulación, el mismo vocabulario de línea fina que
@@ -60,10 +117,22 @@
 .bol-nav__link {
   position: relative;
   padding-bottom: 7px;
-  font: 600 11.5px 'Cinzel', serif;
+  font: 600 12.5px 'Cinzel', serif;
   letter-spacing: 0.22em;
   text-transform: uppercase;
   color: #4a4433;
+
+  &:not(:first-child)::before {
+    content: '';
+    position: absolute;
+    left: -16px;
+    top: 1px;
+    width: 8px;
+    height: 12px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 22'%3E%3Cpath d='M7 1v20M7 5c-1.8.3-3 1.5-3.6 3 1.8.9 3 .3 3.6-1.2M7 5c1.8.3 3 1.5 3.6 3-1.8.9-3 .3-3.6-1.2M7 11c-1.8.3-3 1.5-3.6 3 1.8.9 3 .3 3.6-1.2M7 11c1.8.3 3 1.5 3.6 3-1.8.9-3 .3-3.6-1.2' stroke='%23C8912A' stroke-width='1.3' fill='none' stroke-linecap='round'/%3E%3C/svg%3E")
+      center / contain no-repeat;
+    opacity: 0.75;
+  }
 
   &::after {
     content: '';
@@ -94,49 +163,48 @@
   }
 }
 
-// Sello circular de doble anillo (como un sello de cera de panadería), en vez
-// de la píldora genérica de siempre: el anillo interno se logra con un
-// box-shadow inset en el color del fondo del nav, "cortando" un aro de aire
-// entre dos bordes dorados.
+// Dentro de la píldora el carrito sí es un medallón circular con filo fino
+// (ya no un ícono suelto): un objeto pequeño más dentro del mismo objeto
+// grande, en vez de un ícono flotando sin ancla sobre el fondo crema opaco.
 .bol-nav__cart {
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 42px;
-  height: 42px;
-  flex: none;
-  background: rgba(250, 246, 236, 0.6);
-  border: 1.5px solid color-mix(in srgb, var(--acc, #c8912a) 55%, transparent);
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
-  box-shadow: inset 0 0 0 3px rgba(250, 246, 236, 0.85);
+  background: #fffdf7;
+  border: 1px solid color-mix(in srgb, var(--acc, #c8912a) 32%, transparent);
+  box-shadow: inset 0 1px 2px rgba(46, 42, 28, 0.07);
+  padding: 0;
   cursor: pointer;
   color: #2e2a1c;
   transition:
-    border-color 0.3s,
+    color 0.2s,
     transform 0.2s;
 
   .bol-nav__cart-badge {
     position: absolute;
-    top: -5px;
-    right: -5px;
-    min-width: 17px;
-    height: 17px;
-    padding: 0 4px;
+    top: -7px;
+    right: -8px;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 3px;
     display: flex;
     align-items: center;
     justify-content: center;
     border-radius: 999px;
     background: var(--acc, #c8912a);
     color: #fff;
-    font: 600 10px 'Jost', sans-serif;
+    font: 600 9px 'Jost', sans-serif;
     font-variant-numeric: lining-nums tabular-nums;
     box-shadow: 0 0 0 2px rgba(250, 246, 236, 0.95);
   }
 
   @media (hover: hover) and (pointer: fine) {
     &:hover {
-      border-color: var(--acc, #c8912a);
+      color: var(--acc, #c8912a);
       transform: translateY(-1px);
     }
   }
@@ -149,41 +217,50 @@
 .bol-nav__cta {
   display: flex;
   align-items: center;
-  gap: 7px;
-  font: 600 11.5px 'Cinzel', serif;
-  letter-spacing: 0.16em;
+  gap: 8px;
+  font: 700 12.5px 'Cinzel', serif;
+  letter-spacing: 0.17em;
   text-transform: uppercase;
-  padding: 12px 24px;
+  padding: 11px 28px;
   border-radius: 999px;
-  background: linear-gradient(160deg, #ddb15a 0%, var(--acc, #c8912a) 45%, var(--accd, #a5761c) 100%);
+  background: linear-gradient(155deg, #f0c675 0%, var(--acc, #c8912a) 50%, #96651a 100%);
   color: #fffaf0;
+  // Degradado con más contraste (highlight claro arriba-izq, sombra cálida
+  // marcada abajo-der) para leer como metal grabado, no un relleno plano.
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.4),
-    0 8px 20px -8px color-mix(in srgb, var(--acc, #c8912a) 80%, transparent);
+    inset 0 1.5px 0 rgba(255, 255, 255, 0.55),
+    inset 0 -2px 3px rgba(103, 68, 15, 0.4),
+    0 6px 16px -4px rgba(90, 58, 15, 0.55);
   transition:
     box-shadow 0.3s,
     transform 0.2s;
 
   &-icon {
-    opacity: 0.9;
+    color: #fffaf0;
   }
 
   @media (hover: hover) and (pointer: fine) {
     &:hover {
       box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.5),
-        0 10px 24px -8px color-mix(in srgb, var(--acc, #c8912a) 90%, transparent);
+        inset 0 1.5px 0 rgba(255, 255, 255, 0.6),
+        inset 0 -2px 3px rgba(103, 68, 15, 0.4),
+        0 8px 20px -4px rgba(90, 58, 15, 0.6);
       transform: translateY(-1px);
     }
   }
 }
 
+// Sin isla ni vidrio en mobile tampoco — mismo tratamiento "impreso sobre la
+// página" que el resto, solo el ícono con su halo crema.
 .bol-nav__hamburger {
   display: none;
+  align-items: center;
+  justify-content: center;
   background: none;
   border: none;
   color: #2e2a1c;
   cursor: pointer;
+  filter: drop-shadow(0 1px 2px rgba(250, 246, 236, 0.9)) drop-shadow(0 2px 8px rgba(250, 246, 236, 0.6));
 }
 
 @media (max-width: 768px) {
@@ -191,7 +268,7 @@
     display: none;
   }
   .bol-nav__hamburger {
-    display: block;
+    display: flex;
   }
 }
 
