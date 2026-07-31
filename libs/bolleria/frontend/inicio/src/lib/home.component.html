@@ -62,46 +62,6 @@
   </div>
 </div>
 
-<!-- HISTORIA -->
-<div class="bol-story-wrap">
-  <div data-rv class="bol-story">
-    <img src="assets/mark-white.png" alt="" class="bol-story__mark" />
-    <div class="bol-story__content">
-      <div class="bol-story__eyebrow">De nuestro horno</div>
-      <p class="bol-story__lead">Cada pieza empieza la noche anterior. Fermentamos despacio para que el sabor sea real y la miga, viva.</p>
-      <div class="bol-story__stats">
-        <div><div class="bol-story__stat-num">7am</div><div class="bol-story__stat-label">recién horneado</div></div>
-        <div><div class="bol-story__stat-num">37</div><div class="bol-story__stat-label">variedades</div></div>
-        <div><div class="bol-story__stat-num">Express</div><div class="bol-story__stat-label">servicio a domicilio</div></div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- FAVORITOS -->
-<div class="bol-favs">
-  <h2 data-rv class="bol-favs__title">Favoritos de la casa</h2>
-  <div class="bol-favs__grid">
-    @for (f of favorites(); track f.id) {
-      <div data-rv class="bol-favs__card">
-        <div class="bol-favs__thumb">
-          <img src="assets/mark.png" alt="" />
-          <span class="bol-favs__badge">{{ f.cat }}</span>
-        </div>
-        <div class="bol-favs__body">
-          <div class="bol-favs__name">{{ f.name }}</div>
-          <div class="bol-favs__row">
-            <div class="bol-favs__price">{{ fmt(f.price) }}</div>
-            <button type="button" (click)="addToCart(f.id)" class="bol-favs__add">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Agregar
-            </button>
-          </div>
-        </div>
-      </div>
-    }
-  </div>
-</div>
-
 <!-- SÍGUENOS -->
 <div class="bol-social-wrap">
   <div class="bol-social">
