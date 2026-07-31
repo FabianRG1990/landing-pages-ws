@@ -1,8 +1,8 @@
 <!-- Intro copy tras la secuencia -->
 <div class="bol-intro">
-  <div data-rv class="bol-intro__eyebrow">Panadería artesanal · San José</div>
+  <div data-rv class="bol-intro__eyebrow">Tiempo, paciencia y horno</div>
   <h1 data-rv class="bol-intro__title">Del boceto al horno,<br /><em>hecho a mano cada mañana</em></h1>
-  <p data-rv class="bol-intro__lead">Croissants de mantequilla, masa madre fermentada con paciencia y pan dulce de casa.</p>
+  <p data-rv class="bol-intro__lead">Dulce, salado o fermentado despacio: siempre hecho a mano, siempre con tiempo de sobra.</p>
   <div data-rv class="bol-intro__ctas">
     <a href="#" (click)="$event.preventDefault(); goMenu()" class="bol-intro__cta-primary">Ver el menú</a>
     <a [href]="waDirect()" target="_blank" rel="noopener" class="bol-intro__cta-secondary">
@@ -20,24 +20,44 @@
   </div>
   <div class="bol-cats__grid">
     <a href="#" (click)="$event.preventDefault(); goCategory('pan-dulce')" data-rv class="bol-cats__card">
-      <svg width="34" height="34" viewBox="0 0 40 40" fill="none" stroke="var(--acc,#C8912A)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 24c0-7 5.4-12 12-12s12 5 12 12"/><path d="M6 24h28l-2.4 7.5a2 2 0 0 1-1.9 1.5H10.3a2 2 0 0 1-1.9-1.5z"/><path d="M14 18.5c1.2-1.4 3-2.2 6-2.2s4.8.8 6 2.2"/></svg>
-      <div class="bol-cats__name">Pan Dulce</div>
-      <div class="bol-cats__count">11 variedades</div>
+      <div class="bol-cats__photo">
+        <img src="assets/cat-pan-dulce.webp" alt="Conchas y pan dulce artesanal recién horneado" loading="lazy" />
+      </div>
+      <div class="bol-cats__scrim"></div>
+      <div class="bol-cats__info">
+        <div class="bol-cats__name">Pan Dulce</div>
+        <div class="bol-cats__count">11 variedades</div>
+      </div>
     </a>
     <a href="#" (click)="$event.preventDefault(); goCategory('pan-salado')" data-rv class="bol-cats__card">
-      <svg width="34" height="34" viewBox="0 0 40 40" fill="none" stroke="var(--olive)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14c-3 0-5 2.5-5 6s2 6 6 6h18c4 0 6-2.5 6-6s-2-6-5-6z"/><path d="M13 20h1.5M19 20h1.5M25 20h1.5"/></svg>
-      <div class="bol-cats__name">Pan Salado</div>
-      <div class="bol-cats__count">10 variedades</div>
+      <div class="bol-cats__photo">
+        <img src="assets/cat-pan-salado.webp" alt="Pan salado con hierbas, queso y aceitunas" loading="lazy" />
+      </div>
+      <div class="bol-cats__scrim"></div>
+      <div class="bol-cats__info">
+        <div class="bol-cats__name">Pan Salado</div>
+        <div class="bol-cats__count">10 variedades</div>
+      </div>
     </a>
     <a href="#" (click)="$event.preventDefault(); goCategory('masa-madre')" data-rv class="bol-cats__card">
-      <svg width="34" height="34" viewBox="0 0 40 40" fill="none" stroke="var(--acc,#C8912A)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 26c0-8 6-14 13-14s13 6 13 14"/><path d="M7 26h26v3a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2z"/><path d="M15 20l2 3M20 18l0 4M25 20l-2 3"/></svg>
-      <div class="bol-cats__name">Masa Madre</div>
-      <div class="bol-cats__count">10 variedades</div>
+      <div class="bol-cats__photo">
+        <img src="assets/cat-masa-madre.webp" alt="Pan de masa madre con corteza dorada, recién horneado" loading="lazy" />
+      </div>
+      <div class="bol-cats__scrim"></div>
+      <div class="bol-cats__info">
+        <div class="bol-cats__name">Masa Madre</div>
+        <div class="bol-cats__count">10 variedades</div>
+      </div>
     </a>
     <a href="#" (click)="$event.preventDefault(); goCategory('saltenas')" data-rv class="bol-cats__card">
-      <svg width="34" height="34" viewBox="0 0 40 40" fill="none" stroke="var(--olive)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 9l9 5.5v9L20 29l-9-4.5v-9z"/><path d="M11 14.5L20 20l9-5.5M20 20v9"/></svg>
-      <div class="bol-cats__name">Salteñas</div>
-      <div class="bol-cats__count">6 variedades</div>
+      <div class="bol-cats__photo">
+        <img src="assets/cat-saltenas.webp" alt="Salteñas horneadas, rellenas de carne y papa" loading="lazy" />
+      </div>
+      <div class="bol-cats__scrim"></div>
+      <div class="bol-cats__info">
+        <div class="bol-cats__name">Salteñas</div>
+        <div class="bol-cats__count">6 variedades</div>
+      </div>
     </a>
   </div>
 </div>
