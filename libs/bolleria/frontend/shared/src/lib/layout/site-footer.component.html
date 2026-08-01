@@ -1,10 +1,23 @@
 <footer class="bol-footer">
-  <div class="bol-footer__grid">
-    <div>
-      <img src="assets/logo-white.png" alt="Bollería Panadería" class="bol-footer__logo" />
-      <p class="bol-footer__blurb">Pan artesanal, bollería francesa y masa madre horneados cada mañana en San José. Servicio express.</p>
+  <div class="bol-footer__inner">
+    <div class="bol-footer__col bol-footer__col--brand">
+      <div class="bol-footer__seal">
+        <img src="assets/mark.png" alt="Bollería Panadería" class="bol-footer__seal-mark" />
+      </div>
+      <div class="bol-footer__wordmark">Bollería<span>Panadería</span></div>
     </div>
-    <div>
+
+    <span class="bol-footer__vseam" aria-hidden="true"></span>
+
+    <div class="bol-footer__col bol-footer__col--blurb">
+      <div class="bol-footer__heading">Sobre nosotros</div>
+      <p class="bol-footer__blurb">Pan artesanal, bollería francesa y masa madre horneados cada mañana en San José. Servicio express.</p>
+      <p class="bol-footer__tagline">Pan hecho con tiempo, horneado con oficio.</p>
+    </div>
+
+    <span class="bol-footer__vseam" aria-hidden="true"></span>
+
+    <div class="bol-footer__col bol-footer__col--nav">
       <div class="bol-footer__heading">Navegación</div>
       <div class="bol-footer__links">
         <a href="#" (click)="$event.preventDefault(); go('inicio')">Inicio</a>
@@ -12,14 +25,18 @@
         <a href="#" (click)="$event.preventDefault(); go('contacto')">Contacto</a>
       </div>
     </div>
-    <div>
+
+    <span class="bol-footer__vseam" aria-hidden="true"></span>
+
+    <div class="bol-footer__col bol-footer__col--contact">
       <div class="bol-footer__heading">Contacto</div>
-      <div class="bol-footer__info">
+      <div class="bol-footer__contact">
         <span style="font-variant-numeric: lining-nums tabular-nums">{{ contact.waDisplay }}</span>
         <span>{{ contact.correo }}</span>
         <span>{{ contact.horario }}</span>
       </div>
     </div>
   </div>
+
   <div class="bol-footer__bottom">© 2026 Bollería Panadería · San José, Costa Rica · Datos de contacto por confirmar</div>
 </footer>

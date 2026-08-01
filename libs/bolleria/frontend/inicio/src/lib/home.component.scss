@@ -325,6 +325,10 @@
   margin: 18px 0 0;
   max-width: 400px;
 }
+// Mismo tratamiento "metal grabado" del CTA del navbar (.bol-nav__cta):
+// degradado dorado con highlight arriba + sombra cálida abajo, en vez de un
+// relleno plano — para que todo botón dorado del sitio se sienta parte del
+// mismo objeto, no una paleta de "cafecitos" sueltos.
 .bol-social__cta {
   display: inline-flex;
   align-items: center;
@@ -335,14 +339,28 @@
   text-transform: uppercase;
   padding: 15px 28px;
   border-radius: 999px;
-  background: var(--acc, #c8912a);
-  color: #fff;
-  box-shadow: 0 12px 30px -10px color-mix(in srgb, var(--acc, #c8912a) 80%, transparent);
+  background: linear-gradient(155deg, #f0c675 0%, var(--acc, #c8912a) 50%, #96651a 100%);
+  color: #fffaf0;
+  box-shadow:
+    inset 0 1.5px 0 rgba(255, 255, 255, 0.55),
+    inset 0 -2px 3px rgba(103, 68, 15, 0.4),
+    0 10px 24px -8px rgba(90, 58, 15, 0.5);
+  transition:
+    box-shadow 0.3s,
+    transform 0.2s;
 
   @media (hover: hover) and (pointer: fine) {
     &:hover {
-      background: var(--accd, #a5761c);
+      transform: translateY(-2px);
+      box-shadow:
+        inset 0 1.5px 0 rgba(255, 255, 255, 0.6),
+        inset 0 -2px 3px rgba(103, 68, 15, 0.4),
+        0 16px 32px -10px rgba(90, 58, 15, 0.6);
     }
+  }
+
+  &:active {
+    transform: translateY(0);
   }
 }
 
@@ -371,13 +389,27 @@
   text-transform: uppercase;
   padding: 16px 34px;
   border-radius: 999px;
-  background: var(--acc, #c8912a);
-  color: #fff;
-  box-shadow: 0 12px 30px -10px color-mix(in srgb, var(--acc, #c8912a) 80%, transparent);
+  background: linear-gradient(155deg, #f0c675 0%, var(--acc, #c8912a) 50%, #96651a 100%);
+  color: #fffaf0;
+  box-shadow:
+    inset 0 1.5px 0 rgba(255, 255, 255, 0.55),
+    inset 0 -2px 3px rgba(103, 68, 15, 0.4),
+    0 10px 24px -8px rgba(90, 58, 15, 0.5);
+  transition:
+    box-shadow 0.3s,
+    transform 0.2s;
 
   @media (hover: hover) and (pointer: fine) {
     &:hover {
-      background: var(--accd, #a5761c);
+      transform: translateY(-2px);
+      box-shadow:
+        inset 0 1.5px 0 rgba(255, 255, 255, 0.6),
+        inset 0 -2px 3px rgba(103, 68, 15, 0.4),
+        0 16px 32px -10px rgba(90, 58, 15, 0.6);
     }
+  }
+
+  &:active {
+    transform: translateY(0);
   }
 }
