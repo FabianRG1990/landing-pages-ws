@@ -91,7 +91,7 @@ export const BolleriaStore = signalStore(
 
     addToCart(id: string): void {
       const cart = store.cart();
-      patchState(store, { cart: { ...cart, [id]: (cart[id] ?? 0) + 1 }, cartOpen: true });
+      patchState(store, { cart: { ...cart, [id]: (cart[id] ?? 0) + 1 } });
     },
     incCart(id: string): void {
       const cart = store.cart();
