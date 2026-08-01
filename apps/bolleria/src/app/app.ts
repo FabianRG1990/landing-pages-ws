@@ -13,6 +13,7 @@ import {
   PreloaderComponent,
   SiteFooterComponent,
   SiteNavComponent,
+  installScrollLock,
 } from '@bolleria-ui-shared';
 import { EntremesComponent, HeroScrollComponent, HomeComponent } from '@bolleria-ui-inicio';
 import { MenuPageComponent } from '@bolleria-ui-menu';
@@ -43,6 +44,9 @@ export class App {
   private revealedOnLoad = false;
 
   constructor() {
+    if (this.isBrowser) {
+      installScrollLock(() => this.store.scrollLocked());
+    }
     // Reveal-on-load inicial (transcripción fiel de `playReveal()` tras el preloader).
     effect(() => {
       if (this.store.loaded() && this.isBrowser && !this.revealedOnLoad) {

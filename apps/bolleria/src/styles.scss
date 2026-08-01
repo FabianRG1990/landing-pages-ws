@@ -50,16 +50,91 @@ body {
   }
 }
 
-// Bloqueo de scroll mientras el preloader inicial o la cortina de transición
-// entre pantallas están visibles. Se hace por CSS puro (no tocando
-// document.body.style desde TS) a propósito: la hidratación de Angular limpia
-// cualquier inline style que se haya puesto en <html>/<body> antes de que
-// termine, así que un bloqueo hecho con JS se revertía solo apenas terminaba
-// de hidratar. Esta regla no depende de hydration en absoluto — ya está activa
-// desde el HTML servido por SSR, antes de que corra una sola línea de JS.
-body:has(.bol-preloader:not(.bol-preloader--done)),
-body:has(.bol-curtain--in) {
-  overflow: hidden;
+// Scrollbar a medida — no un botón dorado reciclado en formato angosto, sino
+// una pieza propia que cruza los DOS tonos de la marca (dorado + oliva, el
+// mismo par que ya usa el sitio en eyebrows/footer) en vez de repetir "todo
+// dorado" una vez más:
+//   - El carril lleva un tinte oliva (no crema/dorado) con una veta labrada
+//     hacia adentro (inset shadow) — un canal, no un rectángulo plano — y
+//     encima, como marca de agua muy tenue, la MISMA espiga de trigo en SVG
+//     que separa los links del nav y las columnas del footer, repetida
+//     verticalmente. Es el detalle que hace que esto sea inconfundiblemente
+//     de esta página: nadie más tiene una scrollbar con esta espiga.
+//   - El thumb sigue el lenguaje "metal grabado" de los botones (degradado +
+//     highlight superior + sombra cálida inferior) pero además lleva una
+//     veta diagonal fina (repeating-linear-gradient a contraluz), como metal
+//     cepillado/repujado — no un gradiente liso.
+// Regla universal (no solo html/body): cualquier lista interna con scroll
+// propio (carrito, líneas del pedido) hereda el mismo trato.
+// El bloqueo de scroll del preloader/cortina (`installScrollLock` en
+// app.ts) es justo lo que permite que esta barra se mantenga siempre visible
+// y del mismo ancho: ya no se toca `overflow`, así que el gutter nunca
+// aparece/desaparece ni "brinca" el layout.
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--acc, #c8912a) rgba(94, 106, 52, 0.14);
+}
+
+*::-webkit-scrollbar {
+  width: 15px;
+  height: 15px;
+}
+
+*::-webkit-scrollbar-track {
+  background-color: rgba(94, 106, 52, 0.08);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 40'%3E%3Cpath d='M7 1v20M7 5c-1.8.3-3 1.5-3.6 3 1.8.9 3 .3 3.6-1.2M7 5c1.8.3 3 1.5 3.6 3-1.8.9-3 .3-3.6-1.2M7 11c-1.8.3-3 1.5-3.6 3 1.8.9 3 .3 3.6-1.2M7 11c1.8.3 3 1.5 3.6 3-1.8.9-3 .3-3.6-1.2' stroke='%23C8912A' stroke-width='1.3' fill='none' stroke-linecap='round' stroke-opacity='0.4'/%3E%3C/svg%3E");
+  background-repeat: repeat-y;
+  background-position: center top;
+  background-size: 9px 40px;
+  box-shadow: inset 0 0 4px rgba(69, 78, 36, 0.3);
+}
+
+*::-webkit-scrollbar-thumb {
+  background-image:
+    repeating-linear-gradient(
+      127deg,
+      rgba(255, 255, 255, 0.18) 0px,
+      rgba(255, 255, 255, 0.18) 1px,
+      transparent 1px,
+      transparent 3px
+    ),
+    linear-gradient(180deg, #f3d68a 0%, var(--acc, #c8912a) 48%, #8a5c17 100%);
+  background-clip: content-box;
+  border: 3px solid transparent;
+  border-radius: 10px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.55),
+    inset 0 -2px 2px rgba(103, 68, 15, 0.4);
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background-image:
+    repeating-linear-gradient(
+      127deg,
+      rgba(255, 255, 255, 0.24) 0px,
+      rgba(255, 255, 255, 0.24) 1px,
+      transparent 1px,
+      transparent 3px
+    ),
+    linear-gradient(180deg, #f7deA0 0%, #d6a13a 48%, #96651a 100%);
+  background-clip: content-box;
+}
+
+*::-webkit-scrollbar-thumb:active {
+  background-image:
+    repeating-linear-gradient(
+      127deg,
+      rgba(255, 255, 255, 0.12) 0px,
+      rgba(255, 255, 255, 0.12) 1px,
+      transparent 1px,
+      transparent 3px
+    ),
+    linear-gradient(180deg, #d6a13a 0%, #a5761c 48%, #7a5012 100%);
+  background-clip: content-box;
+}
+
+*::-webkit-scrollbar-corner {
+  background: transparent;
 }
 
 a {

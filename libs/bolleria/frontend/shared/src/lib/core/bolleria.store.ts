@@ -56,6 +56,9 @@ export const BolleriaStore = signalStore(
       Object.entries(store.cart()).map(([id, qty]) => ({ id, qty, item: MENU_BY_ID[id] })),
     ),
     waDirect: computed(() => waDirectLink()),
+    /** Cierto mientras el preloader o la cortina cubren la pantalla — el scroll
+     * se bloquea (ver `installScrollLock`) exactamente durante esa ventana. */
+    scrollLocked: computed(() => !store.loaded() || store.curtain()),
   })),
 
   withComputed((store) => ({
