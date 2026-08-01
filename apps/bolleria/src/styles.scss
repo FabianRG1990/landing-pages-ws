@@ -50,6 +50,18 @@ body {
   }
 }
 
+// Bloqueo de scroll mientras el preloader inicial o la cortina de transición
+// entre pantallas están visibles. Se hace por CSS puro (no tocando
+// document.body.style desde TS) a propósito: la hidratación de Angular limpia
+// cualquier inline style que se haya puesto en <html>/<body> antes de que
+// termine, así que un bloqueo hecho con JS se revertía solo apenas terminaba
+// de hidratar. Esta regla no depende de hydration en absoluto — ya está activa
+// desde el HTML servido por SSR, antes de que corra una sola línea de JS.
+body:has(.bol-preloader:not(.bol-preloader--done)),
+body:has(.bol-curtain--in) {
+  overflow: hidden;
+}
+
 a {
   color: var(--acc, #c8912a);
   text-decoration: none;
