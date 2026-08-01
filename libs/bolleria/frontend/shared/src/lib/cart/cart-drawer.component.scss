@@ -169,6 +169,7 @@
 }
 
 .bol-cart-drawer__checkout {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -186,6 +187,26 @@
       background: #1f6e35;
     }
   }
+}
+// Insignia "Envío Express": mismo criterio que en el hero
+// (bol-intro__cta-badge) y en el aside del menú (bol-menu__cart-badge) —
+// este cajón es el punto de checkout más visible del sitio (se abre desde
+// cualquier página al agregar un producto).
+.bol-cart-drawer__badge {
+  position: absolute;
+  top: -10px;
+  right: 14px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font: 600 9px 'Jost', sans-serif;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--ink);
+  background: linear-gradient(135deg, #f3d68a 0%, var(--acc, #c8912a) 55%, var(--accd, #a5761c) 100%);
+  box-shadow:
+    0 0 0 2px #fff,
+    0 4px 10px -4px rgba(46, 42, 28, 0.5);
 }
 
 .bol-cart-drawer__clear {

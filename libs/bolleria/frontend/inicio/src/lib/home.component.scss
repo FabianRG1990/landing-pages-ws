@@ -36,23 +36,65 @@
   margin-top: 28px;
   justify-content: center;
   flex-wrap: wrap;
+
+  // Cuando los dos CTAs se apilan (mobile), el hueco entre ellos necesita
+  // más aire: la insignia "Envío Express" sobresale por encima del botón
+  // de WhatsApp y si no, queda pegada al botón de arriba.
+  @media (max-width: 480px) {
+    gap: 26px;
+  }
 }
+// Botones del hero: antes eran color plano sin sombra ni relieve — no
+// leían como botones, solo como texto con fondo. Ahora usan un gradiente
+// sutil (simula luz cayendo sobre una superficie curva/lacada), sombras en
+// capas (una ajustada para "anclar" el botón al suelo + una difusa y cálida
+// para profundidad) y una elevación real al hover, en vez de solo cambiar
+// de color.
 .bol-intro__cta-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
   font: 500 12.5px 'Jost', sans-serif;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  padding: 15px 28px;
+  padding: 16px 26px 16px 30px;
   border-radius: 999px;
-  background: var(--ink);
+  background: linear-gradient(160deg, #443c28 0%, var(--ink) 55%, #1c1a11 100%);
   color: var(--cream);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.09),
+    inset 0 -10px 14px -12px rgba(0, 0, 0, 0.4),
+    0 10px 24px -10px rgba(46, 42, 28, 0.55),
+    0 3px 8px -3px rgba(46, 42, 28, 0.4);
+  transition:
+    transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.35s ease;
+
+  svg {
+    transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  }
 
   @media (hover: hover) and (pointer: fine) {
     &:hover {
-      background: #000;
+      transform: translateY(-3px);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.12),
+        inset 0 -10px 14px -12px rgba(0, 0, 0, 0.4),
+        0 18px 34px -12px rgba(46, 42, 28, 0.6),
+        0 6px 14px -4px rgba(46, 42, 28, 0.45);
+
+      svg {
+        transform: translateX(4px);
+      }
     }
+  }
+
+  &:active {
+    transform: translateY(-1px);
   }
 }
 .bol-intro__cta-secondary {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 9px;
@@ -61,15 +103,55 @@
   text-transform: uppercase;
   padding: 15px 26px;
   border-radius: 999px;
-  border: 1.5px solid var(--olive);
+  border: 1.5px solid rgba(94, 106, 52, 0.5);
+  background: rgba(250, 246, 236, 0.55);
   color: var(--olive);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    0 8px 20px -12px rgba(46, 42, 28, 0.35);
+  transition:
+    transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.35s ease,
+    background 0.35s ease,
+    border-color 0.35s ease,
+    color 0.35s ease;
 
   @media (hover: hover) and (pointer: fine) {
     &:hover {
+      transform: translateY(-3px);
       background: var(--olive);
+      border-color: var(--olive);
       color: #fff;
+      box-shadow: 0 16px 30px -12px rgba(46, 42, 28, 0.45);
+
+      .bol-intro__cta-badge {
+        color: var(--ink);
+      }
     }
   }
+
+  &:active {
+    transform: translateY(-1px);
+  }
+}
+// Insignia "Envío Express": ancla en la esquina del botón de WhatsApp
+// porque ese botón ES el canal de pedido — conecta directamente el
+// concepto con la acción, en vez de agregar una línea nueva al layout.
+.bol-intro__cta-badge {
+  position: absolute;
+  top: -11px;
+  right: -10px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font: 600 9px 'Jost', sans-serif;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--ink);
+  background: linear-gradient(135deg, #f3d68a 0%, var(--acc, #c8912a) 55%, var(--accd, #a5761c) 100%);
+  box-shadow:
+    0 0 0 2px var(--cream),
+    0 4px 10px -4px rgba(46, 42, 28, 0.5);
 }
 
 .bol-cats {

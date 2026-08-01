@@ -307,6 +307,7 @@
 }
 
 .bol-menu__cart-checkout {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -325,6 +326,25 @@
       background: #f0cd66;
     }
   }
+}
+// Insignia "Envío Express": mismo criterio que en el hero (bol-intro__cta-badge)
+// — se ancla al botón que dispara el pedido real, en el momento exacto en que
+// el cliente decide cómo lo va a recibir.
+.bol-menu__cart-badge {
+  position: absolute;
+  top: -10px;
+  right: 14px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font: 600 9px 'Jost', sans-serif;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--ink);
+  background: linear-gradient(135deg, #f3d68a 0%, var(--acc, #c8912a) 55%, var(--accd, #a5761c) 100%);
+  box-shadow:
+    0 0 0 2px #5e6a34,
+    0 4px 10px -4px rgba(0, 0, 0, 0.4);
 }
 
 .bol-menu__cart-clear {
