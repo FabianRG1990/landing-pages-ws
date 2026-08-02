@@ -39,6 +39,8 @@ export interface GeneratedOrder {
   filename: string;
   /** blob URL para previsualizar en un iframe */
   url: string;
+  /** el PDF ya generado, para compartirlo como archivo (Web Share API) sin regenerarlo */
+  blob: Blob;
   /** dispara la descarga del PDF ya generado */
   save: () => void;
 }

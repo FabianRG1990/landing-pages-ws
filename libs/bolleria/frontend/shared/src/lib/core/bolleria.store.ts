@@ -193,23 +193,53 @@ export const BolleriaStore = signalStore(
       },
       /** Re-descarga manual (la orden ya se descargó al generarse). */
       downloadPdf: () => pdf.lastOrder?.save(),
-      sendWhatsappOrder(): void {
+      /**
+       * En computadora, ir directo al link de WhatsApp con el texto — es el
+       * camino simple que ya funcionaba, y agregarle un paso de "compartir"
+       * de por medio (aunque el navegador lo soporte técnicamente, como pasa
+       * en varias configuraciones de Windows) es fricción que el cliente no
+       * pidió: si pedir se vuelve complicado, la persona abandona la página y
+       * escribe directo a WhatsApp por su cuenta.
+       * En celular sí vale la pena: ahí el PDF se comparte adjunto de verdad
+       * (WhatsApp aparece en el menú nativo de compartir). Si el cliente
+       * cancela ese menú, no forzamos nada más; si falla por otra razón, cae
+       * al mismo link de WhatsApp con texto de respaldo.
+       */
+      async sendWhatsappOrder(): Promise<void> {
         const type = store.deliveryType();
         const orderNumber = store.orderNumber();
         const orderDate = store.orderDate();
         if (!type || !orderNumber || !orderDate || typeof window === 'undefined') return;
-        window.open(
-          pdf.whatsappText({
-            customerName: store.customerName(),
-            deliveryType: type,
-            lines: store.cartLines(),
-            total: store.cartTotal(),
-            orderNumber,
-            orderDate,
-          }),
-          '_blank',
-          'noopener',
-        );
+
+        const input = {
+          customerName: store.customerName(),
+          deliveryType: type,
+          lines: store.cartLines(),
+          total: store.cartTotal(),
+          orderNumber,
+          orderDate,
+        };
+
+        const order = pdf.lastOrder;
+        const nav = navigator as Navigator & {
+          userAgentData?: { mobile?: boolean };
+          canShare?: (data?: ShareData) => boolean;
+          share?: (data?: ShareData) => Promise<void>;
+        };
+        const isMobile = nav.userAgentData?.mobile ?? /Android|iPhone|iPad|iPod/i.test(nav.userAgent ?? '');
+        if (isMobile && order && nav.canShare && nav.share) {
+          try {
+            const file = new File([order.blob], order.filename, { type: 'application/pdf' });
+            if (nav.canShare({ files: [file] })) {
+              await nav.share({ files: [file], text: pdf.orderMessage(input) });
+              return;
+            }
+          } catch (err) {
+            if ((err as DOMException)?.name === 'AbortError') return;
+            /* cualquier otro error: seguimos con el respaldo de abajo */
+          }
+        }
+        window.open(pdf.whatsappText(input), '_blank', 'noopener');
       },
     };
   }),

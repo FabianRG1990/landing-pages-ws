@@ -39,6 +39,12 @@
         }
       </div>
 
+      @if (deliveryType() === 'envio-expres') {
+        <p class="bol-checkout-dialog__note">
+          Nuestro equipo te escribe por WhatsApp para coordinar la entrega — contanos tu ubicación o la dirección, y vemos el costo del envío.
+        </p>
+      }
+
       @if (checkoutError(); as err) {
         <div class="bol-checkout-dialog__error">{{ err }}</div>
       }
@@ -55,7 +61,7 @@
         <iframe title="Vista previa del pedido en PDF" [src]="src" class="bol-checkout-dialog__frame"></iframe>
       }
       <p class="bol-checkout-dialog__note">
-        Tu pedido ya se descargó a tu dispositivo. Revisalo acá y envialo por WhatsApp — adjuntá el PDF descargado en el chat que se abre.
+        Tu pedido ya se descargó a tu dispositivo. Al tocar "Enviar por WhatsApp": en el celular se comparte con el PDF ya adjunto; en computadora, buscá el PDF descargado y adjuntalo vos en el chat que se abre.
       </p>
       <div class="bol-checkout-dialog__actions">
         <button type="button" class="bol-checkout-dialog__secondary" (click)="downloadAgain()">

@@ -67,12 +67,12 @@ const RAW_CATS: { key: string; label: string; tag: string; items: [string, numbe
     label: 'Salteñas',
     tag: '#7a5c2e',
     items: [
-      ['Clásica de carne', 2500],
-      ['Clásica de pollo', 2500],
-      ['Cinco quesos', 2500],
-      ['Cebolla caramelizada y quesos', 2500],
-      ['Argentina capresse', 2500],
-      ['Argentina de jamón y dos quesos', 2500],
+      ['Salteña clásica de carne', 2500],
+      ['Salteña clásica de pollo', 2500],
+      ['Salteña de cinco quesos', 2500],
+      ['Salteña de cebolla caramelizada y quesos', 2500],
+      ['Salteña Argentina capresse', 2500],
+      ['Salteña Argentina de jamón y dos quesos', 2500],
     ],
   },
 ];

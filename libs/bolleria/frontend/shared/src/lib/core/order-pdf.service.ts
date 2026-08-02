@@ -13,6 +13,13 @@ const pad2 = (n: number) => String(n).padStart(2, '0');
 // el código de moneda en letras.
 const pdfPrice = (n: number) => `CRC ${n.toLocaleString('de-DE')}`;
 
+// Para envío exprés: hay que aceptar tanto una ubicación compartida por
+// WhatsApp como una dirección escrita (no todo el mundo escribe la dirección
+// a mano), y el costo del envío también se coordina ahí — sin esto, el
+// cliente asume que el envío ya está incluido en el total del pedido.
+const EXPRESS_NOTE =
+  'Nuestro equipo te escribe por WhatsApp para coordinar la entrega. Compartinos tu ubicación o la dirección, y ahí vemos el costo del envío.';
+
 const INK: [number, number, number] = [46, 42, 28];
 const ACC: [number, number, number] = [200, 145, 42];
 const ACCD: [number, number, number] = [165, 118, 28];
@@ -92,8 +99,8 @@ export class OrderPdfService {
     return this.markData;
   }
 
-  /** Texto pre-armado para enviar por WhatsApp junto al PDF (mismo criterio que Automotivo: el PDF ya se descargó, aquí solo se recuerda adjuntarlo). */
-  whatsappText(input: OrderInput & { orderNumber: string; orderDate: string }): string {
+  /** Texto plano del pedido — lo usan tanto el link `wa.me` (respaldo) como el Web Share API (compartir con el PDF adjunto). */
+  orderMessage(input: OrderInput & { orderNumber: string; orderDate: string }): string {
     const L = [
       '*Pedido Bollería*',
       `Fecha: ${input.orderDate}`,
@@ -108,10 +115,15 @@ export class OrderPdfService {
     }
     L.push('', `Total: ${formatColones(input.total)}`);
     if (input.deliveryType === 'envio-expres') {
-      L.push('', 'Por favor escribime aquí la dirección exacta de entrega 🙏');
+      L.push('', 'Por favor compartime tu ubicación o la dirección de entrega, y coordinamos el costo del envío 🙏');
     }
     L.push('', '(Adjunto el pedido en PDF)');
-    return `https://wa.me/${CONTACT.whatsapp}?text=${encodeURIComponent(L.join('\n'))}`;
+    return L.join('\n');
+  }
+
+  /** Link `wa.me` de respaldo — solo para navegadores/dispositivos sin Web Share de archivos (ej. computadora): abre WhatsApp con el texto ya listo, el PDF se adjunta a mano. */
+  whatsappText(input: OrderInput & { orderNumber: string; orderDate: string }): string {
+    return `https://wa.me/${CONTACT.whatsapp}?text=${encodeURIComponent(this.orderMessage(input))}`;
   }
 
   buildOrder(input: OrderInput): GeneratedOrder {
@@ -151,7 +163,17 @@ export class OrderPdfService {
     const itemsH = lineLayout.reduce((s, l) => s + l.h, 0) + 10;
     const footH = 78;
     const CONTENT_BEFORE_ITEMS = 220; // encabezado + panel nombre/entrega + label "TU PEDIDO"
-    const CONTENT_AFTER_ITEMS = 18 + 46 + 16 + (input.deliveryType === 'envio-expres' ? 26 : 6);
+
+    // La nota de envío exprés se mide igual que los nombres de producto arriba
+    // — un texto fijo adivinado ("26px alcanza") es justo el bug que ya
+    // encontramos con los precios: si el texto crece (como al agregarle el
+    // costo del envío), se monta sobre el pie de página en vez de crecer con él.
+    measure.setFont('helvetica', 'italic');
+    measure.setFontSize(8.5);
+    const expressNoteLines =
+      input.deliveryType === 'envio-expres' ? (measure.splitTextToSize(EXPRESS_NOTE, RW) as string[]) : [];
+    const noteH = expressNoteLines.length ? expressNoteLines.length * 11.5 + 14.5 : 6;
+    const CONTENT_AFTER_ITEMS = 18 + 46 + 16 + noteH;
     // Altura al contenido real — sin piso artificial: un pedido corto da una
     // cinta corta, uno largo crece, ambos sin espacio muerto ni desborde.
     const H = CONTENT_BEFORE_ITEMS + itemsH + CONTENT_AFTER_ITEMS + footH;
@@ -295,12 +317,14 @@ export class OrderPdfService {
     doc.text(pdfPrice(input.total), W - M - 16, cur + 30, { align: 'right' });
     cur += 46 + 16;
 
-    if (input.deliveryType === 'envio-expres') {
+    if (expressNoteLines.length) {
+      // INK (no CREAM) — este bloque cae directo sobre el fondo artístico
+      // claro, no sobre una franja oscura como el encabezado/pie; un texto
+      // casi blanco ahí se pierde por completo.
       doc.setFont('helvetica', 'italic');
       doc.setFontSize(8.5);
-      doc.setTextColor(...CREAM);
-      const note = doc.splitTextToSize('Escribinos la dirección exacta de entrega por WhatsApp.', RW) as string[];
-      doc.text(note, M, cur);
+      doc.setTextColor(...INK);
+      doc.text(expressNoteLines, M, cur);
     }
 
     // ---- pie ----
@@ -320,11 +344,13 @@ export class OrderPdfService {
     doc.text(`WhatsApp ${CONTACT.waDisplay}`, M, H - footH + 66);
 
     const filename = `Pedido-Bolleria-${orderNumber}.pdf`;
+    const blob = doc.output('blob') as Blob;
     const order: GeneratedOrder = {
       orderNumber,
       orderDate,
       filename,
-      url: doc.output('bloburl') as unknown as string,
+      url: URL.createObjectURL(blob),
+      blob,
       save: () => doc.save(filename),
     };
     this.lastOrder = order;

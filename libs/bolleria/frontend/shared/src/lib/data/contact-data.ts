@@ -2,8 +2,8 @@
 // No reemplazar por datos inventados: el dueño del negocio confirma los reales
 // antes de anunciar el sitio públicamente (ver handoff).
 export const CONTACT = {
-  whatsapp: '50600000000',
-  waDisplay: '+506 0000-0000',
+  whatsapp: '50689836762',
+  waDisplay: '+506 8983-6762',
   telDisplay: '+506 0000-0000',
   correo: 'hola@bolleria.cr',
   horario: 'Mar – Dom · 7:00 a.m. – 6:00 p.m.',
