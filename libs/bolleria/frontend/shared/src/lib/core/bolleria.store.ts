@@ -1,7 +1,7 @@
 import { computed } from '@angular/core';
 import { patchState, signalStore, withComputed, withMethods, withState } from '@ngrx/signals';
 import { ScreenId } from './models';
-import { MENU_BY_ID, MENU_CATEGORIES, FAVORITE_IDS, formatColones } from '../data/menu-data';
+import { MENU_CATEGORIES, FAVORITE_IDS, MENU_BY_ID, cartKey, parseCartKey, formatColones } from '../data/menu-data';
 import { waCheckoutLink, waDirectLink } from './whatsapp';
 
 interface BolleriaState {
@@ -42,18 +42,16 @@ export const BolleriaStore = signalStore(
     activeCategory: computed(
       () => MENU_CATEGORIES.find((c) => c.key === store.activeCat()) ?? MENU_CATEGORIES[0],
     ),
-    activeItems: computed(() => {
-      const cat = MENU_CATEGORIES.find((c) => c.key === store.activeCat()) ?? MENU_CATEGORIES[0];
-      const cart = store.cart();
-      return cat.items.map((it) => ({ ...it, qty: cart[it.id] ?? 0 }));
-    }),
+    activeItems: computed(
+      () => (MENU_CATEGORIES.find((c) => c.key === store.activeCat()) ?? MENU_CATEGORIES[0]).items,
+    ),
     favorites: computed(() => FAVORITE_IDS.map((id) => MENU_BY_ID[id])),
     cartCount: computed(() => Object.values(store.cart()).reduce((s, q) => s + q, 0)),
     cartTotal: computed(() =>
-      Object.entries(store.cart()).reduce((s, [id, q]) => s + MENU_BY_ID[id].price * q, 0),
+      Object.entries(store.cart()).reduce((s, [key, q]) => s + parseCartKey(key).item.price * q, 0),
     ),
     cartLines: computed(() =>
-      Object.entries(store.cart()).map(([id, qty]) => ({ id, qty, item: MENU_BY_ID[id] })),
+      Object.entries(store.cart()).map(([key, qty]) => ({ id: key, qty, ...parseCartKey(key) })),
     ),
     waDirect: computed(() => waDirectLink()),
     /** Cierto mientras el preloader o la cortina cubren la pantalla — el scroll
@@ -92,9 +90,10 @@ export const BolleriaStore = signalStore(
 
     setActiveCat: (key: string) => patchState(store, { activeCat: key }),
 
-    addToCart(id: string): void {
+    addToCart(id: string, option?: string): void {
+      const key = cartKey(id, option);
       const cart = store.cart();
-      patchState(store, { cart: { ...cart, [id]: (cart[id] ?? 0) + 1 } });
+      patchState(store, { cart: { ...cart, [key]: (cart[key] ?? 0) + 1 } });
     },
     incCart(id: string): void {
       const cart = store.cart();

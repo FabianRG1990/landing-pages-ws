@@ -6,6 +6,8 @@ export interface MenuItem {
   price: number;
   cat: string;
   tag: string;
+  /** Sabores/variantes a elegir antes de agregar al pedido (ej. Croissant: crema pastelera / dulce de leche / nutella). */
+  options?: string[];
 }
 
 export interface MenuCategory {

@@ -19,23 +19,33 @@
         {{ activeCategory().label }}
         <span></span>
       </h2>
-      <div class="bol-menu__grid">
-        @for (it of activeItems(); track it.id) {
-          <div class="bol-menu__item">
-            <div class="bol-menu__item-bar" [style.background]="it.tag"></div>
-            <div class="bol-menu__item-top">
-              <div class="bol-menu__item-name">{{ it.name }}</div>
-              <div class="bol-menu__item-price">{{ fmt(it.price) }}</div>
+      <div class="bol-menu__list" [style.--menu-rows]="rowsPerColumn(activeItems().length)">
+        @for (it of activeItems(); track it.id; let i = $index, count = $count) {
+          <div class="bol-menu__row" [class.bol-menu__row--last]="isLastInColumn(i, count)">
+            <div class="bol-menu__row-main">
+              <span class="bol-menu__row-name">{{ it.name }}</span>
             </div>
-            <div class="bol-menu__item-bottom">
-              @if (it.qty > 0) {
-                <span class="bol-menu__in-cart">{{ it.qty }} en tu pedido</span>
+            <div class="bol-menu__row-end">
+              <span class="bol-menu__row-price">{{ fmt(it.price) }}</span>
+              @if (it.options?.length) {
+                <button
+                  type="button"
+                  (click)="openOptions(it)"
+                  class="bol-menu__row-add"
+                  [attr.aria-label]="'Elegir sabor de ' + it.name"
+                >
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Agregar
+                </button>
               } @else {
-                <span></span>
+                <button
+                  type="button"
+                  (click)="addToCart(it.id)"
+                  class="bol-menu__row-add"
+                  [attr.aria-label]="'Agregar ' + it.name + ' al pedido'"
+                >
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Agregar
+                </button>
               }
-              <button type="button" (click)="addToCart(it.id)" class="bol-menu__add">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Agregar
-              </button>
             </div>
           </div>
         }
@@ -57,7 +67,12 @@
             @for (l of cartLines(); track l.id) {
               <div class="bol-menu__cart-line">
                 <div class="bol-menu__cart-line-info">
-                  <div class="bol-menu__cart-line-name">{{ l.item.name }}</div>
+                  <div class="bol-menu__cart-line-name">
+                    {{ l.item.name }}
+                    @if (l.option) {
+                      <span class="bol-menu__cart-line-option">{{ l.option }}</span>
+                    }
+                  </div>
                   <div class="bol-menu__cart-line-price">{{ fmt(l.item.price) }}</div>
                 </div>
                 <div class="bol-menu__cart-qty">
@@ -82,4 +97,41 @@
       </div>
     </aside>
   </div>
+
+  @if (dialogItem(); as item) {
+    <div class="bol-flavor-backdrop bol-flavor-backdrop--open" (click)="closeOptions()"></div>
+    <div
+      class="bol-flavor-dialog bol-flavor-dialog--open"
+      role="dialog"
+      aria-modal="true"
+      [attr.aria-label]="'Elegir sabor de ' + item.name"
+    >
+      <button type="button" class="bol-flavor-dialog__close" (click)="closeOptions()" aria-label="Cerrar">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+      <div class="bol-flavor-dialog__eyebrow">Elegí el sabor</div>
+      <h3 class="bol-flavor-dialog__title">{{ item.name }}</h3>
+      <div class="bol-flavor-dialog__chips">
+        @for (opt of item.options; track opt) {
+          <button
+            type="button"
+            class="bol-flavor-dialog__chip"
+            [class.bol-flavor-dialog__chip--selected]="selectedOption() === opt"
+            (click)="chooseOption(opt)"
+          >
+            {{ opt }}
+          </button>
+        }
+      </div>
+      <button
+        type="button"
+        class="bol-flavor-dialog__confirm"
+        [disabled]="!selectedOption()"
+        (click)="confirmOption()"
+      >
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+        Agregar
+      </button>
+    </div>
+  }
 </section>

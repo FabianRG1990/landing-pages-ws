@@ -1,5 +1,5 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { BolleriaStore, formatColones } from '@bolleria-ui-shared';
+import { ChangeDetectionStrategy, Component, HostListener, inject, signal } from '@angular/core';
+import { BolleriaStore, MenuItem, formatColones } from '@bolleria-ui-shared';
 
 @Component({
   selector: 'bol-menu-page',
@@ -21,11 +21,47 @@ export class MenuPageComponent {
   readonly waCheckout = this.store.waCheckout;
   readonly fmt = formatColones;
 
+  /** Producto cuyo diálogo de sabor está abierto (null = cerrado). */
+  readonly dialogItem = signal<MenuItem | null>(null);
+  readonly selectedOption = signal<string | null>(null);
+
   setActiveCat(key: string): void {
     this.store.setActiveCat(key);
   }
+  /** Filas por columna en la carta de dos páginas — ver `.bol-menu__list` en el SCSS. */
+  rowsPerColumn(total: number): number {
+    return Math.ceil(total / 2);
+  }
+  /** Última fila de cada columna: ahí no va línea divisoria inferior. */
+  isLastInColumn(index: number, total: number): boolean {
+    const rows = this.rowsPerColumn(total);
+    return index === rows - 1 || index === total - 1;
+  }
   addToCart(id: string): void {
     this.store.addToCart(id);
+  }
+  /** Productos con `options`: "Agregar" abre el diálogo de sabor en vez de agregar directo. */
+  openOptions(it: MenuItem): void {
+    this.dialogItem.set(it);
+    this.selectedOption.set(null);
+  }
+  closeOptions(): void {
+    this.dialogItem.set(null);
+    this.selectedOption.set(null);
+  }
+  chooseOption(opt: string): void {
+    this.selectedOption.set(opt);
+  }
+  confirmOption(): void {
+    const it = this.dialogItem();
+    const opt = this.selectedOption();
+    if (!it || !opt) return;
+    this.store.addToCart(it.id, opt);
+    this.closeOptions();
+  }
+  @HostListener('document:keydown.escape')
+  onEscape(): void {
+    if (this.dialogItem()) this.closeOptions();
   }
   inc(id: string): void {
     this.store.incCart(id);

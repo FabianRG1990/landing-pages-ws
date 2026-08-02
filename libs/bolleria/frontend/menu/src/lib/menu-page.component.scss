@@ -6,7 +6,7 @@
 
 .bol-menu__head {
   text-align: center;
-  margin-bottom: 8px;
+  margin-bottom: 20px;
 
   .bol-menu__eyebrow {
     font: 600 12px 'Cinzel', serif;
@@ -21,10 +21,10 @@
   }
 
   p {
-    font: 300 15px / 1.6 'Jost', sans-serif;
+    font: 300 17px / 1.65 'Jost', sans-serif;
     color: #6b6552;
-    margin: 12px auto 0;
-    max-width: 420px;
+    margin: 14px auto 0;
+    max-width: 440px;
 
     b {
       color: var(--acc, #c8912a);
@@ -33,6 +33,11 @@
   }
 }
 
+// Sticky sin fondo propio: el resto del sitio deja ver el fondo artístico fijo
+// del body detrás de cada pantalla (ver comentario en styles.scss); ponerle un
+// rectángulo crema plano solo a esta barra rompía esa continuidad y se veía
+// como un parche pegado encima — se quita del todo, cada pestaña ya trae
+// suficiente contraste por su propio borde/relleno.
 .bol-menu__tabs {
   display: flex;
   gap: 10px;
@@ -43,24 +48,32 @@
   top: 74px;
   z-index: 20;
   padding: 8px 0;
-  background: linear-gradient(#faf6ec 70%, transparent);
 }
 
 .bol-menu__tab {
-  font: 500 12.5px 'Jost', sans-serif;
-  letter-spacing: 0.06em;
-  padding: 11px 20px;
+  font: 500 14px 'Jost', sans-serif;
+  letter-spacing: 0.05em;
+  padding: 13px 24px;
   border-radius: 999px;
   cursor: pointer;
-  transition: all 0.2s;
-  border: 1.5px solid rgba(46, 42, 28, 0.16);
-  background: transparent;
+  transition:
+    background 0.2s,
+    border-color 0.2s,
+    color 0.2s;
+  border: 1.5px solid rgba(46, 42, 28, 0.2);
+  background: rgba(250, 246, 236, 0.6);
   color: #4a4433;
 
+  // Mismo lenguaje "grabado" (degradado + sombra interior) que el dorado de
+  // los botones de acción, pero en oliva: el dorado queda reservado para
+  // "esto agrega algo a mi pedido", el oliva para "esto es navegación".
   &--active {
     border-color: transparent;
-    background: var(--ink);
+    background: linear-gradient(155deg, #6b7a3c 0%, var(--oliveD, #454e24) 100%);
     color: var(--cream);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.2),
+      inset 0 -2px 3px rgba(0, 0, 0, 0.25);
   }
 }
 
@@ -76,8 +89,8 @@
 }
 
 .bol-menu__cat-title {
-  font: 500 30px var(--hf, 'Cormorant Garamond'), serif;
-  margin: 0 0 20px;
+  font: 500 34px var(--hf, 'Cormorant Garamond'), serif;
+  margin: 0 0 8px;
   display: flex;
   align-items: center;
   gap: 14px;
@@ -85,88 +98,143 @@
   span {
     flex: 1;
     height: 1px;
-    background: rgba(46, 42, 28, 0.12);
+    background: rgba(46, 42, 28, 0.16);
   }
 }
 
-.bol-menu__grid {
+// Carta editorial: cada categoría es una lista de filas separadas por una
+// línea fina — no tarjetas con sombra ni barra de color por producto (ese
+// color era el mismo para todos los items visibles a la vez: puro ruido
+// decorativo, nunca diferenció nada).
+// `container-type` deja que la doble columna de abajo dependa del ancho REAL
+// disponible para la lista (que cambia según si el aside de al lado ya se
+// apiló o no), no de un breakpoint de viewport adivinado a ciegas.
+.bol-menu__items {
+  container-type: inline-size;
+}
+
+.bol-menu__list {
+  position: relative;
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14px;
+  grid-template-columns: 1fr;
+}
 
-  @media (max-width: 480px) {
-    grid-template-columns: 1fr;
+// Pliegue de una carta de dos páginas: columna doble solo cuando el ancho
+// real de la lista alcanza para los nombres más largos sin apretarse.
+// `grid-auto-flow: column` + un número de filas explícito (--menu-rows,
+// calculado en el componente como items÷2) hace que cada fila comparta la
+// MISMA altura entre ambas columnas — así los nombres largos que se envuelven
+// a 2 líneas en un lado no desalinean las líneas divisorias del otro lado.
+// (Un `columns` de multicolumna normal NO da esta garantía: cada columna
+// fluye de forma independiente entre sí.)
+@container (min-width: 620px) {
+  .bol-menu__list {
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: repeat(var(--menu-rows, 1), auto);
+    grid-auto-flow: column;
+    column-gap: 56px;
+  }
+
+  .bol-menu__list::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: rgba(94, 106, 52, 0.18);
   }
 }
 
-.bol-menu__item {
-  background: #fff;
-  border: 1px solid rgba(46, 42, 28, 0.08);
-  border-radius: 16px;
-  padding: 18px 18px 16px;
+.bol-menu__row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px 20px;
+  padding: 22px 4px;
+  border-bottom: 1px solid rgba(46, 42, 28, 0.14);
+
+  &:first-child {
+    padding-top: 4px;
+  }
+
+  &--last {
+    border-bottom: none;
+  }
+}
+
+.bol-menu__row-main {
   display: flex;
   flex-direction: column;
-  position: relative;
-  overflow: hidden;
+  gap: 5px;
+  flex: 1 1 220px;
+  min-width: 0;
 }
 
-.bol-menu__item-bar {
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 4px;
+// 'Cormorant Garamond' es una serif de DISPLAY (trazos finos, poco alto-de-x)
+// pensada para títulos grandes — a este tamaño, en lectura extendida, es
+// justo lo que cuesta leer. 'EB Garamond' es la cara de TEXTO real de la
+// misma familia (ya cargada en index.html), con más cuerpo y alto-de-x,
+// diseñada para leerse en tamaños chicos — mismo espíritu editorial, mejor
+// legibilidad real.
+.bol-menu__row-name {
+  // Peso 500: es el más alto que 'EB Garamond' tiene cargado (ver
+  // index.html) — pedir 600 lo sintetizaría el navegador ("falso negrita"),
+  // que se ve borroso y sería contraproducente para la legibilidad.
+  font: 500 22px / 1.4 'EB Garamond', var(--hf, 'Cormorant Garamond'), serif;
 }
 
-.bol-menu__item-top {
+.bol-menu__row-qty {
+  font: 500 12.5px 'Jost', sans-serif;
+  color: var(--olive);
+}
+
+.bol-menu__row-end {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 12px;
+  align-items: center;
+  gap: 16px;
+  flex: 0 0 auto;
+  margin-left: auto;
 }
 
-.bol-menu__item-name {
-  font: 600 18px / 1.2 var(--hf, 'Cormorant Garamond'), serif;
-  padding-left: 8px;
-}
-
-.bol-menu__item-price {
-  font: 600 16px 'Jost', sans-serif;
+.bol-menu__row-price {
+  font: 600 17px 'Jost', sans-serif;
   color: var(--acc, #c8912a);
   font-variant-numeric: lining-nums tabular-nums;
   white-space: nowrap;
 }
 
-.bol-menu__item-bottom {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: 16px;
-  padding-left: 8px;
-}
-
-.bol-menu__in-cart {
-  font: 500 11px 'Jost', sans-serif;
-  color: var(--olive);
-}
-
-.bol-menu__add {
+// Mismo degradado "metal grabado" del CTA del navbar/checkout, en formato más
+// discreto e inline — ya no un bloque negro ocupando toda la fila inferior.
+.bol-menu__row-add {
   display: flex;
   align-items: center;
   gap: 6px;
-  background: var(--ink);
-  color: var(--cream);
+  background: linear-gradient(155deg, #f0c675 0%, var(--acc, #c8912a) 50%, #96651a 100%);
+  color: #fffaf0;
   border: none;
   border-radius: 999px;
-  padding: 9px 15px;
-  font: 500 11px 'Jost', sans-serif;
+  padding: 10px 18px;
+  font: 500 12.5px 'Jost', sans-serif;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   cursor: pointer;
+  white-space: nowrap;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    inset 0 -2px 2px rgba(103, 68, 15, 0.35);
+  transition:
+    box-shadow 0.25s,
+    transform 0.2s;
 
   @media (hover: hover) and (pointer: fine) {
     &:hover {
-      background: var(--acc, #c8912a);
+      transform: translateY(-1px);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.6),
+        inset 0 -2px 2px rgba(103, 68, 15, 0.35),
+        0 6px 14px -6px rgba(90, 58, 15, 0.5);
     }
   }
 }
@@ -209,7 +277,7 @@
 }
 
 .bol-menu__cart-empty {
-  font: 300 13.5px / 1.6 'Jost', sans-serif;
+  font: 300 14.5px / 1.6 'Jost', sans-serif;
   color: #d3d8bd;
   margin: 16px 0 6px;
 
@@ -242,12 +310,20 @@
 }
 
 .bol-menu__cart-line-name {
-  font: 500 14px / 1.25 'Cormorant Garamond', serif;
+  font: 500 15.5px / 1.3 'Cormorant Garamond', serif;
   color: var(--cream);
 }
 
+.bol-menu__cart-line-option {
+  display: block;
+  font: 500 11.5px 'Jost', sans-serif;
+  letter-spacing: 0.03em;
+  color: #e0b84a;
+  margin-top: 2px;
+}
+
 .bol-menu__cart-line-price {
-  font: 400 11px 'Jost', sans-serif;
+  font: 400 12.5px 'Jost', sans-serif;
   color: #c3caa0;
   font-variant-numeric: lining-nums tabular-nums;
 }
@@ -258,14 +334,14 @@
   gap: 8px;
 
   button {
-    width: 24px;
-    height: 24px;
+    width: 28px;
+    height: 28px;
     border-radius: 50%;
     border: 1px solid rgba(250, 246, 236, 0.3);
     background: none;
     color: var(--cream);
     cursor: pointer;
-    font-size: 14px;
+    font-size: 15px;
     line-height: 1;
     display: flex;
     align-items: center;
@@ -279,9 +355,9 @@
   }
 
   span {
-    min-width: 16px;
+    min-width: 18px;
     text-align: center;
-    font: 600 13px 'Jost', sans-serif;
+    font: 600 14px 'Jost', sans-serif;
     color: var(--cream);
     font-variant-numeric: lining-nums tabular-nums;
   }
@@ -366,7 +442,7 @@
   background: none;
   border: none;
   color: #c3caa0;
-  font: 400 11px 'Jost', sans-serif;
+  font: 400 12px 'Jost', sans-serif;
   letter-spacing: 0.06em;
   cursor: pointer;
   padding: 6px;
@@ -374,6 +450,155 @@
   @media (hover: hover) and (pointer: fine) {
     &:hover {
       color: var(--cream);
+    }
+  }
+}
+
+// Diálogo de sabor: mismo lenguaje del cajón de carrito (fondo oscurecido +
+// panel crema), pero centrado y flotante en vez de anclado a un borde, ya
+// que aquí se trata de una elección puntual (un producto, un sabor) y no de
+// un panel de navegación persistente como el carrito.
+.bol-flavor-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1400;
+  background: rgba(46, 42, 28, 0.55);
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 0.25s,
+    visibility 0.25s;
+
+  &--open {
+    opacity: 1;
+    visibility: visible;
+  }
+}
+
+.bol-flavor-dialog {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  z-index: 1450;
+  width: min(380px, 90vw);
+  background: #faf6ec;
+  border-radius: 22px;
+  padding: 30px 26px 26px;
+  box-shadow: 0 30px 70px -20px rgba(46, 42, 28, 0.6);
+  opacity: 0;
+  visibility: hidden;
+  transform: translate(-50%, -50%) scale(0.96);
+  transition:
+    opacity 0.25s,
+    transform 0.25s,
+    visibility 0.25s;
+
+  &--open {
+    opacity: 1;
+    visibility: visible;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+.bol-flavor-dialog__close {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #9a8f72;
+  padding: 4px;
+
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      color: var(--ink);
+    }
+  }
+}
+
+.bol-flavor-dialog__eyebrow {
+  font: 600 11px 'Cinzel', serif;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--olive);
+}
+
+.bol-flavor-dialog__title {
+  font: 500 26px / 1.3 'Cormorant Garamond', serif;
+  margin: 8px 0 20px;
+  padding-right: 20px;
+}
+
+.bol-flavor-dialog__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 22px;
+}
+
+// Mismo lenguaje "grabado" que la pestaña de categoría activa (oliva) — es
+// una elección/estado, no la acción de agregar en sí (esa sigue siendo
+// dorada, en el botón de confirmar de abajo).
+.bol-flavor-dialog__chip {
+  font: 500 13.5px 'Jost', sans-serif;
+  padding: 11px 18px;
+  border-radius: 999px;
+  border: 1.5px solid rgba(46, 42, 28, 0.2);
+  background: rgba(255, 255, 255, 0.5);
+  color: #4a4433;
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    border-color 0.2s,
+    color 0.2s;
+
+  &--selected {
+    border-color: transparent;
+    background: linear-gradient(155deg, #6b7a3c 0%, var(--oliveD, #454e24) 100%);
+    color: var(--cream);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.2),
+      inset 0 -2px 3px rgba(0, 0, 0, 0.25);
+  }
+}
+
+.bol-flavor-dialog__confirm {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  font: 600 13px 'Jost', sans-serif;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 15px;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  background: linear-gradient(155deg, #f0c675 0%, var(--acc, #c8912a) 50%, #96651a 100%);
+  color: #fffaf0;
+  box-shadow:
+    inset 0 1.5px 0 rgba(255, 255, 255, 0.55),
+    inset 0 -2px 3px rgba(103, 68, 15, 0.4),
+    0 8px 18px -8px rgba(90, 58, 15, 0.5);
+  transition:
+    box-shadow 0.3s,
+    transform 0.2s,
+    opacity 0.2s;
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: default;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    &:not(:disabled):hover {
+      transform: translateY(-2px);
+      box-shadow:
+        inset 0 1.5px 0 rgba(255, 255, 255, 0.6),
+        inset 0 -2px 3px rgba(103, 68, 15, 0.4),
+        0 12px 24px -8px rgba(90, 58, 15, 0.6);
     }
   }
 }

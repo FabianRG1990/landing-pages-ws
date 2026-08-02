@@ -19,7 +19,12 @@
       @for (l of cartLines(); track l.id) {
         <div class="bol-cart-drawer__line">
           <div class="bol-cart-drawer__line-info">
-            <div class="bol-cart-drawer__line-name">{{ l.item.name }}</div>
+            <div class="bol-cart-drawer__line-name">
+              {{ l.item.name }}
+              @if (l.option) {
+                <span class="bol-cart-drawer__line-option">{{ l.option }}</span>
+              }
+            </div>
             <div class="bol-cart-drawer__line-price">{{ fmt(l.item.price) }} c/u</div>
           </div>
           <div class="bol-cart-drawer__qty">

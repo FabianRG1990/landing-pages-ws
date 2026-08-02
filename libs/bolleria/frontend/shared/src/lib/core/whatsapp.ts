@@ -1,13 +1,14 @@
-import { MENU_BY_ID, formatColones } from '../data/menu-data';
+import { parseCartKey, formatColones } from '../data/menu-data';
 import { CONTACT } from '../data/contact-data';
 
 /** Transcripción fiel de `buildOrderText` — %0A literal (no `encodeURIComponent`), igual que el original. */
 export function buildOrderText(cart: Record<string, number>): string {
-  const lines = Object.entries(cart).map(([id, q]) => {
-    const it = MENU_BY_ID[id];
-    return `• ${q}× ${it.name} — ${formatColones(it.price * q)}`;
+  const lines = Object.entries(cart).map(([key, q]) => {
+    const { item, option } = parseCartKey(key);
+    const label = option ? `${item.name} — ${option}` : item.name;
+    return `• ${q}× ${label} — ${formatColones(item.price * q)}`;
   });
-  const total = Object.entries(cart).reduce((s, [id, q]) => s + MENU_BY_ID[id].price * q, 0);
+  const total = Object.entries(cart).reduce((s, [key, q]) => s + parseCartKey(key).item.price * q, 0);
   return `Hola Bollería, quiero hacer un pedido:%0A${lines.join('%0A')}%0A%0ATotal: ${formatColones(total)}`;
 }
 
