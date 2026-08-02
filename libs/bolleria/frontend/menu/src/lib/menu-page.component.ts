@@ -18,7 +18,6 @@ export class MenuPageComponent {
   readonly cartEmpty = this.store.cartEmpty;
   readonly cartHas = this.store.cartHas;
   readonly cartTotalFmt = this.store.cartTotalFmt;
-  readonly waCheckout = this.store.waCheckout;
   readonly fmt = formatColones;
 
   /** Producto cuyo diálogo de sabor está abierto (null = cerrado). */
@@ -71,5 +70,8 @@ export class MenuPageComponent {
   }
   clearCart(): void {
     this.store.clearCart();
+  }
+  startCheckout(): void {
+    this.store.openCheckout();
   }
 }

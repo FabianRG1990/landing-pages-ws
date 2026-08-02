@@ -9,6 +9,7 @@ import { isPlatformBrowser } from '@angular/common';
 import {
   BolleriaStore,
   CartDrawerComponent,
+  CheckoutDialogComponent,
   CurtainComponent,
   PreloaderComponent,
   SiteFooterComponent,
@@ -29,6 +30,7 @@ import { ContactPageComponent } from '@bolleria-ui-contacto';
     SiteNavComponent,
     SiteFooterComponent,
     CartDrawerComponent,
+    CheckoutDialogComponent,
     HeroScrollComponent,
     EntremesComponent,
     HomeComponent,

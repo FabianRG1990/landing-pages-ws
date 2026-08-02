@@ -18,3 +18,4 @@ export { CurtainComponent } from './lib/transition/curtain.component';
 export { SiteNavComponent } from './lib/layout/site-nav.component';
 export { SiteFooterComponent } from './lib/layout/site-footer.component';
 export { CartDrawerComponent } from './lib/cart/cart-drawer.component';
+export { CheckoutDialogComponent } from './lib/checkout/checkout-dialog.component';

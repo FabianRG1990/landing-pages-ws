@@ -17,7 +17,6 @@ export class CartDrawerComponent {
   readonly cartHas = this.store.cartHas;
   readonly cartLines = this.store.cartLines;
   readonly cartTotalFmt = this.store.cartTotalFmt;
-  readonly waCheckout = this.store.waCheckout;
   readonly fmt = formatColones;
 
   closeCart(): void {
@@ -26,6 +25,9 @@ export class CartDrawerComponent {
   goMenuFromCart(): void {
     this.store.closeCart();
     this.store.go('menu');
+  }
+  startCheckout(): void {
+    this.store.openCheckout();
   }
   inc(id: string): void {
     this.store.incCart(id);

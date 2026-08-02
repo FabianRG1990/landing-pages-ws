@@ -1,8 +1,9 @@
-import { computed } from '@angular/core';
+import { computed, inject } from '@angular/core';
 import { patchState, signalStore, withComputed, withMethods, withState } from '@ngrx/signals';
-import { ScreenId } from './models';
+import { DeliveryType, ScreenId } from './models';
 import { MENU_CATEGORIES, FAVORITE_IDS, MENU_BY_ID, cartKey, parseCartKey, formatColones } from '../data/menu-data';
-import { waCheckoutLink, waDirectLink } from './whatsapp';
+import { waDirectLink } from './whatsapp';
+import { OrderPdfService } from './order-pdf.service';
 
 interface BolleriaState {
   // navegación + cortina (transcripción fiel de `go()` del original)
@@ -18,6 +19,15 @@ interface BolleriaState {
   cart: Record<string, number>;
   // preloader
   loaded: boolean;
+  // pedido final (nombre + tipo de entrega + PDF generado)
+  checkoutOpen: boolean;
+  checkoutStep: 'form' | 'preview';
+  customerName: string;
+  deliveryType: DeliveryType | null;
+  checkoutError: string | null;
+  orderNumber: string | null;
+  orderDate: string | null;
+  pdfUrl: string | null;
 }
 
 const initialState: BolleriaState = {
@@ -29,6 +39,14 @@ const initialState: BolleriaState = {
   activeCat: 'pan-dulce',
   cart: {},
   loaded: false,
+  checkoutOpen: false,
+  checkoutStep: 'form',
+  customerName: '',
+  deliveryType: null,
+  checkoutError: null,
+  orderNumber: null,
+  orderDate: null,
+  pdfUrl: null,
 };
 
 export const BolleriaStore = signalStore(
@@ -63,52 +81,136 @@ export const BolleriaStore = signalStore(
     cartEmpty: computed(() => store.cartCount() === 0),
     cartHas: computed(() => store.cartCount() > 0),
     cartTotalFmt: computed(() => formatColones(store.cartTotal())),
-    waCheckout: computed(() => waCheckoutLink(store.cart(), store.cartCount())),
   })),
 
-  withMethods((store) => ({
-    /** Cambia de pantalla con la cortina — transcripción fiel de `go(route, cat)` del original. */
-    go(screen: ScreenId, cat?: string): void {
-      if (screen === store.screen() && !cat) {
-        patchState(store, { mobileOpen: false });
-        return;
-      }
-      patchState(store, { curtain: true, mobileOpen: false });
-      setTimeout(() => {
-        patchState(store, { screen, ...(cat ? { activeCat: cat } : {}) });
-        if (typeof window !== 'undefined') window.scrollTo(0, 0);
-        patchState(store, { settleTick: store.settleTick() + 1 });
-      }, 430);
-      setTimeout(() => patchState(store, { curtain: false }), 950);
-    },
+  withMethods((store) => {
+    const pdf = inject(OrderPdfService);
+    let _blobUrl: string | null = null;
 
-    toggleMobileMenu: () => patchState(store, { mobileOpen: !store.mobileOpen() }),
-    closeMobileMenu: () => patchState(store, { mobileOpen: false }),
+    return {
+      /** Cambia de pantalla con la cortina — transcripción fiel de `go(route, cat)` del original. */
+      go(screen: ScreenId, cat?: string): void {
+        if (screen === store.screen() && !cat) {
+          patchState(store, { mobileOpen: false });
+          return;
+        }
+        patchState(store, { curtain: true, mobileOpen: false });
+        setTimeout(() => {
+          patchState(store, { screen, ...(cat ? { activeCat: cat } : {}) });
+          if (typeof window !== 'undefined') window.scrollTo(0, 0);
+          patchState(store, { settleTick: store.settleTick() + 1 });
+        }, 430);
+        setTimeout(() => patchState(store, { curtain: false }), 950);
+      },
 
-    openCart: () => patchState(store, { cartOpen: true }),
-    closeCart: () => patchState(store, { cartOpen: false }),
+      toggleMobileMenu: () => patchState(store, { mobileOpen: !store.mobileOpen() }),
+      closeMobileMenu: () => patchState(store, { mobileOpen: false }),
 
-    setActiveCat: (key: string) => patchState(store, { activeCat: key }),
+      openCart: () => patchState(store, { cartOpen: true }),
+      closeCart: () => patchState(store, { cartOpen: false }),
 
-    addToCart(id: string, option?: string): void {
-      const key = cartKey(id, option);
-      const cart = store.cart();
-      patchState(store, { cart: { ...cart, [key]: (cart[key] ?? 0) + 1 } });
-    },
-    incCart(id: string): void {
-      const cart = store.cart();
-      patchState(store, { cart: { ...cart, [id]: (cart[id] ?? 0) + 1 } });
-    },
-    decCart(id: string): void {
-      const cart = store.cart();
-      const q = (cart[id] ?? 0) - 1;
-      const next = { ...cart };
-      if (q <= 0) delete next[id];
-      else next[id] = q;
-      patchState(store, { cart: next });
-    },
-    clearCart: () => patchState(store, { cart: {} }),
+      setActiveCat: (key: string) => patchState(store, { activeCat: key }),
 
-    markLoaded: () => patchState(store, { loaded: true }),
-  })),
+      addToCart(id: string, option?: string): void {
+        const key = cartKey(id, option);
+        const cart = store.cart();
+        patchState(store, { cart: { ...cart, [key]: (cart[key] ?? 0) + 1 } });
+      },
+      incCart(id: string): void {
+        const cart = store.cart();
+        patchState(store, { cart: { ...cart, [id]: (cart[id] ?? 0) + 1 } });
+      },
+      decCart(id: string): void {
+        const cart = store.cart();
+        const q = (cart[id] ?? 0) - 1;
+        const next = { ...cart };
+        if (q <= 0) delete next[id];
+        else next[id] = q;
+        patchState(store, { cart: next });
+      },
+      clearCart: () => patchState(store, { cart: {} }),
+
+      markLoaded: () => patchState(store, { loaded: true }),
+
+      // ---- pedido final: nombre + tipo de entrega + PDF ----
+      openCheckout: () =>
+        patchState(store, {
+          checkoutOpen: true,
+          checkoutStep: 'form',
+          customerName: '',
+          deliveryType: null,
+          checkoutError: null,
+          orderNumber: null,
+          orderDate: null,
+          pdfUrl: null,
+        }),
+      closeCheckout: () => patchState(store, { checkoutOpen: false }),
+      setCustomerName: (name: string) => patchState(store, { customerName: name }),
+      setDeliveryType: (type: DeliveryType) => patchState(store, { deliveryType: type }),
+
+      /** Valida y, si todo está, genera el PDF (con descarga automática) y pasa a la vista previa. Devuelve lo que falta. */
+      confirmOrder(): string[] {
+        const name = store.customerName().trim();
+        const type = store.deliveryType();
+        const miss: string[] = [];
+        if (!name) miss.push('el nombre del pedido');
+        if (!type) miss.push('el tipo de entrega');
+        if (miss.length) {
+          patchState(store, { checkoutError: 'Falta ' + miss.join(' y ') });
+          return miss;
+        }
+        const order = pdf.buildOrder({
+          customerName: name,
+          deliveryType: type as DeliveryType,
+          lines: store.cartLines(),
+          total: store.cartTotal(),
+        });
+        if (_blobUrl) {
+          try {
+            URL.revokeObjectURL(_blobUrl);
+          } catch {
+            /* noop */
+          }
+        }
+        _blobUrl = order.url;
+        // Descarga AUTOMÁTICA al generar — mismo criterio que Automotivo: el
+        // cliente recibe el archivo sí o sí, sin depender de que sepa/recuerde
+        // pulsar "Descargar". Se ejecuta dentro del gesto de confirmar, así
+        // que el navegador no la bloquea.
+        try {
+          order.save();
+        } catch {
+          /* noop */
+        }
+        patchState(store, {
+          checkoutError: null,
+          checkoutStep: 'preview',
+          pdfUrl: order.url,
+          orderNumber: order.orderNumber,
+          orderDate: order.orderDate,
+        });
+        return [];
+      },
+      /** Re-descarga manual (la orden ya se descargó al generarse). */
+      downloadPdf: () => pdf.lastOrder?.save(),
+      sendWhatsappOrder(): void {
+        const type = store.deliveryType();
+        const orderNumber = store.orderNumber();
+        const orderDate = store.orderDate();
+        if (!type || !orderNumber || !orderDate || typeof window === 'undefined') return;
+        window.open(
+          pdf.whatsappText({
+            customerName: store.customerName(),
+            deliveryType: type,
+            lines: store.cartLines(),
+            total: store.cartTotal(),
+            orderNumber,
+            orderDate,
+          }),
+          '_blank',
+          'noopener',
+        );
+      },
+    };
+  }),
 );

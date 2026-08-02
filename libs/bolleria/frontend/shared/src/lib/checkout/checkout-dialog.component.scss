@@ -1,0 +1,257 @@
+// Mismo lenguaje que el diálogo de sabor del menú (fondo oscurecido + panel
+// crema centrado), pero más ancho y con dos pasos: datos del pedido, y
+// después la vista previa del PDF ya generado.
+.bol-checkout-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1500;
+  background: rgba(46, 42, 28, 0.6);
+  opacity: 0;
+  visibility: hidden;
+  transition:
+    opacity 0.25s,
+    visibility 0.25s;
+
+  &--open {
+    opacity: 1;
+    visibility: visible;
+  }
+}
+
+.bol-checkout-dialog {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  z-index: 1550;
+  width: min(420px, 92vw);
+  max-height: 88vh;
+  overflow-y: auto;
+  background: #faf6ec;
+  border-radius: 22px;
+  padding: 32px 28px 28px;
+  box-shadow: 0 30px 70px -20px rgba(46, 42, 28, 0.6);
+  opacity: 0;
+  visibility: hidden;
+  transform: translate(-50%, -50%) scale(0.96);
+  transition:
+    opacity 0.25s,
+    transform 0.25s,
+    visibility 0.25s;
+
+  &--open {
+    opacity: 1;
+    visibility: visible;
+    transform: translate(-50%, -50%) scale(1);
+  }
+
+  &--preview {
+    width: min(520px, 94vw);
+  }
+}
+
+.bol-checkout-dialog__close {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #9a8f72;
+  padding: 4px;
+
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      color: var(--ink);
+    }
+  }
+}
+
+.bol-checkout-dialog__eyebrow {
+  font: 600 11px 'Cinzel', serif;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--olive);
+}
+
+.bol-checkout-dialog__title {
+  font: 500 26px / 1.3 'Cormorant Garamond', serif;
+  margin: 8px 0 20px;
+  padding-right: 20px;
+}
+
+.bol-checkout-dialog__label {
+  display: block;
+  font: 600 11px 'Jost', sans-serif;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #6b6552;
+  margin-bottom: 8px;
+}
+
+.bol-checkout-dialog__input {
+  width: 100%;
+  background: #fff;
+  border: 1.5px solid rgba(46, 42, 28, 0.16);
+  border-radius: 12px;
+  padding: 13px 15px;
+  font: 400 15px 'Jost', sans-serif;
+  color: var(--ink);
+
+  &:focus {
+    outline: none;
+    border-color: var(--acc, #c8912a);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--acc, #c8912a) 16%, transparent);
+  }
+}
+
+.bol-checkout-dialog__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.bol-checkout-dialog__chip {
+  font: 500 13.5px 'Jost', sans-serif;
+  padding: 11px 16px;
+  border-radius: 999px;
+  border: 1.5px solid rgba(46, 42, 28, 0.2);
+  background: rgba(255, 255, 255, 0.6);
+  color: #4a4433;
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    border-color 0.2s,
+    color 0.2s;
+
+  &--selected {
+    border-color: transparent;
+    background: linear-gradient(155deg, #6b7a3c 0%, var(--oliveD, #454e24) 100%);
+    color: var(--cream);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.2),
+      inset 0 -2px 3px rgba(0, 0, 0, 0.25);
+  }
+}
+
+.bol-checkout-dialog__error {
+  font: 500 12.5px 'Jost', sans-serif;
+  color: #a5401c;
+  background: rgba(165, 64, 28, 0.1);
+  border: 1px solid rgba(165, 64, 28, 0.25);
+  border-radius: 10px;
+  padding: 10px 13px;
+  margin-top: 14px;
+}
+
+.bol-checkout-dialog__confirm {
+  width: 100%;
+  margin-top: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  font: 600 13px 'Jost', sans-serif;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 15px;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  background: linear-gradient(155deg, #f0c675 0%, var(--acc, #c8912a) 50%, #96651a 100%);
+  color: #fffaf0;
+  box-shadow:
+    inset 0 1.5px 0 rgba(255, 255, 255, 0.55),
+    inset 0 -2px 3px rgba(103, 68, 15, 0.4),
+    0 8px 18px -8px rgba(90, 58, 15, 0.5);
+  transition:
+    box-shadow 0.3s,
+    transform 0.2s;
+
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow:
+        inset 0 1.5px 0 rgba(255, 255, 255, 0.6),
+        inset 0 -2px 3px rgba(103, 68, 15, 0.4),
+        0 12px 24px -8px rgba(90, 58, 15, 0.6);
+    }
+  }
+}
+
+.bol-checkout-dialog__frame {
+  width: 100%;
+  height: min(56vh, 520px);
+  border: 1px solid rgba(46, 42, 28, 0.14);
+  border-radius: 12px;
+  background: #6b6552;
+
+  // En viewports angostos (mobile) el diálogo llega casi al alto completo de
+  // pantalla — si el iframe se lleva más de la mitad, el botón "Enviar por
+  // WhatsApp" (la acción principal) queda fuera de vista sin hacer scroll.
+  @media (max-width: 480px) {
+    height: min(34vh, 320px);
+  }
+}
+
+.bol-checkout-dialog__note {
+  font: 300 12.5px / 1.55 'Jost', sans-serif;
+  color: #6b6552;
+  margin: 14px 0 4px;
+}
+
+.bol-checkout-dialog__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.bol-checkout-dialog__secondary {
+  flex: 1 1 160px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font: 600 12.5px 'Jost', sans-serif;
+  letter-spacing: 0.04em;
+  padding: 13px 16px;
+  border-radius: 999px;
+  border: 1.5px solid rgba(46, 42, 28, 0.2);
+  background: transparent;
+  color: #4a4433;
+  cursor: pointer;
+
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      background: rgba(46, 42, 28, 0.06);
+    }
+  }
+}
+
+.bol-checkout-dialog__whatsapp {
+  flex: 1 1 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  font: 600 13px 'Jost', sans-serif;
+  letter-spacing: 0.04em;
+  padding: 13px 18px;
+  border-radius: 999px;
+  border: none;
+  cursor: pointer;
+  background: #25823f;
+  color: #fff;
+  box-shadow: 0 10px 20px -8px rgba(37, 130, 63, 0.5);
+  transition:
+    background 0.2s,
+    transform 0.2s;
+
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      background: #1f6e35;
+      transform: translateY(-2px);
+    }
+  }
+}

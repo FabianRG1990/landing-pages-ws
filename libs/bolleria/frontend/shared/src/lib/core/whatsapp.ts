@@ -1,22 +1,4 @@
-import { parseCartKey, formatColones } from '../data/menu-data';
 import { CONTACT } from '../data/contact-data';
-
-/** Transcripción fiel de `buildOrderText` — %0A literal (no `encodeURIComponent`), igual que el original. */
-export function buildOrderText(cart: Record<string, number>): string {
-  const lines = Object.entries(cart).map(([key, q]) => {
-    const { item, option } = parseCartKey(key);
-    const label = option ? `${item.name} — ${option}` : item.name;
-    return `• ${q}× ${label} — ${formatColones(item.price * q)}`;
-  });
-  const total = Object.entries(cart).reduce((s, [key, q]) => s + parseCartKey(key).item.price * q, 0);
-  return `Hola Bollería, quiero hacer un pedido:%0A${lines.join('%0A')}%0A%0ATotal: ${formatColones(total)}`;
-}
-
-export function waCheckoutLink(cart: Record<string, number>, cartCount: number): string {
-  return cartCount > 0
-    ? `https://wa.me/${CONTACT.whatsapp}?text=${buildOrderText(cart)}`
-    : `https://wa.me/${CONTACT.whatsapp}`;
-}
 
 export function waDirectLink(): string {
   return `https://wa.me/${CONTACT.whatsapp}?text=${encodeURIComponent('Hola Bollería, quiero hacer una consulta.')}`;

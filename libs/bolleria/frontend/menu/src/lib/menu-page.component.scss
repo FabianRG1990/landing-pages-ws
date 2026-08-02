@@ -294,6 +294,9 @@
   margin: 16px 0 4px;
   max-height: 300px;
   overflow-y: auto;
+  // Aire entre el contenido (texto, botones +/-) y la barra de scroll — sin
+  // esto la barra queda pegada al borde del texto, se ve apretado.
+  padding-right: 14px;
 }
 
 .bol-menu__cart-line {
@@ -395,7 +398,10 @@
   letter-spacing: 0.08em;
   text-transform: uppercase;
   padding: 14px;
+  border: none;
   border-radius: 999px;
+  cursor: pointer;
+  width: 100%;
   background: linear-gradient(155deg, #f0c675 0%, var(--acc, #c8912a) 50%, #96651a 100%);
   color: #fffaf0;
   box-shadow:
