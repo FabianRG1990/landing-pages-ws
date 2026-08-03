@@ -33,11 +33,15 @@
   }
 }
 
-// Sticky sin fondo propio: el resto del sitio deja ver el fondo artístico fijo
-// del body detrás de cada pantalla (ver comentario en styles.scss); ponerle un
-// rectángulo crema plano solo a esta barra rompía esa continuidad y se veía
-// como un parche pegado encima — se quita del todo, cada pestaña ya trae
-// suficiente contraste por su propio borde/relleno.
+// Sticky sin ninguna forma nueva detrás — nada de rectángulo, nada de velo:
+// eso ya se probó (dos veces) y siempre termina viéndose como una barra ajena
+// pegada sobre el fondo artístico. La solución real está en cada pastilla:
+// antes eran translúcidas (dejaban pasar el texto del scroll por encima de su
+// propia letra, que es lo que se veía "atravesado"); ahora son opacas de
+// verdad, como cualquier otro botón del sitio — nada puede cruzarlas porque
+// no hay nada translúcido que atravesar. Los huecos angostos entre pastillas
+// sí dejan ver el fondo, pero eso es normal en cualquier fila de chips, no el
+// problema que se reportó.
 .bol-menu__tabs {
   display: flex;
   gap: 10px;
@@ -59,9 +63,13 @@
   transition:
     background 0.2s,
     border-color 0.2s,
-    color 0.2s;
+    color 0.2s,
+    box-shadow 0.2s;
   border: 1.5px solid rgba(46, 42, 28, 0.2);
-  background: rgba(250, 246, 236, 0.6);
+  box-shadow: 0 3px 10px -5px rgba(46, 42, 28, 0.3);
+  // Opaca de verdad (antes 0.6 de opacidad) — así el texto que sube detrás
+  // mientras se hace scroll no se asoma a través de la propia pastilla.
+  background: var(--cream, #faf6ec);
   color: #4a4433;
 
   // Mismo lenguaje "grabado" (degradado + sombra interior) que el dorado de
@@ -73,7 +81,8 @@
     color: var(--cream);
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.2),
-      inset 0 -2px 3px rgba(0, 0, 0, 0.25);
+      inset 0 -2px 3px rgba(0, 0, 0, 0.25),
+      0 3px 10px -5px rgba(46, 42, 28, 0.3);
   }
 }
 

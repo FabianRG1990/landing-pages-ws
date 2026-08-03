@@ -88,19 +88,34 @@ export const BolleriaStore = signalStore(
     let _blobUrl: string | null = null;
 
     return {
-      /** Cambia de pantalla con la cortina — transcripción fiel de `go(route, cat)` del original. */
+      /**
+       * Cambia de pantalla con la cortina del "hornito" (ver
+       * `CurtainComponent`): el iris de entrada cubre toda la pantalla desde
+       * los ~750ms, y no empieza a desvanecerse hasta los 1750ms, así que el
+       * cambio de pantalla a los 1000ms ocurre siempre con la pantalla vieja
+       * completamente tapada — no depende de nada probabilístico. El estado
+       * se resetea a los 2450ms, justo después de que la cortina termina de
+       * desvanecerse del todo (`stage` vuelve a `idle` a los 2400ms). Con
+       * `prefers-reduced-motion` el componente usa un respaldo mucho más
+       * corto (~420ms) — estos tiempos lo acompañan.
+       */
       go(screen: ScreenId, cat?: string): void {
         if (screen === store.screen() && !cat) {
           patchState(store, { mobileOpen: false });
           return;
         }
+        const reduced =
+          typeof window !== 'undefined' &&
+          (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false);
+        const swapDelay = reduced ? 120 : 1000;
+        const resetDelay = reduced ? 420 : 2450;
         patchState(store, { curtain: true, mobileOpen: false });
         setTimeout(() => {
           patchState(store, { screen, ...(cat ? { activeCat: cat } : {}) });
           if (typeof window !== 'undefined') window.scrollTo(0, 0);
           patchState(store, { settleTick: store.settleTick() + 1 });
-        }, 430);
-        setTimeout(() => patchState(store, { curtain: false }), 950);
+        }, swapDelay);
+        setTimeout(() => patchState(store, { curtain: false }), resetDelay);
       },
 
       toggleMobileMenu: () => patchState(store, { mobileOpen: !store.mobileOpen() }),
