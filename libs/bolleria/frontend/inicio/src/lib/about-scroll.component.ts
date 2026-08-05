@@ -58,11 +58,11 @@ const SLIDES: AboutSlide[] = [
   {
     src: 'assets/about-3.webp',
     alt: 'Mostrador de La Bollería con lámparas de mimbre y vitrina de pan',
-    top: [
-      { align: 'right', text: 'nuestro espacio es el resultado de dos historias que se encontraron:', size: 'sm' },
-      { align: 'right', text: 'la disciplina del deporte y la tradición de una familia panadera', size: 'sm' },
-    ],
-    bottom: [],
+    top: [{ align: 'right', text: 'nuestro espacio es el resultado de dos historias que se encontraron:', size: 'lg' }],
+    // Sobre los tablones de madera del mostrador (zona vacía, sin producto),
+    // en vez de compartir arriba con la primera frase — así cada una respira
+    // y puede leerse a un tamaño cómodo.
+    bottom: [{ align: 'center', text: 'la disciplina del deporte y la tradición de una familia panadera', size: 'sm' }],
   },
   {
     src: 'assets/about-4.webp',
