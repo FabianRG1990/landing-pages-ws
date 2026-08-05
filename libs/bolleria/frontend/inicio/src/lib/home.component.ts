@@ -1,10 +1,12 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { BolleriaStore } from '@bolleria-ui-shared';
+import { AboutScrollComponent } from './about-scroll.component';
 
 @Component({
   selector: 'bol-home',
   standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [AboutScrollComponent],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss',
 })

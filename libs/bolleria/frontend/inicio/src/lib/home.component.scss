@@ -260,49 +260,10 @@
 }
 
 .bol-social-wrap {
-  margin: 90px auto 0;
-  max-width: 1200px;
+  margin: 100px auto 0;
+  max-width: 700px;
   padding: 0 40px;
-}
-.bol-social {
-  display: grid;
-  grid-template-columns: 0.92fr 1fr;
-  gap: 64px;
-  align-items: center;
-
-  @media (max-width: 860px) {
-    grid-template-columns: 1fr;
-    gap: 40px;
-  }
-}
-.bol-social__photos {
-  position: relative;
-  padding: 0 15% 22% 0;
-
-  @media (max-width: 860px) {
-    padding: 0 22% 18% 0;
-    max-width: 380px;
-    margin: 0 auto;
-  }
-}
-.bol-social__photo {
-  display: block;
-  width: 100%;
-  border-radius: 22px;
-  object-fit: cover;
-  box-shadow: 0 24px 50px -26px rgba(46, 42, 28, 0.35);
-}
-.bol-social__photo--a {
-  aspect-ratio: 4 / 5;
-}
-.bol-social__photo--b {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  width: 58%;
-  aspect-ratio: 8 / 5;
-  border: 6px solid var(--cream);
-  transform: rotate(3deg);
+  text-align: center;
 }
 .bol-social__eyebrow {
   font: 600 12px 'Cinzel', serif;
@@ -322,7 +283,7 @@
 .bol-social__lead {
   font: 300 16px / 1.65 'Jost', sans-serif;
   color: #6b6552;
-  margin: 18px 0 0;
+  margin: 18px auto 0;
   max-width: 400px;
 }
 // Mismo tratamiento "metal grabado" del CTA del navbar (.bol-nav__cta):

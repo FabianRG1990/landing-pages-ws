@@ -1,0 +1,255 @@
+.bol-about-wrap {
+  position: relative;
+  height: 708vh; // 6 pasos * 118vh: aire suficiente para que cada crossfade respire
+
+  @media (max-width: 860px) {
+    height: auto;
+  }
+}
+
+.bol-about-steps {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+
+  @media (max-width: 860px) {
+    display: none;
+  }
+}
+.bol-about-step {
+  height: calc(100% / 6);
+}
+
+.bol-about-stage {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+
+  @media (max-width: 860px) {
+    position: static;
+    height: auto;
+    padding: 70px 0;
+  }
+}
+
+.bol-about-grid {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 40px;
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 64px;
+  align-items: center;
+
+  @media (max-width: 860px) {
+    grid-template-columns: 1fr;
+    gap: 48px;
+    padding: 0 24px;
+  }
+}
+
+// Sin max-width chico, sin recorte, sin tarjeta: la foto se muestra completa,
+// tal cual, al ancho real de su columna. Las 6 fotos comparten exactamente
+// el mismo aspecto (1122x1402 = 4/5), así que el `aspect-ratio` de acá no
+// recorta nada — solo reserva el espacio para que no salte el layout
+// mientras cargan.
+.bol-about-photo {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+
+  @media (max-width: 860px) {
+    display: flex;
+    flex-direction: column;
+    gap: 48px;
+    aspect-ratio: unset;
+  }
+}
+
+.bol-about-frames {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden; // solo para que el crossfade no se salga de su caja, no decorativo
+
+  @media (max-width: 860px) {
+    display: flex;
+    flex-direction: column;
+    gap: 48px;
+    height: auto;
+    overflow: visible;
+  }
+}
+
+.bol-about-frame {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  transition: opacity 0.9s ease;
+
+  img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain; // nunca recorta, aunque el aspecto no calzara exacto
+  }
+
+  &--active {
+    opacity: 1;
+    z-index: 2;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+  }
+
+  @media (max-width: 860px) {
+    position: relative;
+    opacity: 1;
+    aspect-ratio: 4 / 5;
+  }
+}
+
+.bol-about-cap {
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 7% 8%;
+  pointer-events: none;
+
+  p {
+    margin: 0;
+  }
+}
+// Velo tenue detrás del texto: garantiza contraste sin importar el fondo de
+// la foto (lámparas, azulejos naranjas, cojines claros, etc.), en vez de
+// calibrar color/sombra caso por caso. Se ajusta solo al alto real del
+// bloque de texto (la caja no tiene alto fijo), así que nunca tapa más foto
+// de la necesaria. Tono cálido, no negro puro, para no romper la paleta.
+.bol-about-cap--top {
+  top: 0;
+  background: linear-gradient(to bottom, rgba(20, 13, 6, 0.58) 0%, rgba(20, 13, 6, 0.32) 65%, rgba(20, 13, 6, 0) 100%);
+}
+.bol-about-cap--bottom {
+  bottom: 0;
+  background: linear-gradient(to top, rgba(20, 13, 6, 0.58) 0%, rgba(20, 13, 6, 0.32) 65%, rgba(20, 13, 6, 0) 100%);
+}
+
+// Tipografía y tamaño: los mismos exactos que `.bol-entremes__line1` ("Hay
+// lugares a los que se entra..."). Color: el mismo exacto que
+// `.bol-entremes__line2` ("Ven a descubrir el nuestro"). Ambos ya existen en
+// entremes.component.scss — se reutilizan tal cual, no son valores nuevos.
+.bol-about-cap p {
+  font: italic 500 clamp(24px, 3.4vw, 42px) / 1.32 'Cormorant Garamond', serif;
+  color: #e8c168;
+  text-shadow:
+    0 2px 6px rgba(0, 0, 0, 0.55),
+    0 12px 34px rgba(0, 0, 0, 0.45);
+  opacity: 0;
+  transform: translateY(14px);
+  transition:
+    opacity 0.7s ease,
+    transform 0.7s cubic-bezier(0.2, 0.75, 0.2, 1);
+
+  strong {
+    font-weight: 700;
+  }
+}
+
+// Mismo estilo (cursiva, dorado, sombra) pero contenido: para oraciones
+// largas/explicativas que a tamaño "lg" se desbordarían sobre el producto
+// (ej. croissants). Las frases cortas y poéticas se quedan con el tamaño
+// grande dramático de arriba.
+.bol-about-cap p.bol-about-cap__line--sm {
+  font: italic 500 clamp(16px, 1.7vw, 22px) / 1.5 'Cormorant Garamond', serif;
+}
+
+.bol-about-frame--active .bol-about-cap p {
+  opacity: 1;
+  transform: none;
+  transition-delay: 0.15s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bol-about-cap p {
+    transition: none;
+  }
+}
+@media (max-width: 860px) {
+  .bol-about-cap p {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
+.bol-about-dots {
+  position: absolute;
+  left: 50%;
+  bottom: -34px;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 8px;
+  z-index: 3;
+
+  @media (max-width: 860px) {
+    display: none;
+  }
+}
+.bol-about-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ink) 22%, transparent);
+  transition:
+    background 0.4s ease,
+    transform 0.4s ease;
+}
+.bol-about-dot--active {
+  background: var(--acc, #c8912a);
+  transform: scale(1.4);
+}
+
+.bol-about-copy {
+  max-width: 460px;
+
+  @media (max-width: 860px) {
+    max-width: none;
+    text-align: center;
+    margin: 0 auto;
+  }
+}
+.bol-about-eyebrow {
+  font: 600 12px 'Cinzel', serif;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: var(--olive);
+}
+.bol-about-title {
+  font: 500 clamp(32px, 3.8vw, 46px) / 1.08 var(--hf, 'Cormorant Garamond'), serif;
+  margin: 16px 0 0;
+
+  em {
+    font-style: italic;
+    color: var(--acc, #c8912a);
+  }
+}
+.bol-about-copy p {
+  font: 300 16px / 1.7 'Jost', sans-serif;
+  color: #6b6552;
+  margin: 18px 0 0;
+
+  @media (max-width: 860px) {
+    max-width: 440px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
