@@ -1,0 +1,185 @@
+.bol-book {
+  max-width: 980px;
+  margin: 100px auto 0;
+  padding: 0 24px;
+  text-align: center;
+}
+
+.bol-book__hidden {
+  // visibility (no @if / display:none): el titulo y el hint siguen ocupando su
+  // espacio real aun ocultos, para que el libro nunca se desplace verticalmente
+  // al abrir/cerrar la tapa.
+  visibility: hidden;
+}
+.bol-book__eyebrow {
+  font: 600 12px 'Cinzel', serif;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: var(--olive);
+}
+.bol-book__title {
+  font: 500 clamp(32px, 3.8vw, 46px) / 1.08 var(--hf, 'Cormorant Garamond'), serif;
+  margin: 16px 0 0;
+
+  em {
+    font-style: italic;
+    color: var(--acc, #c8912a);
+  }
+}
+.bol-book__hint {
+  font: 300 16px / 1.6 'Jost', sans-serif;
+  color: #6b6552;
+  margin: 14px auto 0;
+  max-width: 380px;
+}
+
+// --- Escenario: canvas con la secuencia real del video (fondo removido) ---
+.bol-book__stage {
+  position: relative;
+  width: min(640px, 100%);
+  margin: 36px auto 0;
+  aspect-ratio: 860 / 698;
+}
+.bol-book__canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  filter: drop-shadow(0 22px 30px rgba(46, 37, 19, 0.22));
+
+  &.is-ready {
+    opacity: 1;
+  }
+}
+.bol-book__cover-hit {
+  position: absolute;
+  inset: 8% 12%;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+
+  &:disabled {
+    cursor: default;
+  }
+}
+
+// --- Controles --------------------------------------------------------------
+
+.bol-book__controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  margin-top: 28px;
+  min-height: 46px;
+}
+.bol-book__open {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font: 500 12.5px 'Jost', sans-serif;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 16px 30px;
+  border: 0;
+  border-radius: 999px;
+  cursor: pointer;
+  color: #fffaf0;
+  background: linear-gradient(155deg, #f0c675 0%, var(--acc, #c8912a) 50%, #96651a 100%);
+  box-shadow:
+    inset 0 1.5px 0 rgba(255, 255, 255, 0.55),
+    inset 0 -2px 3px rgba(103, 68, 15, 0.4),
+    0 10px 24px -8px rgba(90, 58, 15, 0.5);
+  transition:
+    box-shadow 0.3s,
+    transform 0.2s,
+    opacity 0.2s;
+
+  &:disabled {
+    opacity: 0.55;
+    cursor: default;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    &:not(:disabled):hover {
+      transform: translateY(-2px);
+      box-shadow:
+        inset 0 1.5px 0 rgba(255, 255, 255, 0.6),
+        inset 0 -2px 3px rgba(103, 68, 15, 0.4),
+        0 16px 32px -10px rgba(90, 58, 15, 0.6);
+    }
+  }
+}
+.bol-book__nav {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font: 600 12px 'Cinzel', serif;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--olive);
+  padding: 8px 4px;
+  transition: color 0.25s;
+
+  &:disabled {
+    opacity: 0.35;
+    cursor: default;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    &:not(:disabled):hover {
+      color: var(--acc, #c8912a);
+    }
+  }
+}
+.bol-book__wheat {
+  width: 8px;
+  height: 13px;
+  display: inline-block;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 22'%3E%3Cpath d='M7 1v20M7 5c-1.8.3-3 1.5-3.6 3 1.8.9 3 .3 3.6-1.2M7 5c1.8.3 3 1.5 3.6 3-1.8.9-3 .3-3.6-1.2M7 11c-1.8.3-3 1.5-3.6 3 1.8.9 3 .3 3.6-1.2M7 11c1.8.3 3 1.5 3.6 3-1.8.9-3 .3-3.6-1.2' stroke='%23C8912A' stroke-width='1.3' fill='none' stroke-linecap='round'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+}
+.bol-book__counter {
+  font: 500 12px 'Jost', sans-serif;
+  letter-spacing: 0.08em;
+  color: #6b6552;
+  font-variant-numeric: tabular-nums;
+  min-width: 52px;
+}
+.bol-book__restart {
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font: 600 12px 'Cinzel', serif;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--olive);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  transition: color 0.25s;
+
+  &:disabled {
+    opacity: 0.35;
+    cursor: default;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    &:not(:disabled):hover {
+      color: var(--acc, #c8912a);
+    }
+  }
+}
+
+@media (max-width: 640px) {
+  .bol-book {
+    margin-top: 70px;
+  }
+  .bol-book__controls {
+    gap: 16px;
+  }
+}
