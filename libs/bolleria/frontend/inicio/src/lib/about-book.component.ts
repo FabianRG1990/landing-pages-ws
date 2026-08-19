@@ -1007,7 +1007,7 @@ export class AboutBookComponent {
       const cut = this.curl ? MESH_LO : (MESH_LO + MESH_HI) / 2;
       const page = !t || f < cut ? front : back;
       this.drawPanelInQuad(ctx, this.photoPanel(page), CONTENT_LEFT_QUAD, ox, oy, scale, true, alpha);
-      this.drawPanelInQuad(ctx, this.textPanels[page - 1] ?? null, CONTENT_RIGHT_QUAD, ox, oy, scale, false, alpha);
+      this.drawPanelInQuad(ctx, this.textPanels[page - 1] ?? null, CONTENT_RIGHT_QUAD, ox, oy, scale, false, alpha, true);
       return;
     }
 
@@ -1023,6 +1023,11 @@ export class AboutBookComponent {
       cl.setTransform(1, 0, 0, 1, 0, 0);
       cl.globalAlpha = 1;
       cl.globalCompositeOperation = 'source-over';
+      // El canvas principal ya pide interpolacion de alta calidad; estos
+      // lienzos auxiliares nacen en 'low' y ahi el texto warpeado sale mas
+      // blando -y por lo tanto mas delgado- que dibujado directo.
+      cl.imageSmoothingEnabled = true;
+      cl.imageSmoothingQuality = 'high';
       cl.clearRect(box.x, box.y, box.w, box.h);
     };
     const punch = (): void => {
@@ -1065,23 +1070,56 @@ export class AboutBookComponent {
       ctx.restore();
     }
 
-    // 2) Contenido quieto en las páginas, recortado por la silueta de la hoja:
-    //    la foto que se va sigue en la izquierda hasta que la hoja la cubre, y
-    //    el texto que entra ya está en la derecha, apareciendo a medida que la
-    //    hoja la despeja.
+    // 2) Las COPIAS (opacas): la que se va, quieta en la página izquierda y
+    //    recortada por la silueta de la hoja, y la que entra, ya impresa en el
+    //    dorso de la hoja. Van juntas en una capa que se estampa multiplicada
+    //    por la luminancia del cuadro.
     reset();
     if (leftPhoto) this.drawImageInQuad(cl, leftPhoto, this.scaleQuad(CONTENT_LEFT_QUAD, ox, oy, scale));
-    if (rightText) this.drawImageInQuad(cl, rightText, this.scaleQuad(CONTENT_RIGHT_QUAD, ox, oy, scale));
     punch();
-
-    // 3) Contenido impreso EN la hoja, deformándose con ella.
-    if (frontText) this.drawOnMesh(cl, frontText, mesh.f, mesh.fv, SHEET_TEXT_UV, ox, oy, scale);
-    if (backPhoto && mesh.b && mesh.bv) this.drawOnMesh(cl, backPhoto, mesh.b, mesh.bv, SHEET_PHOTO_UV, ox, oy, scale);
-
+    // `includes('1')`: de los cuadros 120 al 133 la cara frontal esta entera de
+    // espaldas y del 83 al 115 no hay dorso; sin este corte se recorren igual
+    // las 256 celdas del warp para no dibujar nada.
+    if (backPhoto && mesh.b && mesh.bv?.includes('1')) {
+      this.drawOnMesh(cl, backPhoto, mesh.b, mesh.bv, SHEET_PHOTO_UV, ox, oy, scale);
+    }
     this.stampShaded(ctx, this.contentLayer, box, shade, alpha);
+
+    // 3) Los TEXTOS, aparte y con `multiply` directo sobre el cuadro.
+    //    No pueden ir en la capa de arriba: alli el contenido se usa dos veces
+    //    -en el multiply contra el sombreado y en el recorte `destination-in`-
+    //    y eso eleva su alfa al cuadrado. Un pixel de borde de letra con
+    //    cobertura 0.5 acababa en 0.25, o sea que el nucleo del trazo quedaba
+    //    igual pero el borde perdia tres cuartos de su peso: las letras se
+    //    veian mas delgadas y mas claras en cuanto arrancaba la vuelta.
+    //    Con `multiply` el alfa se aplica UNA sola vez, y ademas es el modelo
+    //    correcto: la tinta absorbe luz sobre el papel, asi que el sombreado
+    //    lo pone el propio pixel de destino sin necesidad del mapa aparte.
+    const frontVisible = frontText != null && mesh.fv.includes('1');
+    if (rightText || frontVisible) {
+      reset();
+      if (rightText) this.drawImageInQuad(cl, rightText, this.scaleQuad(CONTENT_RIGHT_QUAD, ox, oy, scale));
+      punch();
+      if (frontVisible && frontText) this.drawOnMesh(cl, frontText, mesh.f, mesh.fv, SHEET_TEXT_UV, ox, oy, scale);
+      ctx.save();
+      ctx.globalCompositeOperation = 'multiply';
+      ctx.globalAlpha = alpha;
+      ctx.drawImage(this.contentLayer, box.x, box.y, box.w, box.h, box.x, box.y, box.w, box.h);
+      ctx.restore();
+    }
   }
 
-  /** Dibuja `img` en `quad` con el warp de 4 puntos, con la sombra de copia impresa si corresponde. */
+  /**
+   * Dibuja `img` en `quad` con el warp de 4 puntos, con la sombra de copia
+   * impresa si corresponde.
+   *
+   * `ink` lo compone con `multiply` en vez de `source-over`: es lo que
+   * corresponde a los paneles de TEXTO, que son tinta sobre fondo transparente
+   * y no un parche opaco. Ademas de ser el modelo fisico correcto (la tinta
+   * absorbe la luz del papel que tiene debajo), deja el texto quieto y el
+   * texto pegado a la hoja compuestos exactamente igual, para que al arrancar
+   * la vuelta el trazo no cambie de peso.
+   */
   private drawPanelInQuad(
     ctx: CanvasRenderingContext2D,
     img: HTMLCanvasElement | ImageBitmap | null,
@@ -1091,12 +1129,14 @@ export class AboutBookComponent {
     scale: number,
     printShadow = false,
     alpha = 1,
+    ink = false,
   ): void {
     if (!img || alpha <= 0) return;
     const dst = this.scaleQuad(quad, ox, oy, scale);
     // La sombra se derrama FUERA del cuadrilatero, asi que va antes del dibujo.
     if (printShadow) this.drawPrintShadow(ctx, dst);
     ctx.save();
+    if (ink) ctx.globalCompositeOperation = 'multiply';
     if (alpha < 1) ctx.globalAlpha = alpha;
     this.drawImageInQuad(ctx, img, dst);
     ctx.restore();
