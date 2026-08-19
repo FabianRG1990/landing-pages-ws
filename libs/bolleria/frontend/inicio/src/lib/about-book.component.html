@@ -1,14 +1,22 @@
 <section class="bol-book">
   <div class="bol-book__head">
     <div class="bol-book__eyebrow">Acerca de nosotros</div>
-    <h2 class="bol-book__title" [class.bol-book__hidden]="coverOpen()">Nuestra historia, <em>página a página</em></h2>
-    <p class="bol-book__hint" [class.bol-book__hidden]="coverOpen()">Abrí el libro y conocé cómo empezamos.</p>
+    <h2 class="bol-book__title">Nuestra historia, <em>página a página</em></h2>
+    <p class="bol-book__hint">Abrí el libro y conocé cómo empezamos.</p>
   </div>
 
   <div class="bol-book__stage">
-    <canvas #canvas class="bol-book__canvas" [class.is-ready]="ready()"></canvas>
+    <canvas #canvas class="bol-book__canvas" [class.is-ready]="ready()" [class.is-lifting]="lifting()"></canvas>
     @if (!coverOpen()) {
       <button type="button" class="bol-book__cover-hit" [disabled]="busy() || !ready()" (click)="open()" aria-label="Abrir el libro"></button>
+    }
+    <!-- Todo el contenido (fotos, texto) se dibuja sobre el canvas -salvo
+         estos dos links, que necesitan ser elementos reales para ser
+         clickeables. Se posicionan calculando dónde cayó el ícono dibujado
+         (ver socialLinkStyle) para que queden exactamente encima. -->
+    @if (showSocialLinks()) {
+      <a [href]="contact.instagram" target="_blank" rel="noopener" class="bol-book__social-hit" [ngStyle]="socialLinkStyle('instagram')" aria-label="Seguinos en Instagram"></a>
+      <a [href]="contact.facebook" target="_blank" rel="noopener" class="bol-book__social-hit" [ngStyle]="socialLinkStyle('facebook')" aria-label="Seguinos en Facebook"></a>
     }
   </div>
 

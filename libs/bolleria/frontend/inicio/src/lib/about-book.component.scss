@@ -1,15 +1,21 @@
 .bol-book {
-  max-width: 980px;
-  margin: 100px auto 0;
+  max-width: 1200px;
+  // 120px (no los ~48px de antes): pegado a la grilla de categorias de arriba
+  // (fotos grandes, con scrim oscuro) se leia como si fuera parte del mismo
+  // bloque en vez de una seccion nueva -este aire extra marca el corte.
+  margin: 120px auto 0;
   padding: 0 24px;
   text-align: center;
 }
 
-.bol-book__hidden {
-  // visibility (no @if / display:none): el titulo y el hint siguen ocupando su
-  // espacio real aun ocultos, para que el libro nunca se desplace verticalmente
-  // al abrir/cerrar la tapa.
-  visibility: hidden;
+// --- Cabecera -----------------------------------------------------------
+// El titulo y el hint quedan siempre visibles, incluso con el libro abierto.
+// Estan pegados al libro a proposito (ver .bol-book__stage): durante la
+// apertura, la tapa sube y los tapa un instante real -por eso el head va
+// detras en capas (z-index menor que el stage), a proposito, como efecto.
+.bol-book__head {
+  position: relative;
+  z-index: 1;
 }
 .bol-book__eyebrow {
   font: 600 12px 'Cinzel', serif;
@@ -19,7 +25,7 @@
 }
 .bol-book__title {
   font: 500 clamp(32px, 3.8vw, 46px) / 1.08 var(--hf, 'Cormorant Garamond'), serif;
-  margin: 16px 0 0;
+  margin: 10px 0 0;
 
   em {
     font-style: italic;
@@ -29,15 +35,22 @@
 .bol-book__hint {
   font: 300 16px / 1.6 'Jost', sans-serif;
   color: #6b6552;
-  margin: 14px auto 0;
+  margin: 8px auto 0;
   max-width: 380px;
 }
 
 // --- Escenario: canvas con la secuencia real del video (fondo removido) ---
 .bol-book__stage {
   position: relative;
-  width: min(640px, 100%);
-  margin: 36px auto 0;
+  z-index: 2; // por encima del titulo (ver .bol-book__head): la tapa lo tapa a proposito al abrir
+  width: min(1040px, 100%);
+  // Negativo a proposito: dentro del cuadro fijo, el libro en reposo deja
+  // ~223px de aire transparente arriba (medido en los 169 cuadros del video).
+  // Este margen "acerca" el titulo al libro real, aceptando que durante el
+  // instante en que la tapa se abre (sube hasta quedar a solo ~24px del techo
+  // del cuadro) va a taparlo brevemente -ver .is-lifting para el efecto que
+  // acompaña ese momento.
+  margin: -176px auto 0;
   aspect-ratio: 860 / 698;
 }
 .bol-book__canvas {
@@ -52,6 +65,30 @@
   &.is-ready {
     opacity: 1;
   }
+
+  // Pulso de "elevacion" sincronizado con open(): dura lo mismo que la
+  // animacion de apertura (ver MS_PER_FRAME * distancia en el componente) y
+  // su pico coincide con el instante en que la tapa pasa mas cerca del
+  // titulo, para que se sienta como el libro levantandose hacia la camara en
+  // vez de una imagen plana tapando texto.
+  &.is-lifting {
+    animation: bol-book-lift 1.1s ease-in-out;
+  }
+}
+
+@keyframes bol-book-lift {
+  0% {
+    transform: scale(1) translateY(0);
+    filter: drop-shadow(0 22px 30px rgba(46, 37, 19, 0.22));
+  }
+  40% {
+    transform: scale(1.035) translateY(-8px);
+    filter: drop-shadow(0 42px 48px rgba(46, 37, 19, 0.34));
+  }
+  100% {
+    transform: scale(1) translateY(0);
+    filter: drop-shadow(0 22px 30px rgba(46, 37, 19, 0.22));
+  }
 }
 .bol-book__cover-hit {
   position: absolute;
@@ -65,6 +102,19 @@
   }
 }
 
+// Único link real sobre el canvas (redes sociales en la página de cierre):
+// todo lo demás (fotos, texto) son píxeles dibujados en el mismo canvas del
+// video, nunca un elemento u motor de render aparte. Se posiciona por JS
+// (ver socialLinkStyle) exactamente encima del ícono ya dibujado.
+.bol-book__social-hit {
+  position: absolute;
+  width: 120px;
+  height: 32px;
+  transform: translate(-50%, -50%);
+  // invisible a proposito: el icono/texto real ya esta pintado en el canvas,
+  // esto es solo el area clickeable
+}
+
 // --- Controles --------------------------------------------------------------
 
 .bol-book__controls {
@@ -72,7 +122,18 @@
   align-items: center;
   justify-content: center;
   gap: 24px;
-  margin-top: 28px;
+  position: relative;
+  // Por encima del stage (z-index:2): al acercar los botones al libro con
+  // margen negativo, sus cajas se superponen -sin esto, el boton invisible
+  // "click para abrir" del stage tapa al boton real "Abrir el libro".
+  z-index: 3;
+  // El cuadro del canvas es una caja fija (para no tocar el tamano del libro),
+  // pero el libro dentro del video deja bastante aire transparente debajo suyo
+  // en TODOS los cuadros usados aca (minimo medido: 107px de 698 -> ~129px ya
+  // escalado a pantalla). Este margen negativo "acerca" los botones a donde
+  // realmente terminan los pixeles del libro, dejando ~29px de aire real de
+  // sobra en el peor caso -> nunca se solapa con el libro.
+  margin-top: -100px;
   min-height: 46px;
 }
 .bol-book__open {
@@ -175,9 +236,15 @@
   }
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .bol-book__canvas.is-lifting {
+    animation: none;
+  }
+}
+
 @media (max-width: 640px) {
   .bol-book {
-    margin-top: 70px;
+    margin-top: 36px;
   }
   .bol-book__controls {
     gap: 16px;
