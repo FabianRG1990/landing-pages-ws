@@ -280,6 +280,7 @@ export class AboutBookComponent {
   private contentLayer: HTMLCanvasElement | null = null;
   private maskLayer: HTMLCanvasElement | null = null;
   private shadeLayer: HTMLCanvasElement | null = null;
+  private paperLayer: HTMLCanvasElement | null = null;
   private wheatIcon: HTMLImageElement | null = null;
   private textPanels: HTMLCanvasElement[] = [];
   private ctx: CanvasRenderingContext2D | null = null;
@@ -587,6 +588,7 @@ export class AboutBookComponent {
     this.contentLayer = this.ensureLayer(this.contentLayer, c.width, c.height);
     this.maskLayer = this.ensureLayer(this.maskLayer, c.width, c.height);
     this.shadeLayer = this.ensureLayer(this.shadeLayer, c.width, c.height);
+    this.paperLayer = this.ensureLayer(this.paperLayer, c.width, c.height);
   }
 
   private lastDrawn = 1;
@@ -740,6 +742,74 @@ export class AboutBookComponent {
     return vis[r * g + c] === '1' && vis[r * g + c + 1] === '1' && vis[(r + 1) * g + c] === '1' && vis[(r + 1) * g + c + 1] === '1';
   }
 
+  /**
+   * Superficie sobre la que va el contenido QUIETO de cada pagina.
+   *
+   * La pagina derecha en reposo es la cara frontal de la hoja en el cuadro 83, y
+   * la izquierda es su dorso en el 133: los dos extremos del unico tramo de
+   * vuelta que existe. Dibujar ahi el contenido quieto -y no sobre un
+   * cuadrilatero plano- es lo que elimina el relevo. Con el cuadrilatero las
+   * cuatro esquinas coincidian exactamente, pero el interior saltaba hasta
+   * 4,9 px (media 2,1) en un solo cuadro al arrancar la vuelta, y 2,5 px al
+   * aterrizar la foto: la pagina renderizada ya tiene 27 grados de rizo de
+   * esquina en el cuadro 83 (wrap medido del ajuste) y el contenido quieto se
+   * pintaba como si fuera perfectamente plana. Usando la misma superficie en
+   * los dos lados del traspaso no hay nada que empalmar.
+   *
+   * Devuelve null si la malla no esta cargada; ahi los llamadores caen al
+   * cuadrilatero plano de siempre.
+   */
+  private restSurface(side: 'left' | 'right'): { pts: [number, number][]; vis: string; uv: readonly UV[] } | null {
+    const m = this.curl?.frames[String(side === 'right' ? MESH_LO : MESH_HI)];
+    if (!m) return null;
+    if (side === 'right') return { pts: m.f, vis: m.fv, uv: SHEET_TEXT_UV };
+    return m.b && m.bv ? { pts: m.b, vis: m.bv, uv: SHEET_PHOTO_UV } : null;
+  }
+
+  /** Foto quieta de la pagina izquierda. La sombra se derrama FUERA del contenido, asi que va antes. */
+  private drawRestPhoto(
+    ctx: CanvasRenderingContext2D,
+    img: HTMLCanvasElement | null,
+    ox: number,
+    oy: number,
+    scale: number,
+    alpha = 1,
+  ): void {
+    if (!img || alpha <= 0) return;
+    const s = this.restSurface('left');
+    if (!s) {
+      this.drawPanelInQuad(ctx, img, CONTENT_LEFT_QUAD, ox, oy, scale, true, alpha);
+      return;
+    }
+    this.drawPrintShadow(ctx, this.meshCorners(s.pts, s.uv, ox, oy, scale));
+    ctx.save();
+    if (alpha < 1) ctx.globalAlpha = alpha;
+    this.drawOnMesh(ctx, img, s.pts, s.vis, s.uv, ox, oy, scale);
+    ctx.restore();
+  }
+
+  /** Texto quieto de la pagina derecha. `multiply` porque la tinta absorbe luz sobre el papel. */
+  private drawRestText(
+    ctx: CanvasRenderingContext2D,
+    img: HTMLCanvasElement | null,
+    ox: number,
+    oy: number,
+    scale: number,
+    alpha = 1,
+  ): void {
+    if (!img || alpha <= 0) return;
+    const s = this.restSurface('right');
+    if (!s) {
+      this.drawPanelInQuad(ctx, img, CONTENT_RIGHT_QUAD, ox, oy, scale, false, alpha, true);
+      return;
+    }
+    ctx.save();
+    ctx.globalCompositeOperation = 'multiply';
+    if (alpha < 1) ctx.globalAlpha = alpha;
+    this.drawOnMesh(ctx, img, s.pts, s.vis, s.uv, ox, oy, scale);
+    ctx.restore();
+  }
+
   /** El cuadrilatero (u,v) del contenido visto como un Quad, para poder reusar `quadHomography` sobre el espacio de la pagina. */
   private static uvQuad(uv: readonly UV[]): Quad {
     return uv.map((p) => ({ x: p.u, y: p.v })) as Quad;
@@ -766,41 +836,54 @@ export class AboutBookComponent {
     ox: number,
     oy: number,
     scale: number,
+    fillOccluded = false,
   ): void {
     const SUB = 16;
     const toUV = AboutBookComponent.quadHomography(AboutBookComponent.uvQuad(uv));
     const bleed = 0.5 / SUB;
     const w = img.width;
     const h = img.height;
-    for (let gy = 0; gy < SUB; gy++) {
-      for (let gx = 0; gx < SUB; gx++) {
-        const eu0 = Math.max(0, gx / SUB - bleed);
-        const ev0 = Math.max(0, gy / SUB - bleed);
-        const eu1 = Math.min(1, (gx + 1) / SUB + bleed);
-        const ev1 = Math.min(1, (gy + 1) / SUB + bleed);
-        const a = toUV(eu0, ev0);
-        const b = toUV(eu1, ev0);
-        const c = toUV(eu0, ev1);
-        const d = toUV(eu1, ev1);
-        if (
-          !this.meshVisible(vis, a.x, a.y) ||
-          !this.meshVisible(vis, b.x, b.y) ||
-          !this.meshVisible(vis, c.x, c.y) ||
-          !this.meshVisible(vis, d.x, d.y)
-        ) {
-          continue;
+    // Con `fillOccluded`, DOS PASADAS en orden de pintor: primero las celdas que
+    // el propio rollo tapa y encima las que se ven. Saltarlas dejaba agujeros:
+    // entre los cuadros 106 y 126 hay hasta 61 de los 169 vertices sin ninguna
+    // cara visible -el 36% de la hoja-, asi que la foto entrante salia
+    // acribillada, con el borde dentado del tamano de la celda. Pintarlas debajo
+    // rellena el hueco con papel contiguo en vez de dejarlo en blanco.
+    //
+    // Solo se activa para las FOTOS. En la cara frontal, durante el cambio de
+    // cara (116-119) las dos caras estan parcialmente visibles y el texto se
+    // estampa despues que la foto: rellenar ahi pondria el texto saliente por
+    // encima de la foto entrante.
+    for (let pass = fillOccluded ? 0 : 1; pass < 2; pass++) {
+      const wantVisible = pass === 1;
+      for (let gy = 0; gy < SUB; gy++) {
+        for (let gx = 0; gx < SUB; gx++) {
+          const eu0 = Math.max(0, gx / SUB - bleed);
+          const ev0 = Math.max(0, gy / SUB - bleed);
+          const eu1 = Math.min(1, (gx + 1) / SUB + bleed);
+          const ev1 = Math.min(1, (gy + 1) / SUB + bleed);
+          const a = toUV(eu0, ev0);
+          const b = toUV(eu1, ev0);
+          const c = toUV(eu0, ev1);
+          const d = toUV(eu1, ev1);
+          const seen =
+            this.meshVisible(vis, a.x, a.y) &&
+            this.meshVisible(vis, b.x, b.y) &&
+            this.meshVisible(vis, c.x, c.y) &&
+            this.meshVisible(vis, d.x, d.y);
+          if (seen !== wantVisible) continue;
+          this.drawCellAffine(
+            ctx,
+            img,
+            w * eu0,
+            h * ev0,
+            w * (eu1 - eu0),
+            h * (ev1 - ev0),
+            this.meshPoint(pts, a.x, a.y, ox, oy, scale),
+            this.meshPoint(pts, b.x, b.y, ox, oy, scale),
+            this.meshPoint(pts, c.x, c.y, ox, oy, scale),
+          );
         }
-        this.drawCellAffine(
-          ctx,
-          img,
-          w * eu0,
-          h * ev0,
-          w * (eu1 - eu0),
-          h * (ev1 - ev0),
-          this.meshPoint(pts, a.x, a.y, ox, oy, scale),
-          this.meshPoint(pts, b.x, b.y, ox, oy, scale),
-          this.meshPoint(pts, c.x, c.y, ox, oy, scale),
-        );
       }
     }
   }
@@ -923,6 +1006,26 @@ export class AboutBookComponent {
    * oscurecido dos veces (medido: el borde de la copia caia un 32% donde la
    * pagina que la rodea solo caia un 15%).
    */
+  /**
+   * Copia del cuadro del video tal cual, con su alfa. Se usa como recorte: el
+   * contenido no puede pintarse donde no hay papel. La malla es un ajuste, no
+   * calca la hoja al pixel, asi que sin este recorte la foto de la copia
+   * entrante se salia del borde de la hoja y quedaba flotando sobre el fondo.
+   * Se lee ANTES de pintar nada nuestro, igual que el sombreado: en cuanto
+   * estampamos algo, el alfa del canvas principal deja de ser el del papel.
+   */
+  private capturePaper(box: Box, main: HTMLCanvasElement): HTMLCanvasElement | null {
+    this.paperLayer = this.ensureLayer(this.paperLayer, main.width, main.height);
+    const p = this.paperLayer.getContext('2d');
+    if (!p) return null;
+    p.setTransform(1, 0, 0, 1, 0, 0);
+    p.globalAlpha = 1;
+    p.globalCompositeOperation = 'source-over';
+    p.clearRect(box.x, box.y, box.w, box.h);
+    p.drawImage(main, box.x, box.y, box.w, box.h, box.x, box.y, box.w, box.h);
+    return this.paperLayer;
+  }
+
   private captureShade(box: Box, main: HTMLCanvasElement): CanvasRenderingContext2D | null {
     this.shadeLayer = this.ensureLayer(this.shadeLayer, main.width, main.height);
     const s = this.shadeLayer.getContext('2d');
@@ -1006,8 +1109,8 @@ export class AboutBookComponent {
       // comportamiento anterior en vez de romperse.
       const cut = this.curl ? MESH_LO : (MESH_LO + MESH_HI) / 2;
       const page = !t || f < cut ? front : back;
-      this.drawPanelInQuad(ctx, this.photoPanel(page), CONTENT_LEFT_QUAD, ox, oy, scale, true, alpha);
-      this.drawPanelInQuad(ctx, this.textPanels[page - 1] ?? null, CONTENT_RIGHT_QUAD, ox, oy, scale, false, alpha, true);
+      this.drawRestPhoto(ctx, this.photoPanel(page), ox, oy, scale, alpha);
+      this.drawRestText(ctx, this.textPanels[page - 1] ?? null, ox, oy, scale, alpha);
       return;
     }
 
@@ -1015,6 +1118,7 @@ export class AboutBookComponent {
     if (!box.w || !box.h) return;
     const shade = this.captureShade(box, main);
     if (!shade) return;
+    const paper = this.capturePaper(box, main);
     const mask = this.buildSheetMask(mesh, ox, oy, scale, box, main);
     this.contentLayer = this.ensureLayer(this.contentLayer, main.width, main.height);
     const cl = this.contentLayer.getContext('2d');
@@ -1043,6 +1147,20 @@ export class AboutBookComponent {
       cl.restore();
       cl.globalCompositeOperation = 'source-over';
     };
+    // Nada de lo nuestro puede quedar donde no hay papel. La malla es un ajuste
+    // y sobresale de la hoja real en los tramos flojos, asi que sin esto la foto
+    // de la copia entrante se salia del borde y flotaba sobre el fondo.
+    const clipPaper = (): void => {
+      if (!paper) return;
+      cl.save();
+      cl.beginPath();
+      cl.rect(box.x, box.y, box.w, box.h);
+      cl.clip();
+      cl.globalCompositeOperation = 'destination-in';
+      cl.drawImage(paper, box.x, box.y, box.w, box.h, box.x, box.y, box.w, box.h);
+      cl.restore();
+      cl.globalCompositeOperation = 'source-over';
+    };
 
     const leftPhoto = this.photoPanel(front);
     const rightText = this.textPanels[back - 1] ?? null;
@@ -1052,17 +1170,27 @@ export class AboutBookComponent {
     // lleva foto, y sin esta condicion quedaba su sombra suelta sobre la pagina
     // izquierda como un rectangulo gris flotando.
     const inShadow = mesh.b && backPhoto ? AboutBookComponent.ramp(f, IN_SHADOW_LO, IN_SHADOW_HI) : 0;
+    // Lo que esta QUIETO durante la vuelta -la foto de la pagina izquierda y el
+    // texto que se destapa en la derecha- va sobre las mismas superficies de
+    // reposo que usa `drawContent` con la hoja parada. Si aqui fueran
+    // cuadrilateros planos y alli mallas (o al reves), el traspaso al empezar y
+    // al terminar la vuelta volveria a saltar.
+    const restL = this.restSurface('left');
+    const restR = this.restSurface('right');
 
     // 1) Sombras de las copias, con `multiply` sobre el cuadro. La de la copia
     //    quieta se recorta igual que ella: si no, al taparla la hoja quedaría
     //    un rectángulo oscuro flotando sobre el papel.
     if (leftPhoto || inShadow > 0) {
       reset();
-      if (leftPhoto) this.drawPrintShadow(cl, this.scaleQuad(CONTENT_LEFT_QUAD, ox, oy, scale));
+      if (leftPhoto) {
+        this.drawPrintShadow(cl, restL ? this.meshCorners(restL.pts, restL.uv, ox, oy, scale) : this.scaleQuad(CONTENT_LEFT_QUAD, ox, oy, scale));
+      }
       punch();
       if (inShadow > 0 && mesh.b) {
         this.drawPrintShadow(cl, this.meshCorners(mesh.b, SHEET_PHOTO_UV, ox, oy, scale), inShadow);
       }
+      clipPaper();
       ctx.save();
       ctx.globalCompositeOperation = 'multiply';
       ctx.globalAlpha = alpha;
@@ -1075,14 +1203,20 @@ export class AboutBookComponent {
     //    dorso de la hoja. Van juntas en una capa que se estampa multiplicada
     //    por la luminancia del cuadro.
     reset();
-    if (leftPhoto) this.drawImageInQuad(cl, leftPhoto, this.scaleQuad(CONTENT_LEFT_QUAD, ox, oy, scale));
+    if (leftPhoto) {
+      if (restL) this.drawOnMesh(cl, leftPhoto, restL.pts, restL.vis, restL.uv, ox, oy, scale);
+      else this.drawImageInQuad(cl, leftPhoto, this.scaleQuad(CONTENT_LEFT_QUAD, ox, oy, scale));
+    }
     punch();
     // `includes('1')`: de los cuadros 120 al 133 la cara frontal esta entera de
     // espaldas y del 83 al 115 no hay dorso; sin este corte se recorren igual
     // las 256 celdas del warp para no dibujar nada.
+    // `includes('1')`: del 83 al 115 no hay dorso; sin este corte se recorren
+    // igual las 256 celdas del warp para no dibujar nada.
     if (backPhoto && mesh.b && mesh.bv?.includes('1')) {
-      this.drawOnMesh(cl, backPhoto, mesh.b, mesh.bv, SHEET_PHOTO_UV, ox, oy, scale);
+      this.drawOnMesh(cl, backPhoto, mesh.b, mesh.bv, SHEET_PHOTO_UV, ox, oy, scale, true);
     }
+    clipPaper();
     this.stampShaded(ctx, this.contentLayer, box, shade, alpha);
 
     // 3) Los TEXTOS, aparte y con `multiply` directo sobre el cuadro.
@@ -1098,9 +1232,13 @@ export class AboutBookComponent {
     const frontVisible = frontText != null && mesh.fv.includes('1');
     if (rightText || frontVisible) {
       reset();
-      if (rightText) this.drawImageInQuad(cl, rightText, this.scaleQuad(CONTENT_RIGHT_QUAD, ox, oy, scale));
+      if (rightText) {
+        if (restR) this.drawOnMesh(cl, rightText, restR.pts, restR.vis, restR.uv, ox, oy, scale);
+        else this.drawImageInQuad(cl, rightText, this.scaleQuad(CONTENT_RIGHT_QUAD, ox, oy, scale));
+      }
       punch();
       if (frontVisible && frontText) this.drawOnMesh(cl, frontText, mesh.f, mesh.fv, SHEET_TEXT_UV, ox, oy, scale);
+      clipPaper();
       ctx.save();
       ctx.globalCompositeOperation = 'multiply';
       ctx.globalAlpha = alpha;
