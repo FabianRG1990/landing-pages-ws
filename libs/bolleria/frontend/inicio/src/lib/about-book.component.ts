@@ -53,6 +53,18 @@ const PAGE_TURNED = 137;
 // cara puede venir de su propio ajuste sin que se note.
 const MESH_LO = 83;
 const MESH_HI = 133;
+// La hoja EN REPOSO lleva el texto sobre un PLANO, no sobre la malla calibrada.
+// La malla del cuadro 83 describe una superficie curva de verdad -flecha medida
+// de 11,8px en el renglon de arriba y 9,7 en el de abajo, contra 0,9 en el
+// centro- y las oraciones salian arqueadas. Una homografia de 4 esquinas lleva
+// rectas a rectas, asi que sobre el plano salen exactamente rectas.
+//
+// El plano y la malla se separan hasta 13,5px (4,5 de media) en el cuadro 83.
+// Ese corrimiento se desvanece entre MESH_LO y este cuadro (ver `frontPts`), a
+// menos de 1,7px por cuadro contra los 4-7px que ya se mueve el papel ahi. El
+// archivo de calibracion no se toca en ningun momento, y desde aqui se usa tal
+// cual, vertice a vertice.
+const FLAT_BLEND_HI = 95;
 const CURL_URL = 'assets/about-book-curl.json';
 // Aparicion del contenido al abrir la tapa: el libro esta >=95% abierto ya en
 // el cuadro 43 y solo se asienta hasta el 50, asi que el contenido se funde
@@ -73,21 +85,31 @@ const IN_SHADOW_HI = 133;
 // asentada en la izquierda). Asi el relevo entre el contenido quieto y el
 // contenido pegado a la hoja es continuo al pixel, sin salto.
 type UV = { u: number; v: number };
-// Encuadre del texto dentro de la hoja, MARCADO A MANO por el dueno del sitio
-// en el calibrador (apps/bolleria/public/calibrador-hoja.html), viendolo sobre
-// el cuadro real. Son cuatro esquinas libres, no un rectangulo: el las coloco
-// asi a proposito y se usan tal cual, igual que CONTENT_LEFT_QUAD y
-// CONTENT_RIGHT_QUAD. No "corregir" estos numeros — cualquier ajuste los aleja
-// de lo que se pidio.
+// Encuadre del texto dentro de la hoja: un RECTANGULO en coordenadas de la
+// propia pagina, no un cuadrilatero libre.
 //
-// Ocupa casi toda la pagina, asi que las letras salen un 10,4% mas anchas que
-// su forma nominal (medido sobre el papel: la zona da 0,943 de relacion y el
-// panel es 700/820 = 0,854). Es el aspecto que se eligio a sabiendas.
+// Antes eran cuatro esquinas marcadas a mano en el calibrador. Se cambiaron
+// porque, medidas contra la decoracion impresa en la propia pagina, metian dos
+// defectos que se veian:
+//
+//   1. CIZALLA. El borde de arriba del cuadrilatero iba a 1,45 grados y el de
+//      abajo a 3,36: casi 2 grados de abanico que NO son perspectiva, sino la
+//      zona estando torcida. Sumados a la perspectiva real hacian que el primer
+//      parrafo se leyera en diagonal mientras el segundo se veia recto.
+//   2. CORRIMIENTO. Los cuatro dibujos de las esquinas estan en (u,v) de
+//      pagina en 0.133/0.185, 0.885/0.096, 0.039/0.882 y 0.924/0.910, asi que
+//      el centro de la pagina segun su propia decoracion es u=0.502. El texto
+//      caia en u=0.542: un 4,2% del ancho corrido hacia la derecha, pegado a
+//      los dibujos de ese lado y despegado de los de la izquierda.
+//
+// Siendo un rectangulo en (u,v), las lineas del panel se mapean a lineas
+// horizontales de la pagina y todo el abanico que queda es la perspectiva de
+// verdad. El margen de 0.02 deja el texto dentro del papel sin comerse borde.
 const SHEET_TEXT_UV: [UV, UV, UV, UV] = [
-  { u: 0.01854, v: 0.01526 },
-  { u: 0.9527, v: 0.03896 },
-  { u: 1, v: 0.9915 },
-  { u: 0.04563, v: 0.93546 },
+  { u: 0.02, v: 0.02 },
+  { u: 0.98, v: 0.02 },
+  { u: 0.98, v: 0.98 },
+  { u: 0.02, v: 0.98 },
 ];
 const SHEET_PHOTO_UV: [UV, UV, UV, UV] = [
   { u: 0.2077, v: 0.10285 },
@@ -125,11 +147,56 @@ const MS_PER_FRAME = 22;
 // `.bol-book__wheat` en about-book.component.scss) -se reutiliza para el
 // divisor del texto, en vez de inventar un color nuevo.
 const GOLD = '#C8912A';
-// Margen interno del panel de TEXTO dentro de su zona (la foto no lleva
-// margen: va a sangre hasta las 4 esquinas marcadas a mano, ver
-// CONTENT_LEFT_QUAD). Es la fraccion del ancho/alto del panel que queda como
-// aire alrededor del parrafo.
-const CONTENT_MARGIN = 0.17;
+// --- TIPOGRAFIA DE LAS HISTORIAS ---
+// Los tres numeros de abajo (cuerpo, medida y centro) NO son preferencias: son
+// el optimo de una busqueda, y solo tienen sentido juntos.
+//
+// El metodo: se rectifica la pagina real al espacio del panel invirtiendo la
+// superficie de reposo (la PLANA, ver FLAT_BLEND_HI, que es la que decide donde
+// cae cada letra sobre el papel); se localizan los cuatro dibujos de esquina y
+// se separan en DOS GRUPOS, los de la izquierda y los de la derecha, ademas de
+// la canaleta del lomo y los cantos; y se busca en las tres dimensiones a la
+// vez el mayor cuerpo que deja al menos 10px de holgura contra todo Y ADEMAS
+// queda equilibrado -a menos de 6px de diferencia entre lo que separa el texto
+// de los dibujos de un lado y los del otro-, dibujando las 7 paginas completas,
+// espiga divisoria y rotulos de redes incluidos.
+//
+// Optimo medido: 48px con medida 504 y centro 0.525 -> 15.5px a los dibujos de
+// la izquierda y 20.6px a los de la derecha. Son 14% mas que los 42 anteriores.
+//
+// El equilibrio es una condicion de la busqueda y no un extra: buscando solo el
+// maximo se llega a 50.5px, pero con el texto a 1.4px de un grupo de dibujos y
+// a 20px del otro, y esa asimetria se ve a simple vista aunque no haya choque.
+//
+// Dos trampas que costaron una vuelta entera de medicion:
+//   - Buscar con el texto sin tildes miente. La i de "dias", la o de
+//     "tradicion" y la n de "pequenos" suben por encima de la altura de x y son
+//     justo lo que roza el dibujo de la esquina de arriba.
+//   - La pagina de cierre cuenta como una mas. Dejarla fuera de la busqueda dio
+//     un cuerpo que no le cabia.
+const STORY_FONT = 48;
+// Medida (ancho de columna) = 10.5 veces el cuerpo. Salio de la busqueda, no de
+// una regla: con la columna un pelo mas estrecha los renglones se alejan de los
+// dibujos laterales y el bloque entero puede crecer.
+const STORY_MEASURE = 504;
+// Interlineado y aire entre parrafos, en multiplos del cuerpo. 1.38 es el mismo
+// que daban los 58px sobre 42, asi que el ritmo vertical no cambia, solo escala.
+const STORY_LINE = 1.38;
+const STORY_PARA = 0.5;
+// Alto reservado para la espiga divisoria DENTRO del bloque. Va contado en el
+// alto total a proposito: dejandola fuera, el bloque se centra mal y el adorno
+// termina sobre el dibujo de la esquina de abajo.
+const STORY_DIVIDER_H = 34;
+// Centro del texto dentro del panel, contra la DECORACION IMPRESA en la pagina
+// y no contra el borde del papel ni a ojo. Los cuatro dibujos de esquina estan
+// en (u,v) de pagina en 0.133/0.185, 0.885/0.096, 0.039/0.882 y 0.924/0.910: su
+// centro geometrico cae en u=0.502, pero no basta con ponerlo ahi porque no
+// invaden la pagina por igual -el de arriba a la derecha llega hasta u=0.693 y
+// el de arriba a la izquierda solo hasta u=0.227-. El horizontal sale por tanto
+// de la busqueda, que iguala las distancias MEDIDAS a un grupo y al otro; el
+// vertical si es el centro geometrico de los cuatro.
+const PAGE_CENTER_U = 0.525;
+const PAGE_CENTER_V = 0.519;
 // --- La foto es una COPIA IMPRESA apoyada sobre la pagina, no un dibujo en
 // ella. Los tres valores de abajo son los que separan un composite creible de
 // uno amateur; ninguno es una preferencia estetica suelta.
@@ -205,9 +272,35 @@ interface CurlFrame {
    */
   ba?: number;
 }
+/**
+ * Similitud plana `[a, b, tx, ty]` -> `(x,y) => (a*x - b*y + tx, b*x + a*y + ty)`.
+ * Cuatro numeros: traslacion, giro y escala uniforme, en coordenadas de video.
+ */
+type Sim = [number, number, number, number];
 interface CurlAsset {
   grid: [number, number];
   frames: Record<string, CurlFrame>;
+  /**
+   * Asentamiento de la apertura, por cuadro: `l` para la pagina izquierda y `r`
+   * para la derecha.
+   *
+   * Al abrirse, el libro no queda quieto de golpe: las paginas siguen
+   * acostandose. Medido rastreando los ornamentos impresos en cada pagina
+   * contra el cuadro 82 (donde ya no se mueve nada), la izquierda recorre
+   * todavia 14,5px en el cuadro 43 y la derecha 3,8px. Y el contenido aparece
+   * justo ahi -OPEN_FADE_LO es 43-, clavado a una superficie fija: el libro se
+   * acostaba y la foto no lo acompanaba.
+   *
+   * Cada entrada es la similitud que lleva la pose de reposo a la pose de ese
+   * cuadro. Se ajusta por minimos cuadrados sobre tres ornamentos de la pagina
+   * izquierda y cuatro de la derecha (los que aguantan la prueba de dar
+   * identidad con el libro parado; el de abajo a la derecha de la izquierda se
+   * descarto porque lo tapa la hoja derecha y deriva hasta 6,4px en reposo), se
+   * le quita el sesgo sistematico del centroide y se apaga suave hasta ser
+   * identidad EXACTA desde el cuadro 52, para que con el libro parado no quede
+   * ni un pixel de temblor.
+   */
+  settle?: Record<string, { l: Sim; r: Sim }>;
 }
 /** Region rectangular del canvas (en pixeles reales del canvas, ya con dpr). */
 interface Box {
@@ -270,7 +363,7 @@ const PANEL_H = 820;
 // Posicion relativa (0..1 dentro del panel de cierre) de cada icono de red,
 // usada tanto para dibujarlos en el panel como para ubicar los <a> reales
 // encima del canvas (ver socialLinkStyle).
-const SOCIAL_POS = { instagram: { u: 0.5, v: 0.63 }, facebook: { u: 0.5, v: 0.74 } };
+const SOCIAL_POS = { instagram: { u: PAGE_CENTER_U, v: 0.63 }, facebook: { u: PAGE_CENTER_U, v: 0.74 } };
 
 /**
  * Álbum "Acerca de nosotros": un único render, el mismo canvas/video de
@@ -335,6 +428,19 @@ export class AboutBookComponent {
   // quieto en su pagina en vez de acompañar a la hoja (ver drawContent).
   private curl: CurlAsset | null = null;
   private curlGrid = 0;
+  // Rejilla PLANA equivalente a la hoja en reposo (ver FLAT_BLEND_HI): la
+  // homografia de las cuatro esquinas de la malla del cuadro 83, muestreada en
+  // la misma rejilla GRIDxGRID. Se genera una sola vez al cargar.
+  private flatFront: [number, number][] | null = null;
+  // Desplazamiento plano-menos-malla en el cuadro 83, fijo. Es lo que `frontPts`
+  // desvanece durante los primeros cuadros de la vuelta.
+  private flatOffset: [number, number][] | null = null;
+  private flatVis = '';
+  // Buffers reutilizados para la geometria que se calcula por cuadro (mezcla
+  // plano->malla y asentamiento de la apertura). Crear tres arrays de 289
+  // puntos en cada uno de los ~60 cuadros por segundo seria basura para el GC.
+  private blendBuf: [number, number][] | null = null;
+  private settleBuf: Record<'left' | 'right', [number, number][] | null> = { left: null, right: null };
   // Tres lienzos auxiliares del tamaño del canvas, reutilizados cuadro a
   // cuadro (crear un canvas por cuadro seria basura para el GC en pleno 45fps):
   // `contentLayer` junta todo lo que dibujamos nosotros, `maskLayer` la silueta
@@ -372,7 +478,14 @@ export class AboutBookComponent {
 
   private async prepareFonts(): Promise<void> {
     try {
-      await Promise.all([document.fonts.load('600 32px "Cormorant Garamond"'), document.fonts.load('italic 500 30px "Cormorant Garamond"')]);
+      // Los pesos/estilos que realmente usa el panel. Cinzel entra aqui tambien:
+      // los paneles se dibujan UNA vez al cargar, asi que una familia que no
+      // este lista en ese instante se queda con la de reemplazo para siempre.
+      await Promise.all([
+        document.fonts.load(`400 ${STORY_FONT}px "Cormorant Garamond"`),
+        document.fonts.load(`italic 500 ${STORY_FONT}px "Cormorant Garamond"`),
+        document.fonts.load('600 24px Cinzel'),
+      ]);
     } catch {
       // se ignora: si la fuente no carga a tiempo, el panel usa la de reemplazo del navegador
     }
@@ -410,6 +523,7 @@ export class AboutBookComponent {
       if (!data?.frames || !data?.grid?.[0]) return;
       this.curl = data;
       this.curlGrid = data.grid[0];
+      this.buildFlatFront();
     } catch {
       // se ignora: sin malla, drawContent deja el contenido quieto en su pagina
     }
@@ -528,83 +642,97 @@ export class AboutBookComponent {
     if (!ctx) return c;
     ctx.textAlign = 'center';
     ctx.fillStyle = '#4a3d2a';
-
-    const marginX = PANEL_W * CONTENT_MARGIN;
-    const marginY = PANEL_H * CONTENT_MARGIN;
+    const cx = PANEL_W * PAGE_CENTER_U;
 
     if (isClosing) {
-      ctx.font = 'italic 500 40px "Cormorant Garamond", serif';
-      let y = PANEL_H * 0.42;
-      for (const line of story.lines) {
-        ctx.fillText(line, PANEL_W / 2, y, PANEL_W * 0.86);
-        y += 52;
+      // La pagina de cierre usa el MISMO motor de reparto que las historias.
+      // Antes pasaba `maxWidth` a fillText, que no reparte: aprieta la linea
+      // horizontalmente hasta que quepa. Con la frase de cierre eso ya la
+      // dejaba al 70% de su ancho -letras estrechadas, distintas del resto del
+      // libro- y al subir el cuerpo habria bajado al 59%.
+      ctx.font = `italic 500 ${Math.round(STORY_FONT * 0.95)}px "Cormorant Garamond", serif`;
+      const rows = story.lines.flatMap((line) => this.wrapLine(ctx, line, STORY_MEASURE, false));
+      const step = STORY_FONT * 0.95 * STORY_LINE;
+      // El bloque se centra en la franja que queda por encima de los enlaces de
+      // redes, cuya posicion es fija porque los <a> reales del DOM se colocan
+      // con ella (ver socialLinkStyle). La franja arranca en 0.20 y no en 0
+      // para que la frase no se suba al borde de arriba y deje un vacio entre
+      // ella y los enlaces: con el cuerpo nuevo la frase ocupa 3 renglones, no
+      // 2, y centrada en el panel entero quedaba muy alta.
+      const zoneLo = PANEL_H * 0.2;
+      const zoneHi = PANEL_H * (SOCIAL_POS.instagram.v - 0.09);
+      let y = zoneLo + (zoneHi - zoneLo - rows.length * step) / 2 + STORY_FONT * 0.95 * 0.8;
+      for (const row of rows) {
+        ctx.fillText(row, cx, y);
+        y += step;
       }
       this.drawSocialIcon(ctx, SOCIAL_POS.instagram, '#5e6a34', 'instagram');
       this.drawSocialIcon(ctx, SOCIAL_POS.facebook, '#5e6a34', 'facebook');
       return c;
     }
 
-    ctx.font = '400 42px "Cormorant Garamond", serif';
-    const wrapWidth = PANEL_W - marginX * 2;
-    const ROW_H = 58;
-    const PARA_GAP = 20;
+    ctx.font = `400 ${STORY_FONT}px "Cormorant Garamond", serif`;
+    // Se reparte en renglones primero, sin dibujar todavia: asi se conoce el
+    // alto real del bloque completo -espiga incluida- y se centra de verdad.
+    const paragraphs = story.lines.map((line) => this.wrapLine(ctx, line, STORY_MEASURE, true));
 
-    // Envuelve cada parrafo en filas primero, sin dibujar todavia -asi se
-    // puede calcular el alto real del bloque completo y centrarlo dentro del
-    // margen (antes quedaba siempre pegado arriba, dejando mucho vacio abajo
-    // en historias de una sola linea, que es la mayoria).
-    const paragraphs: string[][] = story.lines.map((line) => {
-      // Minuscula tipografica (como en la referencia del libro): no cambia el
-      // contenido real de la historia, solo como se imprime en la pagina.
-      const words = line.toLowerCase().split(' ');
-      let current = '';
-      const rows: string[] = [];
-      for (const word of words) {
-        const test = current ? `${current} ${word}` : word;
-        if (ctx.measureText(test).width > wrapWidth && current) {
-          rows.push(current);
-          current = word;
-        } else {
-          current = test;
-        }
-      }
-      if (current) rows.push(current);
-      return rows;
-    });
-
+    const rowH = STORY_FONT * STORY_LINE;
+    const paraGap = STORY_FONT * STORY_PARA;
     const totalRows = paragraphs.reduce((sum, rows) => sum + rows.length, 0);
-    const blockHeight = totalRows * ROW_H + paragraphs.length * PARA_GAP;
-    const contentHeight = PANEL_H - marginY * 2;
-    // +34 aproxima el alto visible de la letra por encima de su linea base
-    // (cap-height a 42px), para centrar el texto que realmente se ve, no la
-    // caja invisible de lineas que arranca en la linea base de la primera.
-    let y = marginY + (contentHeight - blockHeight) / 2 + 34;
+    const blockHeight = totalRows * rowH + (paragraphs.length - 1) * paraGap + STORY_DIVIDER_H;
+    // 0.8 del cuerpo aproxima el alto visible de la letra por encima de su
+    // linea base, para centrar el texto que realmente se ve y no la caja
+    // invisible de lineas, que arranca en la base de la primera. El centro
+    // vertical sale de los dibujos de las esquinas, igual que el horizontal.
+    let y = PANEL_H * PAGE_CENTER_V - blockHeight / 2 + STORY_FONT * 0.8;
 
-    for (const rows of paragraphs) {
-      for (const row of rows) {
-        ctx.fillText(row, PANEL_W / 2, y);
-        y += ROW_H;
+    for (let i = 0; i < paragraphs.length; i++) {
+      for (const row of paragraphs[i]) {
+        ctx.fillText(row, cx, y);
+        y += rowH;
       }
-      y += PARA_GAP;
+      if (i < paragraphs.length - 1) y += paraGap;
     }
-    this.drawTextDivider(ctx, y - 10);
+    this.drawTextDivider(ctx, cx, y - rowH + STORY_FONT * 0.42 + STORY_DIVIDER_H / 2);
     return c;
   }
 
+  /**
+   * Reparte una linea en renglones que quepan en `measure`. `lower` la pasa a
+   * minuscula tipografica, como en la referencia del libro: no cambia el
+   * contenido de la historia, solo como se imprime en la pagina.
+   */
+  private wrapLine(ctx: CanvasRenderingContext2D, line: string, measure: number, lower: boolean): string[] {
+    const words = (lower ? line.toLowerCase() : line).split(' ');
+    const rows: string[] = [];
+    let current = '';
+    for (const word of words) {
+      const test = current ? `${current} ${word}` : word;
+      if (ctx.measureText(test).width > measure && current) {
+        rows.push(current);
+        current = word;
+      } else {
+        current = test;
+      }
+    }
+    if (current) rows.push(current);
+    return rows;
+  }
+
   /** Divisor decorativo bajo el texto: mismo trazo de trigo dorado que el resto del sitio (ver GOLD/WHEAT_ICON_URL), no un adorno inventado aparte. */
-  private drawTextDivider(ctx: CanvasRenderingContext2D, y: number): void {
+  private drawTextDivider(ctx: CanvasRenderingContext2D, cx: number, y: number): void {
     ctx.save();
     ctx.strokeStyle = GOLD;
-    ctx.lineWidth = 1;
+    ctx.lineWidth = 1.2;
     ctx.beginPath();
-    ctx.moveTo(PANEL_W / 2 - 70, y);
-    ctx.lineTo(PANEL_W / 2 - 16, y);
-    ctx.moveTo(PANEL_W / 2 + 16, y);
-    ctx.lineTo(PANEL_W / 2 + 70, y);
+    ctx.moveTo(cx - 84, y);
+    ctx.lineTo(cx - 19, y);
+    ctx.moveTo(cx + 19, y);
+    ctx.lineTo(cx + 84, y);
     ctx.stroke();
     if (this.wheatIcon) {
-      const size = 22;
-      ctx.translate(PANEL_W / 2, y);
+      const size = 26;
+      ctx.translate(cx, y);
       ctx.rotate(Math.PI / 2);
       ctx.drawImage(this.wheatIcon, -size / 2, -size / 2, size, size);
     }
@@ -616,7 +744,7 @@ export class AboutBookComponent {
     const y = PANEL_H * pos.v;
     ctx.save();
     ctx.fillStyle = color;
-    ctx.font = '600 20px Cinzel, serif';
+    ctx.font = '600 24px Cinzel, serif';
     ctx.fillText(kind === 'instagram' ? 'INSTAGRAM' : 'FACEBOOK', x, y);
     ctx.restore();
   }
@@ -822,24 +950,114 @@ export class AboutBookComponent {
    * Devuelve null si la malla no esta cargada; ahi los llamadores caen al
    * cuadrilatero plano de siempre.
    */
-  private restSurface(side: 'left' | 'right'): { pts: [number, number][]; vis: string; uv: readonly UV[] } | null {
+  private restSurface(side: 'left' | 'right', frame: number): { pts: [number, number][]; vis: string; uv: readonly UV[] } | null {
     const m = this.curl?.frames[String(side === 'right' ? MESH_LO : MESH_HI)];
     if (!m) return null;
-    if (side === 'right') return { pts: m.f, vis: m.fv, uv: SHEET_TEXT_UV };
-    return m.b && m.bv ? { pts: m.b, vis: m.bv, uv: SHEET_PHOTO_UV } : null;
+    let base: { pts: [number, number][]; vis: string; uv: readonly UV[] } | null;
+    if (side === 'right') {
+      // El texto quieto va sobre el PLANO, no sobre la malla curva: es lo que
+      // deja las oraciones rectas (ver FLAT_BLEND_HI). Su visibilidad es total
+      // por definicion -un plano de frente no tiene tramos de espaldas-.
+      base = this.flatFront ? { pts: this.flatFront, vis: this.flatVis, uv: SHEET_TEXT_UV } : { pts: m.f, vis: m.fv, uv: SHEET_TEXT_UV };
+    } else {
+      base = m.b && m.bv ? { pts: m.b, vis: m.bv, uv: SHEET_PHOTO_UV } : null;
+    }
+    if (!base) return null;
+    const s = this.settleAt(frame, side);
+    return s ? { pts: this.applySim(s, base.pts, side), vis: base.vis, uv: base.uv } : base;
+  }
+
+  /**
+   * Genera `flatFront`: el plano que pasa por las cuatro esquinas de la malla
+   * de reposo, muestreado en la misma rejilla que ella. Al venir de una
+   * homografia, cualquier recta del panel sigue siendo recta al dibujarla.
+   */
+  private buildFlatFront(): void {
+    const m = this.curl?.frames[String(MESH_LO)];
+    const g = this.curlGrid;
+    if (!m || !g) return;
+    const esquina = (u: number, v: number): Point => {
+      const n = g - 1;
+      const p = m.f[Math.round(v * n) * g + Math.round(u * n)];
+      return { x: p[0], y: p[1] };
+    };
+    const h = AboutBookComponent.quadHomography([esquina(0, 0), esquina(1, 0), esquina(1, 1), esquina(0, 1)]);
+    const pts: [number, number][] = [];
+    const off: [number, number][] = [];
+    for (let r = 0; r < g; r++) {
+      for (let c = 0; c < g; c++) {
+        const p = h(c / (g - 1), r / (g - 1));
+        const q = m.f[r * g + c];
+        pts.push([p.x, p.y]);
+        off.push([p.x - q[0], p.y - q[1]]);
+      }
+    }
+    this.flatFront = pts;
+    this.flatOffset = off;
+    this.flatVis = '1'.repeat(g * g);
+  }
+
+  /**
+   * Vertices de la cara frontal para este cuadro de la vuelta.
+   *
+   * Lo que se desvanece es el DESPLAZAMIENTO FIJO entre el plano de reposo y la
+   * malla del cuadro 83, no una mezcla hacia la malla del cuadro actual. La
+   * diferencia importa: mezclando hacia la malla del momento, la desviacion
+   * crece con el rizo -medido, el texto llegaba a resbalar 1,8 veces lo que se
+   * mueve el propio papel, y eso se ve-. Restando un desplazamiento que se
+   * apaga, la hoja conserva EXACTAMENTE la forma calibrada en todo momento y lo
+   * unico que queda es un corrimiento de 13,5px como mucho que se va solo, a
+   * menos de 1,7px por cuadro contra los 4-7px que ya se mueve el papel.
+   *
+   * En MESH_LO da el plano exacto (relevo sin salto con la hoja quieta) y desde
+   * FLAT_BLEND_HI devuelve la malla tal cual, sin tocar un solo vertice.
+   */
+  private frontPts(mesh: CurlFrame, frame: number): [number, number][] {
+    const off = this.flatOffset;
+    if (!off || frame >= FLAT_BLEND_HI) return mesh.f;
+    const t = (frame - MESH_LO) / (FLAT_BLEND_HI - MESH_LO);
+    const u = t <= 0 ? 0 : t >= 1 ? 1 : t;
+    const k = 1 - u * u * (3 - 2 * u);
+    const out = (this.blendBuf ??= mesh.f.map(() => [0, 0] as [number, number]));
+    for (let i = 0; i < mesh.f.length; i++) {
+      out[i][0] = mesh.f[i][0] + off[i][0] * k;
+      out[i][1] = mesh.f[i][1] + off[i][1] * k;
+    }
+    return out;
+  }
+
+  /** Similitud del asentamiento de la apertura para este cuadro y esta pagina, o null si no hay nada que aplicar (ver CurlAsset.settle). */
+  private settleAt(frame: number, side: 'left' | 'right'): Sim | null {
+    const s = this.curl?.settle?.[String(Math.round(frame))];
+    if (!s) return null;
+    const t = side === 'left' ? s.l : s.r;
+    return t && (t[0] !== 1 || t[1] !== 0 || t[2] !== 0 || t[3] !== 0) ? t : null;
+  }
+
+  private applySim(t: Sim, pts: [number, number][], side: 'left' | 'right'): [number, number][] {
+    const out = (this.settleBuf[side] ??= pts.map(() => [0, 0] as [number, number]));
+    const [a, b, tx, ty] = t;
+    for (let i = 0; i < pts.length; i++) {
+      const x = pts[i][0];
+      const y = pts[i][1];
+      out[i][0] = a * x - b * y + tx;
+      out[i][1] = b * x + a * y + ty;
+    }
+    return out;
   }
 
   /** Foto quieta de la pagina izquierda. La sombra se derrama FUERA del contenido, asi que va antes. */
   private drawRestPhoto(
     ctx: CanvasRenderingContext2D,
     img: HTMLCanvasElement | null,
+    frame: number,
     ox: number,
     oy: number,
     scale: number,
     alpha = 1,
   ): void {
     if (!img || alpha <= 0) return;
-    const s = this.restSurface('left');
+    const s = this.restSurface('left', frame);
     if (!s) {
       this.drawPanelInQuad(ctx, img, CONTENT_LEFT_QUAD, ox, oy, scale, true, alpha);
       return;
@@ -855,13 +1073,14 @@ export class AboutBookComponent {
   private drawRestText(
     ctx: CanvasRenderingContext2D,
     img: HTMLCanvasElement | null,
+    frame: number,
     ox: number,
     oy: number,
     scale: number,
     alpha = 1,
   ): void {
     if (!img || alpha <= 0) return;
-    const s = this.restSurface('right');
+    const s = this.restSurface('right', frame);
     if (!s) {
       this.drawPanelInQuad(ctx, img, CONTENT_RIGHT_QUAD, ox, oy, scale, false, alpha, true);
       return;
@@ -1172,8 +1391,8 @@ export class AboutBookComponent {
       // comportamiento anterior en vez de romperse.
       const cut = this.curl ? MESH_LO : (MESH_LO + MESH_HI) / 2;
       const page = !t || f < cut ? front : back;
-      this.drawRestPhoto(ctx, this.photoPanel(page), ox, oy, scale, alpha);
-      this.drawRestText(ctx, this.textPanels[page - 1] ?? null, ox, oy, scale, alpha);
+      this.drawRestPhoto(ctx, this.photoPanel(page), f, ox, oy, scale, alpha);
+      this.drawRestText(ctx, this.textPanels[page - 1] ?? null, f, ox, oy, scale, alpha);
       return;
     }
 
@@ -1238,8 +1457,10 @@ export class AboutBookComponent {
     // reposo que usa `drawContent` con la hoja parada. Si aqui fueran
     // cuadrilateros planos y alli mallas (o al reves), el traspaso al empezar y
     // al terminar la vuelta volveria a saltar.
-    const restL = this.restSurface('left');
-    const restR = this.restSurface('right');
+    // El asentamiento ya es identidad mucho antes de que arranque la vuelta,
+    // asi que aqui `restSurface` devuelve la superficie cacheada sin copiarla.
+    const restL = this.restSurface('left', f);
+    const restR = this.restSurface('right', f);
 
     // 1) Sombras de las copias, con `multiply` sobre el cuadro. La de la copia
     //    quieta se recorta igual que ella: si no, al taparla la hoja quedaría
@@ -1314,7 +1535,9 @@ export class AboutBookComponent {
       punch();
       if (frontVisible && frontText) {
         cl.globalAlpha = fa;
-        this.drawOnMesh(cl, frontText, mesh.f, mesh.fv, SHEET_TEXT_UV, ox, oy, scale);
+        // `frontPts` mezcla plano->malla en los primeros cuadros de la vuelta,
+        // para empalmar sin salto con el texto recto de la hoja en reposo.
+        this.drawOnMesh(cl, frontText, this.frontPts(mesh, f), mesh.fv, SHEET_TEXT_UV, ox, oy, scale);
         cl.globalAlpha = 1;
       }
       clipPaper();
@@ -1583,8 +1806,22 @@ export class AboutBookComponent {
     const ox = (c.width - bmp.width * scale) / 2;
     const oy = (c.height - bmp.height * scale) / 2;
     const pos = SOCIAL_POS[kind];
-    const [tl, tr, , bl] = this.scaleQuad(CONTENT_RIGHT_QUAD, ox, oy, scale);
-    const br = this.scaleQuad(CONTENT_RIGHT_QUAD, ox, oy, scale)[2];
+    // Va por la MISMA superficie por la que se dibuja el panel -la hoja en
+    // reposo con SHEET_TEXT_UV-, no por CONTENT_RIGHT_QUAD, que es otra zona
+    // distinta: con el cuadrilatero el <a> caia desplazado respecto a la
+    // palabra pintada. Esta es exactamente la cadena que usa drawOnMesh:
+    // (u,v) del panel -> (u,v) de la pagina -> pixel de pantalla.
+    // El cuadro en el que el libro esta parado ahora mismo, no PAGE_REST: al
+    // llegar a la pagina de cierre con "siguiente" el libro queda en
+    // PAGE_TURNED, y el asentamiento de la apertura hace que las dos superficies
+    // no sean identicas.
+    const s = this.restSurface('right', this.physFrame);
+    if (s) {
+      const enPagina = AboutBookComponent.quadHomography(AboutBookComponent.uvQuad(s.uv))(pos.u, pos.v);
+      const p = this.meshPoint(s.pts, enPagina.x, enPagina.y, ox, oy, scale);
+      return { left: `${p.x / this.dpr}px`, top: `${p.y / this.dpr}px` };
+    }
+    const [tl, tr, br, bl] = this.scaleQuad(CONTENT_RIGHT_QUAD, ox, oy, scale);
     const top = { x: tl.x + (tr.x - tl.x) * pos.u, y: tl.y + (tr.y - tl.y) * pos.u };
     const bottom = { x: bl.x + (br.x - bl.x) * pos.u, y: bl.y + (br.y - bl.y) * pos.u };
     const px = (top.x + (bottom.x - top.x) * pos.v) / this.dpr;
