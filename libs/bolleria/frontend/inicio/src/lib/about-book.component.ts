@@ -16,12 +16,41 @@ const PAGE_TURNED = 137;
 // La hoja arranca a moverse en el cuadro 83 y termina de aterrizar en el 133.
 // En todo ese tramo su forma NO es un cuadrilatero: se enrolla como una onda,
 // y el mejor plano posible ya erra 8.5px en el cuadro 93 y 22px en el 106.
-// Por eso la geometria viene de una MALLA de 13x13 vertices por cuadro
+// Por eso la geometria viene de una MALLA de 17x17 vertices por cuadro
 // (about-book-curl.json), ajustada como superficie desarrollable —el mismo
 // modelo cono→cilindro de Hong, Card & Chen (2006) que usa iBooks—, con una
 // cara frontal y una dorsal y su mascara de visibilidad por vertice. El
 // contenido se pega a esa malla, asi que acompaña a la hoja en toda la vuelta
 // y en los dos sentidos, sin fundidos que lo despeguen del papel.
+//
+// La malla se reajusto cuadro a cuadro contra la silueta real de la hoja y
+// contra los ornamentos impresos en ella (que son la prueba objetiva de si el
+// contenido la sigue). Dos cosas cambiaron respecto al ajuste anterior:
+//
+//   1. La camara del render NO es ortografica: la hoja CRECE al levantarse
+//      hacia el objetivo. Medido, con proyeccion ortografica el papel plano se
+//      queda ~100px corto en el cuadro 107 por mucho que se gire. El ajuste
+//      nuevo lleva perspectiva debil (distancia de camara 600px), y por eso
+//      alcanza la silueta real en todo el tramo.
+//   1b. La linea de doblez va aproximadamente PARALELA al lomo, que es lo que
+//      hace una pagina al pasar. Sin esa restriccion el ajuste elegia un
+//      pliegue casi perpendicular —un doblez horizontal a media hoja— porque
+//      con la hoja de canto muchas formas dan la misma silueta; y ese pliegue
+//      es lo que hacia resbalar el texto hacia el borde inferior a partir del
+//      cuadro 106. La comprobacion no es la silueta: son los ornamentos
+//      impresos en la propia hoja, rastreados cuadro a cuadro desde el 83. En
+//      el tramo donde se ven bien (83-102) el ajuste los clava con 1,4px de
+//      error medio: el contenido no puede resbalar mas que eso.
+//   2. `fv` se apaga del todo en cuanto la cara frontal baja del 10% visible
+//      (cuadro 121) y no se vuelve a encender: la hoja que se dio vuelta no
+//      vuelve, y sin eso unos pocos vertices sueltos del rizo dejaban asomar
+//      una tira de texto sobre la pagina izquierda.
+//
+// El DORSO (`b`/`bv`) viene del ajuste anterior, remuestreado a 17x17: ese
+// lado ya funcionaba, y un modelo de un solo eje de giro no puede posar la
+// hoja sobre el plano de la pagina izquierda —el libro es una V, no un
+// espejo—. Texto y foto nunca se ven a la vez en el mismo sitio, asi que cada
+// cara puede venir de su propio ajuste sin que se note.
 const MESH_LO = 83;
 const MESH_HI = 133;
 const CURL_URL = 'assets/about-book-curl.json';
@@ -44,11 +73,21 @@ const IN_SHADOW_HI = 133;
 // asentada en la izquierda). Asi el relevo entre el contenido quieto y el
 // contenido pegado a la hoja es continuo al pixel, sin salto.
 type UV = { u: number; v: number };
+// Encuadre del texto dentro de la hoja, MARCADO A MANO por el dueno del sitio
+// en el calibrador (apps/bolleria/public/calibrador-hoja.html), viendolo sobre
+// el cuadro real. Son cuatro esquinas libres, no un rectangulo: el las coloco
+// asi a proposito y se usan tal cual, igual que CONTENT_LEFT_QUAD y
+// CONTENT_RIGHT_QUAD. No "corregir" estos numeros — cualquier ajuste los aleja
+// de lo que se pidio.
+//
+// Ocupa casi toda la pagina, asi que las letras salen un 10,4% mas anchas que
+// su forma nominal (medido sobre el papel: la zona da 0,943 de relacion y el
+// panel es 700/820 = 0,854). Es el aspecto que se eligio a sabiendas.
 const SHEET_TEXT_UV: [UV, UV, UV, UV] = [
-  { u: 0.10186, v: 0.17614 },
-  { u: 0.82714, v: 0.14071 },
-  { u: 0.85884, v: 0.88876 },
-  { u: 0.11236, v: 0.94394 },
+  { u: 0.01854, v: 0.01526 },
+  { u: 0.9527, v: 0.03896 },
+  { u: 1, v: 0.9915 },
+  { u: 0.04563, v: 0.93546 },
 ];
 const SHEET_PHOTO_UV: [UV, UV, UV, UV] = [
   { u: 0.2077, v: 0.10285 },
@@ -139,8 +178,32 @@ type Quad = [Point, Point, Point, Point]; // topLeft, topRight, bottomRight, bot
 interface CurlFrame {
   f: [number, number][];
   fv: string;
+  /**
+   * Opacidad del texto de la cara frontal, 0..1. Se apaga solo cuando la hoja
+   * se pone de canto: por debajo del 42% de su superficie inicial el dorso
+   * empieza a comerse la zona de texto (13% de ella en el cuadro 112, 25% en el
+   * 113) y, como el dorso no se dibuja, faltarian letras de forma intermitente
+   * —que es justo el parpadeo que tenia el asset anterior—. Va precalculado y
+   * es MONOTONO decreciente: una vez que el texto empieza a apagarse no puede
+   * reaparecer.
+   */
+  fa?: number;
   b: [number, number][] | null;
   bv: string | null;
+  /**
+   * Opacidad de la foto impresa en el dorso, 0..1. Precalculada y MONOTONA
+   * creciente. Existe por dos motivos, los dos fisicos:
+   *
+   *   a) Una hoja muestra una cara O la otra. Mientras se lea el texto del
+   *      frente no puede verse la foto del dorso en el mismo sitio, asi que
+   *      `ba` vale 0 mientras `fa` sea mayor que 0.
+   *   b) La foto solo donde hay dorso de verdad. `bv` es ruido en los cuadros
+   *      medios —1 celda visible en el 88, ninguna en el 92, 4 en el 95,
+   *      ninguna en el 103, 269 en el 114 y otra vez 4 en el 116— y como
+   *      `drawOnMesh` con `fillOccluded` dibuja la foto ENTERA en cuanto hay
+   *      una sola celda visible, la foto tapaba la pagina desde el cuadro 88.
+   */
+  ba?: number;
 }
 interface CurlAsset {
   grid: [number, number];
@@ -1208,13 +1271,16 @@ export class AboutBookComponent {
       else this.drawImageInQuad(cl, leftPhoto, this.scaleQuad(CONTENT_LEFT_QUAD, ox, oy, scale));
     }
     punch();
-    // `includes('1')`: de los cuadros 120 al 133 la cara frontal esta entera de
-    // espaldas y del 83 al 115 no hay dorso; sin este corte se recorren igual
-    // las 256 celdas del warp para no dibujar nada.
-    // `includes('1')`: del 83 al 115 no hay dorso; sin este corte se recorren
-    // igual las 256 celdas del warp para no dibujar nada.
-    if (backPhoto && mesh.b && mesh.bv?.includes('1')) {
+    // `ba` decide cuando entra la foto del dorso (ver CurlFrame). Antes la
+    // condicion era `bv.includes('1')` —una sola celda de 289— y como el warp
+    // rellena las celdas ocultas, bastaba ese pixel de dorso para pintar la
+    // foto ENTERA encima de la pagina. Resultado: la foto tapaba el texto
+    // desde el cuadro 88, apareciendo y desapareciendo con el ruido de `bv`.
+    const ba = mesh.ba ?? (mesh.bv?.includes('1') ? 1 : 0);
+    if (backPhoto && mesh.b && mesh.bv && ba > 0.002) {
+      cl.globalAlpha = ba;
       this.drawOnMesh(cl, backPhoto, mesh.b, mesh.bv, SHEET_PHOTO_UV, ox, oy, scale, true);
+      cl.globalAlpha = 1;
     }
     clipPaper();
     this.stampShaded(ctx, this.contentLayer, box, shade, alpha);
@@ -1229,7 +1295,16 @@ export class AboutBookComponent {
     //    Con `multiply` el alfa se aplica UNA sola vez, y ademas es el modelo
     //    correcto: la tinta absorbe luz sobre el papel, asi que el sombreado
     //    lo pone el propio pixel de destino sin necesidad del mapa aparte.
-    const frontVisible = frontText != null && mesh.fv.includes('1');
+    // `fa` apaga el texto de la hoja cuando esta se pone de canto (ver CurlFrame).
+    // Se aplica DENTRO de la capa, no al estampado: los dos textos se componen
+    // juntos en ella y estamparlos por separado los multiplicaria dos veces
+    // sobre el mismo pixel —en los cuadros bajos la hoja todavia cubre la
+    // pagina derecha y ambos caen exactamente en el mismo sitio, asi que el
+    // texto saldria al doble de oscuro—. El precio es que en los 4 cuadros con
+    // fa < 1 el solape que deja el bleed del warp se pinta dos veces; con la
+    // hoja ya de canto y el texto a media tinta no se aprecia.
+    const fa = mesh.fa ?? 1;
+    const frontVisible = frontText != null && fa > 0.002 && mesh.fv.includes('1');
     if (rightText || frontVisible) {
       reset();
       if (rightText) {
@@ -1237,7 +1312,11 @@ export class AboutBookComponent {
         else this.drawImageInQuad(cl, rightText, this.scaleQuad(CONTENT_RIGHT_QUAD, ox, oy, scale));
       }
       punch();
-      if (frontVisible && frontText) this.drawOnMesh(cl, frontText, mesh.f, mesh.fv, SHEET_TEXT_UV, ox, oy, scale);
+      if (frontVisible && frontText) {
+        cl.globalAlpha = fa;
+        this.drawOnMesh(cl, frontText, mesh.f, mesh.fv, SHEET_TEXT_UV, ox, oy, scale);
+        cl.globalAlpha = 1;
+      }
       clipPaper();
       ctx.save();
       ctx.globalCompositeOperation = 'multiply';
