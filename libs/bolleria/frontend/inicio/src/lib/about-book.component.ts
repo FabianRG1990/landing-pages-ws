@@ -104,12 +104,29 @@ type UV = { u: number; v: number };
 //
 // Siendo un rectangulo en (u,v), las lineas del panel se mapean a lineas
 // horizontales de la pagina y todo el abanico que queda es la perspectiva de
-// verdad. El margen de 0.02 deja el texto dentro del papel sin comerse borde.
+// verdad.
+//
+// Los valores de ahora salen de calibrar el bloque a mano, con la herramienta
+// que dibuja el texto por ESTE mismo camino (comprobado: 0.0000 px de desvio
+// geometrico contra el componente, 0.3 px midiendo la tinta ya pintada). Sigue
+// siendo un rectangulo -sus lados son perpendiculares y del mismo largo, asi
+// que no reintroduce cizalla-: es el de antes encogido al 98.4%, girado 1.93
+// grados y corrido. El texto se mueve 14.5 px respecto del encuadre anterior,
+// 20.2 px en el punto que mas.
+//
+// El giro no es un capricho: el borde de arriba de la hoja no es horizontal en
+// esta camara, y el bloque recto se leia caido contra el.
+//
+// OJO al tocar estos numeros: dos esquinas quedan fuera de la pagina (u y v
+// negativas) y `meshPoint` RECORTA fuera de [0,1] en vez de extrapolar, asi que
+// las celdas del panel que caen ahi se aplastan contra el borde. Con las siete
+// paginas actuales esa franja esta vacia -medido, ni una letra la toca-, pero
+// agrandar el bloque o alargar un texto puede meter tinta en ella.
 const SHEET_TEXT_UV: [UV, UV, UV, UV] = [
-  { u: 0.02, v: 0.02 },
-  { u: 0.98, v: 0.02 },
-  { u: 0.98, v: 0.98 },
-  { u: 0.02, v: 0.98 },
+  { u: 0.00927, v: -0.02594 },
+  { u: 0.95354, v: 0.00581 },
+  { u: 0.92178, v: 0.95008 },
+  { u: -0.02248, v: 0.91832 },
 ];
 const SHEET_PHOTO_UV: [UV, UV, UV, UV] = [
   { u: 0.2077, v: 0.10285 },
