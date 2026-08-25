@@ -10,8 +10,22 @@ const LAST = 7; // 1..6 = historias con foto+texto, 7 = cierre (redes sociales)
 // cuadros del video: 1..42 tapa abriendose; 43..50 asentando (51 en adelante ya
 // es el libro abierto, real y visualmente quieto). PAGE_REST/PAGE_TURNED son los
 // dos "stops" en reposo de la vuelta de pagina.
-const PAGE_REST = 50;
+//
+// PAGE_REST era el 50, y estaba DENTRO del rebote de la apertura -los datos de
+// asentamiento de about-book-curl.json cubren los cuadros 43 a 51-. Como cada
+// "siguiente" vuelve de un tiron desde PAGE_TURNED hasta aca, el libro saltaba a
+// una pose que todavia no habia terminado de asentarse, y el corte se veia.
+// Medido contra el 137, en pixeles que cambian mas de 24 niveles:
+//   cuadro 48: 23748   50: 15238   52: 10900   55: 9986   56: 9868   60: 10209
+// El 56 es el suelo de esa curva: quita el 35% del salto sin tocar nada mas. La
+// pagina derecha -donde vive el texto- se mueve 0.2-0.7 px entre el 50 y el 56,
+// asi que el encuadre calibrado del texto no se entera.
+const PAGE_REST = 56;
 const PAGE_TURNED = 137;
+// Lo que queda del corte -unos 9900 px de golpe, todavia mas que el fotograma
+// mas brusco de la vuelta entera, que son 9301- se reparte en un fundido en vez
+// de darse en un solo cuadro. Ver `dissolveTo`.
+const SNAP_FADE_MS = 180;
 // --- COREOGRAFIA DE LA VUELTA DE PAGINA ---
 // La hoja arranca a moverse en el cuadro 83 y termina de aterrizar en el 133.
 // En todo ese tramo su forma NO es un cuadrilatero: se enrolla como una onda,
@@ -467,6 +481,9 @@ export class AboutBookComponent {
   private maskLayer: HTMLCanvasElement | null = null;
   private shadeLayer: HTMLCanvasElement | null = null;
   private paperLayer: HTMLCanvasElement | null = null;
+  // Instantanea del lienzo justo antes de cambiar de pose, para fundir la vieja
+  // sobre la nueva en vez de cortar en seco (ver `dissolveTo`).
+  private fadeLayer: HTMLCanvasElement | null = null;
   private wheatIcon: HTMLImageElement | null = null;
   private textPanels: HTMLCanvasElement[] = [];
   private ctx: CanvasRenderingContext2D | null = null;
@@ -797,6 +814,7 @@ export class AboutBookComponent {
     this.maskLayer = this.ensureLayer(this.maskLayer, c.width, c.height);
     this.shadeLayer = this.ensureLayer(this.shadeLayer, c.width, c.height);
     this.paperLayer = this.ensureLayer(this.paperLayer, c.width, c.height);
+    this.fadeLayer = this.ensureLayer(this.fadeLayer, c.width, c.height);
   }
 
   private lastDrawn = 1;
@@ -1256,6 +1274,21 @@ export class AboutBookComponent {
    *
    * Encima se traza su borde con grosor MASK_DILATE para los pocos pixeles en
    * que la silueta ajustada se queda corta contra el borde real de la hoja.
+   *
+   * SOLO ENTRAN LAS CARAS QUE SE VEN. Desde el cuadro 119 la cara frontal no
+   * tiene ni un vertice mirando a camara -`fv` es 0 de 289, y por eso `fa` ya
+   * la apaga y no se dibuja nada de ella-, pero sus vertices seguian entrando
+   * en la envolvente. Sin nada visible que ajustar, la superficie se va a la
+   * deriva: en el cuadro 133 llegaba a x=697, o sea 200px al otro lado del
+   * lomo, y como la envolvente convexa tiene lados rectos eso metia una cuna
+   * diagonal sobre la pagina derecha que borraba el arranque de cada renglon
+   * del texto entrante. Medido: tapaba el 2.4% de la tinta en el cuadro 131,
+   * el 15.7% en el 132 y el 38.3% en el 133.
+   *
+   * Una cara que no se ve no puede tapar nada, asi que se descarta. Del 83 al
+   * 118 las dos caras tienen vertices visibles y la mascara sale identica a la
+   * de antes -comprobado cuadro a cuadro, misma area al 100.0%-, asi que el
+   * tramo donde la envolvente se valido no cambia.
    */
   private buildSheetMask(
     mesh: CurlFrame,
@@ -1278,8 +1311,11 @@ export class AboutBookComponent {
     m.lineCap = 'round';
     m.lineWidth = MASK_DILATE * scale;
     const pts: Point[] = [];
-    for (const face of [mesh.f, mesh.b]) {
-      if (!face) continue;
+    for (const [face, vis] of [
+      [mesh.f, mesh.fv],
+      [mesh.b, mesh.bv],
+    ] as const) {
+      if (!face || !vis?.includes('1')) continue;
       for (const [px, py] of face) pts.push({ x: ox + px * scale, y: oy + py * scale });
     }
     const h = AboutBookComponent.convexHull(pts);
@@ -1689,15 +1725,86 @@ export class AboutBookComponent {
 
   /**
    * Salta sin animar a "frame" (no-op si ya esta ahi). Solo se usa entre
-   * PAGE_REST y PAGE_TURNED, que con el contenido superpuesto ya listo en
-   * ambos extremos se ven equivalentes -por eso el salto es imperceptible-
-   * para poder reiniciar siempre desde el mismo punto antes de reproducir
-   * otra vez el unico tramo de vuelta de pagina capturado en el video.
+   * PAGE_REST y PAGE_TURNED: hay que volver siempre al mismo punto de partida
+   * porque el video trae UN solo tramo de vuelta de pagina y hay que
+   * reproducirlo otra vez.
    */
   private snapTo(frame: number): void {
     if (this.physFrame === frame) return;
     this.physFrame = frame;
     this.draw(frame);
+  }
+
+  /**
+   * Lo mismo que `snapTo`, pero fundiendo la pose vieja sobre la nueva.
+   *
+   * El comentario anterior daba por hecho que el salto era imperceptible
+   * porque el contenido superpuesto es el mismo en los dos extremos. El
+   * contenido si, pero el LIBRO no: entre PAGE_TURNED y PAGE_REST ha pasado una
+   * hoja de un taco al otro, y con ella se mueven los dos bloques de paginas,
+   * el lomo, los cantos y las sombras. Medido, el corte cambia de golpe unos
+   * 9900 pixeles en mas de 24 niveles -mas que el fotograma mas brusco de toda
+   * la vuelta, que son 9301- justo despues de que la animacion haya frenado
+   * hasta 574. Ese contraste es lo que se lee como un golpe.
+   *
+   * No se arregla encajando los dos cuadros: probados todos los corrimientos
+   * globales, el mejor explica el 5% de la diferencia. Son dos imagenes
+   * distintas del libro, y la diferencia esta repartida por todos los bordes.
+   * Lo que si funciona con dos imagenes casi iguales es no cortar: se guarda el
+   * lienzo tal cual esta, se pinta la pose nueva debajo y se desvanece la vieja
+   * por encima. El salto deja de darse en un cuadro y se reparte en ~10.
+   *
+   * La curva es un smoothstep y no una rampa recta para que el fundido no
+   * arranque de golpe: lo que delata un corte es el primer instante de cambio.
+   */
+  private dissolveTo(frame: number, ms: number): Promise<void> {
+    const c = this.canvasRef()?.nativeElement;
+    const ctx = this.ctx;
+    // `reduced()` incluido: quien pide menos movimiento no quiere un fundido,
+    // quiere que la cosa ya este donde tiene que estar.
+    if (this.physFrame === frame || !this.isBrowser || !c || !ctx || this.reduced() || ms <= 0) {
+      this.snapTo(frame);
+      return Promise.resolve();
+    }
+    const prev = this.ensureLayer(this.fadeLayer, c.width, c.height);
+    this.fadeLayer = prev;
+    const p = prev.getContext('2d');
+    if (!p) {
+      this.snapTo(frame);
+      return Promise.resolve();
+    }
+    p.setTransform(1, 0, 0, 1, 0, 0);
+    p.globalAlpha = 1;
+    p.globalCompositeOperation = 'source-over';
+    p.clearRect(0, 0, c.width, c.height);
+    p.drawImage(c, 0, 0);
+
+    this.physFrame = frame;
+    cancelAnimationFrame(this.raf);
+    return this.zone.runOutsideAngular(
+      () =>
+        new Promise<void>((resolve) => {
+          const start = performance.now();
+          const tick = (now: number): void => {
+            const t = Math.min(1, (now - start) / ms);
+            const e = t * t * (3 - 2 * t);
+            this.draw(frame);
+            if (e < 1) {
+              ctx.save();
+              ctx.globalCompositeOperation = 'source-over';
+              ctx.globalAlpha = 1 - e;
+              ctx.drawImage(prev, 0, 0);
+              ctx.restore();
+            }
+            if (t < 1) {
+              this.raf = requestAnimationFrame(tick);
+            } else {
+              resolve();
+            }
+          };
+          this.raf = requestAnimationFrame(tick);
+        }),
+    );
   }
 
   /**
@@ -1783,7 +1890,7 @@ export class AboutBookComponent {
   async next(): Promise<void> {
     if (this.busy() || !this.coverOpen() || this.current() >= LAST) return;
     this.busy.set(true);
-    this.snapTo(PAGE_REST);
+    await this.dissolveTo(PAGE_REST, SNAP_FADE_MS);
     this.transition = { leaving: this.current(), entering: this.current() + 1, towardHigh: true };
     await this.playChain([PAGE_TURNED]);
     this.transition = null;
@@ -1795,7 +1902,7 @@ export class AboutBookComponent {
   async prev(): Promise<void> {
     if (this.busy() || !this.coverOpen() || this.current() <= 1) return;
     this.busy.set(true);
-    this.snapTo(PAGE_TURNED);
+    await this.dissolveTo(PAGE_TURNED, SNAP_FADE_MS);
     this.transition = { leaving: this.current(), entering: this.current() - 1, towardHigh: false };
     await this.playChain([PAGE_REST]);
     this.transition = null;
