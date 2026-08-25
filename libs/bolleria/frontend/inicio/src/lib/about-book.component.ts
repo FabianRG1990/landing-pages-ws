@@ -11,8 +11,8 @@ const LAST = 7; // 1..6 = historias con foto+texto, 7 = cierre (redes sociales)
 // es el libro abierto, real y visualmente quieto). PAGE_REST/PAGE_TURNED son los
 // dos "stops" en reposo de la vuelta de pagina.
 //
-// PAGE_REST era el 50, y estaba DENTRO del rebote de la apertura -los datos de
-// asentamiento de about-book-curl.json cubren los cuadros 43 a 51-. Como cada
+// PAGE_REST era el 50, y estaba DENTRO del rebote de la apertura -medido, la
+// pagina todavia recorre 1,6px entre el 50 y el 56 (ver CurlAsset.pose). Como cada
 // "siguiente" vuelve de un tiron desde PAGE_TURNED hasta aca, el libro saltaba a
 // una pose que todavia no habia terminado de asentarse, y el corte se veia.
 // Medido contra el 137, en pixeles que cambian mas de 24 niveles:
@@ -304,34 +304,55 @@ interface CurlFrame {
   ba?: number;
 }
 /**
- * Similitud plana `[a, b, tx, ty]` -> `(x,y) => (a*x - b*y + tx, b*x + a*y + ty)`.
- * Cuatro numeros: traslacion, giro y escala uniforme, en coordenadas de video.
+ * Warp proyectivo plano `[a, b, c, d, e, f, g, h]`, con el noveno termino fijo
+ * a 1 -> `(x,y) => ((a*x + b*y + c) / w, (d*x + e*y + f) / w)` con
+ * `w = g*x + h*y + 1`. En pixeles de video, antes de la escala del canvas.
  */
-type Sim = [number, number, number, number];
+type Warp = [number, number, number, number, number, number, number, number];
 interface CurlAsset {
   grid: [number, number];
   frames: Record<string, CurlFrame>;
   /**
-   * Asentamiento de la apertura, por cuadro: `l` para la pagina izquierda y `r`
-   * para la derecha.
+   * Pose de cada pagina, cuadro a cuadro: `l` para la izquierda y `r` para la
+   * derecha. Cada entrada lleva la superficie ANCLA de ese lado -el plano del
+   * cuadro 83 para el texto, la malla `b` del 133 para la foto- a la pose que
+   * esa pagina tiene REALMENTE en ese cuadro del video.
    *
-   * Al abrirse, el libro no queda quieto de golpe: las paginas siguen
-   * acostandose. Medido rastreando los ornamentos impresos en cada pagina
-   * contra el cuadro 82 (donde ya no se mueve nada), la izquierda recorre
-   * todavia 14,5px en el cuadro 43 y la derecha 3,8px. Y el contenido aparece
-   * justo ahi -OPEN_FADE_LO es 43-, clavado a una superficie fija: el libro se
-   * acostaba y la foto no lo acompanaba.
+   * Hace falta porque el libro no tiene UNA pose de reposo, tiene DOS: se queda
+   * en el cuadro 56 tras abrir y tras `prev`, y en el 137 tras `next` -entre
+   * medias ha pasado una hoja de un taco al otro-. Con el contenido soldado a
+   * una sola superficie por lado, el texto caia clavado en el 56 y hasta 7px
+   * fuera en el 137, y la foto justo al reves: clavada en el 137 y 6px fuera en
+   * el 56. En los 180ms de `dissolveTo` el libro recorre esa diferencia entera
+   * -22565 pixeles del cuadro cambian, y los adornos impresos de las cuatro
+   * esquinas salen DOBLES al superponer las dos poses- mientras el contenido,
+   * identico en las dos capas del fundido, no se movia ni un pixel. Eso es lo
+   * que delataba que estaba sobrepuesto y no impreso.
    *
-   * Cada entrada es la similitud que lleva la pose de reposo a la pose de ese
-   * cuadro. Se ajusta por minimos cuadrados sobre tres ornamentos de la pagina
-   * izquierda y cuatro de la derecha (los que aguantan la prueba de dar
-   * identidad con el libro parado; el de abajo a la derecha de la izquierda se
-   * descarto porque lo tapa la hoja derecha y deriva hasta 6,4px en reposo), se
-   * le quita el sesgo sistematico del centroide y se apaga suave hasta ser
-   * identidad EXACTA desde el cuadro 52, para que con el libro parado no quede
-   * ni un pixel de temblor.
+   * Medida: se rastrea la TINTA de dos adornos impresos por pagina, los unicos
+   * dos que correlacionan por encima de 0,75 en todo el tramo (el de la esquina
+   * rizada de la derecha no pasa de 0,66 porque su plantilla ya viene curvada en
+   * el 83, y una tercera mancha de la izquierda resulto ser el canto del taco,
+   * no un adorno). Dos puntos bien separados determinan EXACTAMENTE una
+   * similitud, y se comprobo mirando: aplicada, el doblete desaparece tambien en
+   * las esquinas que no se usaron para ajustar. Antes se probo un ajuste denso
+   * por ECC y se descarto: se iba a soluciones absurdas -14% de escala, esquinas
+   * moviendose 17px- en los cuadros donde parte de esa hoja ya no existe. Ojo
+   * tambien con el rastreo por parches en rejilla: los cantos del taco NO se
+   * mueven cuando la hoja pasa de un lado al otro, son mayoria, y un ajuste
+   * robusto acaba tirando los adornos por atipicos y midiendo cero.
+   *
+   * Fuera de los tramos donde la pagina es de verdad lo que se ve, la serie se
+   * completa con rampas suaves colocadas donde el contenido esta TAPADO: la
+   * derecha entre el 84 y el 96 (el texto quieto esta oculto >=98% por la hoja) y
+   * la izquierda entre el 128 y el 133 (la foto quieta esta al 2,7% en el 128 y
+   * al 0% desde el 130). Por construccion la identidad cae en el cuadro ancla de
+   * cada lado, asi que el relevo entre superficie de reposo y malla no salta. Y
+   * donde el movimiento medido baja de 0,35px -el ruido del rastreo- se fuerza
+   * identidad exacta, para que con el libro parado no quede ni un subpixel de
+   * temblor: entre el 56 y el 82 el texto no se mueve absolutamente nada.
    */
-  settle?: Record<string, { l: Sim; r: Sim }>;
+  pose?: Record<string, { l: Warp; r: Warp }>;
 }
 /** Region rectangular del canvas (en pixeles reales del canvas, ya con dpr). */
 interface Box {
@@ -468,10 +489,10 @@ export class AboutBookComponent {
   private flatOffset: [number, number][] | null = null;
   private flatVis = '';
   // Buffers reutilizados para la geometria que se calcula por cuadro (mezcla
-  // plano->malla y asentamiento de la apertura). Crear tres arrays de 289
-  // puntos en cada uno de los ~60 cuadros por segundo seria basura para el GC.
+  // plano->malla y pose de la pagina). Crear tres arrays de 289 puntos en cada
+  // uno de los ~60 cuadros por segundo seria basura para el GC.
   private blendBuf: [number, number][] | null = null;
-  private settleBuf: Record<'left' | 'right', [number, number][] | null> = { left: null, right: null };
+  private poseBuf: Record<'left' | 'right', [number, number][] | null> = { left: null, right: null };
   // Tres lienzos auxiliares del tamaño del canvas, reutilizados cuadro a
   // cuadro (crear un canvas por cuadro seria basura para el GC en pleno 45fps):
   // `contentLayer` junta todo lo que dibujamos nosotros, `maskLayer` la silueta
@@ -998,8 +1019,8 @@ export class AboutBookComponent {
       base = m.b && m.bv ? { pts: m.b, vis: m.bv, uv: SHEET_PHOTO_UV } : null;
     }
     if (!base) return null;
-    const s = this.settleAt(frame, side);
-    return s ? { pts: this.applySim(s, base.pts, side), vis: base.vis, uv: base.uv } : base;
+    const w = this.poseAt(frame, side);
+    return w ? { pts: this.applyWarp(w, base.pts, side), vis: base.vis, uv: base.uv } : base;
   }
 
   /**
@@ -1061,22 +1082,25 @@ export class AboutBookComponent {
     return out;
   }
 
-  /** Similitud del asentamiento de la apertura para este cuadro y esta pagina, o null si no hay nada que aplicar (ver CurlAsset.settle). */
-  private settleAt(frame: number, side: 'left' | 'right'): Sim | null {
-    const s = this.curl?.settle?.[String(Math.round(frame))];
-    if (!s) return null;
-    const t = side === 'left' ? s.l : s.r;
-    return t && (t[0] !== 1 || t[1] !== 0 || t[2] !== 0 || t[3] !== 0) ? t : null;
+  /** Pose de esta pagina en este cuadro, o null si es la identidad y no hay nada que aplicar (ver CurlAsset.pose). */
+  private poseAt(frame: number, side: 'left' | 'right'): Warp | null {
+    const p = this.curl?.pose?.[String(Math.round(frame))];
+    if (!p) return null;
+    const w = side === 'left' ? p.l : p.r;
+    if (!w) return null;
+    const identidad = w[0] === 1 && w[1] === 0 && w[2] === 0 && w[3] === 0 && w[4] === 1 && w[5] === 0 && w[6] === 0 && w[7] === 0;
+    return identidad ? null : w;
   }
 
-  private applySim(t: Sim, pts: [number, number][], side: 'left' | 'right'): [number, number][] {
-    const out = (this.settleBuf[side] ??= pts.map(() => [0, 0] as [number, number]));
-    const [a, b, tx, ty] = t;
+  private applyWarp(w: Warp, pts: [number, number][], side: 'left' | 'right'): [number, number][] {
+    const out = (this.poseBuf[side] ??= pts.map(() => [0, 0] as [number, number]));
+    const [a, b, c, d, e, f, g, h] = w;
     for (let i = 0; i < pts.length; i++) {
       const x = pts[i][0];
       const y = pts[i][1];
-      out[i][0] = a * x - b * y + tx;
-      out[i][1] = b * x + a * y + ty;
+      const k = 1 / (g * x + h * y + 1);
+      out[i][0] = (a * x + b * y + c) * k;
+      out[i][1] = (d * x + e * y + f) * k;
     }
     return out;
   }
@@ -1510,8 +1534,9 @@ export class AboutBookComponent {
     // reposo que usa `drawContent` con la hoja parada. Si aqui fueran
     // cuadrilateros planos y alli mallas (o al reves), el traspaso al empezar y
     // al terminar la vuelta volveria a saltar.
-    // El asentamiento ya es identidad mucho antes de que arranque la vuelta,
-    // asi que aqui `restSurface` devuelve la superficie cacheada sin copiarla.
+    // Ambas llevan la pose del cuadro (ver CurlAsset.pose): durante la vuelta la
+    // foto que se va sigue sobre la pagina izquierda de verdad, y el texto que se
+    // destapa sobre la pagina de debajo, que NO esta donde estaba la hoja.
     const restL = this.restSurface('left', f);
     const restR = this.restSurface('right', f);
 
@@ -1937,8 +1962,9 @@ export class AboutBookComponent {
     // (u,v) del panel -> (u,v) de la pagina -> pixel de pantalla.
     // El cuadro en el que el libro esta parado ahora mismo, no PAGE_REST: al
     // llegar a la pagina de cierre con "siguiente" el libro queda en
-    // PAGE_TURNED, y el asentamiento de la apertura hace que las dos superficies
-    // no sean identicas.
+    // PAGE_TURNED, y la pagina derecha de ahi no es la misma hoja ni esta en la
+    // misma pose que en PAGE_REST (ver CurlAsset.pose), asi que las dos
+    // superficies no son identicas.
     const s = this.restSurface('right', this.physFrame);
     if (s) {
       const enPagina = AboutBookComponent.quadHomography(AboutBookComponent.uvQuad(s.uv))(pos.u, pos.v);
