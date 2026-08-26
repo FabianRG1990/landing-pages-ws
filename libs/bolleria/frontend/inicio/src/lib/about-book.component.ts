@@ -502,9 +502,11 @@ export class AboutBookComponent {
   private maskLayer: HTMLCanvasElement | null = null;
   private shadeLayer: HTMLCanvasElement | null = null;
   private paperLayer: HTMLCanvasElement | null = null;
-  // Instantanea del lienzo justo antes de cambiar de pose, para fundir la vieja
-  // sobre la nueva en vez de cortar en seco (ver `dissolveTo`).
-  private fadeLayer: HTMLCanvasElement | null = null;
+  // Cruce de poses en curso (null = no hay ninguno). `t` va de 0 a 1 ya
+  // suavizado. Mientras esta puesto, `draw` cruza los dos cuadros del video y
+  // `restSurface` interpola las dos poses, para que el contenido se DESPLACE en
+  // vez de fundirse consigo mismo (ver `dissolveTo`).
+  private fundido: { desde: number; hacia: number; t: number } | null = null;
   private wheatIcon: HTMLImageElement | null = null;
   private textPanels: HTMLCanvasElement[] = [];
   private ctx: CanvasRenderingContext2D | null = null;
@@ -835,7 +837,6 @@ export class AboutBookComponent {
     this.maskLayer = this.ensureLayer(this.maskLayer, c.width, c.height);
     this.shadeLayer = this.ensureLayer(this.shadeLayer, c.width, c.height);
     this.paperLayer = this.ensureLayer(this.paperLayer, c.width, c.height);
-    this.fadeLayer = this.ensureLayer(this.fadeLayer, c.width, c.height);
   }
 
   private lastDrawn = 1;
@@ -856,6 +857,16 @@ export class AboutBookComponent {
     const ox = (c.width - dw) / 2;
     const oy = (c.height - dh) / 2;
     ctx.drawImage(bmp, ox, oy, dw, dh);
+    // Cruce de poses: encima del cuadro de destino se desvanece el de origen.
+    // Solo el LIBRO -el contenido va despues, una sola vez y a opacidad plena-.
+    const fu = this.fundido;
+    const viejo = fu ? this.frames[Math.max(1, Math.min(FRAME_COUNT, Math.round(fu.desde))) - 1] : null;
+    if (fu && viejo) {
+      ctx.save();
+      ctx.globalAlpha = 1 - fu.t;
+      ctx.drawImage(viejo, ox, oy, dw, dh);
+      ctx.restore();
+    }
 
     // Sin condicionar a `coverOpen`: ese booleano hacia que el contenido
     // apareciera de golpe en un solo cuadro al terminar la apertura. Ahora
@@ -1019,6 +1030,16 @@ export class AboutBookComponent {
       base = m.b && m.bv ? { pts: m.b, vis: m.bv, uv: SHEET_PHOTO_UV } : null;
     }
     if (!base) return null;
+    // Durante un cruce de poses el contenido no se funde consigo mismo: viaja
+    // entre las dos. Se interpolan las POSICIONES, no las matrices -mezclar
+    // homografias entrada a entrada no significa nada geometrico-.
+    const fu = this.fundido;
+    if (fu) {
+      const a = this.poseAt(fu.desde, side);
+      const b = this.poseAt(fu.hacia, side);
+      if (a || b) return { pts: this.mixWarp(a, b, fu.t, base.pts, side), vis: base.vis, uv: base.uv };
+      return base;
+    }
     const w = this.poseAt(frame, side);
     return w ? { pts: this.applyWarp(w, base.pts, side), vis: base.vis, uv: base.uv } : base;
   }
@@ -1094,13 +1115,30 @@ export class AboutBookComponent {
 
   private applyWarp(w: Warp, pts: [number, number][], side: 'left' | 'right'): [number, number][] {
     const out = (this.poseBuf[side] ??= pts.map(() => [0, 0] as [number, number]));
-    const [a, b, c, d, e, f, g, h] = w;
     for (let i = 0; i < pts.length; i++) {
-      const x = pts[i][0];
-      const y = pts[i][1];
-      const k = 1 / (g * x + h * y + 1);
-      out[i][0] = (a * x + b * y + c) * k;
-      out[i][1] = (d * x + e * y + f) * k;
+      const p = AboutBookComponent.warpPoint(w, pts[i][0], pts[i][1]);
+      out[i][0] = p.x;
+      out[i][1] = p.y;
+    }
+    return out;
+  }
+
+  /** Un punto por el warp; `null` es la identidad. */
+  private static warpPoint(w: Warp | null, x: number, y: number): Point {
+    if (!w) return { x, y };
+    const [a, b, c, d, e, f, g, h] = w;
+    const k = 1 / (g * x + h * y + 1);
+    return { x: (a * x + b * y + c) * k, y: (d * x + e * y + f) * k };
+  }
+
+  /** Superficie a medio camino entre dos poses, interpolando posiciones (ver `fundido`). */
+  private mixWarp(a: Warp | null, b: Warp | null, t: number, pts: [number, number][], side: 'left' | 'right'): [number, number][] {
+    const out = (this.poseBuf[side] ??= pts.map(() => [0, 0] as [number, number]));
+    for (let i = 0; i < pts.length; i++) {
+      const pa = AboutBookComponent.warpPoint(a, pts[i][0], pts[i][1]);
+      const pb = AboutBookComponent.warpPoint(b, pts[i][0], pts[i][1]);
+      out[i][0] = pa.x + (pb.x - pa.x) * t;
+      out[i][1] = pa.y + (pb.y - pa.y) * t;
     }
     return out;
   }
@@ -1755,6 +1793,7 @@ export class AboutBookComponent {
    * reproducirlo otra vez.
    */
   private snapTo(frame: number): void {
+    this.fundido = null;
     if (this.physFrame === frame) return;
     this.physFrame = frame;
     this.draw(frame);
@@ -1775,9 +1814,26 @@ export class AboutBookComponent {
    * No se arregla encajando los dos cuadros: probados todos los corrimientos
    * globales, el mejor explica el 5% de la diferencia. Son dos imagenes
    * distintas del libro, y la diferencia esta repartida por todos los bordes.
-   * Lo que si funciona con dos imagenes casi iguales es no cortar: se guarda el
-   * lienzo tal cual esta, se pinta la pose nueva debajo y se desvanece la vieja
-   * por encima. El salto deja de darse en un cuadro y se reparte en ~10.
+   * Lo que si funciona con dos imagenes casi iguales es no cortar: se pinta el
+   * cuadro de destino y se desvanece el de origen por encima. El salto deja de
+   * darse en un cuadro y se reparte en ~10.
+   *
+   * Se cruza SOLO EL LIBRO, no el lienzo entero. Antes se fotografiaba el
+   * lienzo tal cual estaba -libro y contenido juntos- y se desvanecia encima
+   * del nuevo. Eso funcionaba mientras el contenido era identico en los dos
+   * extremos; desde que sigue a la pagina (ver CurlAsset.pose) ya no lo es, y
+   * se veian las DOS copias del texto a la vez, cada una a media opacidad y
+   * separadas ~4px (~6px la foto). Medido con reloj virtual, el contraste del
+   * texto caia al 65,6% a mitad del fundido y volvia: un parpadeo muy visible,
+   * mientras que el del libro apenas bajaba al 92-94%. Ahora el contenido se
+   * dibuja UNA vez, a opacidad plena, sobre una pose interpolada entre las dos
+   * (ver `fundido` y `restSurface`): en vez de fundirse consigo mismo, se
+   * desplaza.
+   *
+   * El orden de pintado se conserva -destino a opacidad plena, origen encima
+   * desvaneciendose- para que el borde de la silueta se comporte igual que
+   * antes: los cuadros del video traen alfa, y cruzarlos al reves deja que el
+   * fondo de la seccion se asome por los cantos.
    *
    * La curva es un smoothstep y no una rampa recta para que el fundido no
    * arranque de golpe: lo que delata un corte es el primer instante de cambio.
@@ -1791,19 +1847,7 @@ export class AboutBookComponent {
       this.snapTo(frame);
       return Promise.resolve();
     }
-    const prev = this.ensureLayer(this.fadeLayer, c.width, c.height);
-    this.fadeLayer = prev;
-    const p = prev.getContext('2d');
-    if (!p) {
-      this.snapTo(frame);
-      return Promise.resolve();
-    }
-    p.setTransform(1, 0, 0, 1, 0, 0);
-    p.globalAlpha = 1;
-    p.globalCompositeOperation = 'source-over';
-    p.clearRect(0, 0, c.width, c.height);
-    p.drawImage(c, 0, 0);
-
+    const desde = this.physFrame;
     this.physFrame = frame;
     cancelAnimationFrame(this.raf);
     return this.zone.runOutsideAngular(
@@ -1812,15 +1856,8 @@ export class AboutBookComponent {
           const start = performance.now();
           const tick = (now: number): void => {
             const t = Math.min(1, (now - start) / ms);
-            const e = t * t * (3 - 2 * t);
+            this.fundido = t < 1 ? { desde, hacia: frame, t: t * t * (3 - 2 * t) } : null;
             this.draw(frame);
-            if (e < 1) {
-              ctx.save();
-              ctx.globalCompositeOperation = 'source-over';
-              ctx.globalAlpha = 1 - e;
-              ctx.drawImage(prev, 0, 0);
-              ctx.restore();
-            }
             if (t < 1) {
               this.raf = requestAnimationFrame(tick);
             } else {
@@ -1842,6 +1879,9 @@ export class AboutBookComponent {
    * no existe en el video real.
    */
   private playChain(waypoints: number[]): Promise<void> {
+    // Si un cruce de poses quedo a medias -por ejemplo porque se corto su rAF-,
+    // aqui deja de tener sentido: la animacion manda.
+    this.fundido = null;
     const path = [this.physFrame, ...waypoints];
     const segLengths = path.slice(1).map((p, i) => Math.abs(p - path[i]));
     const totalDist = segLengths.reduce((a, b) => a + b, 0);
@@ -1912,27 +1952,53 @@ export class AboutBookComponent {
     this.busy.set(false);
   }
 
+  /**
+   * El rebobinado va AL FINAL, no al principio.
+   *
+   * El video trae un solo tramo de vuelta, asi que cada "siguiente" tiene que
+   * arrancar en PAGE_REST. Rebobinando al entrar, cada repeticion pagaba ese
+   * movimiento por delante: medido, desde el clic pasaban 180ms de rebobinado,
+   * luego 780ms con el libro casi quieto -entre 400 y 1800 pixeles cambiando,
+   * frente a los 6000-35000 de la vuelta- y solo entonces se levantaba la hoja.
+   * Se leia como dos cosas separadas: un movimiento preparatorio, tres cuartos
+   * de segundo de nada, y despues la accion. La pagina 1->2 no lo tenia -ahi el
+   * libro ya venia en PAGE_REST y el rebobinado era un no-op- y es justo la
+   * unica que se sentia bien.
+   *
+   * Terminando cada accion en el cuadro que SU PROPIA direccion necesita para
+   * empezar, repetir "siguiente" o repetir "anterior" ya no tiene nada por
+   * delante: el giro arranca al pulsar. Y el rebobinado cae pegado al
+   * aterrizaje, prolongando un asentamiento que ya esta en curso -los cuadros
+   * 133 a 137 mueven 2,3, 1,3 y 0,4px- y arrancando con velocidad cero, porque
+   * la curva es un smoothstep. Solo CAMBIAR de direccion sigue pagando un
+   * rebobinado de entrada, que con un unico tramo de vuelta es inevitable; pasa
+   * de ser el caso habitual a ser el raro.
+   */
   async next(): Promise<void> {
     if (this.busy() || !this.coverOpen() || this.current() >= LAST) return;
     this.busy.set(true);
+    // No-op salvo que se venga de un "anterior": ahi el libro esta en PAGE_TURNED.
     await this.dissolveTo(PAGE_REST, SNAP_FADE_MS);
     this.transition = { leaving: this.current(), entering: this.current() + 1, towardHigh: true };
     await this.playChain([PAGE_TURNED]);
     this.transition = null;
     this.current.set(this.current() + 1);
     this.draw(this.physFrame);
+    await this.dissolveTo(PAGE_REST, SNAP_FADE_MS);
     this.busy.set(false);
   }
 
   async prev(): Promise<void> {
     if (this.busy() || !this.coverOpen() || this.current() <= 1) return;
     this.busy.set(true);
+    // No-op salvo que se venga de un "siguiente": ahi el libro esta en PAGE_REST.
     await this.dissolveTo(PAGE_TURNED, SNAP_FADE_MS);
     this.transition = { leaving: this.current(), entering: this.current() - 1, towardHigh: false };
     await this.playChain([PAGE_REST]);
     this.transition = null;
     this.current.set(this.current() - 1);
     this.draw(this.physFrame);
+    await this.dissolveTo(PAGE_TURNED, SNAP_FADE_MS);
     this.busy.set(false);
   }
 
