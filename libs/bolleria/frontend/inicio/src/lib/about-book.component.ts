@@ -8,24 +8,193 @@ const LAST = 7; // 1..6 = historias con foto+texto, 7 = cierre (redes sociales)
 
 // Cuadros calibrados a mano midiendo el movimiento real (diff de pixeles) entre
 // cuadros del video: 1..42 tapa abriendose; 43..50 asentando (51 en adelante ya
-// es el libro abierto, real y visualmente quieto). PAGE_REST/PAGE_TURNED son los
-// dos "stops" en reposo de la vuelta de pagina.
+// es el libro abierto, real y visualmente quieto). PAGE_REST es donde TERMINA
+// la apertura de la tapa; los dos extremos de la vuelta de pagina son
+// GIRO_LO/GIRO_HI.
 //
 // PAGE_REST era el 50, y estaba DENTRO del rebote de la apertura -medido, la
 // pagina todavia recorre 1,6px entre el 50 y el 56 (ver CurlAsset.pose). Como cada
-// "siguiente" vuelve de un tiron desde PAGE_TURNED hasta aca, el libro saltaba a
-// una pose que todavia no habia terminado de asentarse, y el corte se veia.
+// "siguiente" volvia de un tiron desde el cuadro girado hasta aca, el libro
+// saltaba a una pose que todavia no habia terminado de asentarse, y se veia.
 // Medido contra el 137, en pixeles que cambian mas de 24 niveles:
 //   cuadro 48: 23748   50: 15238   52: 10900   55: 9986   56: 9868   60: 10209
 // El 56 es el suelo de esa curva: quita el 35% del salto sin tocar nada mas. La
 // pagina derecha -donde vive el texto- se mueve 0.2-0.7 px entre el 50 y el 56,
 // asi que el encuadre calibrado del texto no se entera.
 const PAGE_REST = 56;
-const PAGE_TURNED = 137;
+/**
+ * Los dos extremos del GIRO, que no son los dos reposos.
+ *
+ * `PAGE_REST` y `PAGE_TURNED` son donde el libro se queda parado; el giro solo
+ * necesita los cuadros en los que la hoja SE MUEVE de verdad. Medido cuadro a
+ * cuadro sobre el video (pixeles que cambian mas de 8 niveles respecto al
+ * anterior), el suelo de ruido del render esta entre 400 y 1700:
+ *
+ *   ...78: 1335   79: 674   80: 606   81: 435 | 82: 1986   83: 5403   84: 9763
+ *   ...136: 2955  137: 2471  138: 3206  139: 1002 | 140: 964  141: 1229  142: 1427
+ *
+ * O sea: el 81 es el ultimo cuadro quieto y el 139 el ultimo con movimiento
+ * real; a partir del 140 el libro solo tiembla. Recorrer 56->137 metia 26
+ * cuadros muertos POR DELANTE del movimiento, y con la curva de aceleracion se
+ * llevaban el 44% de la duracion: medido en el navegador con reloj virtual,
+ * desde el clic pasaban 771 ms sin que se moviera un solo pixel del libro, y
+ * 1270 ms de los 1912 -el 53%- quedaban por debajo del suelo de ruido. Eso no
+ * se lee como un movimiento lento, se lee como una pausa y despues un tiron.
+ *
+ * Con 81->139 la accion entera baja a 1460 ms y el hueco quieto mas largo pasa
+ * de 771 ms a 10 ms.
+ */
+const GIRO_LO = 81;
+const GIRO_HI = 139;
+/**
+ * La vuelta de pagina se reproduce en tiempo LINEAL, sin curva de aceleracion.
+ *
+ * El video ya trae la suya: arranca en 1986 px por cuadro, sube hasta 40533 y
+ * cae a 1002 al asentarse. Ponerle encima un `easeInOutCubic` es aplicar dos
+ * aceleraciones seguidas, y ademas descolocadas -la curva va mas rapido por el
+ * medio del tramo, donde el video es moderado, y frena justo en el aterrizaje,
+ * que es donde el papel va mas rapido-. Medido en el navegador, el resultado
+ * era un pico de 80066 px por cada 10 ms seguido de 300 ms planos: la hoja no
+ * caia, daba un latigazo y despues flotaba.
+ *
+ * Se probaron tres curvas sobre el mismo tramo, midiendo la animacion real:
+ *
+ *   lineal      0% del tiempo por debajo del suelo de ruido, arranca en 5565
+ *   smoothstep  12%, arranca en 1893 y concentra el pico en el medio
+ *   salida suave 16%, arranca de golpe en 12928
+ *
+ * Lineal es la unica sin tiempo muerto Y con el arranque mas suave a la vez,
+ * porque el propio video se encarga de entrar y salir despacio. La apertura de
+ * la tapa NO usa esta curva: ahi no hay fisica grabada que respetar.
+ */
+const TIEMPO_LINEAL = (t: number): number => t;
 // Lo que queda del corte -unos 9900 px de golpe, todavia mas que el fotograma
 // mas brusco de la vuelta entera, que son 9301- se reparte en un fundido en vez
 // de darse en un solo cuadro. Ver `dissolveTo`.
 const SNAP_FADE_MS = 180;
+/**
+ * La COLA de la vuelta: el rebobinado hasta la pose de partida de su propia
+ * direccion, solapado con la deceleracion del giro en vez de esperar a que
+ * termine.
+ *
+ * El adelanto tiene un TOPE DURO: el solape tiene que empezar con la cadena ya
+ * FUERA de la malla (cuadros 83 a 133). Durante la cola el video se cruza entre
+ * dos cuadros pero el contenido se dibuja UNA sola vez, para el cuadro de
+ * destino; si el cuadro de origen todavia tuviera malla, se veria la hoja en el
+ * aire con el contenido ya plano y en reposo debajo.
+ *
+ * Ese tope hace que el adelanto sea ASIMETRICO, y no por capricho: yendo hacia
+ * delante el primer cuadro legal es el 134, y del 134 al 139 el video todavia
+ * se mueve de verdad (7776, 5202, 2955, 2471 y 3206 px por cuadro), asi que la
+ * cola cae dentro del aterrizaje. Yendo hacia atras el primer cuadro legal es
+ * el 82, y ahi el video YA paro: por debajo del 83 no queda movimiento que
+ * solapar. No es un ajuste que falte, es la geometria del tramo.
+ *
+ * `TAIL_MS` es CORTO a proposito. Con las dos poses fuera (ver `poseAt`) el
+ * contenido ya no viaja durante el cruce, asi que la cola solo tiene que
+ * disolver el libro: 10282 px, no 21656. Lo que queda de esos 10282 son sobre
+ * todo los adornos impresos del video, que estan a 4,02 px entre un reposo y
+ * el otro y por lo tanto se DESDOBLAN mientras dure el cruce. Contra un
+ * desdoblamiento no sirve alargar el fundido -alargarlo es tenerlo mas rato en
+ * pantalla-: sirve acortarlo y meterlo donde algo lo tape.
+ *
+ * De ahi el par (adelanto 132, duracion 65): el cruce entero cae dentro del
+ * aterrizaje. Medido en el lienzo, comparando cada instante del cruce con lo
+ * que el aterrizaje mueve por si solo en ese mismo instante:
+ *
+ *   el aterrizaje solo   9614  4066  1763  1202   586    29   225
+ *   cruce de  65 ms     +2483 +1240 +1827  +865  +661     0     0   -> 5 cuadros
+ *   cruce de  90 ms     +2483  +389 +1358  +695  +316 +1150  +194   -> 7 cuadros
+ *   cruce de 130 ms     +2483  -416  +890  +335  +208  +356  +390   -> 9 cuadros
+ *
+ * Los tres mueven lo mismo en total; lo que cambia es cuanto rato esta el
+ * desdoblamiento en pantalla y si le queda aterrizaje encima. Con 65 ms se
+ * acaba antes de que el aterrizaje se apague, y su punta vale el 26% de la de
+ * este. Con 130 se sale por detras y quedan cuatro cuadros de desdoblamiento
+ * sobre un libro ya quieto.
+ */
+const TAIL_MS = 65;
+/**
+ * La cola que `playChain` conduce dentro de su PROPIO bucle de rAF. Tiene que
+ * ir ahi y no en un `dissolveTo` encadenado: `this.raf` es uno solo, asi que
+ * dos bucles no pueden solaparse -el segundo cancelaria al primero-.
+ */
+interface ChainTail {
+  /** Cuadro en el que termina la accion (la pose de partida de su direccion). */
+  frame: number;
+  /** Duracion del cruce. */
+  ms: number;
+  /** Cuanto se adelanta respecto al final de la cadena. */
+  leadMs: number;
+  /** Se ejecuta UNA vez, al empezar el solape, dentro de la zona de Angular. */
+  alEmpezar?: () => void;
+  /**
+   * Desplazamiento horizontal del texto quieto, en px de video, en funcion del
+   * instante de la cadena. Solo lo pasa "siguiente" (ver DX_TEXTO_CRUCE).
+   */
+  dxTexto?: (t: number) => number;
+}
+/**
+ * Desplazamiento horizontal del texto durante el cruce, CALIBRADO A MANO por
+ * el dueno del sitio con `apps/bolleria/public/calibrador-aterrizaje.html`, en
+ * cuadros de pantalla 70, 71 y 72 del recorrido de "siguiente".
+ *
+ * Va indexado por MILISEGUNDO de la cadena y no por cuadro de video, porque
+ * durante el cruce el cuadro que se dibuja es siempre el mismo -el de destino,
+ * el 81-: un valor por cuadro de video no podria distinguir estos tres
+ * instantes.
+ *
+ * El ultimo valor SE MANTIENE, no vuelve a cero. El texto no esta haciendo un
+ * gesto de ida y vuelta: esta ACOMPANANDO a la hoja. Entre el cuadro 139 y el
+ * 81 los adornos impresos de la pagina derecha se corren +4,02 px a la derecha
+ * -medido sub-pixel-, o sea que el papel se desplaza, y el texto tiene que
+ * quedarse donde el papel lo dejo. Devolverlo al sitio de partida deshace
+ * justamente lo que se calibro.
+ *
+ * Antes del tramo si devuelve 0: ahi todavia no ha empezado el movimiento.
+ */
+const DX_TEXTO_CRUCE: readonly (readonly [number, number])[] = [
+  [1000 / 60 * 70, 1],
+  [1000 / 60 * 71, 2],
+  [1000 / 60 * 72, 3],
+];
+/**
+ * Medio cuadro de pantalla de tolerancia en los dos extremos. El valor se clavo
+ * "en el cuadro 70", y ese cuadro dura de 69,5 a 70,5: sin este margen el
+ * primer punto se perdia -medido, el cuadro 70 recibia 2 en vez de 1- porque el
+ * instante acumulado en coma flotante cae un pelo por debajo de 1166,666...
+ */
+const MEDIO_CUADRO_MS = 1000 / 120;
+const dxTextoCruce = (t: number): number => {
+  const P = DX_TEXTO_CRUCE;
+  if (t < P[0][0] - MEDIO_CUADRO_MS) return 0;
+  if (t <= P[0][0]) return P[0][1];
+  if (t >= P[P.length - 1][0]) return P[P.length - 1][1];
+  for (let i = 0; i < P.length - 1; i++) {
+    if (t >= P[i][0] && t <= P[i + 1][0]) {
+      return P[i][1] + (P[i + 1][1] - P[i][1]) * ((t - P[i][0]) / (P[i + 1][0] - P[i][0]));
+    }
+  }
+  return P[P.length - 1][1];
+};
+/**
+ * Curva del cruce: derivada MAXIMA al principio y cero al final.
+ *
+ * Los dos sentidos la quieren, por razones distintas que apuntan al mismo
+ * sitio. En "siguiente" el cruce arranca en el cuadro 133, que es justo donde
+ * el aterrizaje mueve mas (9614 px por cuadro de pantalla, contra 4066 en el
+ * siguiente y 1763 en el otro): entrando de golpe, la parte mas cara del
+ * rebobinado cae encima de la parte mas ruidosa del aterrizaje. En "anterior"
+ * no hay nada que solapar -su primer cuadro legal es el 82 y ahi el video ya
+ * paro, ver TAIL_LEAD_PREV_MS- y lo que hace falta es que el rebobinado empiece
+ * en el instante en que la hoja se detiene, sin dejar hueco.
+ *
+ * Antes se usaba `smoothstep` en "siguiente" para no sumarse al pico del
+ * aterrizaje. Es justo al reves: lo que hay que tapar es un desdoblamiento, y
+ * un desdoblamiento no se tapa repartiendolo, se tapa metiendolo debajo de
+ * algo que se mueva.
+ */
+const COLA_SIN_SOLAPE = (t: number): number => 1 - (1 - t) * (1 - t);
 // --- COREOGRAFIA DE LA VUELTA DE PAGINA ---
 // La hoja arranca a moverse en el cuadro 83 y termina de aterrizar en el 133.
 // En todo ese tramo su forma NO es un cuadrilatero: se enrolla como una onda,
@@ -173,6 +342,30 @@ const MASK_DILATE = 8;
 // boton) -> la velocidad se siente igual sin importar desde que cuadro se
 // arranque, y nunca hay que "adivinar" cuanto tarda cada tramo.
 const MS_PER_FRAME = 22;
+/**
+ * Adelanto de la cola en cada sentido (ver TAIL_MS). No son numeros elegidos:
+ * cada uno es la distancia desde el final de su cadena hasta el cuadro mas
+ * pronto en que la cola puede arrancar sin que el contenido salte al pasar de
+ * la rama de malla a la de reposo.
+ *
+ * Ese salto esta medido cuadro a cuadro, renderizando el mismo cuadro por las
+ * dos ramas (px que cambian mas de 24 niveles):
+ *
+ *   126: 61744   128: 49322   130: 34040   131: 27215   132: 12074
+ *   133:  2225   134:     0   135:     0
+ *
+ * O sea que a partir del 134 las dos ramas dibujan exactamente lo mismo, y en
+ * el 133 se diferencian en 2225 px -la curvatura que le queda a la hoja-. Vale
+ * la pena pagarlos: adelantar del 134 al 133 duplica el movimiento del propio
+ * aterrizaje disponible para tapar el rebobinado (11297 px por cuadro de
+ * pantalla en el 133 contra 5795 en el 134). Del 132 hacia atras ya no: 12074
+ * px de salto es mas que todo lo que cuesta el rebobinado entero.
+ *
+ * Van aqui y no junto a TAIL_MS porque necesitan MESH_LO/MESH_HI y
+ * MS_PER_FRAME, que se declaran mas abajo.
+ */
+const TAIL_LEAD_NEXT_MS = (GIRO_HI - MESH_HI) * MS_PER_FRAME;
+const TAIL_LEAD_PREV_MS = (MESH_LO - 1 - GIRO_LO) * MS_PER_FRAME;
 
 // Mismo dorado que usa el resto del sitio para acentos/ornamentos (ver
 // `.bol-book__wheat` en about-book.component.scss) -se reutiliza para el
@@ -492,6 +685,9 @@ export class AboutBookComponent {
   // plano->malla y pose de la pagina). Crear tres arrays de 289 puntos en cada
   // uno de los ~60 cuadros por segundo seria basura para el GC.
   private blendBuf: [number, number][] | null = null;
+  /** Buffer para `conDxTexto`, y el desplazamiento vigente (ver DX_TEXTO_CRUCE). */
+  private dxBuf: [number, number][] | null = null;
+  private textoDx = 0;
   private poseBuf: Record<'left' | 'right', [number, number][] | null> = { left: null, right: null };
   // Tres lienzos auxiliares del tamaño del canvas, reutilizados cuadro a
   // cuadro (crear un canvas por cuadro seria basura para el GC en pleno 45fps):
@@ -507,6 +703,11 @@ export class AboutBookComponent {
   // `restSurface` interpola las dos poses, para que el contenido se DESPLACE en
   // vez de fundirse consigo mismo (ver `dissolveTo`).
   private fundido: { desde: number; hacia: number; t: number } | null = null;
+  // Buferes de la malla interpolada (ver `lerpMesh`): 289 vertices por cara,
+  // reconstruidos en cada tick, asi que no se reservan cada vez.
+  private meshBuf: CurlFrame | null = null;
+  private meshBufF: [number, number][] | null = null;
+  private meshBufB: [number, number][] | null = null;
   private wheatIcon: HTMLImageElement | null = null;
   private textPanels: HTMLCanvasElement[] = [];
   private ctx: CanvasRenderingContext2D | null = null;
@@ -843,11 +1044,78 @@ export class AboutBookComponent {
   // Transicion en curso (null = reposo, se dibuja solo `current`). Ver next()/prev().
   private transition: { leaving: number; entering: number; towardHigh: boolean } | null = null;
 
+  /** Indice en `frames` del cuadro `n` (1-based), recortado al rango real. */
+  private static frameIdx(n: number): number {
+    return Math.max(1, Math.min(FRAME_COUNT, Math.floor(n))) - 1;
+  }
+
+  /**
+   * Pinta un cuadro FRACCIONARIO: los dos vecinos, el segundo con la parte
+   * decimal como opacidad.
+   *
+   * Redondeando, el video no puede entregar mas de un cuadro por cada avance de
+   * uno entero, y la curva de la vuelta frena hasta velocidad cero: medido a
+   * 10ms, en los ultimos 200ms la imagen se quedaba CONGELADA 40, 60 y 50ms y
+   * luego pegaba saltos de 47793, 33789 y 16664 pixeles. Cuatro brincos con
+   * pausas entre medias, que es como se lee la judder. Calculado, empieza en el
+   * cuadro 125: de ahi al final la curva entrega menos de 60 imagenes distintas
+   * por segundo, y llega a una cada 73ms.
+   *
+   * Las dos opacidades NO son `alpha` y `alpha*k`. Encadenar dos `source-over`
+   * con opacidades p y q deja el destino a `(1-p)(1-q)`, y con esa pareja
+   * ingenua eso no vale `1-alpha`: la mezcla acaba pesando `alpha*(2-alpha)` en
+   * vez de `alpha`. Con `alpha = 1` da igual -sale p = 1, q = k, que es lo
+   * correcto- y por eso todo el giro estaba bien; pero en el cruce de la cola,
+   * al saturar la cadena, `k` caia de 0,999 a 0 y el error se descargaba de
+   * golpe: medido, 10863 pixeles en un solo paso donde los vecinos movian 4400.
+   *
+   * Resolviendo el sistema sale exacto y sin lienzo intermedio:
+   *
+   *     q = alpha * k                 (peso del cuadro de arriba)
+   *     p = alpha * (1 - k) / (1 - q) (peso del de abajo)
+   *
+   * y entonces (1-p)(1-q) = 1 - alpha, que es justo lo que se pide.
+   *
+   * Queda un solo aviso: en el BORDE de la silueta, donde uno de los dos
+   * cuadros ya es transparente, el resultado favorece al de abajo por uno o dos
+   * pixeles. Los cuadros del video traen alfa y eso no se puede arreglar con
+   * dos `drawImage` sin componer antes en un lienzo aparte.
+   */
+  private pintaCuadro(
+    ctx: CanvasRenderingContext2D,
+    frame: number,
+    ox: number,
+    oy: number,
+    dw: number,
+    dh: number,
+    alpha: number,
+  ): void {
+    if (alpha <= 0) return;
+    const a = this.frames[AboutBookComponent.frameIdx(frame)];
+    if (!a) return;
+    const k = frame - Math.floor(frame);
+    const b = k > 0.002 ? this.frames[AboutBookComponent.frameIdx(frame + 1)] : null;
+    ctx.save();
+    if (!b || b === a) {
+      ctx.globalAlpha = alpha;
+      ctx.drawImage(a, ox, oy, dw, dh);
+    } else {
+      const q = alpha * k;
+      const p = q >= 1 ? 0 : (alpha * (1 - k)) / (1 - q);
+      if (p > 0) {
+        ctx.globalAlpha = p;
+        ctx.drawImage(a, ox, oy, dw, dh);
+      }
+      ctx.globalAlpha = q;
+      ctx.drawImage(b, ox, oy, dw, dh);
+    }
+    ctx.restore();
+  }
+
   private draw(frame: number): void {
     const ctx = this.ctx;
     const c = this.canvasRef()?.nativeElement;
-    const idx = Math.max(1, Math.min(FRAME_COUNT, Math.round(frame))) - 1;
-    const bmp = this.frames[idx];
+    const bmp = this.frames[AboutBookComponent.frameIdx(frame)];
     if (!ctx || !c || !bmp) return;
     this.lastDrawn = frame;
     ctx.clearRect(0, 0, c.width, c.height);
@@ -856,17 +1124,11 @@ export class AboutBookComponent {
     const dh = bmp.height * scale;
     const ox = (c.width - dw) / 2;
     const oy = (c.height - dh) / 2;
-    ctx.drawImage(bmp, ox, oy, dw, dh);
+    this.pintaCuadro(ctx, frame, ox, oy, dw, dh, 1);
     // Cruce de poses: encima del cuadro de destino se desvanece el de origen.
     // Solo el LIBRO -el contenido va despues, una sola vez y a opacidad plena-.
     const fu = this.fundido;
-    const viejo = fu ? this.frames[Math.max(1, Math.min(FRAME_COUNT, Math.round(fu.desde))) - 1] : null;
-    if (fu && viejo) {
-      ctx.save();
-      ctx.globalAlpha = 1 - fu.t;
-      ctx.drawImage(viejo, ox, oy, dw, dh);
-      ctx.restore();
-    }
+    if (fu) this.pintaCuadro(ctx, fu.desde, ox, oy, dw, dh, 1 - fu.t);
 
     // Sin condicionar a `coverOpen`: ese booleano hacia que el contenido
     // apareciera de golpe en un solo cuadro al terminar la apertura. Ahora
@@ -961,9 +1223,58 @@ export class AboutBookComponent {
    * medio cuadro adelantado respecto al papel sobre el que va impreso.
    */
   private meshAt(frame: number): CurlFrame | null {
-    const f = Math.round(frame);
-    if (!this.curl || f < MESH_LO || f > MESH_HI) return null;
-    return this.curl.frames[String(f)] ?? null;
+    const r = Math.round(frame);
+    if (!this.curl || r < MESH_LO || r > MESH_HI) return null;
+    const f0 = Math.floor(frame);
+    const a = this.curl.frames[String(f0)] ?? null;
+    // Borde bajo (82,x): el cuadro de abajo no tiene malla, asi que no hay nada
+    // que interpolar y se cae al redondeo, igual que antes.
+    if (!a) return this.curl.frames[String(r)] ?? null;
+    const k = frame - f0;
+    const b = k > 0.002 ? (this.curl.frames[String(f0 + 1)] ?? null) : null;
+    return b ? this.lerpMesh(a, b, k) : a;
+  }
+
+  /**
+   * Malla a medio camino entre dos cuadros medidos, para que la hoja se mueva a
+   * la cadencia de la pantalla y no a la del video (ver `pintaCuadro`). Si el
+   * papel se interpolara y el contenido no, volveriamos justo a lo que costo
+   * arreglar: el texto y la foto despegandose de la pagina.
+   *
+   * `fv` y `bv` NO se interpolan: son mapas de bits de visibilidad, no numeros.
+   * Se toman los del cuadro mas cercano, medio cuadro de error como mucho, que
+   * es exactamente el que ya habia al redondear.
+   *
+   * Los vertices van en buferes reutilizados: son 289 puntos por cara y esto
+   * corre en cada tick de rAF.
+   */
+  private lerpMesh(a: CurlFrame, b: CurlFrame, k: number): CurlFrame {
+    const cerca = k < 0.5 ? a : b;
+    const n = a.f.length;
+    if (!this.meshBufF || this.meshBufF.length !== n) this.meshBufF = a.f.map(() => [0, 0] as [number, number]);
+    const pf = this.meshBufF;
+    for (let i = 0; i < n; i++) {
+      pf[i][0] = a.f[i][0] + (b.f[i][0] - a.f[i][0]) * k;
+      pf[i][1] = a.f[i][1] + (b.f[i][1] - a.f[i][1]) * k;
+    }
+    let pb = cerca.b;
+    if (a.b && b.b && a.b.length === b.b.length) {
+      const m = a.b.length;
+      if (!this.meshBufB || this.meshBufB.length !== m) this.meshBufB = a.b.map(() => [0, 0] as [number, number]);
+      pb = this.meshBufB;
+      for (let i = 0; i < m; i++) {
+        pb[i][0] = a.b[i][0] + (b.b[i][0] - a.b[i][0]) * k;
+        pb[i][1] = a.b[i][1] + (b.b[i][1] - a.b[i][1]) * k;
+      }
+    }
+    const out = (this.meshBuf ??= { f: pf, fv: a.fv, b: pb, bv: a.bv });
+    out.f = pf;
+    out.fv = cerca.fv;
+    out.fa = a.fa !== undefined && b.fa !== undefined ? a.fa + (b.fa - a.fa) * k : cerca.fa;
+    out.b = pb;
+    out.bv = cerca.bv;
+    out.ba = a.ba !== undefined && b.ba !== undefined ? a.ba + (b.ba - a.ba) * k : cerca.ba;
+    return out;
   }
 
   /** Posicion en pantalla del punto (u,v) de la pagina, interpolando entre los vertices de la malla. */
@@ -1031,17 +1342,12 @@ export class AboutBookComponent {
     }
     if (!base) return null;
     // Durante un cruce de poses el contenido no se funde consigo mismo: viaja
-    // entre las dos. Se interpolan las POSICIONES, no las matrices -mezclar
-    // homografias entrada a entrada no significa nada geometrico-.
+    // entre las dos.
     const fu = this.fundido;
-    if (fu) {
-      const a = this.poseAt(fu.desde, side);
-      const b = this.poseAt(fu.hacia, side);
-      if (a || b) return { pts: this.mixWarp(a, b, fu.t, base.pts, side), vis: base.vis, uv: base.uv };
-      return base;
-    }
-    const w = this.poseAt(frame, side);
-    return w ? { pts: this.applyWarp(w, base.pts, side), vis: base.vis, uv: base.uv } : base;
+    const pts = fu
+      ? this.posePts(base.pts, side, fu.desde, fu.hacia, fu.t)
+      : this.posePts(base.pts, side, frame, 0, 0);
+    return pts === base.pts ? base : { pts, vis: base.vis, uv: base.uv };
   }
 
   /**
@@ -1103,24 +1409,48 @@ export class AboutBookComponent {
     return out;
   }
 
-  /** Pose de esta pagina en este cuadro, o null si es la identidad y no hay nada que aplicar (ver CurlAsset.pose). */
-  private poseAt(frame: number, side: 'left' | 'right'): Warp | null {
-    const p = this.curl?.pose?.[String(Math.round(frame))];
-    if (!p) return null;
-    const w = side === 'left' ? p.l : p.r;
-    if (!w) return null;
-    const identidad = w[0] === 1 && w[1] === 0 && w[2] === 0 && w[3] === 0 && w[4] === 1 && w[5] === 0 && w[6] === 0 && w[7] === 0;
-    return identidad ? null : w;
-  }
-
-  private applyWarp(w: Warp, pts: [number, number][], side: 'left' | 'right'): [number, number][] {
-    const out = (this.poseBuf[side] ??= pts.map(() => [0, 0] as [number, number]));
-    for (let i = 0; i < pts.length; i++) {
-      const p = AboutBookComponent.warpPoint(w, pts[i][0], pts[i][1]);
-      out[i][0] = p.x;
-      out[i][1] = p.y;
-    }
-    return out;
+  /**
+   * NINGUNA de las dos paginas lleva pose. El asset trae una para cada lado y
+   * aqui se ignoran las dos; `about-book-curl.json` no se toca, solo se deja de
+   * leer ese bloque.
+   *
+   * La pose existia para que el contenido acompañara a la pagina durante el
+   * rebobinado, y no delatara que esta sobrepuesto mientras los adornos
+   * impresos del video se desdoblan. El problema es lo que cuesta. Medido en el
+   * lienzo real, el salto entero del rebobinado (cuadro 139 -> 81) son 21656 px
+   * que cambian mas de 24 niveles, y se reparten asi:
+   *
+   *   nuestra foto, movida por la pose izquierda   15695   (72%)
+   *   el texto (solo cambio de sombreado)           3256
+   *   los adornos impresos del video                2532
+   *
+   * O sea: la pose mete SEIS VECES mas desdoblamiento del que evita. Con las
+   * dos fuera, el salto baja de 21656 a 10282 px y la foto no se mueve ni un
+   * pixel durante el cruce.
+   *
+   * Por que no se puede arreglar deformando, que era lo primero que probe: el
+   * CONTORNO del libro no se mueve entre los dos reposos -medido sub-pixel,
+   * borde derecho +0,11 px de media y max 0,45, borde izquierdo -0,24 y max
+   * 0,50- mientras que los adornos impresos de la pagina derecha se corren
+   * 4,02 px. No es que el libro se desplace: es que la hoja de encima es otra y
+   * el bloque de paginas se queda donde esta. Cualquier transformacion que
+   * registre los adornos descuadra el canto del libro contra el fondo, que es
+   * el borde de mas contraste del cuadro. Se probaron una afin global ajustada
+   * a los cuatro adornos (1,0 px de residuo, pero 4-5,5 px de desplazamiento
+   * del contorno) y un parche local difuminado (el adorno superior derecho
+   * esta a 7 px del canto y no queda papel donde apagar la mascara).
+   *
+   * El precio de quitarlas: la foto queda hasta ~5 px corrida respecto a la
+   * pagina en los extremos del giro, y el texto hasta 5 px. Es estatico, sobre
+   * papel en blanco y sin nada con que compararlo -los adornos son del video y
+   * el contenido no los toca-. Durante la vuelta el desfase se reparte en 50
+   * cuadros, a 0,1 px por cuadro.
+   *
+   * Se deja como una salida temprana, y no borrando la maquinaria, para que
+   * volver a activarlas sea quitar esta linea.
+   */
+  private poseAt(_frame: number, _side: 'left' | 'right'): Warp | null {
+    return null;
   }
 
   /** Un punto por el warp; `null` es la identidad. */
@@ -1131,19 +1461,86 @@ export class AboutBookComponent {
     return { x: (a * x + b * y + c) * k, y: (d * x + e * y + f) * k };
   }
 
-  /** Superficie a medio camino entre dos poses, interpolando posiciones (ver `fundido`). */
-  private mixWarp(a: Warp | null, b: Warp | null, t: number, pts: [number, number][], side: 'left' | 'right'): [number, number][] {
+  /**
+   * Coloca los puntos de una superficie con la pose de `frame`, y si `t > 0`
+   * los lleva un `t` del camino hacia la que tendrian en `hacia`.
+   *
+   * Los dos cuadros son FRACCIONARIOS y se interpolan entre sus dos vecinos,
+   * igual que el video y la malla (ver `pintaCuadro`). Redondear el origen del
+   * cruce parecia inofensivo -en el solape el libro ya casi no se mueve- pero
+   * no lo era: entre las poses 136 y 137 la foto se desplaza 0,514px, y al
+   * cruzar el 136,5 daba ese medio pixel de golpe. Medido, 10923 pixeles de la
+   * foto cambiaban en un solo paso, sin que la luminancia se moviera: era
+   * geometria pura.
+   *
+   * Se interpolan siempre POSICIONES, nunca las matrices: mezclar homografias
+   * entrada a entrada no significa nada geometrico.
+   *
+   * Devuelve `pts` tal cual -sin copiar ni recorrer- cuando no hay ninguna pose
+   * que aplicar, que es el caso de casi todos los cuadros.
+   */
+  private posePts(
+    pts: [number, number][],
+    side: 'left' | 'right',
+    frame: number,
+    hacia: number,
+    t: number,
+  ): [number, number][] {
+    const f0 = Math.floor(frame);
+    const k = frame - f0;
+    const a0 = this.poseAt(f0, side);
+    const a1 = k > 0.002 ? this.poseAt(f0 + 1, side) : a0;
+    const cruce = t > 0;
+    const h0 = cruce ? this.poseAt(Math.floor(hacia), side) : null;
+    const hk = cruce ? hacia - Math.floor(hacia) : 0;
+    const h1 = cruce && hk > 0.002 ? this.poseAt(Math.floor(hacia) + 1, side) : h0;
+    if (!a0 && !a1 && !h0 && !h1) return pts;
     const out = (this.poseBuf[side] ??= pts.map(() => [0, 0] as [number, number]));
     for (let i = 0; i < pts.length; i++) {
-      const pa = AboutBookComponent.warpPoint(a, pts[i][0], pts[i][1]);
-      const pb = AboutBookComponent.warpPoint(b, pts[i][0], pts[i][1]);
-      out[i][0] = pa.x + (pb.x - pa.x) * t;
-      out[i][1] = pa.y + (pb.y - pa.y) * t;
+      const x = pts[i][0];
+      const y = pts[i][1];
+      const p = AboutBookComponent.warpPoint(a0, x, y);
+      const q = a1 === a0 ? p : AboutBookComponent.warpPoint(a1, x, y);
+      let px = p.x + (q.x - p.x) * k;
+      let py = p.y + (q.y - p.y) * k;
+      if (cruce) {
+        const r = AboutBookComponent.warpPoint(h0, x, y);
+        const s = h1 === h0 ? r : AboutBookComponent.warpPoint(h1, x, y);
+        px += (r.x + (s.x - r.x) * hk - px) * t;
+        py += (r.y + (s.y - r.y) * hk - py) * t;
+      }
+      out[i][0] = px;
+      out[i][1] = py;
     }
     return out;
   }
 
-  /** Foto quieta de la pagina izquierda. La sombra se derrama FUERA del contenido, asi que va antes. */
+  /**
+   * Foto quieta de la pagina izquierda. La sombra se derrama FUERA del
+   * contenido, asi que va antes.
+   *
+   * Va MULTIPLICADA por la luminancia del cuadro, igual que durante la vuelta.
+   * Antes iba directa al `ctx` mientras que la vuelta la estampaba sombreada,
+   * asi que la foto cambiaba de brillo de golpe en los dos limites de la
+   * malla: medido sobre su huella real, el multiplicador saltaba de 1,000 a
+   * 0,917 al entrar por el cuadro 83 y de 0,927 a 1,000 al salir por el 134.
+   * En el arranque se escondia -la hoja ya estaba despegando y todo se movia-,
+   * pero en el aterrizaje no tenia donde: era lo unico que cambiaba y se leia
+   * como que la foto CRECIA, porque su marco blanco pasaba de 214 a 240 y un
+   * blanco mas brillante se lee como mas grueso. No habia ni un pixel de
+   * desplazamiento: renderizando el MISMO cuadro 133 por las dos rutas, los
+   * bordes caian en la misma x y todo el cambio era un factor de 1,08 a 1,12.
+   *
+   * Sombreando siempre, el multiplicador queda continuo de punta a punta
+   * -0,917 en el 83, 0,927 en el 133, 0,923 en el 134, 0,922 en el 56-: 0,6%
+   * de deriva repartida en 99 cuadros, en vez de dos escalones del 8%. El
+   * precio es que la foto en reposo se oscurece un 7,8% y recibe el degradado
+   * de la pagina, que es justamente lo que le pasa a algo impreso.
+   *
+   * El texto no hizo falta tocarlo: ya iba con `multiply` en las dos rutas, y
+   * por eso nunca tuvo este salto -medido, 3304px de diferencia entre rutas
+   * contra los 44851 de la foto-.
+   */
   private drawRestPhoto(
     ctx: CanvasRenderingContext2D,
     img: HTMLCanvasElement | null,
@@ -1159,11 +1556,51 @@ export class AboutBookComponent {
       this.drawPanelInQuad(ctx, img, CONTENT_LEFT_QUAD, ox, oy, scale, true, alpha);
       return;
     }
+    const main = this.canvasRef()?.nativeElement;
+    const box = main ? this.contentBox(null, ox, oy, scale, main) : null;
+    // El sombreado se lee ANTES de pintar nada nuestro -la sombra de la copia
+    // incluida-, o entraria en el factor y la foto saldria oscurecida dos
+    // veces (ver `captureShade`).
+    const shade = main && box && box.w && box.h ? this.captureShade(box, main) : null;
+    const paper = main && box && shade ? this.capturePaper(box, main) : null;
     this.drawPrintShadow(ctx, this.meshCorners(s.pts, s.uv, ox, oy, scale));
-    ctx.save();
-    if (alpha < 1) ctx.globalAlpha = alpha;
-    this.drawOnMesh(ctx, img, s.pts, s.vis, s.uv, ox, oy, scale);
-    ctx.restore();
+    let capa: HTMLCanvasElement | null = null;
+    let cl: CanvasRenderingContext2D | null = null;
+    if (main && box && shade) {
+      capa = this.contentLayer = this.ensureLayer(this.contentLayer, main.width, main.height);
+      cl = capa.getContext('2d');
+    }
+    if (!box || !shade || !capa || !cl) {
+      // Sin canvas o sin capa no se puede sombrear: se degrada a lo de antes
+      // -foto directa- en vez de no pintar nada.
+      ctx.save();
+      if (alpha < 1) ctx.globalAlpha = alpha;
+      this.drawOnMesh(ctx, img, s.pts, s.vis, s.uv, ox, oy, scale);
+      ctx.restore();
+      return;
+    }
+    cl.setTransform(1, 0, 0, 1, 0, 0);
+    cl.globalAlpha = 1;
+    cl.globalCompositeOperation = 'source-over';
+    // Estos lienzos auxiliares nacen en 'low' y ahi el warp sale mas blando.
+    cl.imageSmoothingEnabled = true;
+    cl.imageSmoothingQuality = 'high';
+    cl.clearRect(box.x, box.y, box.w, box.h);
+    this.drawOnMesh(cl, img, s.pts, s.vis, s.uv, ox, oy, scale);
+    if (paper) {
+      // Nada de lo nuestro puede quedar donde no hay papel. Mismo recorte que
+      // en la vuelta, para que las dos rutas coincidan tambien en el borde.
+      // `destination-in` toca todo el lienzo si no se acota con un clip.
+      cl.save();
+      cl.beginPath();
+      cl.rect(box.x, box.y, box.w, box.h);
+      cl.clip();
+      cl.globalCompositeOperation = 'destination-in';
+      cl.drawImage(paper, box.x, box.y, box.w, box.h, box.x, box.y, box.w, box.h);
+      cl.restore();
+      cl.globalCompositeOperation = 'source-over';
+    }
+    this.stampShaded(ctx, capa, box, shade, alpha);
   }
 
   /** Texto quieto de la pagina derecha. `multiply` porque la tinta absorbe luz sobre el papel. */
@@ -1185,8 +1622,22 @@ export class AboutBookComponent {
     ctx.save();
     ctx.globalCompositeOperation = 'multiply';
     if (alpha < 1) ctx.globalAlpha = alpha;
-    this.drawOnMesh(ctx, img, s.pts, s.vis, s.uv, ox, oy, scale);
+    this.drawOnMesh(ctx, img, this.conDxTexto(s.pts), s.vis, s.uv, ox, oy, scale);
     ctx.restore();
+  }
+
+  /**
+   * Aplica el desplazamiento calibrado del cruce (ver DX_TEXTO_CRUCE). Reusa un
+   * buffer: son 289 vertices y esto corre en cada cuadro de pantalla.
+   */
+  private conDxTexto(pts: [number, number][]): [number, number][] {
+    if (this.textoDx === 0) return pts;
+    const out = (this.dxBuf ??= pts.map(() => [0, 0] as [number, number]));
+    for (let i = 0; i < pts.length; i++) {
+      out[i][0] = pts[i][0] + this.textoDx;
+      out[i][1] = pts[i][1];
+    }
+    return out;
   }
 
   /** El cuadrilatero (u,v) del contenido visto como un Quad, para poder reusar `quadHomography` sobre el espacio de la pagina. */
@@ -1491,6 +1942,11 @@ export class AboutBookComponent {
     if (alpha <= 0) return;
 
     const t = this.transition;
+    // `f` redondeado se queda SOLO para lo que necesita un entero de verdad:
+    // elegir que historia va en cada cara. Todo lo que es continuo -la malla,
+    // las poses y las rampas- recibe el cuadro fraccionario, o el papel se
+    // moveria a 60 imagenes por segundo y el contenido a 15 (ver
+    // `pintaCuadro`).
     const f = Math.round(frame);
     // `front` es la cara de la hoja que en los cuadros bajos es la página
     // DERECHA (lleva el texto) y `back` la que en los altos es la IZQUIERDA
@@ -1498,7 +1954,7 @@ export class AboutBookComponent {
     // único que cambia con el sentido es qué historia va en cada cara.
     const front = !t ? this.current() : t.towardHigh ? t.leaving : t.entering;
     const back = !t ? this.current() : t.towardHigh ? t.entering : t.leaving;
-    const mesh = t ? this.meshAt(f) : null;
+    const mesh = t ? this.meshAt(frame) : null;
 
     if (!mesh) {
       // Hoja quieta: una sola doble página, sin nada que la ocluya. Sin la
@@ -1506,8 +1962,8 @@ export class AboutBookComponent {
       // comportamiento anterior en vez de romperse.
       const cut = this.curl ? MESH_LO : (MESH_LO + MESH_HI) / 2;
       const page = !t || f < cut ? front : back;
-      this.drawRestPhoto(ctx, this.photoPanel(page), f, ox, oy, scale, alpha);
-      this.drawRestText(ctx, this.textPanels[page - 1] ?? null, f, ox, oy, scale, alpha);
+      this.drawRestPhoto(ctx, this.photoPanel(page), frame, ox, oy, scale, alpha);
+      this.drawRestText(ctx, this.textPanels[page - 1] ?? null, frame, ox, oy, scale, alpha);
       return;
     }
 
@@ -1566,7 +2022,7 @@ export class AboutBookComponent {
     // La sombra de la copia entrante solo si hay copia: la pagina de cierre no
     // lleva foto, y sin esta condicion quedaba su sombra suelta sobre la pagina
     // izquierda como un rectangulo gris flotando.
-    const inShadow = mesh.b && backPhoto ? AboutBookComponent.ramp(f, IN_SHADOW_LO, IN_SHADOW_HI) : 0;
+    const inShadow = mesh.b && backPhoto ? AboutBookComponent.ramp(frame, IN_SHADOW_LO, IN_SHADOW_HI) : 0;
     // Lo que esta QUIETO durante la vuelta -la foto de la pagina izquierda y el
     // texto que se destapa en la derecha- va sobre las mismas superficies de
     // reposo que usa `drawContent` con la hoja parada. Si aqui fueran
@@ -1575,8 +2031,8 @@ export class AboutBookComponent {
     // Ambas llevan la pose del cuadro (ver CurlAsset.pose): durante la vuelta la
     // foto que se va sigue sobre la pagina izquierda de verdad, y el texto que se
     // destapa sobre la pagina de debajo, que NO esta donde estaba la hoja.
-    const restL = this.restSurface('left', f);
-    const restR = this.restSurface('right', f);
+    const restL = this.restSurface('left', frame);
+    const restR = this.restSurface('right', frame);
 
     // 1) Sombras de las copias, con `multiply` sobre el cuadro. La de la copia
     //    quieta se recorta igual que ella: si no, al taparla la hoja quedaría
@@ -1653,7 +2109,7 @@ export class AboutBookComponent {
         cl.globalAlpha = fa;
         // `frontPts` mezcla plano->malla en los primeros cuadros de la vuelta,
         // para empalmar sin salto con el texto recto de la hoja en reposo.
-        this.drawOnMesh(cl, frontText, this.frontPts(mesh, f), mesh.fv, SHEET_TEXT_UV, ox, oy, scale);
+        this.drawOnMesh(cl, frontText, this.frontPts(mesh, frame), mesh.fv, SHEET_TEXT_UV, ox, oy, scale);
         cl.globalAlpha = 1;
       }
       clipPaper();
@@ -1788,7 +2244,7 @@ export class AboutBookComponent {
 
   /**
    * Salta sin animar a "frame" (no-op si ya esta ahi). Solo se usa entre
-   * PAGE_REST y PAGE_TURNED: hay que volver siempre al mismo punto de partida
+   * GIRO_LO y GIRO_HI: hay que volver siempre al mismo punto de partida
    * porque el video trae UN solo tramo de vuelta de pagina y hay que
    * reproducirlo otra vez.
    */
@@ -1804,7 +2260,7 @@ export class AboutBookComponent {
    *
    * El comentario anterior daba por hecho que el salto era imperceptible
    * porque el contenido superpuesto es el mismo en los dos extremos. El
-   * contenido si, pero el LIBRO no: entre PAGE_TURNED y PAGE_REST ha pasado una
+   * contenido si, pero el LIBRO no: entre los dos extremos del giro ha pasado una
    * hoja de un taco al otro, y con ella se mueven los dos bloques de paginas,
    * el lomo, los cantos y las sombras. Medido, el corte cambia de golpe unos
    * 9900 pixeles en mas de 24 niveles -mas que el fotograma mas brusco de toda
@@ -1878,7 +2334,7 @@ export class AboutBookComponent {
    * movimiento casi a cero en cada punto intermedio -una pausa artificial que
    * no existe en el video real.
    */
-  private playChain(waypoints: number[]): Promise<void> {
+  private playChain(waypoints: number[], cola?: ChainTail, curva?: (t: number) => number): Promise<void> {
     // Si un cruce de poses quedo a medias -por ejemplo porque se corto su rAF-,
     // aqui deja de tener sentido: la animacion manda.
     this.fundido = null;
@@ -1903,12 +2359,24 @@ export class AboutBookComponent {
     if (!this.isBrowser || totalDist === 0 || this.reduced()) {
       this.draw(finalTarget);
       this.physFrame = finalTarget;
+      if (cola) {
+        // Sin animacion la cola no tiene nada que solapar, pero su efecto de
+        // estado -pasar de pagina- sigue haciendo falta.
+        cola.alEmpezar?.();
+        this.physFrame = cola.frame;
+        this.draw(cola.frame);
+      }
       return Promise.resolve();
     }
 
     cancelAnimationFrame(this.raf);
     const durationMs = totalDist * MS_PER_FRAME;
-    const ease = (t: number): number => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+    // Por defecto, la curva de siempre. La vuelta de pagina pasa la SUYA (ver
+    // `TIEMPO_LINEAL`); la apertura y el reinicio se quedan con esta.
+    const ease = curva ?? ((t: number): number => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2));
+    // Instante en que arranca la cola y en que termina todo (ver TAIL_MS).
+    const colaEn = cola ? Math.max(0, durationMs - cola.leadMs) : Infinity;
+    const finEn = cola ? colaEn + cola.ms : durationMs;
     // Fuera de la zona de Angular: cada tick solo dibuja en el canvas (no toca
     // signals), asi que no hace falta -ni conviene- disparar deteccion de
     // cambios de toda la app en cada uno de los ~60 ticks por segundo.
@@ -1916,13 +2384,50 @@ export class AboutBookComponent {
       () =>
         new Promise<void>((resolve) => {
           const start = performance.now();
+          let arrancada = false;
           const tick = (now: number): void => {
-            const tt = Math.min(1, (now - start) / durationMs);
-            this.draw(frameAtProgress(totalDist * ease(tt)));
-            if (tt < 1) {
+            const t = now - start;
+            const tt = Math.min(1, t / durationMs);
+            const f = frameAtProgress(totalDist * ease(tt));
+            // Antes de dibujar: el desplazamiento calibrado del texto en este
+            // instante (ver DX_TEXTO_CRUCE). Devuelve 0 fuera de su tramo.
+            this.textoDx = cola?.dxTexto ? cola.dxTexto(t) : 0;
+            if (!cola || t < colaEn) {
+              this.draw(f);
+            } else {
+              if (!arrancada) {
+                arrancada = true;
+                // `alEmpezar` escribe signals (la pagina actual), y esto corre
+                // fuera de la zona: sin `zone.run` la deteccion de cambios no
+                // se dispara y el contador "04 / 07" y los botones se quedan
+                // en el valor anterior hasta el siguiente evento.
+                this.zone.run(() => cola.alEmpezar?.());
+              }
+              const ct = Math.min(1, (t - colaEn) / cola.ms);
+              // El origen del cruce es el cuadro VIVO de la cadena mientras
+              // esta siga corriendo -no un 137 congelado-, asi que el giro y el
+              // rebobinado no se pisan: son el mismo movimiento continuo.
+              // Cuando la cadena termina, `tt` se satura y `f` se queda quieto
+              // en el final por si solo.
+              this.fundido = ct < 1 ? { desde: f, hacia: cola.frame, t: COLA_SIN_SOLAPE(ct) } : null;
+              this.draw(cola.frame);
+            }
+            if (t < finEn) {
               this.raf = requestAnimationFrame(tick);
             } else {
-              this.physFrame = finalTarget;
+              this.fundido = null;
+              this.physFrame = cola ? cola.frame : finalTarget;
+              // El desplazamiento NO se limpia: el texto se queda donde la hoja
+              // lo dejo (ver DX_TEXTO_CRUCE). Lo que si hace falta es un ultimo
+              // dibujo con su valor FINAL, porque a 60Hz es normal que el
+              // ultimo tick caiga antes de `finEn` con la curva a medias -por
+              // ejemplo en t=1198, con dx 2,88- y el siguiente ya no dibuje: el
+              // reposo se quedaria a mitad de camino.
+              const fin = cola?.dxTexto ? cola.dxTexto(finEn) : this.textoDx;
+              if (fin !== this.textoDx) {
+                this.textoDx = fin;
+                this.draw(this.physFrame);
+              }
               resolve();
             }
           };
@@ -1939,6 +2444,25 @@ export class AboutBookComponent {
     this.lifting.set(false);
     this.current.set(1);
     this.coverOpen.set(true);
+    // La apertura termina en PAGE_REST -su cuadro calibrado, dentro del que el
+    // libro deja de rebotar- pero el libro se QUEDA en GIRO_LO, que es de donde
+    // arranca la vuelta de pagina. Si no, el primer "siguiente" pagaria un
+    // `dissolveTo` de 180 ms para recorrer 56->81 antes de empezar a moverse, y
+    // esa es exactamente la pausa que este trabajo quita.
+    //
+    // Cambiar de cuadro aqui no se ve. Medido sobre el lienzo real (1040x844),
+    // en pixeles que cambian mas de 24 niveles:
+    //
+    //   56 -> 81  (este relevo)          1148
+    //   56 -> 57  (un cuadro quieto)      249   <- el grano propio del render
+    //   110 -> 111 (un cuadro del giro) 17795
+    //
+    // O sea, cinco veces el grano de un cuadro quieto -es grano acumulado de 25
+    // cuadros- y la quinceava parte de un solo cuadro de la vuelta. Y sobre
+    // todo, esta REPARTIDO: el mapa de diferencias no tiene ninguna forma, solo
+    // pixeles de borde sueltos. No hay nada que se mueva. Las poses de la
+    // pagina izquierda entre esos dos cuadros distan 0,13 px.
+    this.physFrame = GIRO_LO;
     this.draw(this.physFrame);
     this.busy.set(false);
   }
@@ -1956,49 +2480,84 @@ export class AboutBookComponent {
    * El rebobinado va AL FINAL, no al principio.
    *
    * El video trae un solo tramo de vuelta, asi que cada "siguiente" tiene que
-   * arrancar en PAGE_REST. Rebobinando al entrar, cada repeticion pagaba ese
+   * arrancar en GIRO_LO. Rebobinando al entrar, cada repeticion pagaba ese
    * movimiento por delante: medido, desde el clic pasaban 180ms de rebobinado,
    * luego 780ms con el libro casi quieto -entre 400 y 1800 pixeles cambiando,
    * frente a los 6000-35000 de la vuelta- y solo entonces se levantaba la hoja.
    * Se leia como dos cosas separadas: un movimiento preparatorio, tres cuartos
    * de segundo de nada, y despues la accion. La pagina 1->2 no lo tenia -ahi el
-   * libro ya venia en PAGE_REST y el rebobinado era un no-op- y es justo la
+   * libro ya venia en GIRO_LO y el rebobinado era un no-op- y es justo la
    * unica que se sentia bien.
    *
    * Terminando cada accion en el cuadro que SU PROPIA direccion necesita para
    * empezar, repetir "siguiente" o repetir "anterior" ya no tiene nada por
-   * delante: el giro arranca al pulsar. Y el rebobinado cae pegado al
-   * aterrizaje, prolongando un asentamiento que ya esta en curso -los cuadros
-   * 133 a 137 mueven 2,3, 1,3 y 0,4px- y arrancando con velocidad cero, porque
-   * la curva es un smoothstep. Solo CAMBIAR de direccion sigue pagando un
-   * rebobinado de entrada, que con un unico tramo de vuelta es inevitable; pasa
-   * de ser el caso habitual a ser el raro.
+   * delante: el giro arranca al pulsar -medido, 0 pixeles cambiando en los
+   * primeros 200ms, igual que la 1->2-. Solo CAMBIAR de direccion sigue pagando
+   * un rebobinado de entrada, que con un unico tramo de vuelta es inevitable;
+   * pasa de ser el caso habitual a ser el raro.
+   *
+   * Ese rebobinado final NO va detras del giro sino DENTRO de el: se le pasa a
+   * `playChain` como cola y arranca `TAIL_LEAD_NEXT_MS`/`TAIL_LEAD_PREV_MS`
+   * antes de que la cadena
+   * termine, porque puesto detras dejaba ~120ms de nada entre un movimiento y
+   * el otro (ver TAIL_MS). Por eso aqui ya no hay ningun `dissolveTo` de
+   * salida, y el cambio de pagina viaja en `alEmpezar`.
    */
   async next(): Promise<void> {
     if (this.busy() || !this.coverOpen() || this.current() >= LAST) return;
     this.busy.set(true);
-    // No-op salvo que se venga de un "anterior": ahi el libro esta en PAGE_TURNED.
-    await this.dissolveTo(PAGE_REST, SNAP_FADE_MS);
-    this.transition = { leaving: this.current(), entering: this.current() + 1, towardHigh: true };
-    await this.playChain([PAGE_TURNED]);
-    this.transition = null;
-    this.current.set(this.current() + 1);
-    this.draw(this.physFrame);
-    await this.dissolveTo(PAGE_REST, SNAP_FADE_MS);
+    // No-op salvo que se venga de un "anterior": ahi el libro esta en GIRO_HI.
+    await this.dissolveTo(GIRO_LO, SNAP_FADE_MS);
+    const entra = this.current() + 1;
+    this.transition = { leaving: this.current(), entering: entra, towardHigh: true };
+    await this.playChain([GIRO_HI], {
+      frame: GIRO_LO,
+      ms: TAIL_MS,
+      leadMs: TAIL_LEAD_NEXT_MS,
+      // Solo "siguiente" lleva desplazamiento del texto: es el unico sentido
+      // calibrado (ver DX_TEXTO_CRUCE). En "anterior" la tabla esta vacia.
+      dxTexto: dxTextoCruce,
+      // Se limpia la transicion al EMPEZAR la cola, no al terminar la cadena.
+      // El solape arranca en el cuadro 133, el ultimo de la malla, y ahi las dos
+      // ramas de `drawContent` ya solo se diferencian en 2225 px (ver
+      // TAIL_LEAD_NEXT_MS); del 134 en adelante son identicas.
+      alEmpezar: () => {
+        this.transition = null;
+        this.current.set(entra);
+      },
+    }, TIEMPO_LINEAL);
     this.busy.set(false);
   }
 
   async prev(): Promise<void> {
     if (this.busy() || !this.coverOpen() || this.current() <= 1) return;
     this.busy.set(true);
-    // No-op salvo que se venga de un "siguiente": ahi el libro esta en PAGE_REST.
-    await this.dissolveTo(PAGE_TURNED, SNAP_FADE_MS);
-    this.transition = { leaving: this.current(), entering: this.current() - 1, towardHigh: false };
-    await this.playChain([PAGE_REST]);
-    this.transition = null;
-    this.current.set(this.current() - 1);
-    this.draw(this.physFrame);
-    await this.dissolveTo(PAGE_TURNED, SNAP_FADE_MS);
+    // No-op salvo que se venga de un "siguiente": ahi el libro esta en GIRO_LO.
+    await this.dissolveTo(GIRO_HI, SNAP_FADE_MS);
+    const entra = this.current() - 1;
+    this.transition = { leaving: this.current(), entering: entra, towardHigh: false };
+    // El desplazamiento del texto es una propiedad del cuadro de REPOSO, no un
+    // gesto de la animacion: en el 81 el papel esta 4,02px a la derecha que en
+    // el 139 (ver DX_TEXTO_CRUCE). "Anterior" devuelve el libro al 139, asi que
+    // tiene que deshacerlo o el texto se queda corrido para siempre.
+    // Esto es un ESPEJO provisional -desvanece lo que haya con la curva del
+    // cruce-, no una calibracion: la tabla de "anterior" esta vacia.
+    const dxDesde = this.textoDx;
+    const colaEnPrev = (GIRO_HI - GIRO_LO) * MS_PER_FRAME - TAIL_LEAD_PREV_MS;
+    await this.playChain([GIRO_LO], {
+      frame: GIRO_HI,
+      ms: TAIL_MS,
+      leadMs: TAIL_LEAD_PREV_MS,
+      dxTexto: (t: number): number => {
+        if (dxDesde === 0) return 0;
+        if (t <= colaEnPrev) return dxDesde;
+        return dxDesde * (1 - COLA_SIN_SOLAPE(Math.min(1, (t - colaEnPrev) / TAIL_MS)));
+      },
+      alEmpezar: () => {
+        this.transition = null;
+        this.current.set(entra);
+      },
+    }, TIEMPO_LINEAL);
     this.busy.set(false);
   }
 
@@ -2026,11 +2585,10 @@ export class AboutBookComponent {
     // distinta: con el cuadrilatero el <a> caia desplazado respecto a la
     // palabra pintada. Esta es exactamente la cadena que usa drawOnMesh:
     // (u,v) del panel -> (u,v) de la pagina -> pixel de pantalla.
-    // El cuadro en el que el libro esta parado ahora mismo, no PAGE_REST: al
-    // llegar a la pagina de cierre con "siguiente" el libro queda en
-    // PAGE_TURNED, y la pagina derecha de ahi no es la misma hoja ni esta en la
-    // misma pose que en PAGE_REST (ver CurlAsset.pose), asi que las dos
-    // superficies no son identicas.
+    // Se pasa el cuadro real en el que el libro esta parado. Hoy la superficie
+    // de la pagina derecha ya no depende del cuadro -su pose quedo fuera, ver
+    // `poseAt`- asi que da igual cual se pase; se deja `physFrame` porque es lo
+    // correcto si algun dia esa pagina vuelve a llevar pose.
     const s = this.restSurface('right', this.physFrame);
     if (s) {
       const enPagina = AboutBookComponent.quadHomography(AboutBookComponent.uvQuad(s.uv))(pos.u, pos.v);
