@@ -421,6 +421,58 @@ const STORY_DIVIDER_H = 34;
 // vertical si es el centro geometrico de los cuatro.
 const PAGE_CENTER_U = 0.525;
 const PAGE_CENTER_V = 0.519;
+
+/** Los siete numeros de arriba, mas el giro, para una pagina concreta. */
+interface AjusteTexto {
+  /** Cuerpo de letra en px del panel. */
+  font: number;
+  /** Ancho de columna: donde corta el reparto en renglones. */
+  measure: number;
+  /** Interlineado y aire entre parrafos, en multiplos del cuerpo. */
+  line: number;
+  para: number;
+  /** Alto reservado para la espiga divisoria. */
+  divider: number;
+  /** Centro del bloque dentro del panel. */
+  u: number;
+  v: number;
+  /** Giro del bloque sobre su propio centro, en grados. */
+  giro: number;
+}
+const TEXTO_BASE: AjusteTexto = {
+  font: STORY_FONT,
+  measure: STORY_MEASURE,
+  line: STORY_LINE,
+  para: STORY_PARA,
+  divider: STORY_DIVIDER_H,
+  u: PAGE_CENTER_U,
+  v: PAGE_CENTER_V,
+  giro: 0,
+};
+
+/**
+ * Paginas que NO usan los valores de arriba. Hoy solo la 4, calibrada a mano
+ * con `apps/bolleria/public/calibrador-texto.html`.
+ *
+ * Es una tabla de EXCEPCIONES y no una fila por pagina a proposito: escribir
+ * las siete, seis de ellas identicas, esconderia cual es la unica que se toco.
+ *
+ * Por que la 4 y solo la 4: los valores de `TEXTO_BASE` salieron de una
+ * busqueda que dejaba 15.5px a los dibujos de la esquina izquierda y 20.6px a
+ * los de la derecha, equilibrada sobre las 7 paginas a la vez. La 4 es la unica
+ * historia con DOS parrafos -su bloque es el mas alto del libro- y es la que se
+ * salia. Bajarla a 45/469 y correrla 13.8px hacia abajo rompe ese equilibrio
+ * global, pero solo aqui; las otras seis siguen en el optimo medido.
+ *
+ * El giro de -0.42 grados vale ~1.8px entre los extremos del bloque. Es
+ * pequeño, pero esta calibrado mirando el render, no estimado.
+ */
+const TEXTO_POR_PAGINA: Readonly<Record<number, Partial<AjusteTexto>>> = {
+  4: { font: 45, measure: 469, divider: 32, u: 0.5236, v: 0.5358, giro: -0.42 },
+};
+
+const ajusteTexto = (page: number): AjusteTexto => ({ ...TEXTO_BASE, ...(TEXTO_POR_PAGINA[page] ?? {}) });
+
 // --- La foto es una COPIA IMPRESA apoyada sobre la pagina, no un dibujo en
 // ella. Los tres valores de abajo son los que separan un composite creible de
 // uno amateur; ninguno es una preferencia estetica suelta.
@@ -698,6 +750,10 @@ export class AboutBookComponent {
   private maskLayer: HTMLCanvasElement | null = null;
   private shadeLayer: HTMLCanvasElement | null = null;
   private paperLayer: HTMLCanvasElement | null = null;
+  // La foto entrante se compone aparte para poder recortarla por el dorso antes
+  // de juntarla con el resto (ver `buildBackMask`).
+  private backLayer: HTMLCanvasElement | null = null;
+  private backMaskLayer: HTMLCanvasElement | null = null;
   // Cruce de poses en curso (null = no hay ninguno). `t` va de 0 a 1 ya
   // suavizado. Mientras esta puesto, `draw` cruza los dos cuadros del video y
   // `restSurface` interpola las dos poses, para que el contenido se DESPLACE en
@@ -727,7 +783,7 @@ export class AboutBookComponent {
       this.prepareFonts(),
     ]);
     this.photos = this.rawPhotos.map((p) => (p ? this.renderPhotoPanel(p) : null));
-    this.textPanels = STORIES.map((s, i) => this.renderTextPanel(s, i === LAST - 1));
+    this.textPanels = STORIES.map((s, i) => this.renderTextPanel(s, i === LAST - 1, i + 1));
     this.sizeCanvas();
     this.draw(1);
     this.ready.set(true);
@@ -781,10 +837,115 @@ export class AboutBookComponent {
       if (!data?.frames || !data?.grid?.[0]) return;
       this.curl = data;
       this.curlGrid = data.grid[0];
+      for (const m of Object.values(data.frames)) {
+        if (m.bv) m.bv = this.limpiaVisibilidad(m.bv);
+      }
       this.buildFlatFront();
     } catch {
       // se ignora: sin malla, drawContent deja el contenido quieto en su pagina
     }
+  }
+
+  /**
+   * Quita el RUIDO de `bv`: vertices sueltos que dicen mirar al lado contrario
+   * que sus ocho vecinos, o al reves. Una superficie desarrollable es suave, asi
+   * que un vertice que se lleva la contraria a todo su entorno no es geometria,
+   * es error de medida.
+   *
+   * Por que importa tanto un vertice: una celda solo cuenta como visible si sus
+   * CUATRO vertices lo son, de modo que un unico bit erroneo abre un agujero de
+   * 2x2 celdas. En los cuadros 121 y 123 hay dos de esos alineados en la misma
+   * columna -filas 5 y 6, columna 9-, y juntos abren una FRANJA que partia la
+   * foto entrante por la mitad. Es el "se parte en tres" que se veia.
+   *
+   * Que no es sospecha: desde el cuadro 117 las 256 celdas de `b` tienen area
+   * con signo positiva, o sea que la superficie esta entera de cara. Un vertice
+   * de espaldas ahi dentro no puede existir.
+   *
+   * Se corrige por dos criterios, los dos SIN umbral que ajustar, porque un
+   * umbral de mayoria acaba corriendo las fronteras de verdad -probado: con
+   * "toda la vecindad menos uno" el cuadro 119, cuya frontera es real y ocupa
+   * media malla, perdia un vertice de ella-:
+   *
+   *   1. Vertice RODEADO POR COMPLETO de vecinos del signo contrario. No es una
+   *      frontera: una frontera tiene dos lados.
+   *   2. AGUJEROS: grupos de ceros que no llegan al borde de la malla. Una zona
+   *      de espaldas de verdad se abre hacia fuera; una isla de ceros encerrada
+   *      en pleno dorso visible no puede existir. Esto es lo que pilla las
+   *      parejas y los trios contiguos, que el criterio 1 no ve.
+   *
+   * Efecto medido sobre el asset: toca 8 cuadros de 169 -el 88 y del 118 al
+   * 125-, con 11 vertices rodeados, 1 aislado y 22 de agujero. El 119 queda
+   * intacto, y los cuadros 121, 122, 123 y 125 se quedan sin un solo cero, que
+   * es justo lo que dice su geometria.
+   *
+   * SOLO SE TOCA `bv`. `fv` tiene vertices con la misma pinta, pero manda sobre
+   * el texto de la cara frontal, que ya esta calibrado y no entra en este
+   * encargo.
+   */
+  private limpiaVisibilidad(vis: string): string {
+    const g = this.curlGrid;
+    const out = vis.split('');
+    // 1) Vertices rodeados por completo. Se lee la vecindad ORIGINAL, no la que
+    //    se va corrigiendo: si no, el barrido se propaga y una correccion
+    //    justifica la siguiente.
+    for (let r = 0; r < g; r++) {
+      for (let c = 0; c < g; c++) {
+        let n = 0;
+        let t = 0;
+        for (let dr = -1; dr <= 1; dr++) {
+          for (let dc = -1; dc <= 1; dc++) {
+            if (!dr && !dc) continue;
+            const R = r + dr;
+            const C = c + dc;
+            if (R < 0 || R >= g || C < 0 || C >= g) continue;
+            t++;
+            if (vis[R * g + C] === '1') n++;
+          }
+        }
+        if (vis[r * g + c] === '1') {
+          if (n === 0) out[r * g + c] = '0';
+        } else if (n === t) {
+          out[r * g + c] = '1';
+        }
+      }
+    }
+    // 2) Agujeros: se inunda el cero desde el borde de la malla y lo que no se
+    //    alcanza queda encerrado, o sea que es agujero. Vecindad de 4 a
+    //    proposito: un hueco unido al exterior solo por una diagonal tambien
+    //    abre celdas, asi que cuenta como agujero.
+    const alcanzado = new Uint8Array(g * g);
+    const pila: number[] = [];
+    for (let i = 0; i < g * g; i++) {
+      const r = (i / g) | 0;
+      const c = i % g;
+      if ((r === 0 || c === 0 || r === g - 1 || c === g - 1) && out[i] === '0') {
+        alcanzado[i] = 1;
+        pila.push(i);
+      }
+    }
+    while (pila.length) {
+      const i = pila.pop() as number;
+      const r = (i / g) | 0;
+      const c = i % g;
+      for (const [dr, dc] of [
+        [1, 0],
+        [-1, 0],
+        [0, 1],
+        [0, -1],
+      ]) {
+        const R = r + dr;
+        const C = c + dc;
+        if (R < 0 || R >= g || C < 0 || C >= g) continue;
+        const k = R * g + C;
+        if (!alcanzado[k] && out[k] === '0') {
+          alcanzado[k] = 1;
+          pila.push(k);
+        }
+      }
+    }
+    for (let i = 0; i < g * g; i++) if (out[i] === '0' && !alcanzado[i]) out[i] = '1';
+    return out.join('');
   }
 
   // createImageBitmap() no decodifica de forma confiable un blob SVG en Chromium
@@ -892,7 +1053,7 @@ export class AboutBookComponent {
    * con el warp de 4 puntos -nunca se re-renderiza texto en cada frame de la
    * animación, solo se transforma el bitmap ya dibujado.
    */
-  private renderTextPanel(story: StoryContent, isClosing: boolean): HTMLCanvasElement {
+  private renderTextPanel(story: StoryContent, isClosing: boolean, page: number): HTMLCanvasElement {
     const c = document.createElement('canvas');
     c.width = PANEL_W;
     c.height = PANEL_H;
@@ -900,7 +1061,27 @@ export class AboutBookComponent {
     if (!ctx) return c;
     ctx.textAlign = 'center';
     ctx.fillStyle = '#4a3d2a';
-    const cx = PANEL_W * PAGE_CENTER_U;
+    // Los siete numeros de la tipografia salen de aqui y no de las constantes
+    // sueltas: la pagina 4 lleva los suyos (ver TEXTO_POR_PAGINA).
+    const t = ajusteTexto(page);
+    const cx = PANEL_W * t.u;
+
+    /**
+     * El giro se aplica al LIENZO, no a cada renglon: asi el bloque entero
+     * -renglones, aire entre parrafos y espiga- rota como una sola pieza sobre
+     * su propio centro. Rotar renglon a renglon los abriria en abanico.
+     *
+     * Se deshace antes de los rotulos de redes a proposito: los <a> reales del
+     * DOM se colocan con SOCIAL_POS (ver socialLinkStyle), asi que girarlos los
+     * dejaria pintados en un sitio y clicables en otro.
+     */
+    const giraLienzo = (): void => {
+      if (!t.giro) return;
+      const cy = PANEL_H * t.v;
+      ctx.translate(cx, cy);
+      ctx.rotate((t.giro * Math.PI) / 180);
+      ctx.translate(-cx, -cy);
+    };
 
     if (isClosing) {
       // La pagina de cierre usa el MISMO motor de reparto que las historias.
@@ -908,9 +1089,9 @@ export class AboutBookComponent {
       // horizontalmente hasta que quepa. Con la frase de cierre eso ya la
       // dejaba al 70% de su ancho -letras estrechadas, distintas del resto del
       // libro- y al subir el cuerpo habria bajado al 59%.
-      ctx.font = `italic 500 ${Math.round(STORY_FONT * 0.95)}px "Cormorant Garamond", serif`;
-      const rows = story.lines.flatMap((line) => this.wrapLine(ctx, line, STORY_MEASURE, false));
-      const step = STORY_FONT * 0.95 * STORY_LINE;
+      ctx.font = `italic 500 ${Math.round(t.font * 0.95)}px "Cormorant Garamond", serif`;
+      const rows = story.lines.flatMap((line) => this.wrapLine(ctx, line, t.measure, false));
+      const step = t.font * 0.95 * t.line;
       // El bloque se centra en la franja que queda por encima de los enlaces de
       // redes, cuya posicion es fija porque los <a> reales del DOM se colocan
       // con ella (ver socialLinkStyle). La franja arranca en 0.20 y no en 0
@@ -919,31 +1100,36 @@ export class AboutBookComponent {
       // 2, y centrada en el panel entero quedaba muy alta.
       const zoneLo = PANEL_H * 0.2;
       const zoneHi = PANEL_H * (SOCIAL_POS.instagram.v - 0.09);
-      let y = zoneLo + (zoneHi - zoneLo - rows.length * step) / 2 + STORY_FONT * 0.95 * 0.8;
+      let y = zoneLo + (zoneHi - zoneLo - rows.length * step) / 2 + t.font * 0.95 * 0.8;
+      ctx.save();
+      giraLienzo();
       for (const row of rows) {
         ctx.fillText(row, cx, y);
         y += step;
       }
+      ctx.restore();
       this.drawSocialIcon(ctx, SOCIAL_POS.instagram, '#5e6a34', 'instagram');
       this.drawSocialIcon(ctx, SOCIAL_POS.facebook, '#5e6a34', 'facebook');
       return c;
     }
 
-    ctx.font = `400 ${STORY_FONT}px "Cormorant Garamond", serif`;
+    ctx.font = `400 ${t.font}px "Cormorant Garamond", serif`;
     // Se reparte en renglones primero, sin dibujar todavia: asi se conoce el
     // alto real del bloque completo -espiga incluida- y se centra de verdad.
-    const paragraphs = story.lines.map((line) => this.wrapLine(ctx, line, STORY_MEASURE, true));
+    const paragraphs = story.lines.map((line) => this.wrapLine(ctx, line, t.measure, true));
 
-    const rowH = STORY_FONT * STORY_LINE;
-    const paraGap = STORY_FONT * STORY_PARA;
+    const rowH = t.font * t.line;
+    const paraGap = t.font * t.para;
     const totalRows = paragraphs.reduce((sum, rows) => sum + rows.length, 0);
-    const blockHeight = totalRows * rowH + (paragraphs.length - 1) * paraGap + STORY_DIVIDER_H;
+    const blockHeight = totalRows * rowH + (paragraphs.length - 1) * paraGap + t.divider;
     // 0.8 del cuerpo aproxima el alto visible de la letra por encima de su
     // linea base, para centrar el texto que realmente se ve y no la caja
     // invisible de lineas, que arranca en la base de la primera. El centro
     // vertical sale de los dibujos de las esquinas, igual que el horizontal.
-    let y = PANEL_H * PAGE_CENTER_V - blockHeight / 2 + STORY_FONT * 0.8;
+    let y = PANEL_H * t.v - blockHeight / 2 + t.font * 0.8;
 
+    ctx.save();
+    giraLienzo();
     for (let i = 0; i < paragraphs.length; i++) {
       for (const row of paragraphs[i]) {
         ctx.fillText(row, cx, y);
@@ -951,7 +1137,8 @@ export class AboutBookComponent {
       }
       if (i < paragraphs.length - 1) y += paraGap;
     }
-    this.drawTextDivider(ctx, cx, y - rowH + STORY_FONT * 0.42 + STORY_DIVIDER_H / 2);
+    this.drawTextDivider(ctx, cx, y - rowH + t.font * 0.42 + t.divider / 2);
+    ctx.restore();
     return c;
   }
 
@@ -1038,6 +1225,8 @@ export class AboutBookComponent {
     this.maskLayer = this.ensureLayer(this.maskLayer, c.width, c.height);
     this.shadeLayer = this.ensureLayer(this.shadeLayer, c.width, c.height);
     this.paperLayer = this.ensureLayer(this.paperLayer, c.width, c.height);
+    this.backLayer = this.ensureLayer(this.backLayer, c.width, c.height);
+    this.backMaskLayer = this.ensureLayer(this.backMaskLayer, c.width, c.height);
   }
 
   private lastDrawn = 1;
@@ -1112,7 +1301,30 @@ export class AboutBookComponent {
     ctx.restore();
   }
 
-  private draw(frame: number): void {
+  /**
+   * El cuadro se CUANTIZA al fotograma mas cercano, y se hace aqui para que lo
+   * reciban ya redondeado el video, la malla, las poses y las rampas.
+   *
+   * El eco de la hoja. Con el cuadro fraccionario, `pintaCuadro` mezclaba los
+   * dos fotogramas vecinos con transparencia. Entre el 119 y el 120 la hoja se
+   * desplaza mucho, asi que esa mezcla pintaba DOS HOJAS a medio opacar: de ahi
+   * salian a la vez el doble contorno, el papel translucido y el borde que no
+   * cerraba -tres cosas que parecian defectos distintos y eran una sola-. Los
+   * fotogramas del asset estan impecables; comprobado sobre el webp crudo con
+   * fondo a cuadros: hoja opaca y un solo canto.
+   *
+   * Y se redondea para TODO, no solo para el video. Redondeando solo el video,
+   * la mascara que recorta la foto se quedaba hasta medio fotograma por delante
+   * de la hoja que recorta, y la foto asomaba por encima del papel. El contenido
+   * esta impreso en la hoja: si la hoja avanza por fotogramas, el contenido
+   * avanza con ella.
+   *
+   * No introduce saltos: la secuencia corre a 1000/MS_PER_FRAME = 45 imagenes
+   * por segundo, que es su cadencia propia. Lo que se pierde es una
+   * interpolacion que nunca fue suavidad, sino dos poses superpuestas.
+   */
+  private draw(frameCrudo: number): void {
+    const frame = Math.round(frameCrudo);
     const ctx = this.ctx;
     const c = this.canvasRef()?.nativeElement;
     const bmp = this.frames[AboutBookComponent.frameIdx(frame)];
@@ -1843,6 +2055,74 @@ export class AboutBookComponent {
   }
 
   /**
+   * Silueta del DORSO QUE SE VE, celda a celda: solo los cuadrilateros de `b`
+   * cuyos cuatro vertices miran a camara. Es el recorte de la foto entrante.
+   *
+   * Por que hace falta: la foto se dibuja con `fillOccluded`, o sea que tambien
+   * se pinta sobre las celdas que el rollo tapa. Eso es DELIBERADO -sin ello la
+   * foto sale acribillada, ver `drawOnMesh`- pero esas celdas ocultas estan
+   * proyectadas donde la hoja ya no esta, asi que la foto se salia del canto.
+   * Lo unico que la recortaba era `clipPaper`, que solo pregunta "hay papel
+   * aqui" y debajo esta la pagina izquierda, de modo que dejaba pasar todo.
+   *
+   * Medido con reloj virtual sobre la vuelta real: la foto se derramaba fuera
+   * de la hoja durante 9 cuadros de pantalla -unos 150ms-, con un pico de 18932
+   * pixeles y una diferencia de color media de 350..390 sobre 765 en los
+   * ultimos seis. Fuera de ese tramo este recorte no cambia ni un pixel.
+   *
+   * NO se usa la envolvente convexa de `buildSheetMask`: una hoja enrollada no
+   * es convexa, y su envolvente vuelve a dejar la foto fuera del papel justo en
+   * los cuadros del rollo, que son los que fallaban.
+   *
+   * El borde se traza ademas del relleno para cerrar el dentado del tamano de
+   * celda entre cuadrilateros contiguos; es el mismo recurso que en
+   * `buildSheetMask` y por eso comparte MASK_DILATE.
+   */
+  private buildBackMask(
+    pts: [number, number][],
+    vis: string,
+    ox: number,
+    oy: number,
+    scale: number,
+    box: Box,
+    main: HTMLCanvasElement,
+  ): HTMLCanvasElement | null {
+    this.backMaskLayer = this.ensureLayer(this.backMaskLayer, main.width, main.height);
+    const m = this.backMaskLayer.getContext('2d');
+    if (!m) return null;
+    m.setTransform(1, 0, 0, 1, 0, 0);
+    m.globalAlpha = 1;
+    m.globalCompositeOperation = 'source-over';
+    m.clearRect(box.x, box.y, box.w, box.h);
+    m.fillStyle = '#000';
+    m.strokeStyle = '#000';
+    m.lineJoin = 'round';
+    m.lineCap = 'round';
+    m.lineWidth = MASK_DILATE * scale;
+    const g = this.curlGrid;
+    let alguna = false;
+    for (let r = 0; r < g - 1; r++) {
+      for (let c = 0; c < g - 1; c++) {
+        const id = [r * g + c, r * g + c + 1, (r + 1) * g + c + 1, (r + 1) * g + c];
+        if (!id.every((i) => vis[i] === '1')) continue;
+        alguna = true;
+        m.beginPath();
+        for (let k = 0; k < 4; k++) {
+          const p = pts[id[k]];
+          const x = ox + p[0] * scale;
+          const y = oy + p[1] * scale;
+          if (k === 0) m.moveTo(x, y);
+          else m.lineTo(x, y);
+        }
+        m.closePath();
+        m.fill();
+        m.stroke();
+      }
+    }
+    return alguna ? this.backMaskLayer : null;
+  }
+
+  /**
    * Toma la luminancia del cuadro del video como factor de sombreado. Es el
    * corazon del asunto: no simulamos la luz de la escena, la tomamos prestada
    * del pixel que ya esta ahi, y asi el contenido hereda la sombra que la hoja
@@ -2071,9 +2351,40 @@ export class AboutBookComponent {
     // desde el cuadro 88, apareciendo y desapareciendo con el ruido de `bv`.
     const ba = mesh.ba ?? (mesh.bv?.includes('1') ? 1 : 0);
     if (backPhoto && mesh.b && mesh.bv && ba > 0.002) {
-      cl.globalAlpha = ba;
-      this.drawOnMesh(cl, backPhoto, mesh.b, mesh.bv, SHEET_PHOTO_UV, ox, oy, scale, true);
-      cl.globalAlpha = 1;
+      // La foto entrante NO se pinta directa sobre la capa: va a la suya, se
+      // recorta por el dorso que se ve y solo entonces se junta. Ver
+      // `buildBackMask` para por que hace falta y por que no vale el hull.
+      const capaB = (this.backLayer = this.ensureLayer(this.backLayer, main.width, main.height));
+      const bl = capaB.getContext('2d');
+      const recorte = this.buildBackMask(mesh.b, mesh.bv, ox, oy, scale, box, main);
+      if (bl && recorte) {
+        bl.setTransform(1, 0, 0, 1, 0, 0);
+        bl.globalAlpha = 1;
+        bl.globalCompositeOperation = 'source-over';
+        // Estos lienzos auxiliares nacen en 'low' y ahi el warp sale mas blando.
+        bl.imageSmoothingEnabled = true;
+        bl.imageSmoothingQuality = 'high';
+        bl.clearRect(box.x, box.y, box.w, box.h);
+        this.drawOnMesh(bl, backPhoto, mesh.b, mesh.bv, SHEET_PHOTO_UV, ox, oy, scale, true);
+        // `destination-in` toca todo el lienzo si no se acota con un clip.
+        bl.save();
+        bl.beginPath();
+        bl.rect(box.x, box.y, box.w, box.h);
+        bl.clip();
+        bl.globalCompositeOperation = 'destination-in';
+        bl.drawImage(recorte, box.x, box.y, box.w, box.h, box.x, box.y, box.w, box.h);
+        bl.restore();
+        bl.globalCompositeOperation = 'source-over';
+        cl.globalAlpha = ba;
+        cl.drawImage(capaB, box.x, box.y, box.w, box.h, box.x, box.y, box.w, box.h);
+        cl.globalAlpha = 1;
+      } else {
+        // Sin capa o sin dorso que recortar se degrada a lo de antes -foto
+        // directa- en vez de no pintar nada.
+        cl.globalAlpha = ba;
+        this.drawOnMesh(cl, backPhoto, mesh.b, mesh.bv, SHEET_PHOTO_UV, ox, oy, scale, true);
+        cl.globalAlpha = 1;
+      }
     }
     clipPaper();
     this.stampShaded(ctx, this.contentLayer, box, shade, alpha);

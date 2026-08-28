@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <title>Calibrador del texto — about-book</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      :root {
+        --bg: #0e0c09;
+        --acc: #c8912a;
+        --dim: #8a8378;
+      }
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        background: var(--bg);
+        color: #e8e6e1;
+        font: 13px/1.5 ui-monospace, Consolas, monospace;
+      }
+      #capa {
+        display: grid;
+        grid-template-columns: 1fr 348px;
+        height: 100%;
+      }
+      #escena {
+        position: relative;
+        overflow: hidden;
+        background: #0e0c09;
+      }
+      /* La app se carga entera y se desplaza hasta el libro; el resto de la
+         página queda fuera del recuadro visible. */
+      #app {
+        position: absolute;
+        border: 0;
+        width: 1400px;
+        height: 1000px;
+        transform-origin: 0 0;
+      }
+      #cargando {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-content: center;
+        gap: 10px;
+        text-align: center;
+        color: var(--dim);
+        background: var(--bg);
+        z-index: 5;
+      }
+      #cargando b {
+        color: var(--acc);
+        font-size: 15px;
+      }
+      #cargando.oculto {
+        display: none;
+      }
+      #fallo {
+        color: #e08a6a;
+        max-width: 460px;
+        line-height: 1.6;
+      }
+      #lado {
+        min-width: 0;
+        height: 100%;
+        overflow: hidden;
+        border-left: 1px solid #2a2620;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="capa">
+      <div id="escena">
+        <iframe id="app" src="/" title="Bollería"></iframe>
+        <div id="cargando">
+          <b>Cargando el libro…</b>
+          <span>se abre la app, se baja hasta «Acerca de nosotros» y se deja el libro abierto en la página 4</span>
+          <div id="fallo"></div>
+        </div>
+      </div>
+      <div id="lado"></div>
+    </div>
+
+    <script src="calibrador-texto.js"></script>
+    <script>
+      (async () => {
+        const marco = document.getElementById('app');
+        const cargando = document.getElementById('cargando');
+        const fallo = document.getElementById('fallo');
+
+        const morir = (m) => {
+          fallo.textContent = m;
+          cargando.classList.remove('oculto');
+        };
+
+        // Un <iframe> no tiene `.complete` (eso es de <img>): si ya terminó de
+        // cargar antes de llegar aquí, el evento `load` no vuelve a dispararse y
+        // la espera se quedaría colgada para siempre.
+        await new Promise((r) => {
+          const listo = () => {
+            try {
+              return marco.contentDocument && marco.contentDocument.readyState === 'complete';
+            } catch {
+              return false;
+            }
+          };
+          if (listo()) return r();
+          marco.addEventListener('load', r, { once: true });
+        });
+
+        const W = marco.contentWindow;
+        if (!W) return morir('No se pudo acceder al iframe.');
+
+        // `ng` solo existe en el build de desarrollo. Sin él no hay forma de
+        // llegar al componente, y una réplica no serviría: lo que se calibra es
+        // dónde cae el texto sobre la página real, no cómo se ve un dibujo aparte.
+        for (let i = 0; i < 200 && !W.ng; i++) await new Promise((r) => setTimeout(r, 100));
+        if (!W.ng) {
+          return morir(
+            'La app cargó pero no expone `window.ng`. Eso pasa en un build de producción. ' +
+              'Levantá el dev server (nx run bolleria:serve) y volvé a abrir esta página desde él.',
+          );
+        }
+
+        const D = W.document;
+        let host = null;
+        for (let i = 0; i < 200 && !host; i++) {
+          host = D.querySelector('bol-about-book');
+          if (!host) await new Promise((r) => setTimeout(r, 100));
+        }
+        if (!host) return morir('No apareció el componente bol-about-book en la app.');
+
+        const encuadrar = () => {
+          const lienzo = D.querySelector('canvas.bol-book__canvas');
+          if (!lienzo) return;
+          const caja = lienzo.getBoundingClientRect();
+          const esc = document.getElementById('escena').getBoundingClientRect();
+          // Escala para que el libro entre holgado, y traslación para centrarlo.
+          const k = Math.min(1, Math.min((esc.width - 40) / caja.width, (esc.height - 40) / caja.height));
+          const x = (esc.width - caja.width * k) / 2 - caja.left * k;
+          const y = (esc.height - caja.height * k) / 2 - caja.top * k;
+          marco.style.transform = `translate(${x}px, ${y}px) scale(${k})`;
+        };
+
+        // El preloader de la app tapa el libro durante sus 4,15 s de animación
+        // (`PreloaderComponent`). Sin esperarlo, el calibrador se da por listo
+        // con la portada del preloader delante y parece que el libro no cargó.
+        for (let i = 0; i < 150; i++) {
+          const pre = D.querySelector('.bol-preloader');
+          if (!pre || pre.classList.contains('bol-preloader--done')) break;
+          await new Promise((r) => setTimeout(r, 100));
+        }
+
+        host.scrollIntoView({ block: 'center' });
+        await new Promise((r) => setTimeout(r, 400));
+        encuadrar();
+        addEventListener('resize', encuadrar);
+
+        // El encuadre NO puede calcularse una sola vez: abrir la portada
+        // remaqueta la app y el canvas cambia de sitio y de tamaño después de
+        // montar. Medido: el libro terminaba 228 px por encima del recuadro,
+        // fuera de la vista. Se vigila el rect en cada cuadro -es una lectura,
+        // no un layout- y se reencuadra solo cuando de verdad se movió.
+        let previo = '';
+        const vigilar = () => {
+          const lienzo = D.querySelector('canvas.bol-book__canvas');
+          if (lienzo) {
+            const r = lienzo.getBoundingClientRect();
+            const firma = `${r.left}|${r.top}|${r.width}|${r.height}`;
+            if (firma !== previo) {
+              previo = firma;
+              encuadrar();
+            }
+          }
+          requestAnimationFrame(vigilar);
+        };
+        requestAnimationFrame(vigilar);
+
+        try {
+          await window.montarCalibradorTexto(W, document.getElementById('lado'));
+        } catch (e) {
+          return morir('El calibrador no pudo engancharse: ' + e.message);
+        }
+        cargando.classList.add('oculto');
+      })();
+    </script>
+  </body>
+</html>
