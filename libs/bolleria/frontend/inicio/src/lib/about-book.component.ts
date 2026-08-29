@@ -574,24 +574,46 @@ const TEXTO_BASE: AjusteTexto = {
 };
 
 /**
- * Paginas que NO usan los valores de arriba. Hoy solo la 4, calibrada a mano
- * con `apps/bolleria/public/calibrador-texto.html`.
+ * Los valores de cada pagina, calibrados a mano UNA POR UNA por el dueno del
+ * sitio con `apps/bolleria/public/calibrador-texto.html`, mirando el render.
  *
- * Es una tabla de EXCEPCIONES y no una fila por pagina a proposito: escribir
- * las siete, seis de ellas identicas, esconderia cual es la unica que se toco.
+ * Antes esto era una tabla de EXCEPCIONES con una sola fila, porque `TEXTO_BASE`
+ * salia de una busqueda automatica equilibrada sobre las 7 a la vez y solo la 4
+ * se salia. Ya no: las siete estan calibradas y las siete se apartan de esa
+ * base, asi que ahora la fila por pagina es lo honesto. `TEXTO_BASE` se queda
+ * con lo que de verdad sigue siendo comun -interlineado y aire entre parrafos-
+ * y como red de seguridad si algun dia se anade una pagina sin calibrar.
  *
- * Por que la 4 y solo la 4: los valores de `TEXTO_BASE` salieron de una
- * busqueda que dejaba 15.5px a los dibujos de la esquina izquierda y 20.6px a
- * los de la derecha, equilibrada sobre las 7 paginas a la vez. La 4 es la unica
- * historia con DOS parrafos -su bloque es el mas alto del libro- y es la que se
- * salia. Bajarla a 45/469 y correrla 13.8px hacia abajo rompe ese equilibrio
- * global, pero solo aqui; las otras seis siguen en el optimo medido.
+ * Que el cuerpo suba de 48 a 55 no es un capricho de escala: el optimo
+ * automatico estaba calculado para no rozar los dibujos de las esquinas en
+ * NINGUNA de las siete, o sea que lo mandaba la pagina mas apretada y las
+ * demas quedaban chicas de mas.
  *
- * El giro de -0.42 grados vale ~1.8px entre los extremos del bloque. Es
- * pequeño, pero esta calibrado mirando el render, no estimado.
+ * LA TIPOGRAFIA ES LA MISMA EN TODAS MENOS EN LA 4. La primera calibracion
+ * dejaba un cuerpo distinto en cada pagina -55, 56, 58, 61-, cada uno el maximo
+ * que esa pagina admitia; pero el libro se lee de corrido y ahi la letra
+ * cambiaba de tamano al pasar de hoja. Se unifico en el valor de la PAGINA 1
+ * (`TEXTO_COMUN`), y lo que sigue siendo propio de cada una es donde se apoya
+ * el bloque -u, v- y cuanto se inclina para acompanar al papel.
+ *
+ * La 4 es la excepcion, por lo de siempre: es la unica historia con DOS
+ * parrafos y su bloque es el mas alto del libro. Con el cuerpo comun no le
+ * cabria, asi que se queda en 45/469.
+ *
+ * En la 7 -la de cierre- `v` NO coloca el bloque: ahi la altura sale de la
+ * franja que queda libre por encima de los enlaces de redes, que son <a> reales
+ * del DOM y no se pueden mover (ver `renderTextPanel` y SOCIAL_POS). Su `v`
+ * solo marca el eje del giro, y por eso vale 0.3484 y no algo cercano al medio.
  */
+const TEXTO_COMUN = { font: 55, measure: 575, divider: 39 } as const;
 const TEXTO_POR_PAGINA: Readonly<Record<number, Partial<AjusteTexto>>> = {
-  4: { font: 45, measure: 469, divider: 32, u: 0.5236, v: 0.5358, giro: -0.42 },
+  1: { ...TEXTO_COMUN, u: 0.5291, v: 0.4681, giro: 0 },
+  2: { ...TEXTO_COMUN, u: 0.5339, v: 0.4689, giro: 0 },
+  3: { ...TEXTO_COMUN, u: 0.5301, v: 0.5196, giro: -0.31 },
+  4: { font: 45, measure: 469, divider: 32, u: 0.5114, v: 0.5306, giro: -0.75 },
+  5: { ...TEXTO_COMUN, u: 0.537, v: 0.5178, giro: -0.24 },
+  6: { ...TEXTO_COMUN, u: 0.516, v: 0.4725, giro: -0.75 },
+  7: { ...TEXTO_COMUN, u: 0.5246, v: 0.3484, giro: -0.75 },
 };
 
 const ajusteTexto = (page: number): AjusteTexto => ({ ...TEXTO_BASE, ...(TEXTO_POR_PAGINA[page] ?? {}) });
