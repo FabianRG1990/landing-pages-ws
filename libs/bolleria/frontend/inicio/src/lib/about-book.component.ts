@@ -195,9 +195,13 @@ const DX_TEXTO_CRUCE: readonly (readonly [number, number])[] = [
  * instante acumulado en coma flotante cae un pelo por debajo de 1166,666...
  */
 const MEDIO_CUADRO_MS = 1000 / 120;
-const dxTextoCruce = (t: number): number => {
+const dxTextoCruce = (t: number, desde: number): number => {
   const P = DX_TEXTO_CRUCE;
-  if (t < P[0][0] - MEDIO_CUADRO_MS) return 0;
+  // Antes del tramo se sostiene lo que ya hubiera puesto, igual que la foto (ver
+  // `dyFotoCruce`). Devolver 0 dejo de valer cuando el reposo alto dejo de ser
+  // cero: al encadenar "anterior" y luego "siguiente", el texto saltaba de
+  // -2,06 a 0 en el primer cuadro de la vuelta.
+  if (t < P[0][0] - MEDIO_CUADRO_MS) return desde;
   if (t <= P[0][0]) return P[0][1];
   if (t >= P[P.length - 1][0]) return P[P.length - 1][1];
   for (let i = 0; i < P.length - 1; i++) {
@@ -255,6 +259,40 @@ const dyFotoCruce = (t: number, desde: number): number => {
   }
   return P[P.length - 1][1];
 };
+/**
+ * MOVIMIENTO DEL PAPEL entre los dos cuadros de reposo, en px de video.
+ *
+ * El libro descansa en DOS cuadros distintos segun por donde se llegue: el 81
+ * tras "siguiente" y el 139 tras "anterior". Y el papel NO esta en el mismo
+ * sitio en los dos: medido siguiendo los adornos impresos de cada pagina por
+ * correlacion normalizada con ajuste subpixel, del 81 al 139 la pagina derecha
+ * se corre (-5,06, +1,17) y la izquierda (-1,23, -1,34). Es el grosor de una
+ * hoja del taco.
+ *
+ * Solo se recoge el eje que cada contenido sabe mover -x el texto, y la foto-.
+ * El eje cruzado (1,17 y 1,23) se queda sin compensar: son ~1,2px contra los 5
+ * que se corregian, y meterlo exige un segundo buffer por contenido.
+ */
+const PAPEL_81_A_139_TEXTO_X = -5.06;
+const PAPEL_81_A_139_FOTO_Y = -1.34;
+/**
+ * Lo que el contenido tiene que llevar puesto EN CADA CUADRO DE REPOSO.
+ *
+ * El bajo (81) es la calibracion a mano tal cual, sin tocar. El alto (139) sale
+ * de sumarle el movimiento del papel: si el papel se corre y lo impreso no, lo
+ * impreso deja de estar sobre el papel, que es exactamente lo que se veia.
+ *
+ * Antes el reposo alto valia CERO, y ademas "anterior" no llevaba a ese valor
+ * sino que DESVANECIA lo que hubiera quedado puesto. Las dos cosas juntas daban
+ * el defecto: la primera vuelta atras movia algo -habia un 3 y un 5 que gastar-
+ * y de la segunda en adelante ya no quedaba nada, asi que la hoja se movia y lo
+ * impreso se quedaba clavado y fuera de sitio.
+ */
+const DX_TEXTO_REPOSO_LO = DX_TEXTO_CRUCE[DX_TEXTO_CRUCE.length - 1][1];
+const DY_FOTO_REPOSO_LO = DY_FOTO_CRUCE[DY_FOTO_CRUCE.length - 1][1];
+const DX_TEXTO_REPOSO_HI = DX_TEXTO_REPOSO_LO + PAPEL_81_A_139_TEXTO_X;
+const DY_FOTO_REPOSO_HI = DY_FOTO_REPOSO_LO + PAPEL_81_A_139_FOTO_Y;
+
 /**
  * Curva del cruce: derivada MAXIMA al principio y cero al final.
  *
@@ -3634,8 +3672,9 @@ export class AboutBookComponent {
     await this.dissolveTo(GIRO_LO, SNAP_FADE_MS);
     const entra = this.current() + 1;
     this.transition = { leaving: this.current(), entering: entra, towardHigh: true };
-    // Lo que ya estuviera aplicado a la foto: es lo que se sostiene hasta que
-    // empieza el tramo calibrado, en vez de saltar a cero (ver `dyFotoCruce`).
+    // Lo que ya estuviera aplicado: es lo que se sostiene hasta que empieza el
+    // tramo calibrado, en vez de saltar (ver `dyFotoCruce` y `dxTextoCruce`).
+    const dxDesde = this.textoDx;
     const dyDesde = this.fotoDy;
     await this.playChain([GIRO_HI], {
       frame: GIRO_LO,
@@ -3644,9 +3683,9 @@ export class AboutBookComponent {
       // cuadros de video antes del final", y eso no puede quedarse en 132 ms si
       // la vuelta cambia de velocidad (ver CUADROS_LEAD_NEXT).
       leadMs: CUADROS_LEAD_NEXT * this.msPorCuadro,
-      // Solo "siguiente" lleva desplazamiento del texto: es el unico sentido
-      // calibrado (ver DX_TEXTO_CRUCE). En "anterior" la tabla esta vacia.
-      dxTexto: dxTextoCruce,
+      // Solo "siguiente" lleva desplazamiento CALIBRADO del texto (ver
+      // DX_TEXTO_CRUCE). En "anterior" la tabla esta vacia y se usa un espejo.
+      dxTexto: (t: number): number => dxTextoCruce(t, dxDesde),
       dyFoto: (t: number): number => dyFotoCruce(t, dyDesde),
       // Se limpia la transicion al EMPEZAR la cola, no al terminar la cadena.
       // El solape arranca en el cuadro 133, el ultimo de la malla, y ahi las dos
@@ -3671,12 +3710,20 @@ export class AboutBookComponent {
     // gesto de la animacion: en el 81 el papel esta 4,02px a la derecha que en
     // el 139 (ver DX_TEXTO_CRUCE). "Anterior" devuelve el libro al 139, asi que
     // tiene que deshacerlo o el texto se queda corrido para siempre.
-    // Esto es un ESPEJO provisional -desvanece lo que haya con la curva del
-    // cruce-, no una calibracion: la tabla de "anterior" esta vacia.
+    // Esto es un ESPEJO provisional -recorre el tramo con la curva del cruce-,
+    // no una calibracion: la tabla de "anterior" esta vacia.
+    //
+    // Va del valor VIVO al que exige el reposo alto (ver DX_TEXTO_REPOSO_HI), no
+    // a cero. Del vivo para que no haya salto al arrancar -medido, poner el
+    // valor de golpe cambia 45045 px contra los 96 que mueve la animacion en ese
+    // instante: seria un pop de toda la pagina al hacer clic-. Y al valor del
+    // reposo alto para que al terminar lo impreso quede SOBRE el papel, venga de
+    // donde venga y sea la primera vuelta atras o la quinta.
     const dxDesde = this.textoDx;
     // La foto tiene exactamente el mismo problema, y por la misma razon: sus 5
     // px son una propiedad del cuadro 81, donde la foto queda 12 px de lienzo
-    // mas arriba que en el 139 (ver DY_FOTO_CRUCE). Mismo espejo provisional.
+    // mas arriba que en el 139 (ver DY_FOTO_CRUCE). Mismo espejo, y mismo
+    // destino: el valor que exige el reposo alto, no cero.
     const dyDesde = this.fotoDy;
     await this.playChain([GIRO_LO], {
       frame: GIRO_HI,
@@ -3685,14 +3732,12 @@ export class AboutBookComponent {
       // `t` ya viene contado desde el arranque del cruce, asi que "antes del
       // cruce" es simplemente t<=0 y el desvanecido ocupa sus TAIL_MS.
       dxTexto: (t: number): number => {
-        if (dxDesde === 0) return 0;
         if (t <= 0) return dxDesde;
-        return dxDesde * (1 - COLA_SIN_SOLAPE(Math.min(1, t / TAIL_MS)));
+        return dxDesde + (DX_TEXTO_REPOSO_HI - dxDesde) * COLA_SIN_SOLAPE(Math.min(1, t / TAIL_MS));
       },
       dyFoto: (t: number): number => {
-        if (dyDesde === 0) return 0;
         if (t <= 0) return dyDesde;
-        return dyDesde * (1 - COLA_SIN_SOLAPE(Math.min(1, t / TAIL_MS)));
+        return dyDesde + (DY_FOTO_REPOSO_HI - dyDesde) * COLA_SIN_SOLAPE(Math.min(1, t / TAIL_MS));
       },
       alEmpezar: () => {
         this.transition = null;
