@@ -130,25 +130,49 @@ interface ChainTail {
   alEmpezar?: () => void;
   /**
    * Desplazamiento horizontal del texto quieto, en px de video, en funcion del
-   * instante de la cadena. Solo lo pasa "siguiente" (ver DX_TEXTO_CRUCE).
+   * instante. Solo lo pasa "siguiente" (ver DX_TEXTO_CRUCE).
+   *
+   * `t` se cuenta DESDE EL ARRANQUE DEL CRUCE y es negativo antes de el. Asi
+   * las tablas calibradas no dependen de cuanto dure la vuelta.
    */
   dxTexto?: (t: number) => number;
   /**
-   * Desplazamiento vertical de la foto quieta, en px de video, en funcion del
-   * instante de la cadena (ver DY_FOTO_CRUCE). Lo pasan los dos sentidos: uno
-   * lo pone y el otro lo deshace.
+   * Desplazamiento vertical de la foto quieta, en px de video, con el mismo
+   * reloj que `dxTexto` (ver DY_FOTO_CRUCE). Lo pasan los dos sentidos: uno lo
+   * pone y el otro lo deshace.
    */
   dyFoto?: (t: number) => number;
 }
+/**
+ * En que milisegundo arrancaba el cruce en la cadena EN LA QUE SE CALIBRARON las
+ * dos tablas de abajo: 52 cuadros de video a 22 ms, o sea `(139-81-6) * 22`.
+ *
+ * Es un numero HISTORICO y va escrito a mano, no derivado de las constantes de
+ * velocidad: si manana la vuelta se acelera, este sigue siendo 1144, porque es
+ * el reloj contra el que se midieron aquellos valores. Solo sirve para pasar
+ * las tablas de "ms desde el principio de la cadena" -como se anotaron- a "ms
+ * desde el arranque del cruce", que es donde de verdad viven.
+ *
+ * No puede calcularse aqui a partir de GIRO_LO/GIRO_HI/MS_PER_FRAME porque esas
+ * se declaran mas abajo.
+ */
+const CRUCE_CALIBRADO_EN_MS = 1144;
 /**
  * Desplazamiento horizontal del texto durante el cruce, CALIBRADO A MANO por
  * el dueno del sitio con `apps/bolleria/public/calibrador-aterrizaje.html`, en
  * cuadros de pantalla 70, 71 y 72 del recorrido de "siguiente".
  *
- * Va indexado por MILISEGUNDO de la cadena y no por cuadro de video, porque
- * durante el cruce el cuadro que se dibuja es siempre el mismo -el de destino,
- * el 81-: un valor por cuadro de video no podria distinguir estos tres
- * instantes.
+ * Va indexado por MILISEGUNDO y no por cuadro de video, porque durante el cruce
+ * el cuadro que se dibuja es siempre el mismo -el de destino, el 81-: un valor
+ * por cuadro de video no podria distinguir estos tres instantes.
+ *
+ * El cero es el ARRANQUE DEL CRUCE, no el de la cadena. Se calibro en una
+ * cadena de 1276 ms cuyo cruce empezaba en 1144, asi que el cuadro 70 -que caia
+ * en 1166,67- queda en +22,67. Anclarlo al cruce y no al principio es lo que
+ * hace que la calibracion siga valiendo si se cambia la velocidad de la vuelta
+ * (ver `msPorCuadro`): con milisegundos absolutos, acortar la cadena dejaba
+ * estos tres instantes fuera de ella y el texto salia corrido desde el primer
+ * cuadro. El cruce, en cambio, dura TAIL_MS pase lo que pase.
  *
  * El ultimo valor SE MANTIENE, no vuelve a cero. El texto no esta haciendo un
  * gesto de ida y vuelta: esta ACOMPANANDO a la hoja. Entre el cuadro 139 y el
@@ -160,9 +184,9 @@ interface ChainTail {
  * Antes del tramo si devuelve 0: ahi todavia no ha empezado el movimiento.
  */
 const DX_TEXTO_CRUCE: readonly (readonly [number, number])[] = [
-  [1000 / 60 * 70, 1],
-  [1000 / 60 * 71, 2],
-  [1000 / 60 * 72, 3],
+  [1000 / 60 * 70 - CRUCE_CALIBRADO_EN_MS, 1],
+  [1000 / 60 * 71 - CRUCE_CALIBRADO_EN_MS, 2],
+  [1000 / 60 * 72 - CRUCE_CALIBRADO_EN_MS, 3],
 ];
 /**
  * Medio cuadro de pantalla de tolerancia en los dos extremos. El valor se clavo
@@ -188,10 +212,11 @@ const dxTextoCruce = (t: number): number => {
  * dueno del sitio con `apps/bolleria/public/calibrador-aterrizaje-foto.html`,
  * en cuadros de pantalla 68 a 71 del recorrido de "siguiente".
  *
- * Hermano de DX_TEXTO_CRUCE y con la misma forma -indexado por MILISEGUNDO de
- * la cadena-, por el mismo motivo: durante el cruce el cuadro que se dibuja es
- * siempre el 81, asi que un valor por cuadro de video no podria distinguir
- * estos cuatro instantes.
+ * Hermano de DX_TEXTO_CRUCE y con la misma forma -milisegundos contados DESDE
+ * EL ARRANQUE DEL CRUCE-, por el mismo motivo: durante el cruce el cuadro que
+ * se dibuja es siempre el 81, asi que un valor por cuadro de video no podria
+ * distinguir estos cuatro instantes. El primer punto sale negativo (-10,67)
+ * porque cae justo antes de que el cruce empiece.
  *
  * NO es un gesto de la animacion: es una propiedad del cuadro de REPOSO al que
  * lleva "siguiente". Medido sobre las dos poses de reposo, la foto en el cuadro
@@ -204,10 +229,10 @@ const dxTextoCruce = (t: number): number => {
  * el no se devuelve 0 sino lo que ya hubiera puesto (ver `dyFotoCruce`).
  */
 const DY_FOTO_CRUCE: readonly (readonly [number, number])[] = [
-  [1000 / 60 * 68, 0],
-  [1000 / 60 * 69, 1],
-  [1000 / 60 * 70, 4],
-  [1000 / 60 * 71, 5],
+  [1000 / 60 * 68 - CRUCE_CALIBRADO_EN_MS, 0],
+  [1000 / 60 * 69 - CRUCE_CALIBRADO_EN_MS, 1],
+  [1000 / 60 * 70 - CRUCE_CALIBRADO_EN_MS, 4],
+  [1000 / 60 * 71 - CRUCE_CALIBRADO_EN_MS, 5],
 ];
 /**
  * `desde` es lo que ya estuviera aplicado cuando arranco la cadena, y es lo que
@@ -239,7 +264,7 @@ const dyFotoCruce = (t: number, desde: number): number => {
  * siguiente y 1763 en el otro): entrando de golpe, la parte mas cara del
  * rebobinado cae encima de la parte mas ruidosa del aterrizaje. En "anterior"
  * no hay nada que solapar -su primer cuadro legal es el 82 y ahi el video ya
- * paro, ver TAIL_LEAD_PREV_MS- y lo que hace falta es que el rebobinado empiece
+ * paro, ver CUADROS_LEAD_PREV- y lo que hace falta es que el rebobinado empiece
  * en el instante en que la hoja se detiene, sin dejar hueco.
  *
  * Antes se usaba `smoothstep` en "siguiente" para no sumarse al pico del
@@ -464,7 +489,20 @@ const CORTE_FOTO: readonly (readonly [number, number, number, number, number])[]
 // Duracion proporcional a la distancia real recorrida (no un tiempo fijo por
 // boton) -> la velocidad se siente igual sin importar desde que cuadro se
 // arranque, y nunca hay que "adivinar" cuanto tarda cada tramo.
-const MS_PER_FRAME = 22;
+//
+// 14 y no 22: la vuelta entera pasa de 1276 ms a 812, elegido por el dueno del
+// sitio comparando las cinco velocidades en vivo. La razon no es el ritmo sino
+// que se noten menos los defectos que quedan en el giro -cuanto menos rato en
+// pantalla, menos ocasion de mirarlos-. 812 ms sigue estando en el rango de los
+// lectores de libros reales, que rondan los 600-700.
+//
+// A esta cadencia se muestran 71 imagenes por segundo y la pantalla da 60, asi
+// que algunos fotogramas del asset no se llegan a ver. No es un defecto: cada
+// cuadro dibujado sigue siendo un fotograma entero (ver `draw`).
+//
+// Las dos tablas calibradas NO se ven afectadas por este numero: van ancladas
+// al arranque del cruce (ver DX_TEXTO_CRUCE), no a un milisegundo de la cadena.
+const MS_PER_FRAME = 14;
 /**
  * Adelanto de la cola en cada sentido (ver TAIL_MS). No son numeros elegidos:
  * cada uno es la distancia desde el final de su cadena hasta el cuadro mas
@@ -484,11 +522,15 @@ const MS_PER_FRAME = 22;
  * pantalla en el 133 contra 5795 en el 134). Del 132 hacia atras ya no: 12074
  * px de salto es mas que todo lo que cuesta el rebobinado entero.
  *
- * Van aqui y no junto a TAIL_MS porque necesitan MESH_LO/MESH_HI y
- * MS_PER_FRAME, que se declaran mas abajo.
+ * Van en CUADROS y no en milisegundos: lo que esta medido arriba es un cuadro
+ * de video -el 133-, no un instante. Los milisegundos salen de multiplicar por
+ * la velocidad vigente en cada llamada (ver `msPorCuadro`), asi el cruce sigue
+ * arrancando en el 133 aunque la vuelta se acelere.
+ *
+ * Van aqui y no junto a TAIL_MS porque necesitan MESH_LO/MESH_HI/GIRO_*.
  */
-const TAIL_LEAD_NEXT_MS = (GIRO_HI - MESH_HI) * MS_PER_FRAME;
-const TAIL_LEAD_PREV_MS = (MESH_LO - 1 - GIRO_LO) * MS_PER_FRAME;
+const CUADROS_LEAD_NEXT = GIRO_HI - MESH_HI;
+const CUADROS_LEAD_PREV = MESH_LO - 1 - GIRO_LO;
 
 // Mismo dorado que usa el resto del sitio para acentos/ornamentos (ver
 // `.bol-book__wheat` en about-book.component.scss) -se reutiliza para el
@@ -888,6 +930,19 @@ export class AboutBookComponent {
   /** Lo mismo para la foto, en vertical (ver DY_FOTO_CRUCE). */
   private dyBuf: [number, number][] | null = null;
   private fotoDy = 0;
+  /**
+   * Velocidad de la vuelta, en ms por cuadro de video. Arranca en MS_PER_FRAME
+   * y es un CAMPO y no la constante para poder probar otra sin recompilar: en
+   * el build de desarrollo basta con
+   * `ng.getComponent(document.querySelector('bol-about-book')).msPorCuadro = 11`
+   * desde la consola. Asi se eligio el valor actual, comparando en vivo.
+   *
+   * Todo lo que depende del tiempo de la cadena sale de aqui -duracion y
+   * adelanto de la cola-, para que al cambiarla el cruce siga arrancando en el
+   * mismo CUADRO y no en el mismo milisegundo. Las dos tablas calibradas no
+   * dependen de ella: van ancladas al arranque del cruce (ver DX_TEXTO_CRUCE).
+   */
+  private msPorCuadro = MS_PER_FRAME;
   private poseBuf: Record<'left' | 'right', [number, number][] | null> = { left: null, right: null };
   // Tres lienzos auxiliares del tamaño del canvas, reutilizados cuadro a
   // cuadro (crear un canvas por cuadro seria basura para el GC en pleno 45fps):
@@ -1472,9 +1527,13 @@ export class AboutBookComponent {
    * esta impreso en la hoja: si la hoja avanza por fotogramas, el contenido
    * avanza con ella.
    *
-   * No introduce saltos: la secuencia corre a 1000/MS_PER_FRAME = 45 imagenes
-   * por segundo, que es su cadencia propia. Lo que se pierde es una
-   * interpolacion que nunca fue suavidad, sino dos poses superpuestas.
+   * No introduce saltos por si mismo: lo que se pierde es una interpolacion que
+   * nunca fue suavidad, sino dos poses superpuestas.
+   *
+   * A 14 ms por cuadro la secuencia corre a 71 imagenes por segundo, o sea por
+   * encima de los 60 Hz de la pantalla: hay fotogramas del asset que no llegan
+   * a verse. Es deliberado (ver MS_PER_FRAME) y no rompe nada -cada cuadro que
+   * se dibuja es un fotograma entero y coherente, no una mezcla-.
    */
   private draw(frameCrudo: number): void {
     const frame = Math.round(frameCrudo);
@@ -3045,7 +3104,7 @@ export class AboutBookComponent {
     }
 
     cancelAnimationFrame(this.raf);
-    const durationMs = totalDist * MS_PER_FRAME;
+    const durationMs = totalDist * this.msPorCuadro;
     // Por defecto, la curva de siempre. La vuelta de pagina pasa la SUYA (ver
     // `TIEMPO_LINEAL`); la apertura y el reinicio se quedan con esta.
     const ease = curva ?? ((t: number): number => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2));
@@ -3065,11 +3124,14 @@ export class AboutBookComponent {
             const tt = Math.min(1, t / durationMs);
             const f = frameAtProgress(totalDist * ease(tt));
             // Antes de dibujar: los desplazamientos calibrados en este instante
-            // (ver DX_TEXTO_CRUCE y DY_FOTO_CRUCE). Una cadena sin cola -abrir
-            // y cerrar el libro- los pone a cero: ahi se vuelve a la pagina 1 y
-            // no hay nada que arrastrar.
-            this.textoDx = cola?.dxTexto ? cola.dxTexto(t) : 0;
-            this.fotoDy = cola?.dyFoto ? cola.dyFoto(t) : 0;
+            // (ver DX_TEXTO_CRUCE y DY_FOTO_CRUCE). El reloj que se les pasa
+            // cuenta desde el ARRANQUE DEL CRUCE, no desde el de la cadena: es
+            // lo que hace que sigan valiendo si cambia la velocidad. Una cadena
+            // sin cola -abrir y cerrar el libro- los pone a cero: ahi se vuelve
+            // a la pagina 1 y no hay nada que arrastrar.
+            const tc = t - colaEn;
+            this.textoDx = cola?.dxTexto ? cola.dxTexto(tc) : 0;
+            this.fotoDy = cola?.dyFoto ? cola.dyFoto(tc) : 0;
             if (!cola || t < colaEn) {
               this.draw(f);
             } else {
@@ -3101,8 +3163,10 @@ export class AboutBookComponent {
               // ultimo tick caiga antes de `finEn` con la curva a medias -por
               // ejemplo en t=1198, con dx 2,88- y el siguiente ya no dibuje: el
               // reposo se quedaria a mitad de camino.
-              const fin = cola?.dxTexto ? cola.dxTexto(finEn) : this.textoDx;
-              const finY = cola?.dyFoto ? cola.dyFoto(finEn) : this.fotoDy;
+              // `cola.ms` es el final del cruce en el reloj de las tablas:
+              // `finEn - colaEn`.
+              const fin = cola?.dxTexto ? cola.dxTexto(cola.ms) : this.textoDx;
+              const finY = cola?.dyFoto ? cola.dyFoto(cola.ms) : this.fotoDy;
               if (fin !== this.textoDx || finY !== this.fotoDy) {
                 this.textoDx = fin;
                 this.fotoDy = finY;
@@ -3177,7 +3241,7 @@ export class AboutBookComponent {
    * pasa de ser el caso habitual a ser el raro.
    *
    * Ese rebobinado final NO va detras del giro sino DENTRO de el: se le pasa a
-   * `playChain` como cola y arranca `TAIL_LEAD_NEXT_MS`/`TAIL_LEAD_PREV_MS`
+   * `playChain` como cola y arranca `CUADROS_LEAD_NEXT`/`CUADROS_LEAD_PREV`
    * antes de que la cadena
    * termine, porque puesto detras dejaba ~120ms de nada entre un movimiento y
    * el otro (ver TAIL_MS). Por eso aqui ya no hay ningun `dissolveTo` de
@@ -3196,7 +3260,10 @@ export class AboutBookComponent {
     await this.playChain([GIRO_HI], {
       frame: GIRO_LO,
       ms: TAIL_MS,
-      leadMs: TAIL_LEAD_NEXT_MS,
+      // En CUADROS por `msPorCuadro`, no la constante: el adelanto es "seis
+      // cuadros de video antes del final", y eso no puede quedarse en 132 ms si
+      // la vuelta cambia de velocidad (ver CUADROS_LEAD_NEXT).
+      leadMs: CUADROS_LEAD_NEXT * this.msPorCuadro,
       // Solo "siguiente" lleva desplazamiento del texto: es el unico sentido
       // calibrado (ver DX_TEXTO_CRUCE). En "anterior" la tabla esta vacia.
       dxTexto: dxTextoCruce,
@@ -3204,7 +3271,7 @@ export class AboutBookComponent {
       // Se limpia la transicion al EMPEZAR la cola, no al terminar la cadena.
       // El solape arranca en el cuadro 133, el ultimo de la malla, y ahi las dos
       // ramas de `drawContent` ya solo se diferencian en 2225 px (ver
-      // TAIL_LEAD_NEXT_MS); del 134 en adelante son identicas.
+      // CUADROS_LEAD_NEXT); del 134 en adelante son identicas.
       alEmpezar: () => {
         this.transition = null;
         this.current.set(entra);
@@ -3231,20 +3298,21 @@ export class AboutBookComponent {
     // px son una propiedad del cuadro 81, donde la foto queda 12 px de lienzo
     // mas arriba que en el 139 (ver DY_FOTO_CRUCE). Mismo espejo provisional.
     const dyDesde = this.fotoDy;
-    const colaEnPrev = (GIRO_HI - GIRO_LO) * MS_PER_FRAME - TAIL_LEAD_PREV_MS;
     await this.playChain([GIRO_LO], {
       frame: GIRO_HI,
       ms: TAIL_MS,
-      leadMs: TAIL_LEAD_PREV_MS,
+      leadMs: CUADROS_LEAD_PREV * this.msPorCuadro,
+      // `t` ya viene contado desde el arranque del cruce, asi que "antes del
+      // cruce" es simplemente t<=0 y el desvanecido ocupa sus TAIL_MS.
       dxTexto: (t: number): number => {
         if (dxDesde === 0) return 0;
-        if (t <= colaEnPrev) return dxDesde;
-        return dxDesde * (1 - COLA_SIN_SOLAPE(Math.min(1, (t - colaEnPrev) / TAIL_MS)));
+        if (t <= 0) return dxDesde;
+        return dxDesde * (1 - COLA_SIN_SOLAPE(Math.min(1, t / TAIL_MS)));
       },
       dyFoto: (t: number): number => {
         if (dyDesde === 0) return 0;
-        if (t <= colaEnPrev) return dyDesde;
-        return dyDesde * (1 - COLA_SIN_SOLAPE(Math.min(1, (t - colaEnPrev) / TAIL_MS)));
+        if (t <= 0) return dyDesde;
+        return dyDesde * (1 - COLA_SIN_SOLAPE(Math.min(1, t / TAIL_MS)));
       },
       alEmpezar: () => {
         this.transition = null;
