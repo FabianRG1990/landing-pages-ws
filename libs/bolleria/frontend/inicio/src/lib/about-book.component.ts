@@ -327,11 +327,91 @@ const MESH_HI = 133;
 // cual, vertice a vertice.
 const FLAT_BLEND_HI = 95;
 const CURL_URL = 'assets/about-book-curl.json';
-// Aparicion del contenido al abrir la tapa: el libro esta >=95% abierto ya en
-// el cuadro 43 y solo se asienta hasta el 50, asi que el contenido se funde
-// en ese tramo en vez de aparecer de golpe al final.
-const OPEN_FADE_LO = 43;
-const OPEN_FADE_HI = 50;
+// Aparicion del contenido al abrir la tapa. Las dos paginas NO comparten
+// rampa, porque no estan haciendo lo mismo:
+//
+//   - La DERECHA ya esta plana en el cuadro 22. Lo unico que le queda es el
+//     asentamiento del libro, que es una TRASLACION (ver ASENT_APERTURA) y por
+//     lo tanto se puede compensar entera. Asi que su texto va impreso desde que
+//     la tapa deja de taparlo, y viaja con la pagina en vez de aparecer sobre
+//     ella. El fundido de dos cuadros no es un fundido: es para no dejar un
+//     borde duro en el primero.
+//   - La IZQUIERDA es la hoja que acaba de caer, y hasta el ~48 sigue bajando,
+//     girando sobre el lomo: en el cuadro 38 su borde exterior esta 34px mas
+//     abajo que el del lomo. Medido, ahi no hay modelo barato que la describa
+//     -ajustando una afin a tres de sus adornos, el cuarto falla 12,8px en el
+//     36 y 9,7 en el 38-, y las `pose` del asset se desvian 5-7px de lo que
+//     realmente hace. Asi que la foto se REVELA mientras la hoja se posa: su
+//     error residual (13px en el 43, 0 en el 56) y su transparencia se apagan
+//     juntos, y cuando esta del todo opaca ya esta en su sitio al pixel.
+//
+// El 24 es el primer cuadro en el que la tapa, todavia levantada, ya no cubre
+// la zona del texto. Antes de ese, el texto se pintaria sobre la tapa.
+const OPEN_TEXT_LO = 24;
+const OPEN_TEXT_HI = 26;
+const OPEN_PHOTO_HI = 56;
+// Asentamiento del libro al abrir, en pixeles del video, contra el cuadro 56:
+// [dx derecha, dy derecha, dx izquierda, dy izquierda], desde ASENT_LO.
+//
+// Esto NO se calibro a mano. Se MIDIO siguiendo los adornos impresos de cada
+// pagina -lo unico con contraste dentro del papel- por correlacion normalizada
+// con ajuste parabolico al subpixel, cuadro contra cuadro VECINO y acumulando
+// hacia atras desde el 56. Contra el 56 directamente la pagina izquierda no se
+// deja seguir: llega tan deformada que la correlacion baja a 0,57. El metodo se
+// contrasto en la pagina derecha, donde la medida directa tambien vale, y las
+// dos coinciden dentro de 0,7px en 30 cuadros.
+//
+// La columna derecha vale desde el 22: los dos adornos seguidos, a 220px uno de
+// otro, se mueven con menos de 1,1px de diferencia, asi que ahi el movimiento es
+// una traslacion y esta tabla lo describe entero.
+//
+// La izquierda solo desde ASENT_FOTO_LO, y por eso la foto no aparece antes:
+// mas abajo la dispersion entre sus adornos pasa de 10px -no es una traslacion,
+// es la hoja cayendo- y ahi va a cero, que es lo unico honesto que se puede
+// poner. Si alguna vez se baja OPEN_PHOTO_LO, esta tabla NO sirve para el tramo
+// nuevo: hay que medir la hoja con una malla, no con un desplazamiento.
+const ASENT_LO = 22;
+const ASENT_FOTO_LO = 43;
+// La foto no puede aparecer antes de que su pagina se sepa describir: sale de
+// aqui, y no de un numero suelto, para que las dos cosas no puedan separarse.
+const OPEN_PHOTO_LO = ASENT_FOTO_LO;
+const ASENT_APERTURA: readonly (readonly [number, number, number, number])[] = [
+  [-56.7, 8.87, 0, 0], // 22
+  [-52.96, 8.53, 0, 0], // 23
+  [-49.57, 8.18, 0, 0], // 24
+  [-46.41, 7.89, 0, 0], // 25
+  [-43.26, 7.5, 0, 0], // 26
+  [-40.09, 7.07, 0, 0], // 27
+  [-37.06, 6.8, 0, 0], // 28
+  [-34.17, 6.37, 0, 0], // 29
+  [-31.23, 5.99, 0, 0], // 30
+  [-28.37, 5.59, 0, 0], // 31
+  [-25.92, 5.16, 0, 0], // 32
+  [-23.63, 4.64, 0, 0], // 33
+  [-21.32, 4.15, 0, 0], // 34
+  [-19.08, 3.82, 0, 0], // 35
+  [-17.1, 3.5, 0, 0], // 36
+  [-15.12, 3.16, 0, 0], // 37
+  [-13.24, 2.92, 0, 0], // 38
+  [-11.43, 2.58, 0, 0], // 39
+  [-9.77, 2.32, 0, 0], // 40
+  [-8.24, 2.05, 0, 0], // 41
+  [-6.8, 1.78, 0, 0], // 42
+  [-4.26, 1.06, -8.42, -7.45], // 43
+  [-3.23, 0.88, -6.83, -6.01], // 44
+  [-2.22, 0.65, -5.51, -4.91], // 45
+  [-1.4, 0.49, -4.15, -3.88], // 46
+  [-0.68, 0.37, -3, -3.05], // 47
+  [-0.13, 0.29, -2.04, -2.43], // 48
+  [0.25, 0.16, -1.15, -1.93], // 49
+  [0.43, 0.08, -0.49, -1.42], // 50
+  [0.4, 0.05, -0.24, -1.03], // 51
+  [0.35, 0.02, -0.15, -0.69], // 52
+  [0.19, 0, -0.09, -0.44], // 53
+  [0.05, 0.02, -0.03, -0.12], // 54
+  [0.01, 0.02, 0, 0], // 55
+  [0, 0, 0, 0], // 56
+];
 // La sombra de la copia entrante recien tiene sentido cuando la hoja ya esta
 // casi plana sobre la pagina izquierda (el dorso pasa a ser 100% visible en el
 // 120); antes la hoja esta de canto y una sombra proyectada seria falsa.
@@ -660,6 +740,28 @@ const TEXTO_POR_PAGINA: Readonly<Record<number, Partial<AjusteTexto>>> = {
 
 const ajusteTexto = (page: number): AjusteTexto => ({ ...TEXTO_BASE, ...(TEXTO_POR_PAGINA[page] ?? {}) });
 
+// --- La MARCA impresa en la pagina izquierda de la de cierre. Es un colofon:
+// el sello con el que se cierra el libro, no un logo pegado sobre una foto.
+//
+// Se compone con `multiply` y SIN sombra proyectada, al contrario que las
+// fotos: aquello son copias apoyadas sobre la pagina y esto es tinta absorbida
+// por el papel. Es la misma razon por la que los textos van con `multiply` (ver
+// el paso 3 de drawContent), y ademas es lo que deja que el grano y el
+// degradado de la pagina se vean A TRAVES del trazo.
+const LOGO_URL = 'assets/logo-clean.png';
+const LOGO_PAGE = LAST;
+const LOGO_LINE = 'Recetario Artesanal';
+// Fraccion del ancho del panel que ocupa la marca. En un colofon el sello va
+// suelto, con aire alrededor: llenar la caja lo convierte en una etiqueta.
+const LOGO_ANCHO = 0.62;
+// Centro OPTICO, no geometrico: un bloque centrado por calculo se lee como
+// caido hacia abajo, y mas cuando lleva una linea de texto colgando debajo.
+// El alza es CHICA -1,5% y no el 4% habitual- porque la perspectiva de la
+// pagina ya regala aire por debajo: el borde inferior esta mas cerca de la
+// camara y ocupa mas pixeles, asi que un alza normal deja la marca visiblemente
+// arriba en pantalla aunque en el papel este centrada.
+const LOGO_CENTRO_V = 0.485;
+
 // --- La foto es una COPIA IMPRESA apoyada sobre la pagina, no un dibujo en
 // ella. Los tres valores de abajo son los que separan un composite creible de
 // uno amateur; ninguno es una preferencia estetica suelta.
@@ -973,6 +1075,16 @@ export class AboutBookComponent {
   private meshBufF: [number, number][] | null = null;
   private meshBufB: [number, number][] | null = null;
   private wheatIcon: HTMLImageElement | null = null;
+  /** La marca cruda, y el panel ya compuesto con ella (ver renderLogoPanel). */
+  private logoArt: ImageBitmap | null = null;
+  private logo: HTMLCanvasElement | null = null;
+  /**
+   * Buffer del desplazamiento de apertura (ver ASENT_APERTURA). Uno por lado:
+   * los dos se piden dentro del mismo dibujo, y compartirlo dejaria al segundo
+   * pisando lo que lee el primero -el mismo motivo por el que `conDyFoto` no
+   * reusa el de `conDxTexto`-.
+   */
+  private asentBuf: Record<'left' | 'right', [number, number][] | null> = { left: null, right: null };
   private textPanels: HTMLCanvasElement[] = [];
   private ctx: CanvasRenderingContext2D | null = null;
   private dpr = 1;
@@ -987,11 +1099,16 @@ export class AboutBookComponent {
       ...Array.from({ length: FRAME_COUNT }, (_, i) => this.loadFrame(i)),
       ...STORIES.map((s, i) => this.loadPhoto(i, s.photo)),
       this.loadWheatIcon(),
+      this.loadLogo(),
       this.loadCurl(),
       this.prepareFonts(),
     ]);
     this.photos = this.rawPhotos.map((p) => (p ? this.renderPhotoPanel(p) : null));
     this.textPanels = STORIES.map((s, i) => this.renderTextPanel(s, i === LAST - 1, i + 1));
+    // Despues de `prepareFonts`: el panel se compone UNA sola vez, asi que una
+    // familia que no este lista en este instante se queda de reemplazo para
+    // siempre (mismo motivo que los paneles de texto).
+    this.logo = this.logoArt ? this.renderLogoPanel(this.logoArt) : null;
     this.sizeCanvas();
     this.draw(1);
     this.ready.set(true);
@@ -1035,6 +1152,16 @@ export class AboutBookComponent {
       this.rawPhotos[i] = await createImageBitmap(blob);
     } catch {
       this.rawPhotos[i] = null;
+    }
+  }
+
+  private async loadLogo(): Promise<void> {
+    try {
+      const res = await fetch(LOGO_URL);
+      this.logoArt = await createImageBitmap(await res.blob());
+    } catch {
+      // se ignora: sin marca, la pagina de cierre queda como estaba -en blanco-
+      this.logoArt = null;
     }
   }
 
@@ -1216,6 +1343,45 @@ export class AboutBookComponent {
     ctx.fillRect(border, border, iw, ih);
     ctx.restore();
 
+    return c;
+  }
+
+  /**
+   * Compone la marca de la pagina de cierre en un panel propio, una sola vez al
+   * cargar, con la MISMA caja que un panel de foto: se warpea a la superficie
+   * izquierda igual que ellas, asi que tiene que compartir su proporcion o la
+   * marca saldria estirada.
+   *
+   * El panel se deja en tinta sobre transparente -nada de fondo de papel, al
+   * reves que `renderPhotoPanel`-: lo que hay debajo es la pagina de verdad, y
+   * es la que tiene que verse a traves del trazo.
+   */
+  private renderLogoPanel(img: ImageBitmap): HTMLCanvasElement {
+    const aspect = AboutBookComponent.quadAspect(CONTENT_LEFT_QUAD);
+    const w = 720;
+    const h = Math.round(w / aspect);
+    const c = document.createElement('canvas');
+    c.width = w;
+    c.height = h;
+    const ctx = c.getContext('2d');
+    if (!ctx) return c;
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+
+    const lw = w * LOGO_ANCHO;
+    const lh = lw * (img.height / img.width);
+    const linea = Math.round(w * 0.05);
+    // Aire entre la marca y la linea, en cuerpos de la propia linea: asi la
+    // relacion se mantiene si cambia el tamano.
+    const hueco = Math.round(linea * 1.15);
+    const alto = lh + hueco + linea;
+    const y0 = h * LOGO_CENTRO_V - alto / 2;
+    ctx.drawImage(img, (w - lw) / 2, y0, lw, lh);
+
+    ctx.fillStyle = GOLD;
+    ctx.textAlign = 'center';
+    ctx.font = `italic 500 ${linea}px "Cormorant Garamond", serif`;
+    ctx.fillText(LOGO_LINE, w / 2, y0 + lh + hueco + linea * 0.8);
     return c;
   }
 
@@ -1556,8 +1722,8 @@ export class AboutBookComponent {
 
     // Sin condicionar a `coverOpen`: ese booleano hacia que el contenido
     // apareciera de golpe en un solo cuadro al terminar la apertura. Ahora
-    // drawContent lo funde segun el cuadro (ver OPEN_FADE_LO/HI) y devuelve
-    // sin dibujar nada mientras la tapa todavia esta cerrandose.
+    // drawContent lo ata al cuadro (ver OPEN_TEXT_LO) y devuelve sin dibujar
+    // nada mientras la tapa todavia esta cubriendo la pagina.
     this.drawContent(ctx, frame, ox, oy, scale);
   }
 
@@ -1638,6 +1804,52 @@ export class AboutBookComponent {
 
   private photoPanel(page: number): HTMLCanvasElement | null {
     return this.photos[page - 1] ?? null;
+  }
+
+  /**
+   * La marca de la pagina de cierre, si es la que toca. Va aparte de
+   * `photoPanel` A PROPOSITO: por esa ruta le caerian la sombra de copia y el
+   * estampado opaco, que son de una foto apoyada y no de tinta en el papel.
+   */
+  private logoPanel(page: number): HTMLCanvasElement | null {
+    return page === LOGO_PAGE ? this.logo : null;
+  }
+
+  /**
+   * Desplazamiento del asentamiento del libro en este cuadro (ver
+   * ASENT_APERTURA), en pixeles del video. Cero cuando el libro ya esta quieto,
+   * que es el caso de casi todos los cuadros.
+   *
+   * Se interpola entre cuadros porque el compositor dibuja con cuadros
+   * fraccionarios a 60Hz: sin interpolar, el contenido daria un salto en cada
+   * cambio de cuadro del video mientras la pagina se mueve suave.
+   */
+  private asentamiento(frame: number, side: 'left' | 'right'): [number, number] {
+    const i = frame - ASENT_LO;
+    const ult = ASENT_APERTURA.length - 1;
+    if (i >= ult) return [0, 0];
+    const k = Math.max(0, Math.floor(i));
+    const t = Math.max(0, Math.min(1, i - k));
+    const A = ASENT_APERTURA[k];
+    const B = ASENT_APERTURA[Math.min(k + 1, ult)];
+    const o = side === 'right' ? 0 : 2;
+    return [A[o] + (B[o] - A[o]) * t, A[o + 1] + (B[o + 1] - A[o + 1]) * t];
+  }
+
+  /**
+   * Mueve una superficie de reposo con la pagina mientras el libro se asienta.
+   * Devuelve `pts` tal cual -sin copiar ni recorrer- cuando no hay nada que
+   * mover, que es lo que pasa en todos los cuadros salvo la apertura.
+   */
+  private conAsentamiento(pts: [number, number][], side: 'left' | 'right', frame: number): [number, number][] {
+    const [dx, dy] = this.asentamiento(frame, side);
+    if (dx === 0 && dy === 0) return pts;
+    const out = (this.asentBuf[side] ??= pts.map(() => [0, 0] as [number, number]));
+    for (let i = 0; i < pts.length; i++) {
+      out[i][0] = pts[i][0] + dx;
+      out[i][1] = pts[i][1] + dy;
+    }
+    return out;
   }
 
   /**
@@ -1771,7 +1983,12 @@ export class AboutBookComponent {
     const pts = fu
       ? this.posePts(base.pts, side, fu.desde, fu.hacia, fu.t)
       : this.posePts(base.pts, side, frame, 0, 0);
-    return pts === base.pts ? base : { pts, vis: base.vis, uv: base.uv };
+    // Y por ultimo el asentamiento de la apertura, que es lo que hace que el
+    // contenido pueda estar IMPRESO desde antes de que el libro se pare en vez
+    // de aparecer sobre el ya quieto. Va aqui, en el unico sitio por el que
+    // pasan las dos rutas -reposo y vuelta-, para que las dos lo lleven igual.
+    const conAs = this.conAsentamiento(pts, side, frame);
+    return conAs === base.pts ? base : { pts: conAs, vis: base.vis, uv: base.uv };
   }
 
   /**
@@ -1981,7 +2198,7 @@ export class AboutBookComponent {
       return;
     }
     const main = this.canvasRef()?.nativeElement;
-    const box = main ? this.contentBox(null, ox, oy, scale, main) : null;
+    const box = main ? this.contentBox(null, ox, oy, scale, main, frame) : null;
     // El sombreado se lee ANTES de pintar nada nuestro -la sombra de la copia
     // incluida-, o entraria en el factor y la foto saldria oscurecida dos
     // veces (ver `captureShade`).
@@ -1991,7 +2208,11 @@ export class AboutBookComponent {
     // (ver DY_FOTO_CRUCE); si solo lo llevara una, la copia se despegaria de su
     // sombra en los 65 ms del cruce.
     const ptsFoto = this.conDyFoto(s.pts);
-    this.drawPrintShadow(ctx, this.meshCorners(ptsFoto, s.uv, ox, oy, scale));
+    // La sombra se apaga CON la copia. Antes iba siempre a fuerza plena: con el
+    // fundido de 107ms no se notaba, pero con el revelado de la apertura -medio
+    // segundo- dejaba una sombra entera alrededor de una foto casi invisible, y
+    // el conjunto se leia como un rectangulo gris flotando en la pagina.
+    this.drawPrintShadow(ctx, this.meshCorners(ptsFoto, s.uv, ox, oy, scale), alpha);
     let capa: HTMLCanvasElement | null = null;
     let cl: CanvasRenderingContext2D | null = null;
     if (main && box && shade) {
@@ -2031,6 +2252,53 @@ export class AboutBookComponent {
     this.stampShaded(ctx, capa, box, shade, alpha);
   }
 
+  /**
+   * Estampa TINTA sobre la pagina: se compone en una capa aparte con
+   * `source-over` y se multiplica UNA sola vez al pasarla al cuadro.
+   *
+   * No es un rodeo, es la correccion de un defecto real. Warpear con `multiply`
+   * ya puesto en el destino multiplica cada pixel tantas veces como celdas de
+   * la malla lo tocan, y `drawOnMesh` pinta las celdas con medio subpixel de
+   * solape para no dejar costuras: en toda esa banda la tinta se aplica dos
+   * veces y sale mas oscura.
+   *
+   * Medido sobre el adorno dorado del final del texto: en reposo salia
+   * #ab7540 -un marron rojizo- contra el #c7984d de la vuelta de pagina, que
+   * si compone en capa. Enrutando el reposo por aqui da #c89a50, o sea el de
+   * la vuelta. El oro es lo que mas lo delata porque al oscurecerse se desatura
+   * hacia el ladrillo; la tinta marron del texto solo se veia algo mas oscura,
+   * y por eso el defecto habia pasado desapercibido.
+   *
+   * Devuelve false si no hay capa donde componer, para que el llamador pueda
+   * degradar a multiply directo en vez de no pintar nada.
+   */
+  private estampaTinta(
+    ctx: CanvasRenderingContext2D,
+    box: Box | null,
+    alpha: number,
+    dibuja: (cl: CanvasRenderingContext2D) => void,
+  ): boolean {
+    const main = this.canvasRef()?.nativeElement;
+    if (!main || !box || !box.w || !box.h) return false;
+    const capa = (this.contentLayer = this.ensureLayer(this.contentLayer, main.width, main.height));
+    const cl = capa.getContext('2d');
+    if (!cl) return false;
+    cl.setTransform(1, 0, 0, 1, 0, 0);
+    cl.globalAlpha = 1;
+    cl.globalCompositeOperation = 'source-over';
+    // Estos lienzos auxiliares nacen en 'low' y ahi el warp sale mas blando.
+    cl.imageSmoothingEnabled = true;
+    cl.imageSmoothingQuality = 'high';
+    cl.clearRect(box.x, box.y, box.w, box.h);
+    dibuja(cl);
+    ctx.save();
+    ctx.globalCompositeOperation = 'multiply';
+    ctx.globalAlpha = alpha;
+    ctx.drawImage(capa, box.x, box.y, box.w, box.h, box.x, box.y, box.w, box.h);
+    ctx.restore();
+    return true;
+  }
+
   /** Texto quieto de la pagina derecha. `multiply` porque la tinta absorbe luz sobre el papel. */
   private drawRestText(
     ctx: CanvasRenderingContext2D,
@@ -2047,10 +2315,51 @@ export class AboutBookComponent {
       this.drawPanelInQuad(ctx, img, CONTENT_RIGHT_QUAD, ox, oy, scale, false, alpha, true);
       return;
     }
+    const main = this.canvasRef()?.nativeElement;
+    const box = main ? this.contentBox(null, ox, oy, scale, main, frame) : null;
+    const pinta = (c2: CanvasRenderingContext2D): void =>
+      this.drawOnMesh(c2, img, this.conDxTexto(s.pts), s.vis, s.uv, ox, oy, scale);
+    if (this.estampaTinta(ctx, box, alpha, pinta)) return;
+    // Sin capa donde componer se degrada a lo de antes: multiply directo, que
+    // oscurece el solape de las celdas pero al menos pinta.
     ctx.save();
     ctx.globalCompositeOperation = 'multiply';
     if (alpha < 1) ctx.globalAlpha = alpha;
-    this.drawOnMesh(ctx, img, this.conDxTexto(s.pts), s.vis, s.uv, ox, oy, scale);
+    pinta(ctx);
+    ctx.restore();
+  }
+
+  /**
+   * La marca quieta de la pagina de cierre. Va sobre la superficie IZQUIERDA,
+   * como la foto, pero compuesta como el texto: `multiply` y sin sombra. Es
+   * tinta en el papel, no una copia apoyada encima.
+   */
+  private drawRestLogo(
+    ctx: CanvasRenderingContext2D,
+    img: HTMLCanvasElement | null,
+    frame: number,
+    ox: number,
+    oy: number,
+    scale: number,
+    alpha = 1,
+  ): void {
+    if (!img || alpha <= 0) return;
+    const s = this.restSurface('left', frame);
+    if (!s) {
+      this.drawPanelInQuad(ctx, img, CONTENT_LEFT_QUAD, ox, oy, scale, false, alpha, true);
+      return;
+    }
+    const main = this.canvasRef()?.nativeElement;
+    const box = main ? this.contentBox(null, ox, oy, scale, main, frame) : null;
+    // El mismo desplazamiento que llevaria la foto en su sitio: la marca ocupa
+    // esa misma superficie y tiene que moverse con ella (ver DY_FOTO_CRUCE).
+    const pinta = (c2: CanvasRenderingContext2D): void =>
+      this.drawOnMesh(c2, img, this.conDyFoto(s.pts), s.vis, s.uv, ox, oy, scale);
+    if (this.estampaTinta(ctx, box, alpha, pinta)) return;
+    ctx.save();
+    ctx.globalCompositeOperation = 'multiply';
+    if (alpha < 1) ctx.globalAlpha = alpha;
+    pinta(ctx);
     ctx.restore();
   }
 
@@ -2172,8 +2481,18 @@ export class AboutBookComponent {
     return c;
   }
 
-  /** Region del canvas que toca esta composicion (todo lo demas ni se limpia ni se recorre). */
-  private contentBox(mesh: CurlFrame | null, ox: number, oy: number, scale: number, main: HTMLCanvasElement): Box {
+  /**
+   * Region del canvas que toca esta composicion (todo lo demas ni se limpia ni
+   * se recorre).
+   *
+   * Con `frame`, el margen crece ademas con el desplazamiento del asentamiento
+   * de ese cuadro (ver ASENT_APERTURA). El margen fijo son 32px de video y el
+   * desplazamiento llega a 57: sin esto, contenido movido hacia afuera se
+   * quedaria recortado en el borde de la caja. Fuera de la apertura el
+   * desplazamiento es cero y la caja sale exactamente igual que antes, asi que
+   * la vuelta de pagina no paga nada por esto.
+   */
+  private contentBox(mesh: CurlFrame | null, ox: number, oy: number, scale: number, main: HTMLCanvasElement, frame?: number): Box {
     const pts: [number, number][] = [
       ...CONTENT_LEFT_QUAD.map((p) => [p.x, p.y] as [number, number]),
       ...CONTENT_RIGHT_QUAD.map((p) => [p.x, p.y] as [number, number]),
@@ -2182,8 +2501,16 @@ export class AboutBookComponent {
       pts.push(...mesh.f);
       if (mesh.b) pts.push(...mesh.b);
     }
-    // Margen: la dilatacion de la mascara mas el radio de la sombra ambiente.
-    const pad = (MASK_DILATE + 24) * scale;
+    // Margen: la dilatacion de la mascara mas el radio de la sombra ambiente,
+    // mas -si se pidio- lo que el asentamiento mueve el contenido en este cuadro.
+    let asent = 0;
+    if (frame !== undefined) {
+      for (const lado of ['left', 'right'] as const) {
+        const [dx, dy] = this.asentamiento(frame, lado);
+        asent = Math.max(asent, Math.abs(dx), Math.abs(dy));
+      }
+    }
+    const pad = (MASK_DILATE + 24 + asent) * scale;
     let x0 = Infinity;
     let y0 = Infinity;
     let x1 = -Infinity;
@@ -2625,8 +2952,11 @@ export class AboutBookComponent {
   private drawContent(ctx: CanvasRenderingContext2D, frame: number, ox: number, oy: number, scale: number): void {
     const main = this.canvasRef()?.nativeElement;
     if (!main) return;
-    const alpha = AboutBookComponent.ramp(frame, OPEN_FADE_LO, OPEN_FADE_HI);
-    if (alpha <= 0) return;
+    // Dos rampas, no una: ver OPEN_TEXT_LO. Fuera de la apertura las dos valen
+    // 1, asi que durante la vuelta -donde la malla manda- son indistinguibles.
+    const aTexto = AboutBookComponent.ramp(frame, OPEN_TEXT_LO, OPEN_TEXT_HI);
+    const aFoto = AboutBookComponent.ramp(frame, OPEN_PHOTO_LO, OPEN_PHOTO_HI);
+    if (aTexto <= 0 && aFoto <= 0) return;
 
     const t = this.transition;
     // `f` redondeado se queda SOLO para lo que necesita un entero de verdad:
@@ -2649,12 +2979,13 @@ export class AboutBookComponent {
       // comportamiento anterior en vez de romperse.
       const cut = this.curl ? MESH_LO : (MESH_LO + MESH_HI) / 2;
       const page = !t || f < cut ? front : back;
-      this.drawRestPhoto(ctx, this.photoPanel(page), frame, ox, oy, scale, alpha);
-      this.drawRestText(ctx, this.textPanels[page - 1] ?? null, frame, ox, oy, scale, alpha);
+      this.drawRestPhoto(ctx, this.photoPanel(page), frame, ox, oy, scale, aFoto);
+      this.drawRestLogo(ctx, this.logoPanel(page), frame, ox, oy, scale, aFoto);
+      this.drawRestText(ctx, this.textPanels[page - 1] ?? null, frame, ox, oy, scale, aTexto);
       return;
     }
 
-    const box = this.contentBox(mesh, ox, oy, scale, main);
+    const box = this.contentBox(mesh, ox, oy, scale, main, frame);
     if (!box.w || !box.h) return;
     const shade = this.captureShade(box, main);
     if (!shade) return;
@@ -2752,7 +3083,7 @@ export class AboutBookComponent {
       clipPaper();
       ctx.save();
       ctx.globalCompositeOperation = 'multiply';
-      ctx.globalAlpha = alpha;
+      ctx.globalAlpha = aFoto;
       ctx.drawImage(this.contentLayer, box.x, box.y, box.w, box.h, box.x, box.y, box.w, box.h);
       ctx.restore();
     }
@@ -2810,7 +3141,7 @@ export class AboutBookComponent {
       }
     }
     clipPaper();
-    this.stampShaded(ctx, this.contentLayer, box, shade, alpha);
+    this.stampShaded(ctx, this.contentLayer, box, shade, aFoto);
 
     // 3) Los TEXTOS, aparte y con `multiply` directo sobre el cuadro.
     //    No pueden ir en la capa de arriba: alli el contenido se usa dos veces
@@ -2849,7 +3180,43 @@ export class AboutBookComponent {
       clipPaper();
       ctx.save();
       ctx.globalCompositeOperation = 'multiply';
-      ctx.globalAlpha = alpha;
+      ctx.globalAlpha = aTexto;
+      ctx.drawImage(this.contentLayer, box.x, box.y, box.w, box.h, box.x, box.y, box.w, box.h);
+      ctx.restore();
+    }
+
+    // 4) La MARCA de la pagina de cierre, en un paso propio de `multiply`.
+    //
+    //    No cabe en el de los textos: a la marca la tapa la silueta de la FOTO
+    //    -esta en la pagina izquierda- y al texto la suya, y en un mismo paso
+    //    solo cabe un `punch`.
+    //
+    //    Y no cabe en el de las copias: alli el contenido se estampa OPACO y se
+    //    usa dos veces -multiply contra el sombreado y recorte `destination-in`-
+    //    lo que eleva su alfa al cuadrado y adelgaza el trazo, exactamente el
+    //    problema que llevo los textos a su propio paso.
+    const restLogo = this.logoPanel(front);
+    const backLogo = this.logoPanel(back);
+    const logoEntra = backLogo != null && mesh.b != null && mesh.bv != null && ba > 0.002;
+    if (restLogo || logoEntra) {
+      reset();
+      if (restLogo) {
+        if (restL) this.drawOnMesh(cl, restLogo, this.conDyFoto(restL.pts), restL.vis, restL.uv, ox, oy, scale);
+        else this.drawImageInQuad(cl, restLogo, this.scaleQuad(CONTENT_LEFT_QUAD, ox, oy, scale));
+      }
+      punch(tapaFoto);
+      if (logoEntra && backLogo && mesh.b && mesh.bv) {
+        // `fillOccluded` como en la foto entrante: entre el 106 y el 126 hay
+        // hasta 61 de los 169 vertices sin cara visible, y sin rellenarlos el
+        // dorso sale acribillado.
+        cl.globalAlpha = ba;
+        this.drawOnMesh(cl, backLogo, mesh.b, mesh.bv, SHEET_PHOTO_UV, ox, oy, scale, true);
+        cl.globalAlpha = 1;
+      }
+      clipPaper();
+      ctx.save();
+      ctx.globalCompositeOperation = 'multiply';
+      ctx.globalAlpha = aFoto;
       ctx.drawImage(this.contentLayer, box.x, box.y, box.w, box.h, box.x, box.y, box.w, box.h);
       ctx.restore();
     }
@@ -2881,6 +3248,14 @@ export class AboutBookComponent {
     const dst = this.scaleQuad(quad, ox, oy, scale);
     // La sombra se derrama FUERA del cuadrilatero, asi que va antes del dibujo.
     if (printShadow) this.drawPrintShadow(ctx, dst);
+    if (ink) {
+      // Misma correccion que en `estampaTinta`, y por el mismo motivo: el warp
+      // por celdas de `drawImageInQuad` tambien solapa, asi que con `multiply`
+      // puesto en el destino la tinta se aplicaria dos veces en el solape.
+      const main = this.canvasRef()?.nativeElement;
+      const box = main ? this.contentBox(null, ox, oy, scale, main) : null;
+      if (this.estampaTinta(ctx, box, alpha, (c2) => this.drawImageInQuad(c2, img, dst))) return;
+    }
     ctx.save();
     if (ink) ctx.globalCompositeOperation = 'multiply';
     if (alpha < 1) ctx.globalAlpha = alpha;
