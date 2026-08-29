@@ -1,0 +1,1815 @@
+<!doctype html>
+<html lang="es">
+<meta charset="utf-8">
+<title>Calibrador de la foto — about-book</title>
+<style>
+  :root {
+    --bg:#16181c; --panel:#22262c; --panel2:#1d2025; --border:#33383f;
+    --text:#e8e6e1; --dim:#9aa0a8; --faint:#666d76;
+    --acc:#d9a441; --acc2:#4fb8b0; --ok:#6fbf73; --bad:#d9605a; --vio:#9b7fd4;
+    --mono:ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
+    --sans:ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font:13px/1.5 var(--sans)}
+  .wrap{display:grid;grid-template-columns:1fr 372px;height:100vh}
+  .stage{position:relative;overflow:auto;display:grid;place-items:center;background:#0f1114}
+  canvas{box-shadow:0 0 0 1px var(--border)}
+  .side{background:var(--panel);border-left:1px solid var(--border);overflow-y:auto;padding:14px}
+  h1{font-size:13px;margin:0 0 6px;letter-spacing:.04em;text-transform:uppercase;color:var(--acc)}
+  .hint{color:var(--faint);font-size:11px;margin:0 0 12px}
+  fieldset{border:1px solid var(--border);border-radius:6px;padding:10px;margin:0 0 11px}
+  legend{color:var(--dim);font-size:11px;text-transform:uppercase;letter-spacing:.06em;padding:0 5px}
+  .row{display:grid;grid-template-columns:96px 1fr 60px;gap:6px;align-items:center;margin-bottom:6px}
+  .row label{color:var(--dim);font-size:11px;cursor:help}
+  .row label b{color:var(--acc);font-weight:700}
+  input[type=range]{width:100%;accent-color:var(--acc)}
+  input[type=number]{width:100%;background:var(--panel2);color:var(--text);border:1px solid var(--border);
+    border-radius:4px;padding:3px 4px;font:11px var(--mono)}
+  button{background:var(--panel2);color:var(--text);border:1px solid var(--border);border-radius:5px;
+    padding:5px 8px;font:12px var(--sans);cursor:pointer}
+  button:hover{border-color:var(--acc)}
+  button.on{background:var(--acc);color:#16181c;border-color:var(--acc);font-weight:600}
+  button.danger:hover{border-color:var(--bad);color:var(--bad)}
+  .btns{display:flex;gap:5px;flex-wrap:wrap}
+  .modos{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:5px;margin-bottom:10px}
+  .modos button{padding:8px 2px;font-size:10.5px;line-height:1.25}
+  .nudge{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin:7px 0 0}
+  .nudge button{font:600 14px var(--mono);padding:6px 0}
+  .frameline{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+  .frameline .n{font:700 20px var(--mono);color:var(--acc);min-width:44px;text-align:center}
+  .keys{display:flex;flex-wrap:wrap;gap:3px;margin-top:8px;max-height:96px;overflow-y:auto}
+  .keys span{font:10px var(--mono);padding:2px 4px;border-radius:3px;background:var(--panel2);
+    border:1px solid var(--border);color:var(--faint);cursor:pointer}
+  .keys span.sem{background:#4a3c22;color:#c8ab72;border-color:#5d4a28}
+  .keys span.toc{background:var(--acc);color:#16181c;border-color:var(--acc);font-weight:700}
+  .keys span.cur{outline:2px solid var(--acc2)}
+  .pag{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;margin-bottom:7px}
+  .pag button{padding:6px 0;font:600 12px var(--mono)}
+  .stat{font:11px var(--mono);color:var(--dim);margin:6px 0 0}
+  kbd{font:10px var(--mono);background:var(--panel2);border:1px solid var(--border);border-radius:3px;
+    padding:1px 4px;color:var(--dim)}
+  textarea{width:100%;height:96px;background:var(--panel2);color:var(--text);border:1px solid var(--border);
+    border-radius:4px;font:10px var(--mono);padding:6px}
+  #guia{position:fixed;inset:0;background:rgba(10,11,13,.96);z-index:10;overflow-y:auto;padding:32px;display:none}
+  #guia.abierta{display:block}
+  #guia .caja{max-width:940px;margin:0 auto}
+  #guia h2{color:var(--acc);font-size:19px;margin:26px 0 8px}
+  #guia h2:first-of-type{margin-top:0}
+  #guia table{width:100%;border-collapse:collapse;margin-bottom:8px}
+  #guia td{border-top:1px solid var(--border);padding:7px 8px;vertical-align:top;font-size:13px}
+  #guia td:first-child{width:150px;color:var(--acc2);font:600 12px var(--mono);white-space:nowrap}
+  #guia p{color:var(--dim);font-size:13px}
+  #guia b{color:var(--text)}
+  #toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#2b2f36;
+    border:1px solid var(--acc);color:var(--text);padding:9px 15px;border-radius:6px;font-size:12px;
+    z-index:20;display:none;box-shadow:0 6px 24px rgba(0,0,0,.5);max-width:70vw;text-align:center}
+</style>
+
+<div id="guia"><div class="caja">
+  <button style="float:right" onclick="document.getElementById('guia').classList.remove('abierta')">Cerrar ✕</button>
+
+  <h2>Lo esencial en cinco líneas</h2>
+  <p>Es el mismo sistema del calibrador de la hoja, pero para la <b>foto que viaja en el dorso</b> de la
+     página mientras da la vuelta. La hoja es una <b>malla de puntos que arrastrás con el ratón</b>: cada
+     punto va exactamente donde lo soltás, sin topes. <b>Cada cuadro guarda lo suyo</b> — lo que hagas en el
+     125 no toca el 124 ni el 126, nunca. Los deslizadores no mandan sobre la malla: la <b>deforman</b>. La
+     foto va pegada a la malla, así que al deformar la hoja la foto la acompaña.</p>
+
+  <h2>Del 110 al 133, y los dos tramos que tiene dentro</h2>
+  <p>Del <b>119 al 133</b> la app <b>enseña</b> la copia: su opacidad vale 0,19 en el 119, 0,98 en el 120 y
+     1 del 121 en adelante. El 133 es el último cuadro con malla, y además es el que deja la foto
+     <b>en reposo sobre la página izquierda</b>: lo que hagas ahí es lo que se ve el resto del tiempo.</p>
+  <p>Del <b>110 al 118</b> la app <b>todavía no la enseña</b> —opacidad 0—, pero la hoja ya está girando y
+     ahí se ve venir la forma. Por eso el calibrador llega hasta el 110: para que puedas prepararla antes
+     de que aparezca. Como a opacidad 0 no se vería nada, <b>«Opacidad plena» viene encendida</b>: la vista
+     sube a 1 sin tocar el valor guardado. Apagala cuando quieras juzgar la entrada de verdad.</p>
+  <p>En ese tramo mudo <b>tampoco manda la máscara del dorso</b>. Es a propósito: como la app no dibuja
+     nada ahí, ese dato nunca se usa y está sin asentar —el cuadro 116 tiene 4 vértices destapados de 289
+     y el 114 tiene 269—; aplicarlo dejaría la copia hecha trizas por una máscara que no gobierna nada. En
+     cuanto le subas la opacidad a uno de esos cuadros la máscara entra, y entonces ver la copia rota es
+     la respuesta correcta: es lo que haría la app. El estado te dice siempre en cuál de los dos estás.</p>
+
+  <h2>Los cuatro modos</h2>
+  <table>
+    <tr><td>Formar hoja</td><td>El modo normal. Arrastrás cualquier punto naranja adonde quieras. No hay
+      restricción: el del medio sube, el de la esquina se va donde sea.</td></tr>
+    <tr><td>Mover todo</td><td>Agarrás la hoja <b>entera</b> y la llevás de sitio <b>sin deformarla</b>.
+      Arrastrás en cualquier parte del lienzo, o usás las flechas y los botones. Con <kbd>Alt</kbd> gira
+      sobre su centro, con <kbd>Shift</kbd> se agranda o achica. En este modo las flechas mueven la hoja,
+      así que para cambiar de cuadro se usan <kbd>,</kbd> y <kbd>.</kbd></td></tr>
+    <tr><td>Zona de la foto</td><td>Cuatro tiradores cian que definen dónde cae la copia dentro del papel.
+      Es <b>propia de este cuadro</b>: moverla acá no toca ningún otro.</td></tr>
+    <tr><td>Esquinas del papel</td><td>Los cuatro vértices de la hoja apoyada, sobre el cuadro 133. Se
+      marcan <b>una sola vez</b> y sirven de referencia de tamaño para medir el estiramiento y para fabricar
+      la forma de partida. <b>TR</b> y <b>BR</b> son el lado del lomo.</td></tr>
+  </table>
+
+  <h2>Cómo arrastrar</h2>
+  <table>
+    <tr><td>arrastrar</td><td>Mueve el punto. Los vecinos lo acompañan según el <b>radio de influencia</b>.</td></tr>
+    <tr><td>influencia 0</td><td>Sólo se mueve ese punto y los demás quedan clavados. Para detalle fino.</td></tr>
+    <tr><td>influencia 1–4</td><td>Arrastra a los vecinos con suavidad. Para dar forma general de un tirón.</td></tr>
+    <tr><td>Alt + arrastrar</td><td>Mueve <b>la fila y la columna enteras</b> de ese punto.</td></tr>
+    <tr><td>Shift + arrastrar</td><td>Mueve <b>la hoja completa</b> sin deformarla.</td></tr>
+    <tr><td>Subdividir</td><td>Pasa de 5×5 (25 puntos) a 9×9 (81) en este cuadro, sin cambiar la forma.
+      Para cuando hace falta detallar un rizo de esquina.</td></tr>
+  </table>
+
+  <h2>Los deslizadores</h2>
+  <p>Los ocho deslizadores describen una hoja doblada, y <b>siempre funcionan</b>: no reemplazan la malla,
+     la <b>deforman</b>. Si moviste puntos a mano y después subís <i>levantar</i>, la hoja se levanta
+     llevándose todo consigo —los retoques y la foto— en vez de borrarlos. Acá el <b>lomo está a la
+     derecha</b>, que es donde lo tiene el dorso: la hoja gira sobre la canaleta, no sobre el borde de
+     afuera.</p>
+  <p>El botón <b>«Generar forma»</b> es otra cosa: rehace la malla desde cero con los valores actuales y
+     <b>descarta</b> los retoques a mano. Sirve para empezar un cuadro de golpe, no para afinarlo.</p>
+  <table>
+    <tr><td>levantar °</td><td>Gira la hoja entera sobre el lomo (el borde de la canaleta).</td></tr>
+    <tr><td>inclinación °</td><td>Hacia dónde va la línea por la que se dobla. 180 curva al lado contrario.</td></tr>
+    <tr><td>doblar en</td><td>Desde qué punto del papel arranca la curva. 1 = hoja plana.</td></tr>
+    <tr><td>radio 1</td><td>Qué tan cerrada es esa curva. Poco radio = rizo apretado.</td></tr>
+    <tr><td>2ª curva en</td><td>Dónde empieza una segunda curva. Más de 1 = no hay segunda.</td></tr>
+    <tr><td>radio 2</td><td>Su radio. <b>En negativo curva al revés y forma la S.</b></td></tr>
+    <tr><td>desigual</td><td>Curva más cerrada en un extremo que en el otro: el rizo de esquina.</td></tr>
+    <tr><td>torsión °</td><td>Retuerce la hoja a lo largo: una punta gira más que la otra.</td></tr>
+  </table>
+
+  <h2>Las tres ayudas</h2>
+  <p>Como cada cuadro se modela a mano, es normal que de uno al siguiente los puntos no queden
+     perfectamente alineados y la animación tiemble un poco. Estas tres lo corrigen sin quitarte control:</p>
+  <table>
+    <tr><td>Suavizar tiempo</td><td>Promedia el recorrido de cada punto entre el cuadro anterior y el
+      siguiente. Quita el temblor y deja el movimiento parejo. Se puede aplicar varias veces.</td></tr>
+    <tr><td>Que no se estire</td><td>El papel real no se estira. Esto empuja los puntos hasta que ninguna
+      celda supere su tamaño de reposo. <b>Encogerse sí puede</b>: eso es escorzo, la hoja vista de canto.</td></tr>
+    <tr><td>Estiramiento</td><td>Pinta de rojo las celdas que se están estirando. Donde veas rojo, ahí la
+      foto va a salir deformada.</td></tr>
+  </table>
+
+  <h2>La parte tapada</h2>
+  <p>En los primeros cuadros la hoja todavía no enseña el dorso entero, y ahí la foto <b>no se dibuja</b>.
+     Eso <b>no se calibra</b>: es del vídeo, no de dónde pongas la copia. La máscara sale del propio
+     <code>about-book-curl.json</code> —en el cuadro 119 hay 235 de 289 vértices destapados, y del 128 en
+     adelante están los 289— y este calibrador la <b>respeta tal cual</b>, así que lo que ves acá tapado es
+     exactamente lo que la app va a tapar. El botón «Forzar tapada» la muestra en tenue, sólo para
+     comprobar qué está pasando.</p>
+
+  <h2>Cuándo aparece</h2>
+  <p>El deslizador <b>opacidad</b> es propio de cada cuadro y arranca en el valor que la app usa hoy
+     (119: 0,19 · 120: 0,98 · 121–133: 1). Subilo o bajalo si te parece que la foto entra de golpe o
+     demasiado tarde. Ojo: al sembrar un cuadro del vecino la forma se copia, pero <b>la opacidad no</b> —
+     cada cuadro conserva la suya de fábrica hasta que la toques.</p>
+  <p>La copia se ve <b>con esa opacidad de verdad</b>, que es donde hay que juzgarla: en el 119 se pinta al
+     19 %, igual que en la app. Cuando eso sea demasiado tenue para colocarla —o estés en el tramo mudo del
+     110 al 118—, <b>«Opacidad plena»</b> sube la vista a 1 <b>sin tocar el valor guardado</b>. Viene
+     encendida de fábrica; apagala para juzgar la entrada tal como se ve.</p>
+
+  <h2>Volver a empezar</h2>
+  <table>
+    <tr><td>Dejar plano</td><td>Devuelve <b>este cuadro</b> a la hoja plana con la foto centrada, sin nada
+      puesto. Los demás cuadros no se tocan.</td></tr>
+    <tr><td>Borrar este cuadro</td><td>Lo quita, y al volver a entrar se siembra otra vez del vecino.</td></tr>
+    <tr><td>Reiniciar todo</td><td>Borra <b>todos</b> los cuadros y deja uno solo, el 119, con la hoja plana,
+      la foto centrada y los deslizadores en cero.</td></tr>
+  </table>
+
+  <h2>El dorso de la copia</h2>
+  <p>Igual que un texto no se lee por detrás del papel, <b>una foto no se ve por detrás</b>. Cuando al
+     formar la hoja un trozo se da vuelta y queda mirando para el otro lado, ahí la copia <b>deja de
+     dibujarse</b>. Se detecta solo, celda por celda, sin que tengas que hacer nada, y el estado te dice
+     qué porcentaje de la copia está así. El botón «Forzar oculto» lo muestra en tenue, sólo para
+     comprobar qué está pasando.</p>
+
+  <h2>Cómo trabajar — y se puede en los dos sentidos</h2>
+  <p>Da igual si vas del 110 al 133 o al revés. <b>Cada cuadro se siembra del vecino con malla más
+     cercano</b>, mire hacia donde mire, así que bajando del 133 hacia el 110 cada uno llega con la forma
+     del que acabás de hacer. Y hay <b>dos botones de copiar</b>, «del anterior» y «de la siguiente», tanto
+     para el cuadro entero como para la zona de la foto: usá el que mire hacia donde venís.</p>
+  <p><b>1.</b> Una vez: «Esquinas del papel» sobre el cuadro 133, si la silueta de fábrica no te cuadra.
+     <b>2.</b> Empezá por el <b>133</b> —que es el que además fija la foto en reposo— y dejá ahí la zona de
+     la foto donde la querés. <b>3.</b> Bajá cuadro a cuadro con <kbd>←</kbd>: cada uno llega ya sembrado,
+     así que sólo <b>corregís lo que cambió</b>. <b>4.</b> Si te quedás corto en algo, arrastrá el punto:
+     siempre llega. <b>5.</b> Al final, «Suavizar tiempo» un par de veces y exportá.</p>
+  <p>La exportación trae <b>dos cosas</b>: el JSON propio del calibrador —para volver a importarlo acá— y,
+     aparte, el bloque ya listo para la app. Meterlo en <code>about-book-curl.json</code> es un paso
+     posterior, no lo hace esta página.</p>
+</div></div>
+
+<div id="toast"></div>
+
+<div class="wrap">
+  <div class="stage"><canvas id="cv"></canvas></div>
+  <div class="side">
+    <h1>Calibrador de la foto <button id="verguia" style="float:right;padding:2px 7px">📖 Guía</button></h1>
+    <p class="hint">La foto del dorso, cuadro a cuadro, del 110 al 133. Cada cuadro guarda su propia malla,
+      su propia zona y su propia opacidad. Nada se comparte.</p>
+
+    <div class="modos">
+      <button id="m_malla" class="on">🖐 Formar<br>hoja</button>
+      <button id="m_mover">✥ Mover<br>todo</button>
+      <button id="m_foto">🖼 Zona de<br>la foto</button>
+      <button id="m_papel">📐 Esquinas<br>del papel</button>
+    </div>
+
+    <fieldset>
+      <legend>Cuadro</legend>
+      <div class="frameline">
+        <button id="prev">◀</button>
+        <span class="n" id="fnum">110</span>
+        <button id="next">▶</button>
+        <input type="range" id="frange" min="110" max="133" step="1" style="flex:1">
+      </div>
+      <div class="row">
+        <label title="Cuánto se ve la foto en este cuadro; 0 = nada, 1 = del todo"><b>opacidad</b></label>
+        <input type="range" id="s_ba" min="0" max="1" step="0.01">
+        <input type="number" id="n_ba" step="0.01">
+      </div>
+      <div class="btns">
+        <button id="copyprev">Copiar del anterior</button>
+        <button id="copynext">Copiar de la siguiente</button>
+      </div>
+      <div class="btns" style="margin-top:5px">
+        <button id="planaC">Dejar plano</button>
+        <button id="reset" class="danger">Borrar este cuadro</button>
+      </div>
+      <p class="stat" id="estado"></p>
+      <div class="keys" id="keys"></div>
+      <p class="hint" style="margin:6px 0 0"><kbd>←</kbd><kbd>→</kbd> o <kbd>,</kbd><kbd>.</kbd> cuadro ·
+        <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd><kbd>4</kbd> modo · <kbd>D</kbd> subdividir ·
+        <kbd>H</kbd> guía · <kbd>Ctrl+Z</kbd> deshacer</p>
+    </fieldset>
+
+    <fieldset id="fs_malla">
+      <legend>Malla de este cuadro</legend>
+      <div class="row">
+        <label title="Cuánto arrastran los vecinos al mover un punto"><b>influencia</b></label>
+        <input type="range" id="s_radio" min="0" max="4" step="0.1">
+        <input type="number" id="n_radio" step="0.1">
+      </div>
+      <div class="btns">
+        <button id="subdiv">Subdividir a 9×9</button>
+        <button id="undiv">Volver a 5×5</button>
+      </div>
+      <div class="btns" style="margin-top:5px">
+        <button id="norel">Que no se estire</button>
+        <button id="suav">Suavizar tiempo</button>
+      </div>
+      <p class="stat" id="mstat"></p>
+    </fieldset>
+
+    <fieldset id="fs_mover">
+      <legend>Mover la hoja entera</legend>
+      <p class="hint" style="margin:0 0 7px">Arrastrá en cualquier parte del lienzo: la hoja se mueve
+        <b>sin deformarse</b>, con la forma que ya le diste. Con <kbd>Alt</kbd> gira sobre su centro y con
+        <kbd>Shift</kbd> la agranda o achica.</p>
+      <div class="row">
+        <label title="Cuántos píxeles mueve cada golpe de flecha"><b>paso px</b></label>
+        <input type="range" id="s_paso" min="0.5" max="20" step="0.5">
+        <input type="number" id="n_paso" step="0.5">
+      </div>
+      <div class="nudge">
+        <button id="nz">←</button><button id="nw">↑</button>
+        <button id="ns">↓</button><button id="nd">→</button>
+      </div>
+      <div class="btns" style="margin-top:6px">
+        <button id="girarM">Girar −1°</button><button id="girarP">Girar +1°</button>
+        <button id="escM">Achicar 1%</button><button id="escP">Agrandar 1%</button>
+      </div>
+      <p class="stat" id="movstat"></p>
+    </fieldset>
+
+    <fieldset id="fs_gen">
+      <legend>Generar forma de partida</legend>
+      <div id="controles"></div>
+      <div class="btns">
+        <button id="generar">Generar forma</button>
+        <button id="plana">Hoja plana</button>
+      </div>
+      <p class="stat" id="genstat"></p>
+    </fieldset>
+
+    <fieldset id="fs_foto">
+      <legend>Zona de la foto (de este cuadro)</legend>
+      <div class="btns">
+        <button id="fotoPrev">Copiar del anterior</button>
+        <button id="fotoNext">Copiar de la siguiente</button>
+      </div>
+      <div class="btns" style="margin-top:5px">
+        <button id="fotoBase">Volver a la base</button>
+      </div>
+      <div class="btns" style="margin-top:5px">
+        <button id="cenT">Centrar</button>
+        <button id="propT">Ajustar proporción</button>
+      </div>
+      <p class="stat" id="tstat"></p>
+    </fieldset>
+
+    <fieldset id="fs_papel">
+      <legend>Esquinas del papel apoyado</legend>
+      <p class="hint" style="margin:0 0 7px">Se marcan una sola vez, sobre el cuadro 133. Definen el tamaño
+        de referencia con el que se mide el estiramiento y con el que se fabrica la forma de partida.
+        <b>TR</b> y <b>BR</b> son el lado del lomo.</p>
+      <div class="btns"><button id="flip">Invertir levantado</button></div>
+      <p class="stat" id="camstat"></p>
+    </fieldset>
+
+    <fieldset>
+      <legend>Qué copia se prueba</legend>
+      <div class="pag" id="pags"></div>
+      <p class="hint" style="margin:0">Son las fotos de verdad de las seis historias, compuestas como en la
+        app: borde de papel, recorte, y el aclarado de copia impresa.</p>
+    </fieldset>
+
+    <fieldset>
+      <legend>Ver</legend>
+      <div class="btns">
+        <button id="vgrid" class="on">Rejilla</button><button id="vpts" class="on">Puntos</button>
+        <button id="vfoto" class="on">Foto</button><button id="vtrama">Trama</button>
+        <button id="vstretch">Estiramiento</button><button id="vrest">Reposo</button>
+        <button id="vtapada">Forzar oculto</button><button id="vplena">Opacidad plena</button>
+        <button id="vzoom">Zoom ×2</button>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Resultado</legend>
+      <div class="btns">
+        <button id="export">Exportar JSON</button>
+        <button id="exportapp">Exportar para la app</button>
+        <button id="importbtn">Importar</button>
+      </div>
+      <div class="btns" style="margin-top:5px">
+        <button id="descargar">💾 Guardar en un archivo</button>
+      </div>
+      <div class="btns" style="margin-top:5px">
+        <button id="clear" class="danger">Reiniciar todo</button>
+      </div>
+      <textarea id="out" placeholder="El JSON aparece acá al exportar" style="margin-top:8px"></textarea>
+      <p class="stat" id="progress"></p>
+    </fieldset>
+  </div>
+</div>
+
+<script>
+const LO = 110, HI = 133, VW = 860, VH = 698;
+const FRAMES = 'assets/about-book-frames';
+const CURL = 'assets/about-book-curl.json';
+const CLAVE = 'calib-foto-v1';
+
+// ---------------------------------------------------------------------------
+// LO QUE ESTA PAGINA COMPARTE CON LA APP
+//
+// Cuatro constantes copiadas de `about-book.component.ts`. Si allá cambian, acá
+// hay que cambiarlas: son las que hacen que lo que se ve en este lienzo sea lo
+// mismo que la app va a dibujar, y no un parecido.
+//
+//   SHEET_PHOTO_UV  -> la ventana de la hoja por la que la app mira la copia.
+//   CONTENT_LEFT_QUAD -> de donde sale la PROPORCION del panel de la foto.
+//   PRINT_BORDER / PRINT_PAPER -> el borde de papel de una copia de laboratorio.
+// ---------------------------------------------------------------------------
+const PHOTO_UV = [[0.055,0.055],[0.945,0.055],[0.945,0.945],[0.055,0.945]];
+const CONTENT_LEFT_QUAD = [[197,282],[397,250],[456,467],[241,507]];
+const PRINT_BORDER = 0.05, PRINT_PAPER = '#F7F0E2';
+const PANEL_W = 720;
+const PANEL_H = (() => {
+  const d = (a,b) => Math.hypot(b[0]-a[0], b[1]-a[1]);
+  const [tl,tr,br,bl] = CONTENT_LEFT_QUAD;
+  const w = (d(tl,tr) + d(bl,br)) / 2, h = (d(tl,bl) + d(tr,br)) / 2;
+  return Math.round(PANEL_W / (w/h));
+})();
+
+// Opacidad de fabrica: la que la app usa hoy (campo `ba` del JSON). Si el JSON
+// se puede leer, gana el suyo; esto es el respaldo para cuando la pagina se abre
+// sin servidor y `fetch` no llega.
+const BA_RESPALDO = f => f <= 118 ? 0 : f === 119 ? 0.1869 : f === 120 ? 0.9761 : 1;
+const baFabrica = f => APP.ba[f] ?? BA_RESPALDO(f);
+
+// La ORIENTACION de la malla es la de la app: la columna u=0 es el borde de
+// afuera de la hoja y la u=1 es el lomo (medido: los vertices (1,0) y (1,1)
+// estan clavados en 405,197 y 486,475 del cuadro 119 al 133 — o sea, la
+// canaleta). Se conserva tal cual para que exportar sea copiar, sin espejos que
+// puedan salir al reves. El unico sitio donde el lomo se invierte es la forma
+// parametrica, que dobla sobre s=0: ahi se evalua en 1-u (ver `ph`).
+const CORNERS_133 = [[138,275],[405,197],[486,475],[187,559]];
+
+// ============================================================ generador de forma
+// Estos ocho parametros ya NO describen la hoja: solo fabrican una malla de
+// partida razonable en un cuadro. A partir de ahi manda la malla, que no tiene
+// ninguna restriccion.
+const PARAMS = [
+  { k:'theta',  et:'levantar °',    min:-180, max:180, paso:0.25, esc:180/Math.PI,
+    ay:'gira la hoja entera sobre el lomo (el borde de la canaleta)' },
+  { k:'alpha',  et:'inclinación °', min:-180, max:180, paso:0.5,  esc:180/Math.PI,
+    ay:'hacia dónde va la línea por la que se dobla; 180 curva hacia el lado contrario' },
+  { k:'c1',     et:'doblar en',     min:-1,   max:2,   paso:0.004, esc:1,
+    ay:'desde qué punto del papel empieza la curva; 1 = hoja plana' },
+  { k:'R1',     et:'radio 1',       min:0.02, max:5,   paso:0.004, esc:1,
+    ay:'qué tan cerrada es la primera curva' },
+  { k:'c2',     et:'2ª curva en',   min:-1,   max:2,   paso:0.004, esc:1,
+    ay:'dónde empieza la segunda curva; más de 1 = sin segunda curva' },
+  { k:'R2',     et:'radio 2',       min:-5,   max:5,   paso:0.004, esc:1,
+    ay:'radio de la segunda curva; en NEGATIVO curva al lado contrario y forma la S' },
+  { k:'taper',  et:'desigual',      min:-1.5, max:1.5, paso:0.004, esc:1,
+    ay:'curva más cerrada en un extremo que en el otro: el rizo de esquina' },
+  { k:'twist',  et:'torsión °',     min:-90,  max:90,  paso:0.25, esc:180/Math.PI,
+    ay:'retuerce la hoja a lo largo: una punta gira más que la otra' },
+];
+const PLANA = { theta:0, alpha:0, c1:1, R1:0.5, c2:2, R2:-0.5, taper:0, twist:0 };
+
+// Zona de partida de la foto, en (u,v) de la hoja. Es la ventana que la app usa
+// hoy, puesta en el orden de las esquinas del PANEL: arriba-izquierda del panel
+// cae en el borde de afuera (u alto), porque el lomo esta en u=1.
+const FOTO_BASE = () => [[0.055,0.055],[0.945,0.055],[0.945,0.945],[0.055,0.945]];
+
+// ============================================================ estado
+const S = {
+  frame: LO, zoom: 1,
+  corners: CORNERS_133.map(c => [...c]),
+  flip: -1,
+  modo: 'malla',
+  radio: 1.2, paso: 2,
+  pagina: 1,
+  f: {},                 // cuadro -> { N, p:[[x,y]...], foto:[[u,v]x4], ba, gen, tocado }
+  view: { grid:true, pts:true, foto:true, trama:false, stretch:false, rest:false, tapada:false, plena:true },
+  cam: null,
+  drag: -1, dragT: -1, dragC: -1, dragM: false,
+  dragBase: null, dragMod: '', dragFrom: null, centro: null,
+};
+// Lo que se lee del JSON del libro y NO se calibra: la mascara del dorso.
+// `bv` se guarda dos veces: limpia para PINTAR -que es lo que la app usa- y
+// cruda para EXPORTAR, para no reescribir el asset con una version derivada.
+// La limpieza es idempotente, asi que exportar la cruda no cambia nada.
+const APP = { bv: {}, bvCrudo: {}, ba: {}, leido: false };
+
+const clon = o => JSON.parse(JSON.stringify(o));
+const guardar = () => localStorage.setItem(CLAVE, JSON.stringify({
+  corners:S.corners, flip:S.flip, f:S.f, frame:S.frame, zoom:S.zoom,
+  view:S.view, radio:S.radio, paso:S.paso, modo:S.modo, pagina:S.pagina }));
+function toast(t, ms=2600) {
+  const e = document.getElementById('toast');
+  e.textContent = t; e.style.display = 'block';
+  clearTimeout(toast._t); toast._t = setTimeout(()=>e.style.display='none', ms);
+}
+
+// ---------------------------------------------------------------- deshacer
+// Se apila solo el cuadro que va a cambiar, no el estado entero: asi caben
+// muchos pasos sin llenar el almacenamiento del navegador.
+const PILA = [];
+function apilar(f) {
+  PILA.push(f === '*' ? { todo: JSON.stringify(S.f) }
+                      : { f, v: S.f[f] ? JSON.stringify(S.f[f]) : null });
+  if (PILA.length > 80) PILA.shift();
+}
+function deshacer() {
+  const u = PILA.pop();
+  if (!u) { toast('No hay nada que deshacer'); return; }
+  if (u.todo) S.f = JSON.parse(u.todo);
+  else if (u.v === null) delete S.f[u.f];
+  else S.f[u.f] = JSON.parse(u.v);
+  guardar(); pintar();
+}
+
+// ============================================================ cámara
+// Proyeccion ortografica deducida de las cuatro esquinas del papel apoyado.
+// Solo se usa para GENERAR formas de partida y para medir el tamano de reposo.
+// Recibe las esquinas en el orden de la forma parametrica -el lomo primero-,
+// que es el espejo del orden de la app (ver `espejo`).
+function calcularCamara(c) {
+  const ex = [((c[1][0]-c[0][0])+(c[2][0]-c[3][0]))/2, ((c[1][1]-c[0][1])+(c[2][1]-c[3][1]))/2];
+  const ey = [((c[3][0]-c[0][0])+(c[2][0]-c[1][0]))/2, ((c[3][1]-c[0][1])+(c[2][1]-c[1][1]))/2];
+  const l1 = Math.hypot(ex[0],ex[1]), l2 = Math.hypot(ey[0],ey[1]);
+  const dot = ex[0]*ey[0] + ex[1]*ey[1];
+  const A = l1*l1, B = l2*l2, D = dot;
+  const bb = -(A+B), cc = A*B - D*D, disc = bb*bb - 4*cc;
+  let k = Math.max(l1,l2)*1.0001;
+  if (disc >= 0) {
+    const cand = [(-bb+Math.sqrt(disc))/2, (-bb-Math.sqrt(disc))/2]
+      .filter(v => v >= Math.max(A,B)-1e-6).map(Math.sqrt);
+    if (cand.length) k = Math.min(...cand);
+  }
+  let z1 = Math.sqrt(Math.max(0,1-A/(k*k))), z2 = Math.sqrt(Math.max(0,1-B/(k*k)));
+  if (D > 0) z2 = -z2;
+  const fl = S.flip || 1;
+  const e1 = [ex[0]/k, ex[1]/k, z1*fl], e2 = [ey[0]/k, ey[1]/k, z2*fl];
+  const e3 = [e1[1]*e2[2]-e1[2]*e2[1], e1[2]*e2[0]-e1[0]*e2[2], e1[0]*e2[1]-e1[1]*e2[0]];
+  const cam = { k, o:[c[0][0], c[0][1]], e1, e2, e3, err:Math.abs(dot + k*k*z1*z2)/(l1*l2), l1, l2 };
+
+  // CORRECCION PROYECTIVA. Una camara ortografica solo sabe dibujar
+  // PARALELOGRAMOS, y las esquinas del dorso no lo son: la de abajo se sale 32
+  // px del paralelogramo que pasa por las otras tres. Sin esto la hoja plana de
+  // partida nacia 16 px fuera de la hoja de verdad en dos de sus cuatro
+  // esquinas —medido— y habia que empezar arrastrando para nada. Se compone la
+  // proyeccion con la homografia que lleva ese paralelogramo a las cuatro
+  // esquinas marcadas: la hoja plana cae EXACTA y las formas curvas heredan la
+  // misma correccion, que ademas se parece mas a lo que hace una perspectiva.
+  const P = (a,b) => [ cam.o[0] + k*(a*e1[0] + b*e2[0]), cam.o[1] + k*(a*e1[1] + b*e2[1]) ];
+  cam.H = homografia4([P(0,0), P(1,0), P(1,1), P(0,1)], c);
+  return cam;
+}
+/** Homografia que lleva los 4 puntos de `src` a los 4 de `dst`. Ocho incognitas,
+ *  ocho ecuaciones, Gauss con pivoteo. Devuelve null si el sistema es singular
+ *  -cuatro puntos alineados-, y entonces se sigue sin corregir. */
+function homografia4(src, dst) {
+  const A = [], y = [];
+  for (let i=0;i<4;i++) {
+    const [x1,y1] = src[i], [x2,y2] = dst[i];
+    A.push([x1, y1, 1, 0, 0, 0, -x1*x2, -y1*x2]); y.push(x2);
+    A.push([0, 0, 0, x1, y1, 1, -x1*y2, -y1*y2]); y.push(y2);
+  }
+  const n = 8;
+  for (let col=0; col<n; col++) {
+    let piv = col;
+    for (let r=col+1;r<n;r++) if (Math.abs(A[r][col]) > Math.abs(A[piv][col])) piv = r;
+    if (Math.abs(A[piv][col]) < 1e-12) return null;
+    [A[col], A[piv]] = [A[piv], A[col]]; [y[col], y[piv]] = [y[piv], y[col]];
+    for (let r=0;r<n;r++) {
+      if (r === col) continue;
+      const f = A[r][col] / A[col][col];
+      if (!f) continue;
+      for (let cc=col; cc<n; cc++) A[r][cc] -= f*A[col][cc];
+      y[r] -= f*y[col];
+    }
+  }
+  const h = y.map((v,i) => v / A[i][i]);
+  return (x, yy) => {
+    const w = h[6]*x + h[7]*yy + 1;
+    return [ (h[0]*x + h[1]*yy + h[2]) / w, (h[3]*x + h[4]*yy + h[5]) / w ];
+  };
+}
+/** Las esquinas de la app (u=0 afuera) puestas como las quiere la forma
+ *  parametrica (s=0 en el lomo). Es el UNICO sitio donde vive el espejo. */
+const espejo = c => [c[1], c[0], c[3], c[2]];
+const proj = (a,b,c) => {
+  const { k,o,e1,e2,e3,H } = S.cam;
+  const x = o[0]+k*(a*e1[0]+b*e2[0]+c*e3[0]), y = o[1]+k*(a*e1[1]+b*e2[1]+c*e3[1]);
+  return H ? H(x, y) : [x, y];
+};
+
+// ---------------------------------------------------------------- forma paramétrica
+function perfil(d, R1, c2, R2) {
+  let x = 0, y = 0, ang = 0;
+  const s1 = Math.min(d, c2);
+  if (s1 > 0) { const p = s1/R1; x += R1*Math.sin(p); y += R1*(1-Math.cos(p)); ang = p; }
+  if (d > c2) {
+    const p = (d - c2)/R2;
+    x += R2*(Math.sin(ang+p) - Math.sin(ang));
+    y -= R2*(Math.cos(ang+p) - Math.cos(ang));
+  }
+  return [x, y];
+}
+function rangoPapel(alpha) {
+  const nx = Math.cos(alpha), ny = Math.sin(alpha);
+  let lo = Infinity, hi = -Infinity;
+  for (const [a,b] of [[0,0],[1,0],[1,1],[0,1]]) { const v = a*nx+b*ny; if (v<lo) lo=v; if (v>hi) hi=v; }
+  return [lo, hi];
+}
+function hoja(s, t, P) {
+  const nx = Math.cos(P.alpha), ny = Math.sin(P.alpha), ux = -ny, uy = nx;
+  const [lo,hi] = rangoPapel(P.alpha), ancho = (hi - lo) || 1;
+  const d = (s*nx + t*ny) - (lo + P.c1*ancho);
+  const w = s*ux + t*uy;
+  const fac = Math.max(0.06, 1 + P.taper*w);
+  const R1 = Math.max(0.02, P.R1) * fac;
+  const r2 = Math.abs(P.R2) < 0.02 ? 0.02*(P.R2 < 0 ? -1 : 1) : P.R2;
+  const R2 = r2 * fac;
+  const c2 = Math.max(0, (P.c2 - P.c1) * ancho);
+  let a = s, b = t, c = 0;
+  if (d > 0) {
+    const [av, alt] = perfil(d, R1, c2, R2);
+    a = s + (av - d)*nx;  b = t + (av - d)*ny;  c = alt;
+  }
+  if (P.twist) {
+    const g = P.twist * w, co = Math.cos(g), si = Math.sin(g);
+    const nb = b*co - c*si, nc = b*si + c*co; b = nb; c = nc;
+  }
+  const co = Math.cos(P.theta), si = Math.sin(P.theta);   // giro sobre el lomo (s = 0)
+  return [ a*co - c*si, b, a*si + c*co ];
+}
+/** (u,v) de la hoja -> pixel. El 1-u es el lomo: la forma dobla sobre s=0 y en
+ *  el dorso el lomo esta en u=1, asi que se entra por el otro extremo. */
+const ph = (u,v,P) => { const q = hoja(1-u, v, P); return proj(q[0],q[1],q[2]); };
+
+/** Fabrica una malla N×N de puntos de control evaluando la forma paramétrica. */
+function mallaDeParams(N, P) {
+  return ajustarMalla(N, (u,v) => ph(u,v,P));
+}
+
+// ============================================================ superficie de la malla
+// Catmull-Rom bicubica: la superficie pasa EXACTAMENTE por cada punto de control,
+// asi que el punto que arrastras queda donde lo soltas, y entre puntos la curva es
+// suave — sin las facetas que dejaria una interpolacion bilineal.
+function extender(g, N) {
+  const M = N + 2, e = new Array(M*M);
+  for (let y=0;y<N;y++) for (let x=0;x<N;x++) e[(y+1)*M+(x+1)] = g[y*N+x];
+  for (let y=0;y<N;y++) {
+    const a=g[y*N], b=g[y*N+1];             e[(y+1)*M]       = [2*a[0]-b[0], 2*a[1]-b[1]];
+    const c=g[y*N+N-1], d=g[y*N+N-2];       e[(y+1)*M+(M-1)] = [2*c[0]-d[0], 2*c[1]-d[1]];
+  }
+  for (let x=0;x<M;x++) {
+    const a=e[M+x], b=e[2*M+x];             e[x]             = [2*a[0]-b[0], 2*a[1]-b[1]];
+    const c=e[(M-2)*M+x], d=e[(M-3)*M+x];   e[(M-1)*M+x]     = [2*c[0]-d[0], 2*c[1]-d[1]];
+  }
+  return e;
+}
+function crW(t) {
+  const t2 = t*t, t3 = t2*t;
+  return [ 0.5*(-t + 2*t2 - t3), 0.5*(2 - 5*t2 + 3*t3),
+           0.5*(t + 4*t2 - 3*t3), 0.5*(-t2 + t3) ];
+}
+// La superficie es una combinacion LINEAL de los puntos de control, asi que
+// ajustarla a una forma dada no es un tanteo: es un sistema de minimos cuadrados
+// con solucion unica. Copiar los nudos no basta —ahi Catmull-Rom ya interpola
+// exacto— porque la desviacion aparece a mitad de celda; sin esto, cambiar la
+// densidad de la malla moveria la hoja varios pixeles.
+const CACHE_BASE = {};
+/** Influencia de cada punto de control en cada muestra. Solo depende de N y del
+ *  muestreo, asi que se calcula una vez y se reutiliza. */
+function baseMalla(N, K) {
+  const ck = N + '/' + K;
+  if (CACHE_BASE[ck]) return CACHE_BASE[ck];
+  const mues = [];
+  for (let j=0;j<=K;j++) for (let i=0;i<=K;i++) mues.push([i/K, j/K]);
+  const n = N*N, m = mues.length, C = [];
+  for (let k=0;k<n;k++) {
+    const p = []; for (let q=0;q<n;q++) p.push([q===k?1:0, 0]);
+    const E = extender(p, N);
+    const fila = new Float64Array(m);
+    for (let s=0;s<m;s++) fila[s] = evalM(E, N, mues[s][0], mues[s][1])[0];
+    C.push(fila);
+  }
+  const M = [];
+  for (let a=0;a<n;a++) {
+    const f = new Float64Array(n), Ca = C[a];
+    for (let b=0;b<n;b++) { const Cb = C[b]; let s2 = 0;
+      for (let s=0;s<m;s++) s2 += Ca[s]*Cb[s]; f[b] = s2; }
+    M.push(f);
+  }
+  return CACHE_BASE[ck] = { mues, C, M, n, m };
+}
+/** Devuelve la malla N×N cuya superficie mejor reproduce `obj(u,v)`.
+ *  `fijos` clava los puntos que deben quedar EXACTAMENTE donde los sembro la
+ *  semilla — los que el usuario coloco a mano — y ajusta solo el resto. Sin eso
+ *  el minimo cuadratico redondea los picos, y un pico es justo lo que se marca
+ *  a proposito al formar una esquina. */
+function ajustarMalla(N, obj, K, lam = 2e-5, fijos = null) {
+  K = K || (N > 6 ? 24 : 18);
+  const { mues, C, M, n, m } = baseMalla(N, K);
+  const bx = new Float64Array(m), by = new Float64Array(m);
+  for (let s=0;s<m;s++) { const q = obj(mues[s][0], mues[s][1]); bx[s]=q[0]; by[s]=q[1]; }
+  const rx = new Float64Array(n), ry = new Float64Array(n);
+  for (let k=0;k<n;k++) {
+    const Ck = C[k]; let sx=0, sy=0;
+    for (let s=0;s<m;s++) { sx += Ck[s]*bx[s]; sy += Ck[s]*by[s]; }
+    rx[k]=sx; ry[k]=sy;
+  }
+  // Semilla: los nudos. Catmull-Rom los interpola, asi que ya arranca cerca.
+  const h = 1/(N-1);
+  const px = new Float64Array(n), py = new Float64Array(n);
+  for (let k=0;k<n;k++) { const q = obj((k%N)*h, ((k/N)|0)*h); px[k]=q[0]; py[k]=q[1]; }
+  const sx0 = Float64Array.from(px), sy0 = Float64Array.from(py);
+  let tr = 0; for (let k=0;k<n;k++) tr += M[k][k];
+  const l = lam * tr / n;          // pizca de regularizacion hacia la semilla
+  for (let it=0; it<500; it++) {
+    let dmax = 0;
+    for (let k=0;k<n;k++) {
+      if (fijos && fijos[k]) continue;
+      const Mk = M[k];
+      let ax = rx[k] + l*sx0[k], ay = ry[k] + l*sy0[k];
+      for (let j=0;j<n;j++) if (j!==k) { ax -= Mk[j]*px[j]; ay -= Mk[j]*py[j]; }
+      const d = Mk[k] + l, nx = ax/d, ny = ay/d;
+      const e = Math.max(Math.abs(nx-px[k]), Math.abs(ny-py[k]));
+      if (e > dmax) dmax = e;
+      px[k] = nx; py[k] = ny;
+    }
+    if (dmax < 1e-4) break;
+  }
+  const out = [];
+  for (let k=0;k<n;k++) out.push([+px[k].toFixed(3), +py[k].toFixed(3)]);
+  return out;
+}
+/** (u,v) de la hoja -> pixel de pantalla. */
+function evalM(E, N, u, v) {
+  const M = N + 2;
+  const fu = (u<0?0:u>1?1:u)*(N-1), fv = (v<0?0:v>1?1:v)*(N-1);
+  let ix = Math.floor(fu); if (ix > N-2) ix = N-2; if (ix < 0) ix = 0;
+  let iy = Math.floor(fv); if (iy > N-2) iy = N-2; if (iy < 0) iy = 0;
+  const wu = crW(fu-ix), wv = crW(fv-iy);
+  let X = 0, Y = 0;
+  for (let j=0;j<4;j++) { const row = (iy+j)*M;
+    for (let i=0;i<4;i++) { const w = wu[i]*wv[j], p = E[row+ix+i]; X += w*p[0]; Y += w*p[1]; } }
+  return [X, Y];
+}
+
+// ============================================================ cuadros
+/** Devuelve la malla del cuadro. Si no la tiene, la SIEMBRA del vecino mas
+ *  cercano y la materializa como copia propia en el acto: desde ese momento los
+ *  dos son independientes y editar uno no toca al otro nunca mas.
+ *  La OPACIDAD no se hereda: cada cuadro nace con la suya de fabrica, porque
+ *  copiar la del vecino pondria la del 119 (0,19) en el 120 y la foto entraria
+ *  mal aunque la forma estuviera bien. */
+function mallaDe(f, sembrar = true) {
+  if (S.f[f]) return S.f[f];
+  if (!sembrar) return null;
+  // El vecino MAS CERCANO, mire hacia donde mire. Antes ganaba siempre el de
+  // atras, y eso solo sirve yendo hacia adelante: bajando del 133 al 132, el
+  // 132 se sembraba del 110 plano -el unico cuadro anterior- en vez del 133 que
+  // acababas de hacer. Con el mas cercano, ir en reversa se comporta igual que
+  // ir hacia adelante. En empate manda el de atras, como antes.
+  const hay = Object.keys(S.f).map(Number).sort((a,b)=>a-b);
+  const antes = hay.filter(k => k < f).pop();
+  const desp  = hay.filter(k => k > f)[0];
+  const vecino = antes == null ? desp : desp == null ? antes
+               : (f - antes) <= (desp - f) ? antes : desp;
+  const src = vecino != null ? S.f[vecino] : null;
+  S.f[f] = src
+    ? { N:src.N, p:clon(src.p), foto:clon(src.foto), gen:clon(src.gen), ba:baFabrica(f), tocado:false }
+    : { N:5, p:mallaDeParams(5, PLANA), foto:FOTO_BASE(), gen:{...PLANA}, ba:baFabrica(f), tocado:false };
+  guardar();
+  return S.f[f];
+}
+const actual = () => mallaDe(S.frame);
+/** Marca el cuadro como trabajado a mano: desde aqui los deslizadores dejan de
+ *  regenerar solos, para no borrar lo que ajustaste. */
+const tocar = F => { F.tocado = true; };
+const plantillaPlana = (f) => ({ N:5, p:mallaDeParams(5, PLANA), foto:FOTO_BASE(),
+                                 gen:{...PLANA}, ba:baFabrica(f), tocado:false });
+
+// ---------------------------------------------- mover la hoja entera sin deformarla
+const centroDe = p => {
+  let x=0, y=0; for (const q of p) { x += q[0]; y += q[1]; }
+  return [x/p.length, y/p.length];
+};
+/** Traslada, gira o escala TODOS los puntos a la vez: la forma que le diste se
+ *  conserva intacta, solo cambia de sitio, de angulo o de tamano. */
+function transformar(F, base, { dx=0, dy=0, giro=0, esc=1 }, c) {
+  const co = Math.cos(giro), si = Math.sin(giro);
+  for (let i=0;i<F.p.length;i++) {
+    let px = base[i][0] - c[0], py = base[i][1] - c[1];
+    px *= esc; py *= esc;
+    F.p[i][0] = +(c[0] + px*co - py*si + dx).toFixed(3);
+    F.p[i][1] = +(c[1] + px*si + py*co + dy).toFixed(3);
+  }
+}
+/** Empuje puntual desde los botones y las flechas del modo «Mover todo». */
+function empujar(cambio) {
+  const F = actual();
+  apilar(S.frame);
+  transformar(F, clon(F.p), cambio, centroDe(F.p));
+  tocar(F);
+  guardar(); pintar();
+}
+
+// ============================================================ estiramiento
+/** Malla del papel plano proyectada: da la longitud de reposo de cada arista. */
+function reposo(N) {
+  const key = N + '|' + S.flip + '|' + JSON.stringify(S.corners);
+  if (reposo._k === key) return reposo._v;
+  reposo._k = key; reposo._v = mallaDeParams(N, PLANA);
+  return reposo._v;
+}
+function aristas(N) {
+  if (aristas._n === N) return aristas._v;
+  const out = [];
+  for (let y=0;y<N;y++) for (let x=0;x<N;x++) {
+    if (x < N-1) out.push([y*N+x, y*N+x+1]);
+    if (y < N-1) out.push([y*N+x, (y+1)*N+x]);
+  }
+  aristas._n = N; aristas._v = out;
+  return out;
+}
+function medirEstiramiento(F) {
+  const R = reposo(F.N), ar = aristas(F.N);
+  let peor = 1;
+  for (const [a,b] of ar) {
+    const L0 = Math.hypot(R[b][0]-R[a][0], R[b][1]-R[a][1]) || 1e-6;
+    const L  = Math.hypot(F.p[b][0]-F.p[a][0], F.p[b][1]-F.p[a][1]);
+    if (L/L0 > peor) peor = L/L0;
+  }
+  return { peor };
+}
+/** Empuja los puntos hasta que ninguna arista supere su longitud de reposo.
+ *  Es una restriccion de DESIGUALDAD: encogerse esta permitido — una hoja vista
+ *  de canto se acorta en pantalla y eso es correcto —, estirarse no. */
+function noEstirar(F, iters = 80) {
+  const R = reposo(F.N), ar = aristas(F.N);
+  for (let it=0; it<iters; it++) {
+    let max = 1;
+    for (const [a,b] of ar) {
+      const L0 = Math.hypot(R[b][0]-R[a][0], R[b][1]-R[a][1]) || 1e-6;
+      let dx = F.p[b][0]-F.p[a][0], dy = F.p[b][1]-F.p[a][1];
+      const L = Math.hypot(dx,dy);
+      if (L <= L0 || L < 1e-9) continue;
+      if (L/L0 > max) max = L/L0;
+      const corr = (L - L0) / L * 0.5;
+      dx *= corr; dy *= corr;
+      F.p[a][0] += dx; F.p[a][1] += dy;
+      F.p[b][0] -= dx; F.p[b][1] -= dy;
+    }
+    if (max < 1.0005) break;
+  }
+  for (const q of F.p) { q[0] = +q[0].toFixed(3); q[1] = +q[1].toFixed(3); }
+}
+
+// ============================================================ zona de la foto
+/** (a,b) del panel -> (u,v) de la hoja, por el cuadrilatero de la zona. */
+function mapaFoto(Q) {
+  const [p0,p1,p2,p3] = Q;
+  const dx1=p1[0]-p2[0], dx2=p3[0]-p2[0], dx3=p0[0]-p1[0]+p2[0]-p3[0];
+  const dy1=p1[1]-p2[1], dy2=p3[1]-p2[1], dy3=p0[1]-p1[1]+p2[1]-p3[1];
+  const den = dx1*dy2 - dx2*dy1;
+  if (Math.abs(den) < 1e-12)
+    return (u,v)=>[p0[0]+(p1[0]-p0[0])*u+(p3[0]-p0[0])*v, p0[1]+(p1[1]-p0[1])*u+(p3[1]-p0[1])*v];
+  const g=(dx3*dy2-dx2*dy3)/den, h=(dx1*dy3-dx3*dy1)/den;
+  const a=p1[0]-p0[0]+g*p1[0], b=p3[0]-p0[0]+h*p3[0], cx=p0[0];
+  const d=p1[1]-p0[1]+g*p1[1], e=p3[1]-p0[1]+h*p3[1], cy=p0[1];
+  return (u,v)=>{ const w=g*u+h*v+1; return [(a*u+b*v+cx)/w, (d*u+e*v+cy)/w]; };
+}
+
+// ============================================================ la parte tapada
+// `bv` del JSON: una cadena de 289 ceros y unos, uno por vertice de la rejilla
+// 17x17. NO sale del giro de la malla —medido: las 256 celdas de los 15 cuadros
+// giran igual, siempre— sino de que parte del dorso ensena el video. Por eso se
+// lee y se respeta, en vez de recalcularse: no es algo que se calibre.
+const GA = 17;
+
+/**
+ * La misma limpieza que hace el componente al cargar el asset
+ * (`limpiaVisibilidad`). Sin ella lo que se ve aqui NO seria lo que la app
+ * dibuja: en los cuadros 118-125 hay vertices sueltos que se llevan la contraria
+ * a sus ocho vecinos, y como una celda solo cuenta si sus CUATRO vertices estan
+ * destapados, uno solo abre un agujero de 2x2 que parte la copia.
+ *   1) vertice rodeado POR COMPLETO del signo contrario: no es frontera.
+ *   2) agujeros: islas de ceros que no llegan al borde de la malla.
+ */
+function limpiaBv(vis) {
+  const g = GA, out = vis.split('');
+  for (let r=0;r<g;r++) for (let c=0;c<g;c++) {
+    let n = 0, t = 0;
+    for (let dr=-1;dr<=1;dr++) for (let dc=-1;dc<=1;dc++) {
+      if (!dr && !dc) continue;
+      const R=r+dr, C=c+dc;
+      if (R<0||R>=g||C<0||C>=g) continue;
+      t++; if (vis[R*g+C] === '1') n++;
+    }
+    if (vis[r*g+c] === '1') { if (n === 0) out[r*g+c] = '0'; }
+    else if (n === t) out[r*g+c] = '1';
+  }
+  const alc = new Uint8Array(g*g), pila = [];
+  for (let i=0;i<g*g;i++) {
+    const r = (i/g)|0, c = i%g;
+    if ((r===0||c===0||r===g-1||c===g-1) && out[i] === '0') { alc[i]=1; pila.push(i); }
+  }
+  while (pila.length) {
+    const i = pila.pop(), r = (i/g)|0, c = i%g;
+    for (const [dr,dc] of [[1,0],[-1,0],[0,1],[0,-1]]) {
+      const R=r+dr, C=c+dc;
+      if (R<0||R>=g||C<0||C>=g) continue;
+      const k = R*g+C;
+      if (!alc[k] && out[k] === '0') { alc[k]=1; pila.push(k); }
+    }
+  }
+  for (let i=0;i<g*g;i++) if (out[i] === '0' && !alc[i]) out[i] = '1';
+  return out.join('');
+}
+
+/**
+ * La mascara SOLO manda donde la app dibuja la copia, o sea donde la opacidad
+ * de este cuadro es mayor que cero. Del 110 al 118 la app no ensena nada, asi
+ * que ahi `bv` es un dato que nunca se usa —y se nota: el cuadro 116 tiene 4
+ * vertices destapados de 289, el 114 tiene 269—. Aplicarlo alli dejaria la copia
+ * hecha trizas por una mascara que no gobierna nada. En cuanto le subas la
+ * opacidad a uno de esos cuadros, la mascara entra: y entonces ver la copia rota
+ * es la respuesta correcta, porque es lo que haria la app.
+ */
+const mascaraManda = () => ((S.f[S.frame] && S.f[S.frame].ba) || 0) > 0.002;
+
+function tapada(u, v) {
+  const bv = APP.bv[S.frame];
+  if (!bv || !mascaraManda()) return false;
+  const n = GA - 1;
+  const c = Math.min(n-1, Math.max(0, Math.floor(u*n)));
+  const r = Math.min(n-1, Math.max(0, Math.floor(v*n)));
+  return !(bv[r*GA+c] === '1' && bv[r*GA+c+1] === '1'
+        && bv[(r+1)*GA+c] === '1' && bv[(r+1)*GA+c+1] === '1');
+}
+
+// ============================================================ recursos
+const cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+const imgs = {};
+const cargar = f => imgs[f] ? Promise.resolve(imgs[f]) : new Promise(res => {
+  const im = new Image();
+  im.onload = () => { imgs[f] = im; res(im); }; im.onerror = () => res(null);
+  im.src = `${FRAMES}/frame_${String(f).padStart(4,'0')}.webp`;
+});
+
+/** El panel de la copia, compuesto como en `renderPhotoPanel` del componente:
+ *  papel de laboratorio, recorte "cover" y el grado de copia impresa (se levanta
+ *  el piso de negro y se baja la saturacion). Si la foto no carga, queda el
+ *  papel solo: se sigue pudiendo calibrar la geometria. */
+const paneles = {};
+async function panelFoto(n) {
+  if (paneles[n]) return paneles[n];
+  const c = document.createElement('canvas');
+  c.width = PANEL_W; c.height = PANEL_H;
+  const p = c.getContext('2d');
+  const borde = Math.round(Math.min(PANEL_W, PANEL_H) * PRINT_BORDER);
+  p.fillStyle = PRINT_PAPER; p.fillRect(0, 0, PANEL_W, PANEL_H);
+  const iw = PANEL_W - borde*2, ih = PANEL_H - borde*2;
+  const im = await new Promise(res => {
+    const i = new Image();
+    i.onload = () => res(i); i.onerror = () => res(null);
+    i.src = `assets/about-${n}.webp`;
+  });
+  if (im) {
+    const ia = im.width/im.height, ta = iw/ih;
+    const cr = ia > ta ? { sx:(im.width - im.height*ta)/2, sy:0, sw:im.height*ta, sh:im.height }
+                       : { sx:0, sy:(im.height - im.width/ta)/2, sw:im.width, sh:im.width/ta };
+    p.drawImage(im, cr.sx, cr.sy, cr.sw, cr.sh, borde, borde, iw, ih);
+    p.save();
+    p.globalCompositeOperation = 'lighten';
+    p.fillStyle = 'rgb(28,24,20)'; p.fillRect(borde, borde, iw, ih);
+    p.globalCompositeOperation = 'saturation';
+    p.globalAlpha = 0.14; p.fillStyle = '#808080';
+    p.fillRect(borde, borde, iw, ih);
+    p.restore();
+  }
+  return paneles[n] = c;
+}
+/** El panel con una trama encima, para ver la deformacion. Se compone aparte
+ *  para no ensuciar el panel bueno, que es el que mide la exportacion. */
+const tramados = {};
+function conTrama(base, n) {
+  if (tramados[n]) return tramados[n];
+  const c = document.createElement('canvas');
+  c.width = PANEL_W; c.height = PANEL_H;
+  const p = c.getContext('2d');
+  p.drawImage(base, 0, 0);
+  p.strokeStyle = 'rgba(210,60,60,.62)'; p.lineWidth = 2;
+  for (let i=0;i<=8;i++) {
+    p.beginPath(); p.moveTo(i*PANEL_W/8, 0); p.lineTo(i*PANEL_W/8, PANEL_H); p.stroke();
+    p.beginPath(); p.moveTo(0, i*PANEL_H/8); p.lineTo(PANEL_W, i*PANEL_H/8); p.stroke();
+  }
+  p.strokeStyle = 'rgba(40,120,210,.6)';
+  p.beginPath(); p.moveTo(0,0); p.lineTo(PANEL_W,PANEL_H);
+  p.moveTo(PANEL_W,0); p.lineTo(0,PANEL_H); p.stroke();
+  return tramados[n] = c;
+}
+
+// ============================================================ dibujo
+const SUB = 26;
+/** Capa donde se compone la copia antes de estamparla. Se reaprovecha entre
+ *  repintados: crearla en cada cuadro tiraria un lienzo de 860x698 por
+ *  movimiento de raton. */
+const _capa = { c: document.createElement('canvas'), g: null };
+function capaFoto() {
+  const c = _capa.c;
+  if (c.width !== cv.width || c.height !== cv.height) { c.width = cv.width; c.height = cv.height; }
+  const g = _capa.g || (_capa.g = c.getContext('2d'));
+  g.setTransform(1,0,0,1,0,0);
+  g.clearRect(0, 0, c.width, c.height);
+  g.setTransform(S.zoom, 0, 0, S.zoom, 0, 0);
+  g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
+  return { c, g };
+}
+/** Pinta el panel de la foto sobre la malla. Las celdas que el video todavia no
+ *  destapa NO se dibujan: ahi la app tampoco las dibuja.
+ *
+ *  Va a un lienzo APARTE y no directo al principal. Las subceldas se solapan
+ *  medio paso para que no queden costuras, asi que pintarlas una a una con la
+ *  opacidad del cuadro la ACUMULA: a 0,19 el pixel se pinta hasta cuatro veces y
+ *  acaba en 0,56 -tres veces mas foto de la que la app ensena-. La app compone
+ *  la copia en su propia capa y la estampa UNA vez; esto hace lo mismo. */
+/**
+ * Signo de la cara en un punto del papel. Positivo = la copia mira a la camara;
+ * negativo o cero = ese trozo se dio vuelta y estamos viendo el REVERSO, que no
+ * existe: una foto no se ve por detras.
+ *
+ * Se mide sobre la MALLA, con un paso en coordenadas del papel, y no sobre las
+ * esquinas de la subcelda ya pasadas por la zona: si la zona de la foto se
+ * arrastra hasta quedar del reves, esas esquinas cambian de orden y el signo
+ * saldria invertido por un motivo que no tiene nada que ver con el papel.
+ *
+ * El paso se toma HACIA DENTRO cuando el punto esta pegado al borde, porque
+ * `evalM` recorta en 0..1 y un paso hacia fuera daria diferencia cero; al
+ * invertirlo se compensa el signo.
+ */
+function caraEn(E, N, u, v) {
+  const h = 1e-3;
+  const du = u > 0.5 ? -h : h, dv = v > 0.5 ? -h : h;
+  const q0 = evalM(E, N, u, v);
+  const qu = evalM(E, N, u + du, v);
+  const qv = evalM(E, N, u, v + dv);
+  let cruz = (qu[0]-q0[0])*(qv[1]-q0[1]) - (qu[1]-q0[1])*(qv[0]-q0[0]);
+  if (du < 0) cruz = -cruz;
+  if (dv < 0) cruz = -cruz;
+  return cruz;
+}
+
+function warp(g, img, E, N, Q, mostrarTapada) {
+  const ctx = g;
+  const m = mapaFoto(Q), W = img.width, H = img.height, bl = 0.5/SUB;
+  ctx.save();
+  for (let gy=0; gy<SUB; gy++) for (let gx=0; gx<SUB; gx++) {
+    const u0=Math.max(0,gx/SUB-bl), v0=Math.max(0,gy/SUB-bl);
+    const u1=Math.min(1,(gx+1)/SUB+bl), v1=Math.min(1,(gy+1)/SUB+bl);
+    const a0=m(u0,v0), a1=m(u1,v0), a2=m(u0,v1), a3=m(u1,v1);
+    // Dos motivos para no dibujar, y los dos cuentan como "oculta":
+    //   1) el video todavia no destapa ese trozo del dorso (la mascara);
+    //   2) ese trozo se dio vuelta y estamos viendo el reverso de la copia.
+    const espaldas = caraEn(E, N, a0[0], a0[1]) <= 0;
+    const oculta = espaldas
+                || tapada(a0[0],a0[1]) || tapada(a1[0],a1[1])
+                || tapada(a2[0],a2[1]) || tapada(a3[0],a3[1]);
+    if (oculta && !mostrarTapada) continue;
+    const d0=evalM(E,N,a0[0],a0[1]), d1=evalM(E,N,a1[0],a1[1]), d2=evalM(E,N,a2[0],a2[1]);
+    const sw=W*(u1-u0), sh=H*(v1-v0);
+    if (sw<=0||sh<=0) continue;
+    ctx.globalAlpha = oculta ? 0.22 : 1;
+    ctx.save();
+    ctx.transform((d1[0]-d0[0])/sw,(d1[1]-d0[1])/sw,(d2[0]-d0[0])/sh,(d2[1]-d0[1])/sh,d0[0],d0[1]);
+    ctx.drawImage(img, W*u0, H*v0, sw, sh, 0, 0, sw, sh);
+    ctx.restore();
+  }
+  ctx.restore();
+}
+/** Fraccion de la copia que el video todavia tapa, para el aviso de estado. */
+function fraccionTapada(Q) {
+  const m = mapaFoto(Q);
+  let n = 0, d = 0;
+  for (let j=0;j<16;j++) for (let i=0;i<16;i++) {
+    const a = m((i+0.5)/16, (j+0.5)/16);
+    d++; if (tapada(a[0], a[1])) n++;
+  }
+  return n/d;
+}
+/** Fraccion de la copia que se dio vuelta y muestra su reverso. */
+function fraccionEspaldas(E, N, Q) {
+  const m = mapaFoto(Q);
+  let n = 0, d = 0;
+  for (let j=0;j<16;j++) for (let i=0;i<16;i++) {
+    const a = m((i+0.5)/16, (j+0.5)/16);
+    d++; if (caraEn(E, N, a[0], a[1]) <= 0) n++;
+  }
+  return n/d;
+}
+function curvasMalla(E, N, color, ancho) {
+  ctx.strokeStyle = color; ctx.lineWidth = ancho;
+  const K = 48;
+  for (let i=0;i<N;i++) {
+    const c = i/(N-1);
+    ctx.beginPath();
+    for (let j=0;j<=K;j++){ const q=evalM(E,N,c,j/K); j?ctx.lineTo(q[0],q[1]):ctx.moveTo(q[0],q[1]); }
+    ctx.stroke();
+    ctx.beginPath();
+    for (let j=0;j<=K;j++){ const q=evalM(E,N,j/K,c); j?ctx.lineTo(q[0],q[1]):ctx.moveTo(q[0],q[1]); }
+    ctx.stroke();
+  }
+}
+function pintarEstiramiento(F) {
+  const R = reposo(F.N);
+  ctx.lineWidth = 3.5;
+  for (const [a,b] of aristas(F.N)) {
+    const L0 = Math.hypot(R[b][0]-R[a][0], R[b][1]-R[a][1]) || 1e-6;
+    const L  = Math.hypot(F.p[b][0]-F.p[a][0], F.p[b][1]-F.p[a][1]);
+    const r = L/L0;
+    if (r <= 1.005) continue;
+    const t = Math.min(1, (r-1)/0.25);
+    ctx.strokeStyle = `rgba(${Math.round(200+40*t)},${Math.round(150-140*t)},40,${0.35+0.5*t})`;
+    ctx.beginPath(); ctx.moveTo(F.p[a][0],F.p[a][1]); ctx.lineTo(F.p[b][0],F.p[b][1]); ctx.stroke();
+  }
+}
+function contorno(E, N) {
+  const pts = [], K = 44;
+  for (let i=0;i<=K;i++) pts.push(evalM(E,N,i/K,0));
+  for (let i=1;i<=K;i++) pts.push(evalM(E,N,1,i/K));
+  for (let i=K-1;i>=0;i--) pts.push(evalM(E,N,i/K,1));
+  for (let i=K-1;i>=1;i--) pts.push(evalM(E,N,0,i/K));
+  return pts;
+}
+async function pintar() {
+  const z = S.zoom;
+  cv.width = VW*z; cv.height = VH*z;
+  ctx.setTransform(z,0,0,z,0,0);
+  ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+  ctx.fillStyle = '#e9e7e2'; ctx.fillRect(0,0,VW,VH);
+  const im = await cargar(S.frame); if (im) ctx.drawImage(im,0,0);
+
+  S.cam = calcularCamara(espejo(S.corners));
+  const F = actual(), N = F.N, E = extender(F.p, N);
+
+  if (S.view.rest) curvasMalla(extender(reposo(N), N), N, 'rgba(80,180,255,.35)', 1);
+  if (S.view.foto) {
+    const base = await panelFoto(S.pagina);
+    const img = S.view.trama ? conTrama(base, S.pagina) : base;
+    // La opacidad del cuadro se ve TAL CUAL: si en el 119 vale 0,19 la copia se
+    // pinta al 19%, igual que en la app, que es donde hay que juzgarla. Para
+    // colocarla cuando casi no se ve esta «Opacidad plena», que sube la vista a
+    // 1 sin tocar el valor guardado.
+    const capa = capaFoto();
+    warp(capa.g, img, E, N, F.foto, S.view.tapada);
+    ctx.save();
+    ctx.setTransform(1,0,0,1,0,0);
+    ctx.globalAlpha = S.view.plena ? 1 : F.ba;
+    ctx.drawImage(capa.c, 0, 0);
+    ctx.restore();
+  }
+
+  if (S.view.grid) {
+    curvasMalla(E, N, 'rgba(220,40,40,.6)', 1);
+    ctx.strokeStyle = '#ffcc33'; ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    contorno(E,N).forEach((q,i)=> i?ctx.lineTo(q[0],q[1]):ctx.moveTo(q[0],q[1]));
+    ctx.closePath(); ctx.stroke();
+  }
+  if (S.view.stretch) pintarEstiramiento(F);
+
+  if (S.view.foto) {
+    ctx.strokeStyle = 'rgba(79,184,176,.95)'; ctx.lineWidth = 1.6;
+    ctx.beginPath();
+    const m = mapaFoto(F.foto);
+    for (let i=0;i<=80;i++){
+      const e=(i%20)/20, lado=Math.floor(i/20)%4;
+      const uv = lado===0?[e,0] : lado===1?[1,e] : lado===2?[1-e,1] : [0,1-e];
+      const a=m(uv[0],uv[1]), q=evalM(E,N,a[0],a[1]);
+      i?ctx.lineTo(q[0],q[1]):ctx.moveTo(q[0],q[1]);
+    }
+    ctx.closePath(); ctx.stroke();
+  }
+
+  if (S.modo === 'malla' && S.view.pts) {
+    const r = N > 6 ? 4.5 : 6.5;
+    F.p.forEach((q,i)=>{
+      const borde = i<N || i>=N*(N-1) || i%N===0 || i%N===N-1;
+      ctx.fillStyle = i===S.drag ? '#ffcc33' : borde ? '#ff7a45' : '#ffa878';
+      ctx.beginPath(); ctx.arc(q[0], q[1], r, 0, 7); ctx.fill();
+      ctx.strokeStyle = '#2a1a10'; ctx.lineWidth = 1.2; ctx.stroke();
+    });
+  }
+  if (S.modo === 'mover') {
+    const c = centroDe(F.p);
+    ctx.strokeStyle = '#ff7a45'; ctx.lineWidth = 1.6;
+    ctx.beginPath(); ctx.arc(c[0], c[1], 15, 0, 7); ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(c[0]-24, c[1]); ctx.lineTo(c[0]+24, c[1]);
+    ctx.moveTo(c[0], c[1]-24); ctx.lineTo(c[0], c[1]+24);
+    ctx.stroke();
+    ctx.fillStyle = '#ff7a45';
+    ctx.beginPath(); ctx.arc(c[0], c[1], 4, 0, 7); ctx.fill();
+  }
+  if (S.modo === 'foto') {
+    const m = mapaFoto(F.foto);
+    [[0,0],[1,0],[1,1],[0,1]].forEach((uv,i)=>{
+      const a=m(uv[0],uv[1]), q=evalM(E,N,a[0],a[1]);
+      ctx.fillStyle = i===S.dragT ? '#ffcc33' : '#4fb8b0';
+      ctx.beginPath(); ctx.arc(q[0],q[1],8,0,7); ctx.fill();
+      ctx.fillStyle='#000'; ctx.font='bold 11px monospace'; ctx.textAlign='center';
+      ctx.fillText(String(i+1), q[0], q[1]+4);
+    });
+  }
+  if (S.modo === 'papel') {
+    S.corners.forEach((c,i)=>{
+      ctx.fillStyle = i===S.dragC ? '#ffcc33' : '#9b7fd4';
+      ctx.beginPath(); ctx.arc(c[0],c[1],8,0,7); ctx.fill();
+      ctx.fillStyle='#000'; ctx.font='bold 10px monospace'; ctx.textAlign='center';
+      ctx.fillText(['TL','TR','BR','BL'][i], c[0], c[1]+3.5);
+    });
+  }
+  sincronizar(F, E, N);
+}
+
+// ============================================================ interfaz
+const $ = id => document.getElementById(id);
+const MODOS = [['m_malla','malla'],['m_mover','mover'],['m_foto','foto'],['m_papel','papel']];
+// Los botones de «Ver» se pintan desde el ESTADO, no desde el marcado. En el
+// calibrador de la hoja la clase `on` estaba escrita a mano en el HTML, asi que
+// al recargar con una vista apagada el boton seguia diciendo que estaba
+// encendida. Aqui se sincronizan como todo lo demas.
+const VISTAS = [['vgrid','grid'],['vpts','pts'],['vfoto','foto'],['vtrama','trama'],
+                ['vstretch','stretch'],['vrest','rest'],['vtapada','tapada'],['vplena','plena']];
+{
+  const cont = $('controles');
+  for (const p of PARAMS) {
+    const row = document.createElement('div');
+    row.className = 'row';
+    row.innerHTML = `<label title="${p.ay}"><b>${p.et}</b></label>`
+      + `<input type="range" id="s_${p.k}" min="${p.min}" max="${p.max}" step="${p.paso}">`
+      + `<input type="number" id="n_${p.k}" step="${p.paso}">`;
+    cont.appendChild(row);
+  }
+  const pg = $('pags');
+  for (let n=1; n<=6; n++) {
+    const b = document.createElement('button');
+    b.textContent = n; b.dataset.pag = n;
+    b.onclick = () => { S.pagina = n; guardar(); pintar(); };
+    pg.appendChild(b);
+  }
+}
+let sinc = false;
+function sincronizar(F, E, N) {
+  sinc = true;
+  for (const p of PARAMS) {
+    const v = (F.gen[p.k] ?? PLANA[p.k]) * p.esc;
+    $('s_'+p.k).value = v; $('n_'+p.k).value = +v.toFixed(4);
+  }
+  $('s_radio').value = S.radio; $('n_radio').value = S.radio;
+  $('s_paso').value = S.paso; $('n_paso').value = S.paso;
+  $('s_ba').value = F.ba; $('n_ba').value = +F.ba.toFixed(3);
+  sinc = false;
+
+  $('fnum').textContent = S.frame; $('frange').value = S.frame;
+  for (const [id,m] of MODOS) $(id).classList.toggle('on', S.modo === m);
+  for (const [id,k] of VISTAS) $(id).classList.toggle('on', !!S.view[k]);
+  $('vzoom').classList.toggle('on', S.zoom === 2);
+  for (const b of $('pags').children) b.classList.toggle('on', +b.dataset.pag === S.pagina);
+  $('fs_malla').style.display = S.modo === 'malla' ? '' : 'none';
+  $('fs_gen').style.display   = S.modo === 'malla' ? '' : 'none';
+  $('fs_mover').style.display = S.modo === 'mover' ? '' : 'none';
+  $('fs_foto').style.display  = S.modo === 'foto'  ? '' : 'none';
+  $('fs_papel').style.display = S.modo === 'papel' ? '' : 'none';
+  $('camstat').textContent = S.cam
+    ? `escala ${S.cam.k.toFixed(1)} px/papel · ortonormal ${(S.cam.err*100).toFixed(2)}% · flip ${S.flip}` : '';
+  if (S.modo === 'mover') {
+    const c = centroDe(F.p);
+    $('movstat').textContent = `centro de la hoja en ${c[0].toFixed(0)}, ${c[1].toFixed(0)} px`;
+  }
+
+  const est = medirEstiramiento(F);
+  const col = est.peor < 1.02 ? 'var(--ok)' : est.peor < 1.1 ? 'var(--acc)' : 'var(--bad)';
+  $('mstat').innerHTML = `${N}×${N} = ${N*N} puntos · estiramiento máximo `
+    + `<b style="color:${col}">${((est.peor-1)*100).toFixed(1)}%</b>`;
+  $('genstat').innerHTML = '<span style="color:var(--dim)">los deslizadores <b>deforman</b> la malla'
+    + ' conservando lo que ajustaste a mano · «Generar forma» la rehace desde cero y descarta esos'
+    + ' retoques · el <b>lomo está a la derecha</b></span>';
+
+  const tocados = Object.values(S.f).filter(x=>x.tocado).length;
+  const total = Object.keys(S.f).length;
+  // Dos regimenes, y hay que decir en cual estas: con la copia en pantalla
+  // (manda la mascara) o en el tramo mudo (no manda, pero se avisa de lo que
+  // pasaria al subir la opacidad, porque ahi el video destapa muy poco dorso).
+  let aviso = '';
+  if (mascaraManda()) {
+    const tap = fraccionTapada(F.foto);
+    if (tap > 0.005) aviso = ` · <span style="color:var(--acc2)">${(tap*100).toFixed(0)}% de la copia todavía tapada por el vídeo</span>`;
+  } else {
+    const bv = APP.bv[S.frame];
+    const destapado = bv ? (bv.match(/1/g) || []).length / (GA*GA) : 1;
+    aviso = ' · <span style="color:var(--acc)">la app todavía no enseña la foto aquí</span>'
+      + ' <span style="color:var(--dim)">(opacidad 0, sin máscara'
+      + (bv ? ` — si se la subís, el vídeo sólo destapa el ${(destapado*100).toFixed(0)}% del dorso` : '')
+      + ')</span>';
+  }
+  const esp = fraccionEspaldas(E, N, F.foto);
+  $('estado').innerHTML =
+    (F.tocado ? '<span style="color:var(--ok)">trabajado a mano</span>'
+              : '<span style="color:var(--acc)">sembrado del vecino, aún sin retocar</span>')
+    + ' · malla, zona y opacidad <b>propias de este cuadro</b>' + aviso
+    + (esp > 0.005 ? ` · <span style="color:var(--bad)">${(esp*100).toFixed(0)}% de la copia de espaldas, no se dibuja</span>` : '');
+  $('progress').innerHTML =
+    `${tocados} cuadro${tocados===1?'':'s'} trabajado${tocados===1?'':'s'} · ${total} con malla`
+    + (APP.leido ? '' : ' · <span style="color:var(--bad)">sin leer el JSON del libro</span>');
+
+  const Q = F.foto;
+  const w = Math.hypot(Q[1][0]-Q[0][0], Q[1][1]-Q[0][1]);
+  const h = Math.hypot(Q[3][0]-Q[0][0], Q[3][1]-Q[0][1]) || 1e-6;
+  const rel = S.cam ? (w*S.cam.l1)/(h*S.cam.l2) : w/h;
+  const dv = Math.abs(rel/(PANEL_W/PANEL_H)-1)*100;
+  $('tstat').innerHTML = `zona ${(w*100).toFixed(0)}%×${(h*100).toFixed(0)}% del papel · `
+    + `<b style="color:${dv<3?'var(--ok)':dv<8?'var(--acc)':'var(--bad)'}">${dv.toFixed(1)}% deformación</b>`;
+
+  const cont = $('keys'); cont.innerHTML = '';
+  for (let f=LO; f<=HI; f++) {
+    const s = document.createElement('span'), F2 = S.f[f];
+    s.textContent = f;
+    s.className = (F2 ? (F2.tocado ? 'toc ' : 'sem ') : '') + (f===S.frame?'cur':'');
+    s.onclick = () => { S.frame = f; guardar(); pintar(); };
+    cont.appendChild(s);
+  }
+}
+
+// ---------------------------------------------------------------- controles
+// Un deslizador NO reemplaza la malla: le aplica el CAMBIO. Se calcula la forma
+// antes y despues de mover el mando y se suma la diferencia a cada punto. Asi el
+// trabajo hecho a mano se conserva y aun asi todo —malla y foto— se mueve junto,
+// que es lo que hace falta.
+let ultApilado = { t: -1e9, f: null };
+function apilarRafaga(f) {
+  const t = performance.now();
+  if (f !== ultApilado.f || t - ultApilado.t > 600) apilar(f);
+  ultApilado = { t, f };
+}
+for (const p of PARAMS) {
+  const set = v => {
+    const F = actual(), nv = +v / p.esc;
+    if (Math.abs(nv - F.gen[p.k]) < 1e-12) return;
+    apilarRafaga(S.frame);
+    const A = mallaDeParams(F.N, F.gen);
+    const P1 = { ...F.gen, [p.k]: nv };
+    const B = mallaDeParams(F.N, P1);
+    for (let i=0;i<F.p.length;i++) {
+      F.p[i][0] = +(F.p[i][0] + B[i][0] - A[i][0]).toFixed(3);
+      F.p[i][1] = +(F.p[i][1] + B[i][1] - A[i][1]).toFixed(3);
+    }
+    F.gen = P1; tocar(F);
+    guardar(); pintar();
+  };
+  $('s_'+p.k).addEventListener('input', e => { if (!sinc) set(e.target.value); });
+  $('n_'+p.k).addEventListener('change', e => { if (!sinc) set(e.target.value); });
+}
+for (const [k, sl, nu] of [['radio','s_radio','n_radio'], ['paso','s_paso','n_paso']]) {
+  const set = v => { S[k] = +v; guardar(); pintar(); };
+  $(sl).addEventListener('input', e => { if (!sinc) set(e.target.value); });
+  $(nu).addEventListener('change', e => { if (!sinc) set(e.target.value); });
+}
+{
+  const set = v => {
+    const F = actual(), nv = Math.min(1, Math.max(0, +v));
+    if (Math.abs(nv - F.ba) < 1e-9) return;
+    apilarRafaga(S.frame);
+    F.ba = nv; tocar(F);
+    guardar(); pintar();
+  };
+  $('s_ba').addEventListener('input', e => { if (!sinc) set(e.target.value); });
+  $('n_ba').addEventListener('change', e => { if (!sinc) set(e.target.value); });
+}
+$('nw').onclick = () => empujar({ dy: -S.paso });
+$('ns').onclick = () => empujar({ dy:  S.paso });
+$('nz').onclick = () => empujar({ dx: -S.paso });
+$('nd').onclick = () => empujar({ dx:  S.paso });
+$('girarM').onclick = () => empujar({ giro: -Math.PI/180 });
+$('girarP').onclick = () => empujar({ giro:  Math.PI/180 });
+$('escM').onclick = () => empujar({ esc: 0.99 });
+$('escP').onclick = () => empujar({ esc: 1.01 });
+$('generar').onclick = () => {
+  const F = actual(); apilar(S.frame);
+  F.p = mallaDeParams(F.N, F.gen); F.tocado = false;
+  guardar(); pintar(); toast('Malla regenerada con los deslizadores');
+};
+$('plana').onclick = () => {
+  const F = actual(); apilar(S.frame);
+  F.gen = {...PLANA}; F.p = mallaDeParams(F.N, PLANA); F.tocado = false;
+  guardar(); pintar();
+};
+/** Cambia la densidad de la malla conservando la forma: los puntos nuevos se
+ *  siembran sobre la superficie actual y luego se ajustan para reproducirla
+ *  tambien entre nudos. */
+function reDensificar(F, N2) {
+  const E0 = extender(F.p, F.N), N0 = F.N;
+  // Al subdividir, los nudos viejos caen sobre nudos nuevos: se clavan ahi para
+  // que ni un solo punto colocado a mano se mueva de sitio.
+  let fijos = null;
+  const r = (N2-1) / (N0-1);
+  if (Number.isInteger(r) && r >= 1) {
+    fijos = new Uint8Array(N2*N2);
+    for (let iy=0; iy<N2; iy++) for (let ix=0; ix<N2; ix++)
+      if (ix % r === 0 && iy % r === 0) fijos[iy*N2+ix] = 1;
+  }
+  const np = ajustarMalla(N2, (u,v) => evalM(E0, N0, u, v), 24, 2e-5, fijos);
+  let peor = 0;
+  const E1 = extender(np, N2);
+  for (let j=0;j<=24;j++) for (let i=0;i<=24;i++) {
+    const a = evalM(E0,N0,i/24,j/24), b = evalM(E1,N2,i/24,j/24);
+    const d = Math.hypot(a[0]-b[0], a[1]-b[1]); if (d > peor) peor = d;
+  }
+  F.N = N2; F.p = np;
+  return peor;
+}
+$('subdiv').onclick = () => {
+  const F = actual();
+  if (F.N === 9) { toast('Ya está en 9×9'); return; }
+  apilar(S.frame);
+  const d = reDensificar(F, 9); tocar(F);
+  guardar(); pintar();
+  toast(`9×9 = 81 puntos · tus puntos siguen exactamente donde estaban;`
+      + ` entre ellos la curva se movió como mucho ${d.toFixed(1)} px`, 4200);
+};
+$('undiv').onclick = () => {
+  const F = actual();
+  if (F.N === 5) { toast('Ya está en 5×5'); return; }
+  apilar(S.frame);
+  const d = reDensificar(F, 5);
+  guardar(); pintar();
+  toast(`5×5 = 25 puntos · al bajar de densidad se pierde detalle:`
+      + ` la forma se movió hasta ${d.toFixed(1)} px`, 4200);
+};
+$('norel').onclick = () => {
+  const F = actual(); apilar(S.frame);
+  const antes = medirEstiramiento(F).peor;
+  noEstirar(F); tocar(F);
+  const desp = medirEstiramiento(F).peor;
+  guardar(); pintar();
+  toast(`Estiramiento ${((antes-1)*100).toFixed(1)}% → ${((desp-1)*100).toFixed(1)}%`);
+};
+$('suav').onclick = () => {
+  const fs = Object.keys(S.f).map(Number).sort((a,b)=>a-b);
+  apilar('*');
+  const copia = {}; for (const f of fs) copia[f] = clon(S.f[f].p);
+  let n = 0;
+  for (const f of fs) {
+    const a = copia[f-1], b = copia[f], c = copia[f+1];
+    if (!a || !c) continue;
+    if (a.length !== b.length || c.length !== b.length) continue;   // distinta densidad
+    for (let i=0;i<b.length;i++) {
+      S.f[f].p[i][0] = +(0.25*a[i][0] + 0.5*b[i][0] + 0.25*c[i][0]).toFixed(3);
+      S.f[f].p[i][1] = +(0.25*a[i][1] + 0.5*b[i][1] + 0.25*c[i][1]).toFixed(3);
+    }
+    n++;
+  }
+  guardar(); pintar();
+  toast(n ? `Suavizados ${n} cuadros. Repetí si aún tiembla.`
+          : 'Hacen falta cuadros vecinos con la misma densidad');
+};
+
+const irA = f => { S.frame = Math.max(LO, Math.min(HI, f)); guardar(); pintar(); };
+$('prev').onclick = () => irA(S.frame-1);
+$('next').onclick = () => irA(S.frame+1);
+$('frange').oninput = e => irA(+e.target.value);
+/** El cuadro con malla mas cercano hacia un lado. `dir` es -1 (atras) o +1
+ *  (adelante): la calibracion se puede hacer en cualquiera de los dos sentidos. */
+function vecinoCon(dir) {
+  const hay = Object.keys(S.f).map(Number).sort((a,b)=>a-b);
+  return dir < 0 ? hay.filter(k => k < S.frame).pop()
+                 : hay.filter(k => k > S.frame)[0];
+}
+const copiarDe = (dir) => {
+  const a = vecinoCon(dir);
+  if (a == null) { toast(`No hay ningún cuadro ${dir<0?'anterior':'posterior'} con malla`); return; }
+  apilar(S.frame);
+  const ba = S.f[S.frame] ? S.f[S.frame].ba : baFabrica(S.frame);
+  S.f[S.frame] = clon(S.f[a]);            // copia profunda: NO comparte nada con el origen
+  S.f[S.frame].tocado = false;
+  S.f[S.frame].ba = ba;                   // la opacidad es del cuadro, no se copia
+  guardar(); pintar(); toast(`Forma copiada del cuadro ${a} — la opacidad se queda en la de este`);
+};
+$('copyprev').onclick = () => copiarDe(-1);
+$('copynext').onclick = () => copiarDe(+1);
+$('reset').onclick = () => {
+  apilar(S.frame); delete S.f[S.frame]; guardar(); pintar();
+  toast('Cuadro borrado — se vuelve a sembrar del vecino');
+};
+$('planaC').onclick = () => {
+  apilar(S.frame); S.f[S.frame] = plantillaPlana(S.frame);
+  guardar(); pintar(); toast('Este cuadro vuelve a la hoja plana, sin nada puesto');
+};
+for (const [id,m] of MODOS)
+  $(id).onclick = () => { S.modo = m; guardar(); pintar(); };
+
+const copiarZona = (dir) => {
+  const a = vecinoCon(dir);
+  if (a == null) { toast(`No hay ningún cuadro ${dir<0?'anterior':'posterior'}`); return; }
+  apilar(S.frame); actual().foto = clon(S.f[a].foto); tocar(actual());
+  guardar(); pintar(); toast(`Zona copiada del cuadro ${a}`);
+};
+$('fotoPrev').onclick = () => copiarZona(-1);
+$('fotoNext').onclick = () => copiarZona(+1);
+$('fotoBase').onclick = () => { apilar(S.frame); actual().foto = FOTO_BASE(); guardar(); pintar(); };
+$('cenT').onclick = () => {
+  const F = actual(); apilar(S.frame);
+  let cs=0, ct=0; for (const q of F.foto) { cs+=q[0]/4; ct+=q[1]/4; }
+  for (const q of F.foto) { q[0] = +(q[0]+0.5-cs).toFixed(5); q[1] = +(q[1]+0.5-ct).toFixed(5); }
+  guardar(); pintar();
+};
+$('propT').onclick = () => {
+  if (!S.cam) return;
+  const F = actual(); apilar(S.frame);
+  let ct=0; for (const q of F.foto) ct += q[1]/4;
+  const w = Math.hypot(F.foto[1][0]-F.foto[0][0], F.foto[1][1]-F.foto[0][1]);
+  const h = Math.hypot(F.foto[3][0]-F.foto[0][0], F.foto[3][1]-F.foto[0][1]) || 1e-6;
+  const ideal = (w*S.cam.l1)/((PANEL_W/PANEL_H)*S.cam.l2);
+  const k = ideal/h;
+  for (const q of F.foto) q[1] = +(ct + (q[1]-ct)*k).toFixed(5);
+  guardar(); pintar(); toast('Alto ajustado para que la copia no salga deformada');
+};
+$('flip') && ($('flip').onclick = () => { S.flip = -(S.flip||1); reposo._k = null; guardar(); pintar(); });
+
+for (const [id,k] of VISTAS)
+  $(id).onclick = () => { S.view[k] = !S.view[k]; guardar(); pintar(); };
+$('vzoom').onclick = () => { S.zoom = S.zoom===1?2:1; guardar(); pintar(); };
+$('verguia').onclick = () => $('guia').classList.add('abierta');
+
+$('export').onclick = () => {
+  const frames = {};
+  for (let f=LO; f<=HI; f++) {
+    const F = S.f[f]; if (!F) continue;
+    frames[f] = { N:F.N, tocado:!!F.tocado, ba:+F.ba.toFixed(4),
+      p: F.p.map(q=>[+q[0].toFixed(2), +q[1].toFixed(2)]),
+      foto: F.foto.map(q=>[+q[0].toFixed(5), +q[1].toFixed(5)]) };
+  }
+  $('out').value = JSON.stringify({
+    version:1, que:'calibrador-foto', lo:LO, hi:HI, vw:VW, vh:VH,
+    panel:{ w:PANEL_W, h:PANEL_H }, corners:S.corners, flip:S.flip, frames,
+  }, null, 1);
+  $('out').select();
+  toast(`Exportados ${Object.keys(frames).length} cuadros`);
+};
+
+/**
+ * Exportacion lista para la app: la malla 17x17 en las coordenadas que espera
+ * `about-book-curl.json`.
+ *
+ * La zona de la foto se HORNEA en la malla. La app mira la copia por una ventana
+ * fija (`SHEET_PHOTO_UV`), asi que para que respete la zona que marcaste sin
+ * tocar una linea del componente, cada nudo de la rejilla se evalua donde
+ * caeria pasando primero por esa ventana y despues por tu zona:
+ *
+ *     nudo (u,v) -> deshacer la ventana -> (a,b) del panel -> tu zona -> superficie
+ *
+ * `bv` va tal cual viene del JSON: es la parte del dorso que ensena el video, no
+ * algo que se calibre. Fuera de la ventana la zona se extrapola; eso solo afecta
+ * al contorno con el que la app recorta la copia, y queda consistente porque el
+ * recorte sale de esta misma malla.
+ */
+$('exportapp').onclick = () => {
+  const [w0, h0] = [PHOTO_UV[1][0]-PHOTO_UV[0][0], PHOTO_UV[3][1]-PHOTO_UV[0][1]];
+  const frames = {}; let faltan = [];
+  for (let f=LO; f<=HI; f++) {
+    const F = S.f[f];
+    if (!F) { faltan.push(f); continue; }
+    const E = extender(F.p, F.N), z = mapaFoto(F.foto), b = [], cara = [];
+    for (let r=0; r<GA; r++) for (let c=0; c<GA; c++) {
+      const u = c/(GA-1), v = r/(GA-1);
+      const a = (u - PHOTO_UV[0][0]) / w0, bb = (v - PHOTO_UV[0][1]) / h0;
+      const m = z(a, bb), q = evalM(E, F.N, m[0], m[1]);
+      b.push([+q[0].toFixed(3), +q[1].toFixed(3)]);
+      cara.push(caraEn(E, F.N, m[0], m[1]) > 0);
+    }
+    // El reverso tampoco puede verse EN LA APP, y la app no mira la cara: solo
+    // mira `bv`. Asi que lo que aqui se oculta por estar de espaldas se apaga
+    // tambien ahi, sumandolo a la mascara del video. Un vertice cuenta como
+    // de espaldas si TODAS sus celdas lo estan -es el mismo criterio con el que
+    // la app decide una celda, que pide sus cuatro vertices- para no comerse la
+    // frontera con el vertice de al lado.
+    const crudo = APP.bvCrudo[f];
+    let bv = crudo ?? '1'.repeat(GA*GA);
+    const out = bv.split('');
+    for (let r=0; r<GA; r++) for (let c=0; c<GA; c++) {
+      let alguna = false;
+      for (const [dr,dc] of [[0,0],[-1,0],[0,-1],[-1,-1]]) {
+        const R=r+dr, C=c+dc;
+        if (R<0||R>=GA||C<0||C>=GA) continue;
+        if (cara[R*GA+C]) alguna = true;
+      }
+      if (!alguna) out[r*GA+c] = '0';
+    }
+    frames[f] = { b, bv: out.join(''), ba: +F.ba.toFixed(4) };
+  }
+  $('out').value = JSON.stringify({
+    version:1, que:'para about-book-curl.json', grid:[GA,GA], frames,
+    nota:'b en pixeles de video 860x698 · bv = el del JSON del libro, apagando ademas lo que quedo de espaldas · ba por cuadro',
+  }, null, 1);
+  $('out').select();
+  toast(faltan.length
+    ? `Exportados ${Object.keys(frames).length} cuadros · faltan por calibrar: ${faltan.join(', ')}`
+    : `Exportados los ${Object.keys(frames).length} cuadros, listos para la app`, 5000);
+};
+
+/**
+ * Baja a un archivo lo que haya en el cuadro de texto. Existe porque el JSON de
+ * los 24 cuadros pasa del millon de caracteres y copiarlo y pegarlo por un chat
+ * lo trunca a la mitad: asi llega entero.
+ */
+$('descargar').onclick = () => {
+  const txt = $('out').value.trim();
+  if (!txt) { toast('Primero apretá una de las dos exportaciones'); return; }
+  let nombre = 'calibrador-foto.json';
+  try { if (JSON.parse(txt).que === 'para about-book-curl.json') nombre = 'foto-para-la-app.json'; }
+  catch { toast('Lo que hay en el cuadro no es un JSON válido'); return; }
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([txt], { type: 'application/json' }));
+  a.download = nombre;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  toast(`Guardado como ${nombre} — mirá en tu carpeta de descargas`, 5000);
+};
+
+$('importbtn').onclick = () => {
+  try {
+    const d = JSON.parse($('out').value);
+    if (d.que === 'para about-book-curl.json')
+      return alert('Ese es el JSON PARA LA APP: no se puede reimportar acá.\n\n'
+        + 'Para volver a trabajar usá el que sale de «Exportar JSON».');
+    apilar('*');
+    if (d.corners) S.corners = d.corners;
+    if (typeof d.flip === 'number') S.flip = d.flip;
+    reposo._k = null;
+    if (d.frames) {
+      S.f = {};
+      for (const f of Object.keys(d.frames)) {
+        const o = d.frames[f];
+        S.f[f] = { N:o.N, p:o.p, foto:o.foto, gen:{...PLANA},
+                   ba: typeof o.ba === 'number' ? o.ba : baFabrica(+f), tocado:!!o.tocado };
+      }
+      toast(`Importados ${Object.keys(S.f).length} cuadros`);
+    }
+    guardar(); pintar();
+  } catch (e) { alert('JSON inválido: ' + e.message); }
+};
+$('clear').onclick = () => {
+  if (!confirm('¿Reiniciar todo?\n\nSe borran todos los cuadros y la hoja vuelve a estar plana, con la '
+    + 'foto en su zona de partida y todos los deslizadores en cero.')) return;
+  localStorage.removeItem(CLAVE);
+  location.reload();
+};
+
+// ============================================================ arrastre
+const aLienzo = e => { const r = cv.getBoundingClientRect();
+  return [ (e.clientX-r.left)/(r.width/VW), (e.clientY-r.top)/(r.height/VH) ]; };
+/** Pantalla -> (u,v) de la hoja, para colocar las esquinas de la zona. */
+function inverso(px, py, E, N) {
+  let best = [0.5,0.5], bd = Infinity;
+  for (let i=0;i<=40;i++) for (let j=0;j<=40;j++) {
+    const q = evalM(E,N,i/40,j/40);
+    const d = (q[0]-px)**2 + (q[1]-py)**2;
+    if (d < bd) { bd = d; best = [i/40, j/40]; }
+  }
+  let paso = 1/40;
+  for (let it=0; it<26; it++) {
+    let mejoro = false;
+    for (const [ds,dt] of [[paso,0],[-paso,0],[0,paso],[0,-paso],
+                           [paso,paso],[-paso,-paso],[paso,-paso],[-paso,paso]]) {
+      const s = best[0]+ds, t = best[1]+dt, q = evalM(E,N,s,t);
+      const d = (q[0]-px)**2 + (q[1]-py)**2;
+      if (d < bd) { bd = d; best = [s,t]; mejoro = true; }
+    }
+    if (!mejoro) paso /= 2;
+  }
+  return best;
+}
+/** Reparto del arrastre entre los vecinos, medido en CELDAS de la malla y no en
+ *  pixeles: asi el reparto se siente igual mire como mire la hoja. */
+function pesoInfluencia(F, i, j) {
+  if (S.dragMod === 'shift') return 1;
+  const N = F.N;
+  const ax = i%N, ay = (i/N)|0, bx = j%N, by = (j/N)|0;
+  if (S.dragMod === 'alt') return (ax===bx || ay===by) ? 1 : 0;
+  const r = S.radio;
+  if (r <= 0.001) return i===j ? 1 : 0;
+  const d = Math.hypot(ax-bx, ay-by) / r;
+  if (d >= 1) return 0;
+  const u = 1 - d;
+  return u*u*(3 - 2*u);           // suave en los dos extremos: sin picos ni cortes
+}
+cv.addEventListener('pointerdown', e => {
+  const [x,y] = aLienzo(e);
+  const F = actual(), N = F.N;
+  if (S.modo === 'mover') {
+    apilar(S.frame);
+    S.dragM = true; S.dragBase = clon(F.p); S.dragFrom = [x,y];
+    S.centro = centroDe(F.p);
+    S.dragMod = e.altKey ? 'giro' : e.shiftKey ? 'esc' : '';
+    cv.setPointerCapture(e.pointerId); pintar();
+    return;
+  }
+  if (S.modo === 'malla') {
+    let mejor=-1, dm = N>6 ? 15 : 20;
+    F.p.forEach((q,i)=>{ const d=Math.hypot(q[0]-x,q[1]-y); if (d<dm){dm=d;mejor=i;} });
+    if (mejor>=0) {
+      apilar(S.frame);
+      S.drag = mejor; S.dragBase = clon(F.p); S.dragFrom = [x,y];
+      S.dragMod = e.altKey ? 'alt' : e.shiftKey ? 'shift' : '';
+      cv.setPointerCapture(e.pointerId); pintar();
+    }
+    return;
+  }
+  if (S.modo === 'foto') {
+    const E = extender(F.p, N), m = mapaFoto(F.foto);
+    let mejor=-1, dm=20;
+    [[0,0],[1,0],[1,1],[0,1]].forEach((uv,i)=>{
+      const a=m(uv[0],uv[1]), q=evalM(E,N,a[0],a[1]);
+      const d=Math.hypot(q[0]-x,q[1]-y); if (d<dm){dm=d;mejor=i;}
+    });
+    if (mejor>=0){ apilar(S.frame); S.dragT=mejor; cv.setPointerCapture(e.pointerId); pintar(); }
+    return;
+  }
+  if (S.modo === 'papel') {
+    let mejor=-1, dm=20;
+    S.corners.forEach((c,i)=>{ const d=Math.hypot(c[0]-x,c[1]-y); if (d<dm){dm=d;mejor=i;} });
+    if (mejor>=0){ S.dragC=mejor; cv.setPointerCapture(e.pointerId); pintar(); }
+  }
+});
+cv.addEventListener('pointermove', e => {
+  const [x,y] = aLienzo(e);
+  if (S.dragM) {
+    const F = actual(), c = S.centro;
+    let cambio;
+    if (S.dragMod === 'giro') {
+      const a0 = Math.atan2(S.dragFrom[1]-c[1], S.dragFrom[0]-c[0]);
+      const a1 = Math.atan2(y-c[1], x-c[0]);
+      cambio = { giro: a1-a0 };
+    } else if (S.dragMod === 'esc') {
+      const r0 = Math.hypot(S.dragFrom[0]-c[0], S.dragFrom[1]-c[1]);
+      const r1 = Math.hypot(x-c[0], y-c[1]);
+      cambio = { esc: r0 > 4 ? Math.max(0.05, r1/r0) : 1 };
+    } else {
+      cambio = { dx: x-S.dragFrom[0], dy: y-S.dragFrom[1] };
+    }
+    transformar(F, S.dragBase, cambio, c);
+    tocar(F);
+    pintar(); return;
+  }
+  if (S.drag >= 0) {
+    const F = actual();
+    const dx = x - S.dragFrom[0], dy = y - S.dragFrom[1];
+    for (let j=0;j<F.p.length;j++) {
+      const w = pesoInfluencia(F, S.drag, j);
+      if (!w) continue;
+      F.p[j][0] = +(S.dragBase[j][0] + dx*w).toFixed(3);
+      F.p[j][1] = +(S.dragBase[j][1] + dy*w).toFixed(3);
+    }
+    tocar(F);
+    pintar(); return;
+  }
+  if (S.dragT >= 0) {
+    const F = actual(), E = extender(F.p, F.N);
+    const st = inverso(x, y, E, F.N);
+    F.foto[S.dragT] = [+st[0].toFixed(5), +st[1].toFixed(5)];
+    tocar(F);
+    pintar(); return;
+  }
+  if (S.dragC >= 0) {
+    S.corners[S.dragC] = [Math.round(x*10)/10, Math.round(y*10)/10];
+    reposo._k = null; pintar();
+  }
+});
+const soltar = () => {
+  if (S.drag>=0 || S.dragT>=0 || S.dragC>=0 || S.dragM) {
+    S.drag=-1; S.dragT=-1; S.dragC=-1; S.dragM=false;
+    S.dragBase=null; S.dragMod=''; S.dragFrom=null; S.centro=null;
+    guardar(); pintar();
+  }
+};
+cv.addEventListener('pointerup', soltar);
+cv.addEventListener('pointercancel', soltar);
+
+addEventListener('keydown', e => {
+  if (e.target.tagName==='INPUT' || e.target.tagName==='TEXTAREA') return;
+  if ((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='z') { deshacer(); e.preventDefault(); return; }
+  // En «Mover todo» las flechas empujan la hoja; en los demas modos cambian de cuadro.
+  if (S.modo === 'mover' && e.key.startsWith('Arrow')) {
+    const d = S.paso * (e.shiftKey ? 5 : 1);
+    empujar(e.key==='ArrowUp' ? {dy:-d} : e.key==='ArrowDown' ? {dy:d}
+          : e.key==='ArrowLeft' ? {dx:-d} : {dx:d});
+    e.preventDefault(); return;
+  }
+  const p = e.shiftKey ? 5 : 1;
+  if (e.key==='ArrowLeft'){ irA(S.frame-p); e.preventDefault(); }
+  if (e.key==='ArrowRight'){ irA(S.frame+p); e.preventDefault(); }
+  const t = e.key.toLowerCase();
+  if (t==='1') $('m_malla').click();
+  if (t==='2') $('m_mover').click();
+  if (t==='3') $('m_foto').click();
+  if (t==='4') $('m_papel').click();
+  if (e.key===',') irA(S.frame-1);          // sirven en todos los modos, tambien en «Mover todo»
+  if (e.key==='.') irA(S.frame+1);
+  if (t==='d') $('subdiv').click();
+  if (t==='g') $('vgrid').click();
+  if (t==='h') $('verguia').click();
+  if (e.key==='Escape') $('guia').classList.remove('abierta');
+});
+
+// ============================================================ arranque
+/** Lee del JSON del libro lo que NO se calibra: la mascara del dorso y la
+ *  opacidad de fabrica. Si no se puede leer -pagina abierta sin servidor- se
+ *  sigue trabajando: la copia se ve entera y el estado lo avisa en rojo. */
+async function leerCurl() {
+  try {
+    const r = await fetch(CURL);
+    if (!r.ok) throw new Error(r.status);
+    const j = await r.json();
+    for (let f=LO; f<=HI; f++) {
+      const m = j.frames?.[String(f)];
+      if (!m) continue;
+      if (m.bv) { APP.bvCrudo[f] = m.bv; APP.bv[f] = limpiaBv(m.bv); }
+      if (typeof m.ba === 'number') APP.ba[f] = m.ba;
+    }
+    APP.leido = true;
+  } catch (e) {
+    toast('No se pudo leer about-book-curl.json: la copia se verá entera y la opacidad'
+        + ' arranca en los valores de respaldo', 6000);
+  }
+}
+
+(async function arrancar() {
+  const g = localStorage.getItem(CLAVE);
+  if (g) { try { Object.assign(S, JSON.parse(g)); } catch {} }
+  S.drag = -1; S.dragT = -1; S.dragC = -1; S.dragM = false;
+  S.dragBase = null; S.dragMod = ''; S.centro = null;
+
+  await leerCurl();
+
+  if (!S.f || !Object.keys(S.f).length) {
+    S.f = {};
+    S.corners = CORNERS_133.map(c => [...c]);
+    S.flip = -1; S.modo = 'malla'; S.radio = 1.2; S.paso = 2; S.pagina = 1;
+    S.cam = calcularCamara(espejo(S.corners));
+    S.frame = LO;
+    S.f[LO] = plantillaPlana(LO);
+    guardar();
+  }
+  S.cam = calcularCamara(espejo(S.corners));
+  await pintar();
+  for (let f=LO; f<=HI; f++) await cargar(f);
+  await pintar();
+})();
+</script>
+</html>

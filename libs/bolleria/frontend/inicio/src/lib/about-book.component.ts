@@ -311,11 +311,22 @@ const SHEET_TEXT_UV: [UV, UV, UV, UV] = [
   { u: 0.92178, v: 0.95008 },
   { u: -0.02248, v: 0.91832 },
 ];
+// Zona de la pagina donde va la copia, calibrada a mano sobre la hoja del
+// cuadro 133 (calibrador-foto.html). Esta ventana y la malla `b` del asset son
+// UNA SOLA cosa: `b` es la HOJA -no la foto- y esto es el recuadro de esa hoja
+// donde se imprime. Cambiar uno sin el otro descuadra la copia; ya paso: al
+// convertir la calibracion por un rectangulo que no era ninguno de los dos, las
+// dos ventanas se encadenaron y la foto salio al 84% de largo -70% de
+// superficie- y corrida 42 px de donde el usuario la habia puesto.
+//
+// Manda tambien sobre la foto QUIETA de la pagina izquierda, que se dibuja
+// sobre esta misma malla del 133 (ver `restSurface`): por eso la copia aterriza
+// justo donde se queda, sin relevo.
 const SHEET_PHOTO_UV: [UV, UV, UV, UV] = [
-  { u: 0.2077, v: 0.10285 },
-  { u: 0.92175, v: 0.1881 },
-  { u: 0.91433, v: 0.95486 },
-  { u: 0.20515, v: 0.89667 },
+  { u: 0.17633, v: 0.06671 },
+  { u: 0.94096, v: 0.1376 },
+  { u: 0.93282, v: 0.93409 },
+  { u: 0.18047, v: 0.89216 },
 ];
 // El contenido no se dibuja "encima" de la hoja: se MULTIPLICA por la
 // luminancia del propio cuadro del video. Asi hereda gratis la sombra que la
@@ -338,6 +349,19 @@ const SHADE_GAIN_LEVEL = Math.round((1 - SHADE_WHITE / 255) * 255);
 // el contenido quieto se esconda un pelo ANTES de que la hoja lo tape: que
 // asome papel de mas es invisible; que asome contenido sobre la hoja, no.
 const MASK_DILATE = 8;
+// Cuanto se dilata la silueta de la hoja que TAPA lo que esta quieto en las
+// paginas (`buildSheetMask`). Es mas gruesa que MASK_DILATE porque tiene que
+// cubrir el labio enrollado del 113 al 125, que la malla no modela. Se calibro
+// midiendo, cuadro a cuadro, cuanta foto quieta se pintaba encima de la hoja.
+// Cuanto se dilata la silueta de la hoja que TAPA lo que esta quieto en las
+// paginas, y SOLO por los tramos del borde que miran al lomo: es lo que cubre
+// el labio enrollado del 113 al 125, que la malla no modela. Por el canto que
+// avanza no se dilata nada -ver `dilataLabio`-, porque ahi adelantar el
+// recorte se ve como un eco de la hoja.
+const MASK_LIP = 24;
+// Sellado fino entre celdas contiguas del relleno: solo cierra el dentado del
+// tamano de celda, no ensancha la silueta.
+const MASK_SEAM = 2;
 // Duracion proporcional a la distancia real recorrida (no un tiempo fijo por
 // boton) -> la velocidad se siente igual sin importar desde que cuadro se
 // arranque, y nunca hay que "adivinar" cuanto tarda cada tramo.
@@ -1968,6 +1992,7 @@ export class AboutBookComponent {
     return { x: x0, y: y0, w: Math.max(0, x1 - x0), h: Math.max(0, y1 - y0) };
   }
 
+
   /** Envolvente convexa (cadena monotona de Andrew) de una nube de puntos. */
   private static convexHull(pts: Point[]): Point[] {
     const p = [...pts].sort((a, b) => a.x - b.x || a.y - b.y);
@@ -1988,19 +2013,38 @@ export class AboutBookComponent {
    * Silueta opaca de la hoja en movimiento, para tapar con ella el contenido
    * que esta quieto en las paginas.
    *
-   * Es la ENVOLVENTE CONVEXA de los vertices de las dos caras, no el relleno
-   * celda por celda de la malla. Motivo medido sobre los cuadros reales: entre
-   * el 113 y el 125 la hoja enrolla un labio que el ajuste de superficie
-   * desarrollable no modela -no hay vertices ahi-, asi que el relleno por
-   * celdas dejaba ese trozo sin tapar y la foto quieta se pintaba encima de la
-   * hoja levantada. La envolvente si lo cubre, y sobre la pagina derecha se
-   * pasa apenas unos pixeles respecto al relleno por celdas (comprobado cuadro
-   * a cuadro del 90 al 115). De paso es una sola figura en vez de 288.
+   * Es el RELLENO CELDA POR CELDA de las dos caras, dilatado, no la envolvente
+   * convexa.
    *
-   * Encima se traza su borde con grosor MASK_DILATE para los pocos pixeles en
-   * que la silueta ajustada se queda corta contra el borde real de la hoja.
+   * Fue la envolvente hasta que se agrando la foto quieta: una hoja levantada
+   * NO es convexa, y sobre la pagina izquierda la envolvente cierra en linea
+   * recta entre el borde de arriba de la hoja y su base en el lomo, tapando una
+   * cuna de pagina donde no hay nada. Con la foto pequena esa cuna caia fuera
+   * de ella y no se noto; con la foto a su tamano de verdad la cortaba en
+   * vertical. Medido en el cuadro 112: 22601 pixeles de foto borrados de 77379,
+   * el borde derecho de la copia saltaba de x=560 a x=477 -83 px de pagina
+   * comidos- y la foto quedaba sin su margen de papel por ese lado.
    *
-   * SOLO ENTRAN LAS CARAS QUE SE VEN. Desde el cuadro 119 la cara frontal no
+   * El relleno por celdas si sigue el contorno real. Lo que hay que compensar
+   * es lo contrario: entre el 113 y el 125 la hoja enrolla un labio que el
+   * ajuste de superficie desarrollable no modela -no hay vertices ahi-, y por
+   * eso el relleno se quedaba corto y la foto quieta se pintaba encima de la
+   * hoja levantada. Se cubre dilatando el borde, que es local, en vez de
+   * cerrando en recto de punta a punta, que no lo es. MASK_LIP es lo que mide
+   * ese labio; con MASK_DILATE (8) seguia asomando.
+   *
+   * SOLO ENTRAN LAS CARAS QUE SE DIBUJAN. Que `bv` destape celdas no significa
+   * que la malla `b` de ese cuadro valga: `f` y `b` NO son las dos caras del
+   * mismo papel, son dos ajustes independientes, cada uno cuadrado donde se ve
+   * su propio contenido. Medido en el 112, con y sin espejo de columnas: se
+   * separan 194 y 207 px. Del 104 al 115 el dorso no se dibuja -`ba` es 0- asi
+   * que nadie habia mirado nunca su geometria, y esta a la deriva: pintada
+   * encima del cuadro sale como una banda que se mete 100 px dentro de la
+   * pagina izquierda, sobre la foto quieta. `f`, en cambio, calca la hoja.
+   * Por eso el dorso entra solo cuando `ba` lo pone en pantalla, que es cuando
+   * su geometria esta comprobada por estar a la vista.
+   *
+   * Desde el cuadro 119 la cara frontal no
    * tiene ni un vertice mirando a camara -`fv` es 0 de 289, y por eso `fa` ya
    * la apaga y no se dibuja nada de ella-, pero sus vertices seguian entrando
    * en la envolvente. Sin nada visible que ajustar, la superficie se va a la
@@ -2034,24 +2078,165 @@ export class AboutBookComponent {
     m.strokeStyle = '#000';
     m.lineJoin = 'round';
     m.lineCap = 'round';
-    m.lineWidth = MASK_DILATE * scale;
-    const pts: Point[] = [];
-    for (const [face, vis] of [
-      [mesh.f, mesh.fv],
-      [mesh.b, mesh.bv],
+    m.lineWidth = MASK_SEAM * scale;
+    const g = this.curlGrid;
+    let alguna = false;
+    // Bordes del dominio de la malla, en anillo, para poder dilatar SOLO por
+    // donde hace falta (ver `dilataLabio`).
+    const anillo: number[] = [];
+    for (let c = 0; c < g; c++) anillo.push(c);
+    for (let r = 1; r < g; r++) anillo.push(r * g + g - 1);
+    for (let c = g - 2; c >= 0; c--) anillo.push((g - 1) * g + c);
+    for (let r = g - 2; r >= 1; r--) anillo.push(r * g);
+    /**
+     * El labio enrollado cae FUERA de la malla ajustada, asi que la silueta se
+     * queda corta y la foto quieta se asoma por encima de la hoja. Dilatar el
+     * contorno entero lo tapa, pero adelanta el recorte por el canto que va
+     * avanzando: la foto se corta unos pixeles ANTES de que la hoja llegue, y
+     * en movimiento eso se lee como un eco, como si cayeran dos hojas.
+     *
+     * Asi que se dilata solo por los tramos del borde cuya normal apunta
+     * HACIA EL LOMO -lejos de la pagina izquierda, que es donde vive la foto
+     * quieta-. El canto que avanza queda con el sellado fino de MASK_SEAM, que
+     * solo cierra el dentado entre celdas contiguas.
+     */
+    // La nube junta las DOS caras: en el 116-118 el rizo cae justo entre una y
+    // otra -el frente queda a su izquierda y el dorso arriba a la derecha-, asi
+    // que solo la envolvente de las dos lo cubre. El canto, en cambio, sale
+    // SOLO del frente: mezclarlo con el del dorso daba una polilinea sin
+    // sentido y el recorte no se aplicaba.
+    const canto: [number, number][] = [];
+    const nube: Point[] = [];
+    const dilataLabio = (face: readonly [number, number][], vis: string, esFrente: boolean): void => {
+      let cx = 0;
+      let cy = 0;
+      for (const [px, py] of face) {
+        cx += px / face.length;
+        cy += py / face.length;
+      }
+      m.lineWidth = MASK_LIP * scale;
+      for (let k = 0; k + 1 < anillo.length; k++) {
+        const i = anillo[k];
+        const j = anillo[k + 1];
+        if (vis[i] !== '1' && vis[j] !== '1') continue;
+        const a = face[i];
+        const b = face[j];
+        // Normal del segmento, orientada hacia fuera de la malla.
+        let nx = b[1] - a[1];
+        let ny = -(b[0] - a[0]);
+        const mx = (a[0] + b[0]) / 2 - cx;
+        const my = (a[1] + b[1]) / 2 - cy;
+        if (nx * mx + ny * my < 0) {
+          nx = -nx;
+          ny = -ny;
+        }
+        if (nx <= 0) {
+          // El canto que avanza: se guardan sus puntos para el recorte de
+          // `tapaElRollo`, y no se dilata ni un pixel.
+          if (esFrente) canto.push([a[0], a[1]], [b[0], b[1]]);
+          continue;
+        }
+        m.beginPath();
+        m.moveTo(ox + a[0] * scale, oy + a[1] * scale);
+        m.lineTo(ox + b[0] * scale, oy + b[1] * scale);
+        m.stroke();
+      }
+      m.lineWidth = MASK_SEAM * scale;
+    };
+    /**
+     * El rollo de los cuadros 113-125 cae FUERA de la malla ajustada: el labio
+     * enrollado no tiene vertices, asi que ni el relleno por celdas ni la
+     * dilatacion del borde llegan, y la foto quieta se asoma por encima de la
+     * hoja. La envolvente convexa si lo cubre -por eso estaba puesta-, pero
+     * mete ademas una cuna sobre la pagina izquierda que cortaba la foto en
+     * recto.
+     *
+     * Se usa la envolvente, pero recortada por el CANTO QUE AVANZA: se tira la
+     * recta que pasa por los extremos de ese canto y solo se queda la mitad que
+     * mira al lomo. Asi vuelve la cobertura del rollo sin volver la cuna.
+     */
+    const tapaElRollo = (pts: Point[]): void => {
+      if (canto.length < 4 || pts.length < 3) return;
+      const h = AboutBookComponent.convexHull(pts);
+      if (h.length < 3) return;
+      let cx = 0;
+      let cy = 0;
+      for (const p of pts) {
+        cx += p.x / pts.length;
+        cy += p.y / pts.length;
+      }
+      // El canto es CURVO: recortar por la cuerda entre sus extremos volveria a
+      // meter la cuna por un lado o a dejar el rollo fuera por el otro. Se
+      // recorta por la polilinea entera, extruida hacia el interior de la malla.
+      const L = (this.maskLayer?.width ?? 0) + (this.maskLayer?.height ?? 0);
+      const pl = canto.map(([px, py]) => ({ x: ox + px * scale, y: oy + py * scale }));
+      let ix = 0;
+      let iy = 0;
+      for (let k = 0; k + 1 < pl.length; k++) {
+        const ex = pl[k + 1].x - pl[k].x;
+        const ey = pl[k + 1].y - pl[k].y;
+        const d = Math.hypot(ex, ey);
+        if (d < 1e-6) continue;
+        let nx = -ey / d;
+        let ny = ex / d;
+        const mx = (pl[k].x + pl[k + 1].x) / 2 - cx;
+        const my = (pl[k].y + pl[k + 1].y) / 2 - cy;
+        if (nx * mx + ny * my > 0) {
+          nx = -nx;
+          ny = -ny;
+        }
+        ix += nx;
+        iy += ny;
+      }
+      const dn = Math.hypot(ix, iy);
+      if (dn < 1e-6) return;
+      ix /= dn;
+      iy /= dn;
+      m.save();
+      m.beginPath();
+      m.moveTo(pl[0].x, pl[0].y);
+      for (let k = 1; k < pl.length; k++) m.lineTo(pl[k].x, pl[k].y);
+      for (let k = pl.length - 1; k >= 0; k--) m.lineTo(pl[k].x + ix * L, pl[k].y + iy * L);
+      m.closePath();
+      m.clip();
+      m.beginPath();
+      m.moveTo(h[0].x, h[0].y);
+      for (let i = 1; i < h.length; i++) m.lineTo(h[i].x, h[i].y);
+      m.closePath();
+      m.fill();
+      m.restore();
+    };
+    for (const [face, vis, dibujada] of [
+      // El frente entra siempre que tenga celdas destapadas, aunque `fa` ya no
+      // dibuje texto: del 113 al 118 `fa` es 0 y sin embargo la malla sigue
+      // teniendo 164-196 celdas ajustadas y es la unica que calca la hoja.
+      [mesh.f, mesh.fv, true],
+      [mesh.b, mesh.bv, (mesh.ba ?? 0) > 0],
     ] as const) {
-      if (!face || !vis?.includes('1')) continue;
-      for (const [px, py] of face) pts.push({ x: ox + px * scale, y: oy + py * scale });
+      if (!face || !vis?.includes('1') || !dibujada) continue;
+      for (let r = 0; r < g - 1; r++) {
+        for (let c = 0; c < g - 1; c++) {
+          const id = [r * g + c, r * g + c + 1, (r + 1) * g + c + 1, (r + 1) * g + c];
+          if (!id.every((i) => vis[i] === '1')) continue;
+          alguna = true;
+          m.beginPath();
+          for (let k = 0; k < 4; k++) {
+            const p = face[id[k]];
+            const x = ox + p[0] * scale;
+            const y = oy + p[1] * scale;
+            if (k === 0) m.moveTo(x, y);
+            else m.lineTo(x, y);
+          }
+          m.closePath();
+          m.fill();
+          m.stroke();
+        }
+      }
+      for (const [px, py] of face) nube.push({ x: ox + px * scale, y: oy + py * scale });
+      dilataLabio(face, vis, face === mesh.f);
     }
-    const h = AboutBookComponent.convexHull(pts);
-    if (h.length < 3) return null;
-    m.beginPath();
-    m.moveTo(h[0].x, h[0].y);
-    for (let i = 1; i < h.length; i++) m.lineTo(h[i].x, h[i].y);
-    m.closePath();
-    m.fill();
-    m.stroke();
-    return this.maskLayer;
+    tapaElRollo(nube);
+    return alguna ? this.maskLayer : null;
   }
 
   /**
