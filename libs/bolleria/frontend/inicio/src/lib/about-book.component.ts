@@ -133,6 +133,12 @@ interface ChainTail {
    * instante de la cadena. Solo lo pasa "siguiente" (ver DX_TEXTO_CRUCE).
    */
   dxTexto?: (t: number) => number;
+  /**
+   * Desplazamiento vertical de la foto quieta, en px de video, en funcion del
+   * instante de la cadena (ver DY_FOTO_CRUCE). Lo pasan los dos sentidos: uno
+   * lo pone y el otro lo deshace.
+   */
+  dyFoto?: (t: number) => number;
 }
 /**
  * Desplazamiento horizontal del texto durante el cruce, CALIBRADO A MANO por
@@ -168,6 +174,53 @@ const MEDIO_CUADRO_MS = 1000 / 120;
 const dxTextoCruce = (t: number): number => {
   const P = DX_TEXTO_CRUCE;
   if (t < P[0][0] - MEDIO_CUADRO_MS) return 0;
+  if (t <= P[0][0]) return P[0][1];
+  if (t >= P[P.length - 1][0]) return P[P.length - 1][1];
+  for (let i = 0; i < P.length - 1; i++) {
+    if (t >= P[i][0] && t <= P[i + 1][0]) {
+      return P[i][1] + (P[i + 1][1] - P[i][1]) * ((t - P[i][0]) / (P[i + 1][0] - P[i][0]));
+    }
+  }
+  return P[P.length - 1][1];
+};
+/**
+ * Desplazamiento VERTICAL de la foto durante el cruce, CALIBRADO A MANO por el
+ * dueno del sitio con `apps/bolleria/public/calibrador-aterrizaje-foto.html`,
+ * en cuadros de pantalla 68 a 71 del recorrido de "siguiente".
+ *
+ * Hermano de DX_TEXTO_CRUCE y con la misma forma -indexado por MILISEGUNDO de
+ * la cadena-, por el mismo motivo: durante el cruce el cuadro que se dibuja es
+ * siempre el 81, asi que un valor por cuadro de video no podria distinguir
+ * estos cuatro instantes.
+ *
+ * NO es un gesto de la animacion: es una propiedad del cuadro de REPOSO al que
+ * lleva "siguiente". Medido sobre las dos poses de reposo, la foto en el cuadro
+ * 81 queda 12 px de lienzo mas ARRIBA que en el 139 -bordes: arriba 12, los
+ * otros tres 0-1-, y estos 5 px de video (~6 de lienzo) son la mitad de esa
+ * diferencia. Por eso el ultimo valor SE MANTIENE, y por eso "anterior" tiene
+ * que deshacerlo (ver `prev`).
+ *
+ * El primer punto vale 0 a proposito: marca donde EMPIEZA el tramo. Antes de
+ * el no se devuelve 0 sino lo que ya hubiera puesto (ver `dyFotoCruce`).
+ */
+const DY_FOTO_CRUCE: readonly (readonly [number, number])[] = [
+  [1000 / 60 * 68, 0],
+  [1000 / 60 * 69, 1],
+  [1000 / 60 * 70, 4],
+  [1000 / 60 * 71, 5],
+];
+/**
+ * `desde` es lo que ya estuviera aplicado cuando arranco la cadena, y es lo que
+ * se devuelve ANTES del tramo. No se devuelve 0 como en el texto porque aqui se
+ * veria: la foto que se va esta entera en pantalla al empezar la vuelta -79.968
+ * px medidos en el cuadro 81- y saltaria 6 px en el primer cuadro.
+ *
+ * El relevo cae dentro del tramo, en el cuadro de video 132,5, y ahi no se ve:
+ * medido, la foto que se va queda en CERO pixeles visibles desde el 128.
+ */
+const dyFotoCruce = (t: number, desde: number): number => {
+  const P = DY_FOTO_CRUCE;
+  if (t < P[0][0] - MEDIO_CUADRO_MS) return desde;
   if (t <= P[0][0]) return P[0][1];
   if (t >= P[P.length - 1][0]) return P[P.length - 1][1];
   for (let i = 0; i < P.length - 1; i++) {
@@ -810,6 +863,9 @@ export class AboutBookComponent {
   /** Buffer para `conDxTexto`, y el desplazamiento vigente (ver DX_TEXTO_CRUCE). */
   private dxBuf: [number, number][] | null = null;
   private textoDx = 0;
+  /** Lo mismo para la foto, en vertical (ver DY_FOTO_CRUCE). */
+  private dyBuf: [number, number][] | null = null;
+  private fotoDy = 0;
   private poseBuf: Record<'left' | 'right', [number, number][] | null> = { left: null, right: null };
   // Tres lienzos auxiliares del tamaño del canvas, reutilizados cuadro a
   // cuadro (crear un canvas por cuadro seria basura para el GC en pleno 45fps):
@@ -1850,7 +1906,11 @@ export class AboutBookComponent {
     // veces (ver `captureShade`).
     const shade = main && box && box.w && box.h ? this.captureShade(box, main) : null;
     const paper = main && box && shade ? this.capturePaper(box, main) : null;
-    this.drawPrintShadow(ctx, this.meshCorners(s.pts, s.uv, ox, oy, scale));
+    // La foto quieta y su sombra van las dos con el desplazamiento calibrado
+    // (ver DY_FOTO_CRUCE); si solo lo llevara una, la copia se despegaria de su
+    // sombra en los 65 ms del cruce.
+    const ptsFoto = this.conDyFoto(s.pts);
+    this.drawPrintShadow(ctx, this.meshCorners(ptsFoto, s.uv, ox, oy, scale));
     let capa: HTMLCanvasElement | null = null;
     let cl: CanvasRenderingContext2D | null = null;
     if (main && box && shade) {
@@ -1862,7 +1922,7 @@ export class AboutBookComponent {
       // -foto directa- en vez de no pintar nada.
       ctx.save();
       if (alpha < 1) ctx.globalAlpha = alpha;
-      this.drawOnMesh(ctx, img, s.pts, s.vis, s.uv, ox, oy, scale);
+      this.drawOnMesh(ctx, img, ptsFoto, s.vis, s.uv, ox, oy, scale);
       ctx.restore();
       return;
     }
@@ -1873,7 +1933,7 @@ export class AboutBookComponent {
     cl.imageSmoothingEnabled = true;
     cl.imageSmoothingQuality = 'high';
     cl.clearRect(box.x, box.y, box.w, box.h);
-    this.drawOnMesh(cl, img, s.pts, s.vis, s.uv, ox, oy, scale);
+    this.drawOnMesh(cl, img, ptsFoto, s.vis, s.uv, ox, oy, scale);
     if (paper) {
       // Nada de lo nuestro puede quedar donde no hay papel. Mismo recorte que
       // en la vuelta, para que las dos rutas coincidan tambien en el borde.
@@ -1923,6 +1983,25 @@ export class AboutBookComponent {
     for (let i = 0; i < pts.length; i++) {
       out[i][0] = pts[i][0] + this.textoDx;
       out[i][1] = pts[i][1];
+    }
+    return out;
+  }
+
+  /**
+   * Aplica el desplazamiento calibrado de la foto (ver DY_FOTO_CRUCE). Reusa un
+   * buffer PROPIO, no el de `conDxTexto`: los dos se piden dentro del mismo
+   * dibujo y compartirlo dejaria al segundo pisando lo que lee el primero.
+   *
+   * Tiene que envolver TAMBIEN el `meshCorners` de la sombra impresa, no solo
+   * el `drawOnMesh` de la foto: la sombra se dibuja aparte y por otro camino, y
+   * si no se mueve con ella la copia se despega de su propia sombra.
+   */
+  private conDyFoto(pts: [number, number][]): [number, number][] {
+    if (this.fotoDy === 0) return pts;
+    const out = (this.dyBuf ??= pts.map(() => [0, 0] as [number, number]));
+    for (let i = 0; i < pts.length; i++) {
+      out[i][0] = pts[i][0];
+      out[i][1] = pts[i][1] + this.fotoDy;
     }
     return out;
   }
@@ -2580,7 +2659,10 @@ export class AboutBookComponent {
     if (leftPhoto || inShadow > 0) {
       reset();
       if (leftPhoto) {
-        this.drawPrintShadow(cl, restL ? this.meshCorners(restL.pts, restL.uv, ox, oy, scale) : this.scaleQuad(CONTENT_LEFT_QUAD, ox, oy, scale));
+        // Con el desplazamiento calibrado puesto, igual que en reposo: es la
+        // MISMA foto antes y durante la vuelta (ver DY_FOTO_CRUCE), y sin esto
+        // pegaria un salto de 6 px en el primer cuadro del giro siguiente.
+        this.drawPrintShadow(cl, restL ? this.meshCorners(this.conDyFoto(restL.pts), restL.uv, ox, oy, scale) : this.scaleQuad(CONTENT_LEFT_QUAD, ox, oy, scale));
       }
       punch(tapaFoto);
       if (inShadow > 0 && mesh.b) {
@@ -2600,7 +2682,7 @@ export class AboutBookComponent {
     //    por la luminancia del cuadro.
     reset();
     if (leftPhoto) {
-      if (restL) this.drawOnMesh(cl, leftPhoto, restL.pts, restL.vis, restL.uv, ox, oy, scale);
+      if (restL) this.drawOnMesh(cl, leftPhoto, this.conDyFoto(restL.pts), restL.vis, restL.uv, ox, oy, scale);
       else this.drawImageInQuad(cl, leftPhoto, this.scaleQuad(CONTENT_LEFT_QUAD, ox, oy, scale));
     }
     punch(tapaFoto);
@@ -2960,9 +3042,12 @@ export class AboutBookComponent {
             const t = now - start;
             const tt = Math.min(1, t / durationMs);
             const f = frameAtProgress(totalDist * ease(tt));
-            // Antes de dibujar: el desplazamiento calibrado del texto en este
-            // instante (ver DX_TEXTO_CRUCE). Devuelve 0 fuera de su tramo.
+            // Antes de dibujar: los desplazamientos calibrados en este instante
+            // (ver DX_TEXTO_CRUCE y DY_FOTO_CRUCE). Una cadena sin cola -abrir
+            // y cerrar el libro- los pone a cero: ahi se vuelve a la pagina 1 y
+            // no hay nada que arrastrar.
             this.textoDx = cola?.dxTexto ? cola.dxTexto(t) : 0;
+            this.fotoDy = cola?.dyFoto ? cola.dyFoto(t) : 0;
             if (!cola || t < colaEn) {
               this.draw(f);
             } else {
@@ -2995,8 +3080,10 @@ export class AboutBookComponent {
               // ejemplo en t=1198, con dx 2,88- y el siguiente ya no dibuje: el
               // reposo se quedaria a mitad de camino.
               const fin = cola?.dxTexto ? cola.dxTexto(finEn) : this.textoDx;
-              if (fin !== this.textoDx) {
+              const finY = cola?.dyFoto ? cola.dyFoto(finEn) : this.fotoDy;
+              if (fin !== this.textoDx || finY !== this.fotoDy) {
                 this.textoDx = fin;
+                this.fotoDy = finY;
                 this.draw(this.physFrame);
               }
               resolve();
@@ -3081,6 +3168,9 @@ export class AboutBookComponent {
     await this.dissolveTo(GIRO_LO, SNAP_FADE_MS);
     const entra = this.current() + 1;
     this.transition = { leaving: this.current(), entering: entra, towardHigh: true };
+    // Lo que ya estuviera aplicado a la foto: es lo que se sostiene hasta que
+    // empieza el tramo calibrado, en vez de saltar a cero (ver `dyFotoCruce`).
+    const dyDesde = this.fotoDy;
     await this.playChain([GIRO_HI], {
       frame: GIRO_LO,
       ms: TAIL_MS,
@@ -3088,6 +3178,7 @@ export class AboutBookComponent {
       // Solo "siguiente" lleva desplazamiento del texto: es el unico sentido
       // calibrado (ver DX_TEXTO_CRUCE). En "anterior" la tabla esta vacia.
       dxTexto: dxTextoCruce,
+      dyFoto: (t: number): number => dyFotoCruce(t, dyDesde),
       // Se limpia la transicion al EMPEZAR la cola, no al terminar la cadena.
       // El solape arranca en el cuadro 133, el ultimo de la malla, y ahi las dos
       // ramas de `drawContent` ya solo se diferencian en 2225 px (ver
@@ -3114,6 +3205,10 @@ export class AboutBookComponent {
     // Esto es un ESPEJO provisional -desvanece lo que haya con la curva del
     // cruce-, no una calibracion: la tabla de "anterior" esta vacia.
     const dxDesde = this.textoDx;
+    // La foto tiene exactamente el mismo problema, y por la misma razon: sus 5
+    // px son una propiedad del cuadro 81, donde la foto queda 12 px de lienzo
+    // mas arriba que en el 139 (ver DY_FOTO_CRUCE). Mismo espejo provisional.
+    const dyDesde = this.fotoDy;
     const colaEnPrev = (GIRO_HI - GIRO_LO) * MS_PER_FRAME - TAIL_LEAD_PREV_MS;
     await this.playChain([GIRO_LO], {
       frame: GIRO_HI,
@@ -3123,6 +3218,11 @@ export class AboutBookComponent {
         if (dxDesde === 0) return 0;
         if (t <= colaEnPrev) return dxDesde;
         return dxDesde * (1 - COLA_SIN_SOLAPE(Math.min(1, (t - colaEnPrev) / TAIL_MS)));
+      },
+      dyFoto: (t: number): number => {
+        if (dyDesde === 0) return 0;
+        if (t <= colaEnPrev) return dyDesde;
+        return dyDesde * (1 - COLA_SIN_SOLAPE(Math.min(1, (t - colaEnPrev) / TAIL_MS)));
       },
       alEmpezar: () => {
         this.transition = null;
