@@ -1,12 +1,20 @@
 .bol-hero-wrap {
   position: relative;
-  // Recortado ~13% (1781vh -> 1556vh) quitando scroll a los tramos ESTÁTICOS
-  // (carrusel de sabores en espera + cierre de masa madre); el scrubbing del
-  // video del pan no se tocó, para no perder fluidez de frames.
-  height: 1556vh;
+  // 1556vh -> 700vh. El recorrido ya no se atraviesa a base de rueda libre:
+  // en escritorio un controlador de PARADAS (ver `CHECKPOINTS` en el .ts) hace
+  // que cada gesto sea un viaje animado de un momento narrativo al siguiente,
+  // así que el largo total ya no decide cuántos gestos cuesta el hero — solo
+  // decide el recorrido de los casos SIN paradas: táctil, `prefers-reduced-
+  // motion` y el arrastre del thumb de la scrollbar. Ahí es donde 1556vh
+  // (~168 clics de rueda en una pantalla de 1080px) era insostenible.
+  // El reparto interno vive en INTRO_VH / CAROUSEL_VH / PRE_CAROUSEL_GAP_VH /
+  // MASA_TEXT_VH; esta altura es el presupuesto que esos cuatro se reparten.
+  height: 700vh;
 
+  // Sin animación el canvas no se dibuja y solo corre la intro del DOM, que
+  // termina en INTRO_VH (100vh) junto con su fade; el resto sería wrap vacío.
   @media (prefers-reduced-motion: reduce) {
-    height: 340vh;
+    height: 200vh;
   }
 }
 

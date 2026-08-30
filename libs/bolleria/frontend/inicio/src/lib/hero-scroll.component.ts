@@ -35,6 +35,28 @@ interface HeroCaption {
 }
 
 /**
+ * Hitos del recorrido en px, medidos desde el borde superior del wrap (la misma
+ * unidad que `scrolled` en `updateHero`). Se recalcula en cada tick porque todo
+ * depende de `innerHeight`. Lo consumen dos clientes: la coreografía y el
+ * controlador de paradas — que así no puede desincronizarse de ella.
+ */
+interface HeroGeometry {
+  vh: number;
+  SEQ: number;
+  VID_START: number;
+  CAROUSEL_PX: number;
+  PRE_GAP_PX: number;
+  MASA_PX: number;
+  VID_ORIGINAL: number;
+  freezeStart: number;
+  holdStart: number;
+  holdEnd: number;
+  exitJumpPx: number;
+  videoEnd: number;
+  masaEnd: number;
+}
+
+/**
  * HERO scroll-driven de "inicio": secuencia de 233 cuadros (croissant que se
  * abre, gotea dulce de leche, forma masa madre y hornea pan) repartida en 3
  * tandas de assets (v2/v4/v5, distinto aspecto cada una), con una pausa a
@@ -122,8 +144,20 @@ const FREEZE_FRAME = 80;
 const FREEZE_FRAME_EXIT = 108;
 const FREEZE_FRAME_FOR_SCALE_RAMP = 70;
 const RISE_LIFT_PX = 72;
-const CAROUSEL_VH = 450;
-const PRE_CAROUSEL_GAP_VH = 20;
+
+// Reparto del recorrido, en vh. Los cuatro se reparten la altura del wrap
+// (`.bol-hero-wrap`, 700vh) y de ellos sale por resta el tramo de scrubbing
+// del video (`VID_ORIGINAL`), que es el que queda "libre". Tocar uno cualquiera
+// desplaza las paradas: por eso `CHECKPOINTS` se DERIVA de esta geometría en
+// vez de llevar posiciones escritas a mano.
+const INTRO_VH = 100; // intro del DOM: logo -> croissant dibujado -> foto real
+const CAROUSEL_VH = 125; // carrusel de 5 sabores (cuadro congelado)
+const PRE_CAROUSEL_GAP_VH = 8; // respiro entre el congelado y el primer lettering
+// Fracciones de la intro del DOM. Vivían dentro de `updateHero`; suben acá
+// porque `heroGeometry()` las necesita para situar VID_START y las paradas.
+const RISE_A = 0.86;
+const RISE_B = 0.97;
+const RISE_GAP = 0.12;
 // Antes achicaba la escena hasta un 32% y la subía 90px durante todo el
 // derrame, pensado para dejar aire bajo el croissant completo del comienzo.
 // Pero ese achicamiento estaba atado a la aparición del caption (dripCaptionOp),
@@ -142,7 +176,10 @@ const CAPTION_STAGE_LIFT_PX = 30;
 // columna angosta que fuerza el wrap en líneas cortas de forma natural (no
 // líneas pre-cortadas a mano), y un cursor continuo recorre las palabras
 // enfocándolas (nítidas + opacas) y desenfocándolas de nuevo según se alejan.
-const MASA_TEXT_VH = 190;
+// Único tramo que NO tiene paradas: el controlador se apaga en la última
+// (el caption "Recién salido del horno") justamente para que este texto se lea
+// con scroll libre y al ritmo de cada quien.
+const MASA_TEXT_VH = 125;
 const MASA_ZOOM_MAX = 0.12;
 const MASA_TEXT =
   'La masa madre es un fermento natural de harina y agua que transforma el pan en un ' +
@@ -166,6 +203,59 @@ const LETTERING_GEOM: Record<FlavorKey, { src: string; W: number; CX: number; CY
   crema: { src: 'assets/lettering-crema.webp', W: 1025, CX: 640, CY: 358 },
   nutella: { src: 'assets/lettering-nutella.webp', W: 1115, CX: 633, CY: 335 },
 };
+
+// ─────────────────────────── PARADAS (checkpoints) ───────────────────────────
+// El recorrido dejó de atravesarse con rueda libre: en escritorio, cada gesto
+// es un VIAJE animado de un momento narrativo al siguiente. Doce paradas, once
+// gestos, frente a los ~168 clics de rueda que costaba el hero antes.
+//
+// Las posiciones NO se escriben en vh: cada parada declara el momento del que
+// depende (una fracción de la intro, un cuadro del video, un punto del carrusel)
+// y `computeStops()` la traduce a px con la misma geometría que usa la
+// coreografía. Si mañana se retoca CAROUSEL_VH o INTRO_VH, las paradas se
+// recolocan solas y siguen cayendo sobre el mismo fotograma.
+//
+// Por qué el croissant que se abre se parte en DOS paradas (`frame: 40` y el
+// congelado en 80): de una sola pieza serían 80 cuadros en un segundo, 3,3x la
+// velocidad natural del metraje — un borrón. Partido queda en 1,7x. Con este
+// reparto ningún viaje pasa de 2,2x.
+type CheckpointAt =
+  | { kind: 'intro'; p: number } // fracción de la intro del DOM (0..1 sobre SEQ)
+  | { kind: 'frame'; frame: number } // cuadro del video
+  | { kind: 'carousel'; t: number }; // posición dentro del carrusel (0..1)
+
+const CHECKPOINTS: { at: CheckpointAt; label: string }[] = [
+  { at: { kind: 'intro', p: 0 }, label: 'Logo Bollería' },
+  { at: { kind: 'intro', p: 0.52 }, label: 'Croissant dibujado' },
+  // 0.86 = RISE_A: el barrido a la foto acaba de completarse y el caption está
+  // a opacidad plena. Más allá empieza a irse, así que es el único punto donde
+  // "croissant real + texto" conviven en reposo.
+  { at: { kind: 'intro', p: RISE_A }, label: 'Todo empieza antes del primer bocado' },
+  { at: { kind: 'frame', frame: 40 }, label: 'Croissant a medio abrir' },
+  // 0.04 y no 0: el lettering del primer sabor hace su fade de entrada en el
+  // 3% inicial del carrusel (INTRO_T en renderFlavorCarousel). Parar en 0 lo
+  // dejaría a medio aparecer.
+  { at: { kind: 'carousel', t: 0.04 }, label: 'Dulce de leche' },
+  { at: { kind: 'carousel', t: 0.2 }, label: 'Mantequilla' },
+  { at: { kind: 'carousel', t: 0.4 }, label: 'Pistacho' },
+  { at: { kind: 'carousel', t: 0.6 }, label: 'Crema pastelera' },
+  { at: { kind: 'carousel', t: 0.8 }, label: 'Nutella' },
+  { at: { kind: 'frame', frame: 120 }, label: 'Aquí el relleno nunca se queda corto' },
+  { at: { kind: 'frame', frame: 172 }, label: 'La masa madre descansa, fermenta y crece' },
+  // Última parada. A partir de acá el controlador se apaga y el scroll vuelve a
+  // ser libre y continuo para leer el texto de la masa madre.
+  { at: { kind: 'frame', frame: 210 }, label: 'Recién salido del horno' },
+];
+
+const CK_TWEEN_MS = 1000;
+// Umbral de rueda: un clic de rueda en Windows son ~100px, así que un solo clic
+// ya dispara un viaje. En trackpad, donde un swipe emite decenas de eventos
+// pequeños, hace falta acumular — y por eso mismo un hueco de CK_GESTURE_GAP_MS
+// sin eventos cuenta como gesto nuevo y reinicia el acumulador: sin eso, la
+// cola de inercia de un swipe de Mac encadenaría media secuencia sola.
+const CK_WHEEL_THRESHOLD = 60;
+const CK_GESTURE_GAP_MS = 120;
+const CK_EPS = 2;
 
 const HERO_CAPTIONS: HeroCaption[] = [
   {
@@ -261,6 +351,18 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
   private masaZoom = 1;
   private masaActive = false;
 
+  // ---- controlador de paradas ----
+  // `stops` va en px relativos al borde superior del wrap; `wrapTop` es su
+  // origen en coordenadas de página. Ambos se refrescan en cada `updateHero`,
+  // que ya corre por rAF, así que sobreviven a resize y a reflow sin listeners
+  // propios. El tween guarda su destino en px ABSOLUTOS de página porque es lo
+  // que consume `scrollTo`.
+  private stops: number[] = [];
+  private wrapTop = 0;
+  private ckTween: { from: number; to: number; t0: number } | null = null;
+  private wheelAccum = 0;
+  private lastWheelAt = 0;
+
   constructor() {
     // Al terminar el preloader: revela el logo del hero y calcula la posición inicial.
     effect(() => {
@@ -278,6 +380,10 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
       this.store.settleTick();
       if (this.isBrowser && this.store.screen() === 'inicio' && this.plDone) {
         this.heroInDone = false;
+        // `go()` ya devolvió el scroll a 0: un viaje en curso apuntaría a un
+        // destino de la posición anterior y arrastraría al usuario de vuelta.
+        this.ckTween = null;
+        this.wheelAccum = 0;
         this.playHeroIn();
         this.updateHero();
       }
@@ -289,6 +395,9 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
     this.bootHeroFrames();
     const loop = () => {
       this.raf = requestAnimationFrame(loop);
+      // Antes de updateHero: el viaje mueve el scroll y la coreografía lo lee ya
+      // movido en este mismo frame, sin quedarse un tick por detrás.
+      this.ckAdvance();
       this.updateHero();
       if (!this.ready || !this.active || !this.ctx) return;
       if (this.carouselActive) {
@@ -338,12 +447,20 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
     };
     this.raf = requestAnimationFrame(loop);
     window.addEventListener('resize', this.onResize, { passive: true });
+    // `passive: false` porque hay que poder cancelar el scroll nativo. Se
+    // registran siempre (no solo si hoy hay puntero fino): `ckEnabled()` decide
+    // en cada evento, así que un cambio de `prefers-reduced-motion` o el paso a
+    // modo tableta se atienden en vivo sin re-registrar nada.
+    window.addEventListener('wheel', this.onWheel, { passive: false });
+    window.addEventListener('keydown', this.onKeyDown);
   }
 
   ngOnDestroy(): void {
     if (!this.isBrowser) return;
     cancelAnimationFrame(this.raf);
     window.removeEventListener('resize', this.onResize);
+    window.removeEventListener('wheel', this.onWheel);
+    window.removeEventListener('keydown', this.onKeyDown);
   }
 
   private readonly onResize = (): void => {
@@ -809,6 +926,199 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
     return 1 - this.clamp01((f - outA) / (outB - outA));
   }
 
+  // ---- geometría del recorrido ----
+  /**
+   * Traduce el reparto en vh (INTRO_VH, CAROUSEL_VH, ...) a los hitos en px del
+   * recorrido. Es función pura de `innerHeight` y de la altura del wrap: la
+   * misma cuenta que hacía `updateHero` en línea, extraída para que el
+   * controlador de paradas la comparta en vez de replicarla.
+   */
+  private heroGeometry(): HeroGeometry | null {
+    const wrap = this.wrapRef()?.nativeElement;
+    if (!wrap) return null;
+    const vh = window.innerHeight;
+    const SEQ = (INTRO_VH / 100) * vh;
+    const VID_START = (RISE_B + RISE_GAP) * SEQ;
+    const total = Math.max(1, wrap.offsetHeight - vh);
+    const CAROUSEL_PX = (CAROUSEL_VH / 100) * vh;
+    const PRE_GAP_PX = (PRE_CAROUSEL_GAP_VH / 100) * vh;
+    const MASA_PX = (MASA_TEXT_VH / 100) * vh;
+    const VID_ORIGINAL = Math.max(1, total - VID_START - CAROUSEL_PX - PRE_GAP_PX - MASA_PX);
+    const pv0 = CUM[FREEZE_FRAME];
+    const freezeStart = VID_START + pv0 * VID_ORIGINAL;
+    const holdStart = freezeStart + PRE_GAP_PX;
+    const holdEnd = holdStart + CAROUSEL_PX;
+    const exitJumpPx = (CUM[FREEZE_FRAME_EXIT] - pv0) * VID_ORIGINAL;
+    // El video real termina después del hold, no en VID_START+VID_ORIGINAL: ese
+    // tramo congela `pv` y luego el video retoma desde FREEZE_FRAME_EXIT.
+    const videoEnd = holdEnd + (1 - CUM[FREEZE_FRAME_EXIT]) * VID_ORIGINAL;
+    return {
+      vh,
+      SEQ,
+      VID_START,
+      CAROUSEL_PX,
+      PRE_GAP_PX,
+      MASA_PX,
+      VID_ORIGINAL,
+      freezeStart,
+      holdStart,
+      holdEnd,
+      exitJumpPx,
+      videoEnd,
+      masaEnd: videoEnd + MASA_PX,
+    };
+  }
+
+  /** Inversa de la curva scroll->cuadro: en qué px del wrap se muestra `f`. */
+  private frameToScroll(f: number, G: HeroGeometry): number {
+    const i = Math.max(0, Math.min(CUM.length - 1, Math.round(f)));
+    const base = G.VID_START + CUM[i] * G.VID_ORIGINAL;
+    // Pasado el congelado hay que sumar lo que el carrusel desplaza y descontar
+    // el salto de cuadro con el que el video retoma a la salida.
+    return i <= FREEZE_FRAME ? base : base + G.PRE_GAP_PX + G.CAROUSEL_PX - G.exitJumpPx;
+  }
+
+  /** Las paradas de `CHECKPOINTS` resueltas a px del wrap, en orden creciente. */
+  private computeStops(G: HeroGeometry): number[] {
+    return CHECKPOINTS.map(({ at }) => {
+      if (at.kind === 'intro') return at.p * G.SEQ;
+      if (at.kind === 'carousel') return G.holdStart + at.t * G.CAROUSEL_PX;
+      return this.frameToScroll(at.frame, G);
+    });
+  }
+
+  // ---- controlador de paradas ----
+  /**
+   * Solo en escritorio. En táctil capturar el gesto obliga a `touch-action:
+   * none` y a reimplementar la inercia entera — es donde este patrón se rompe
+   * más y donde más tráfico hay, así que ahí se deja el scroll nativo sobre el
+   * recorrido ya recortado. Con `reduce` no hay animación que apreciar.
+   */
+  private checkpointsSupported(): boolean {
+    if (this.reduced()) return false;
+    return window.matchMedia?.('(pointer: fine)').matches ?? true;
+  }
+
+  private ckEnabled(): boolean {
+    // `ready` importa: sin los cuadros cargados, viajar a una parada del video
+    // dejaría el canvas en blanco. Hasta entonces manda el scroll nativo.
+    // `scrollLocked` es del preloader/cortina, que ya hace su propio
+    // preventDefault sobre wheel — no hay que pelearle el evento.
+    return this.ready && this.stops.length > 0 && !this.store.scrollLocked() && this.checkpointsSupported();
+  }
+
+  /** Posición de referencia: el destino del viaje en curso si lo hay — así un
+   * gesto durante un viaje encadena la parada SIGUIENTE en vez de repetir. */
+  private ckHere(): number {
+    return this.ckTween ? this.ckTween.to - this.wrapTop : window.scrollY - this.wrapTop;
+  }
+
+  /**
+   * Decide si este gesto lo gobiernan las paradas o el scroll nativo. Depende
+   * de la DIRECCIÓN: parado en la última, hacia abajo se suelta (ahí empieza el
+   * texto de lectura libre) pero hacia arriba se vuelve a capturar, para que la
+   * secuencia se recorra en reversa con las mismas paradas.
+   */
+  private ckShouldIntercept(dir: number): boolean {
+    if (this.ckTween) return true;
+    const y = window.scrollY - this.wrapTop;
+    const last = this.stops[this.stops.length - 1];
+    return dir > 0 ? y < last - CK_EPS : y > CK_EPS && y <= last + CK_EPS;
+  }
+
+  /** Viaja a la primera parada estrictamente por delante en la dirección dada.
+   * Buscar por posición (y no llevar un índice) es lo que hace que reenganche
+   * solo después de arrastrar el thumb de la scrollbar o de un salto de ancla. */
+  private ckStep(dir: 1 | -1): void {
+    if (!this.stops.length) return;
+    const y = this.ckHere();
+    let next = -1;
+    if (dir > 0) {
+      next = this.stops.findIndex((s) => s > y + CK_EPS);
+    } else {
+      for (let i = this.stops.length - 1; i >= 0; i--) {
+        if (this.stops[i] < y - CK_EPS) {
+          next = i;
+          break;
+        }
+      }
+    }
+    if (next < 0) return;
+    this.ckTweenTo(this.stops[next]);
+  }
+
+  private ckTweenTo(stop: number): void {
+    const from = window.scrollY;
+    const to = this.wrapTop + stop;
+    if (Math.abs(to - from) < 1) return;
+    this.ckTween = { from, to, t0: performance.now() };
+  }
+
+  /** Avanza el viaje un frame. Corre dentro del rAF que ya tenía el componente,
+   * ANTES de `updateHero`, para que la coreografía lea la posición nueva en el
+   * mismo frame y no vaya un tick por detrás. */
+  private ckAdvance(): void {
+    const tw = this.ckTween;
+    if (!tw) return;
+    if (!this.ckEnabled()) {
+      this.ckTween = null;
+      return;
+    }
+    const t = this.clamp01((performance.now() - tw.t0) / CK_TWEEN_MS);
+    // easeInOutCubic: arranca y frena suave, sin rebote.
+    const e = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    // `instant` es obligatorio: `html { scroll-behavior: smooth }` es global, y
+    // sin esto cada paso del tween lanzaría además la animación nativa del
+    // navegador — dos interpolaciones peleando por el mismo scroll.
+    window.scrollTo({ top: tw.from + (tw.to - tw.from) * e, behavior: 'instant' as ScrollBehavior });
+    if (t >= 1) this.ckTween = null;
+  }
+
+  private readonly onWheel = (e: WheelEvent): void => {
+    if (!this.ckEnabled()) return;
+    // deltaMode: 0 = px, 1 = líneas, 2 = páginas. Firefox usa líneas.
+    const dy = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaMode === 2 ? e.deltaY * window.innerHeight : e.deltaY;
+    if (!dy) return;
+    const dir = dy > 0 ? 1 : -1;
+    if (!this.ckShouldIntercept(dir)) {
+      this.wheelAccum = 0;
+      return;
+    }
+    e.preventDefault();
+    const now = performance.now();
+    if (now - this.lastWheelAt > CK_GESTURE_GAP_MS) this.wheelAccum = 0;
+    this.lastWheelAt = now;
+    if (this.wheelAccum !== 0 && Math.sign(this.wheelAccum) !== dir) this.wheelAccum = 0;
+    this.wheelAccum += dy;
+    if (Math.abs(this.wheelAccum) >= CK_WHEEL_THRESHOLD) {
+      this.wheelAccum = 0;
+      this.ckStep(dir);
+    }
+  };
+
+  private readonly onKeyDown = (e: KeyboardEvent): void => {
+    if (!this.ckEnabled() || e.defaultPrevented || e.ctrlKey || e.metaKey || e.altKey) return;
+    const t = e.target;
+    if (t instanceof HTMLElement && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
+    const last = this.stops[this.stops.length - 1];
+    const y = window.scrollY - this.wrapTop;
+    // Válvula de escape para quien ya vio la intro: una tecla y sale del hero.
+    if (e.key === 'End' && y < last - CK_EPS) {
+      e.preventDefault();
+      this.ckTweenTo(last);
+      return;
+    }
+    if (e.key === 'Home' && y > CK_EPS && y <= last + CK_EPS) {
+      e.preventDefault();
+      this.ckTweenTo(this.stops[0]);
+      return;
+    }
+    const dir = e.key === 'ArrowDown' || e.key === 'PageDown' || e.key === ' ' || e.key === 'Spacebar' ? 1 : e.key === 'ArrowUp' || e.key === 'PageUp' ? -1 : 0;
+    if (!dir || !this.ckShouldIntercept(dir)) return;
+    e.preventDefault();
+    this.ckStep(dir as 1 | -1);
+  };
+
   // ---- scroll -> coreografía (port de updateHero) ----
   private updateHero(): void {
     const R = {
@@ -830,13 +1140,17 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
     const rect = R.wrap.getBoundingClientRect();
     const vh = window.innerHeight;
     const scrolled = -rect.top;
-    const SEQ = 2.4 * vh;
+    const G = this.heroGeometry();
+    if (!G) return;
+    // Refresco de las paradas aquí y no en un listener de resize: esto ya corre
+    // por rAF, así que quedan al día también tras un reflow que no dispara
+    // resize (fuentes que cargan, barra de URL del navegador que se retrae).
+    this.wrapTop = window.scrollY + rect.top;
+    this.stops = this.computeStops(G);
+    const SEQ = G.SEQ;
     const p = this.clamp01(scrolled / (SEQ || 1));
     const seg = (a: number, b: number) => this.clamp01((p - a) / (b - a));
     const L = this.lerp.bind(this);
-    const RISE_A = 0.86,
-      RISE_B = 0.97,
-      RISE_GAP = 0.12;
     const riseT = seg(RISE_A, RISE_B);
     const riseE = riseT * riseT * riseT * (riseT * (riseT * 6 - 15) + 10);
     const riseLiftPx = RISE_LIFT_PX * riseE;
@@ -896,19 +1210,9 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
       return;
     }
 
-    const VID_START = (RISE_B + RISE_GAP) * SEQ;
-    const total = Math.max(1, R.wrap.offsetHeight - vh);
-    const CAROUSEL_PX = (CAROUSEL_VH / 100) * vh;
-    const PRE_GAP_PX = (PRE_CAROUSEL_GAP_VH / 100) * vh;
-    const MASA_PX = (MASA_TEXT_VH / 100) * vh;
-    const VID_ORIGINAL = Math.max(1, total - VID_START - CAROUSEL_PX - PRE_GAP_PX - MASA_PX);
-    const pv0 = CUM[FREEZE_FRAME];
-    const freezeStart = VID_START + pv0 * VID_ORIGINAL;
-    const holdStart = freezeStart + PRE_GAP_PX;
-    const holdEnd = holdStart + CAROUSEL_PX;
+    const { VID_START, CAROUSEL_PX, PRE_GAP_PX, VID_ORIGINAL, freezeStart, holdStart, holdEnd, exitJumpPx } = G;
     const inPreGap = scrolled >= freezeStart && scrolled < holdStart;
     const inHold = scrolled >= holdStart && scrolled < holdEnd;
-    const exitJumpPx = (CUM[FREEZE_FRAME_EXIT] - pv0) * VID_ORIGINAL;
     const adjScrolled = scrolled >= holdEnd ? scrolled - PRE_GAP_PX - CAROUSEL_PX + exitJumpPx : Math.min(scrolled, freezeStart);
     const pv = this.clamp01((adjScrolled - VID_START) / VID_ORIGINAL);
 
@@ -1007,11 +1311,9 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
       }
     }
     // ── Cierre: pan horneado quieto en la tabla + texto de masa madre detrás ──
-    // El video real termina (frame N-1) después del hold del carrusel, no en
-    // VID_START+VID_ORIGINAL: ese tramo (PRE_GAP_PX+CAROUSEL_PX) se suma aparte
-    // porque congela pv, y luego el video retoma desde FREEZE_FRAME_EXIT.
-    const videoEnd = holdEnd + (1 - CUM[FREEZE_FRAME_EXIT]) * VID_ORIGINAL;
-    const masaEnd = videoEnd + MASA_PX;
+    // Único tramo sin paradas: el controlador se apaga en la última (el caption
+    // "Recién salido del horno") para que esto se lea con scroll libre.
+    const { videoEnd, masaEnd, MASA_PX } = G;
     const masaT = this.clamp01((scrolled - videoEnd) / MASA_PX);
     this.masaActive = scrolled >= videoEnd - 40;
     const zoomEase = masaT * masaT * (3 - 2 * masaT);
