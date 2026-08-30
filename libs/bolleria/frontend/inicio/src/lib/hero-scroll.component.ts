@@ -107,6 +107,15 @@ const CROI_CY_ARR = [
   756, 756, 756, 756, 756,
 ];
 
+// Borde superior del croissant en cada cuadro de v5, del 108 al 126, en px del
+// archivo fuente (1% de área acumulada desde arriba, subpíxel). Es el tramo en
+// el que el croissant sube DENTRO del metraje: 653px en 19 cuadros. Ver
+// `croiDriftY`, que lo usa para repartir esa subida en vez de darla a saltos.
+const DRIFT_FRAME_A = 108;
+const V5_DRIFT_Y = [
+  668.8, 667.1, 662.1, 653.4, 640.7, 623.1, 595.6, 559.1, 519.0, 478.5,
+  438.4, 398.5, 352.0, 301.5, 245.5, 191.1, 133.4, 72.5, 16.1,
+];
 const CROI2_W = 1008,
   CROI2_CX = 554,
   CROI2_CY = 970,
@@ -321,6 +330,12 @@ const CK_REENTRY_VH = 18;
 // Limitar el suelo a la cola —fuera de ella la velocidad natural ya lo supera—
 // deja intacto el arranque progresivo también en los tramos cortos.
 const CK_MIN_SPEED = 110;
+// Tramo del derrame del dulce de leche: metraje escaso y movimiento rápido,
+// el único de toda la secuencia donde el suelo normal no basta. Ver
+// `ckFloorSpeed`, que explica los números medidos.
+const DERRAME_A = 108;
+const DERRAME_B = 146;
+const CK_MIN_SPEED_DERRAME = 280;
 const CK_TAIL_PX = 100;
 const CK_EPS = 2;
 
@@ -402,6 +417,8 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
   // así de grande lo suavizamos acá, en el render, sin tocar esa matemática.
   private displayF = 0;
   private smoothingJump = false;
+  /** Si el tick anterior lo pintó el carrusel. Ver el salto en el bucle de rAF. */
+  private wasCarousel = false;
   private active = false;
   private dpr = 1;
   private ctx: CanvasRenderingContext2D | null = null;
@@ -487,7 +504,21 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
       if (!this.ready || !this.active || !this.ctx) return;
       if (this.carouselActive) {
         this.renderFlavorCarousel();
+        this.wasCarousel = true;
         return;
+      }
+      if (this.wasCarousel) {
+        // Saliendo del carrusel NO hay salto que suavizar, aunque la resta lo
+        // parezca. El carrusel ya venía pintando el croissant del cuadro de
+        // salida (108 hacia delante, 80 hacia atrás), que es justo `targetF`
+        // en este tick. Pero `displayF` no se toca mientras el carrusel manda —el
+        // bucle sale antes—, así que se quedaba valiendo 80 y el suavizado
+        // reproducía 80->108 otra vez: medido, la secuencia pintaba 108 y
+        // saltaba a 83 (= 80 + 28*JUMP_RATE) para volver a correr. Un retroceso
+        // de 25 cuadros, repitiendo una animación ya vista.
+        this.wasCarousel = false;
+        this.displayF = this.targetF;
+        this.smoothingJump = false;
       }
       if (this.masaActive) {
         // El frame queda fijo en N-1 pero el zoom del pan sigue avanzando con el
@@ -558,6 +589,44 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
     if (i >= SPLIT_C) return `${DIR_B}/frame_${String(i - SPLIT_C + 67).padStart(4, '0')}.webp`;
     if (i >= SPLIT_B) return `${DIR_C}/frame_${String(i - SPLIT_B).padStart(4, '0')}.webp?v=colorfix3`;
     return `${DIR_A}/frame_${String(i).padStart(4, '0')}.webp`;
+  }
+
+  /**
+   * Compensación de la deriva del croissant DENTRO del metraje.
+   *
+   * En la tanda v2 el croissant se ancla cuadro a cuadro (`CROI_CY_ARR`), así
+   * que aunque se mueva dentro del archivo, en pantalla queda quieto y el
+   * movimiento lo pone el código. En v5 el anclaje es una sola constante para
+   * sus 82 cuadros, y ahí está el problema: entre los cuadros 108 y 126 el
+   * croissant SUBE 653px dentro del propio archivo —26,6px por cuadro, contra
+   * 1,3px en v2, medido—, y esa subida llegaba a pantalla cuantizada al cuadro:
+   * ~15px CSS de golpe cada 45ms. Un salto de traslación de ese tamaño es lo
+   * que se veía brincar; la deformación (el goteo estirándose) apenas se nota
+   * al lado.
+   *
+   * Aquí no se elimina el movimiento —es la animación— sino que se reparte: se
+   * devuelve cuánto hay que correr el anclaje para que el borde de los cuernos
+   * caiga donde le tocaría en el progreso FRACCIONARIO, en vez de donde lo deja
+   * el cuadro que toca dibujar. El resultado es el mismo recorrido, pero
+   * continuo a 60fps en vez de a saltos de 22Hz.
+   *
+   * Medido alineando cuadros vecinos: la diferencia entre 119 y 120 baja de
+   * 59,1/255 a 13,7/255 siguiendo el borde superior (con el centroide se queda
+   * en 23,1, por eso se ancla arriba: los cuernos suben como un cuerpo rígido y
+   * el goteo se estira detrás).
+   *
+   * En un cuadro entero devuelve exactamente 0, así que ninguna parada en
+   * reposo cambia ni un píxel.
+   */
+  private croiDriftY(b: number, i: number): number {
+    const kMax = V5_DRIFT_Y.length - 1;
+    const ki = i - DRIFT_FRAME_A;
+    const k = b - DRIFT_FRAME_A;
+    if (ki < 0 || ki > kMax || k < 0 || k > kMax) return 0;
+    const lo = Math.min(kMax - 1, Math.floor(k));
+    const t = this.clamp01(k - lo);
+    const continuo = V5_DRIFT_Y[lo] + (V5_DRIFT_Y[lo + 1] - V5_DRIFT_Y[lo]) * t;
+    return V5_DRIFT_Y[ki] - continuo;
   }
 
   private croiFor(b: number): [number, number, number] {
@@ -916,15 +985,39 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
     return 0;
   }
 
+  /**
+   * Aquí se separa lo DISCRETO de lo CONTINUO, y es lo que decide si el tramo
+   * del derrame se ve fluido o a tirones.
+   *
+   * `i` (redondeado) elige el bitmap y la geometría que describe ESE bitmap
+   * (dónde está el croissant dentro del archivo). Es lo único que puede saltar,
+   * porque no existen cuadros intermedios.
+   *
+   * `b` (fraccionario) alimenta todo lo que es una TRANSFORMACIÓN: la subida de
+   * la escena, la rampa de escala y las opacidades. Antes también se calculaban
+   * con el cuadro redondeado, y eso convertía una animación continua en 14
+   * escalones: medido, el croissant se quedaba clavado hasta 83ms y luego subía
+   * 2,14px de golpe, un tirón a 12Hz. Un salto de POSICIÓN se ve mucho más que
+   * un cambio de imagen, porque el ojo persigue el borde del objeto y no su
+   * textura — por eso este tramo brincaba y los demás no, aunque su metraje
+   * cambie a un ritmo parecido: es el único donde la escena se desplaza
+   * mientras avanzan los cuadros (`CAPTION_STAGE_LIFT_PX`, que solo activa el
+   * caption del derrame).
+   *
+   * Con esto la escena se mueve a 60fps aunque el metraje solo cambie 22 veces
+   * por segundo. En reposo no cambia nada: `b` cae sobre un entero y el
+   * resultado es idéntico al de antes.
+   */
   private drawHeroFrame(base: number): void {
     const ctx = this.ctx;
     const c = this.canvasRef()?.nativeElement;
     const max = N - 1;
-    const b = Math.max(0, Math.min(max, Math.round(base)));
-    let baseImg: HTMLImageElement | null = this.frames[b] ?? null;
+    const b = Math.max(0, Math.min(max, base));
+    const i = Math.round(b);
+    let baseImg: HTMLImageElement | null = this.frames[i] ?? null;
     if (!baseImg) {
-      this.ensureHeroFrame(b);
-      baseImg = this.nearestGoodHeroFrame(b);
+      this.ensureHeroFrame(i);
+      baseImg = this.nearestGoodHeroFrame(i);
     }
     if (!baseImg || !ctx || !c) return;
     ctx.clearRect(0, 0, c.width, c.height);
@@ -936,12 +1029,16 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
     const dripOp = this.dripCaptionOp(b);
     const yOffset =
       (band ? band.croissantCy - c.height / 2 : 0) + this.extraLift(b) - this.introSettle(b) - CAPTION_STAGE_LIFT_PX * dpr * dripOp;
-    const [cW, cCX, cCY] = this.croiFor(b);
-    const squishY = this.squishFor(b);
-    const bandS0 = this.getCarouselBand();
+    // La geometría del recorte va con el cuadro ENTERO: describe dónde está el
+    // croissant dentro de ese archivo concreto, así que interpolarla lo
+    // desalinearía de su propia imagen.
+    const [cW, cCX, cCY] = this.croiFor(i);
+    const squishY = this.squishFor(i);
     const ramp0 = this.clamp01(b / FREEZE_FRAME_FOR_SCALE_RAMP);
-    const scaleMulRamp = (bandS0 ? 1 + (bandS0.scaleMul - 1) * ramp0 : 1) * this.masaZoom * (1 - CAPTION_STAGE_SHRINK * dripOp);
-    this.drawHeroImg(baseImg, 1, yOffset, cW, cCX, cCY, squishY, scaleMulRamp);
+    const scaleMulRamp = (band ? 1 + (band.scaleMul - 1) * ramp0 : 1) * this.masaZoom * (1 - CAPTION_STAGE_SHRINK * dripOp);
+    // El anclaje se corre para que la subida del croissant dentro del metraje
+    // salga continua en vez de cuantizada al cuadro. Ver `croiDriftY`.
+    this.drawHeroImg(baseImg, 1, yOffset, cW, cCX, cCY + this.croiDriftY(b, i), squishY, scaleMulRamp);
     this.drawEligeTuSaborTitle(b);
   }
 
@@ -1147,6 +1244,30 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
   }
 
   /**
+   * Suelo de velocidad de la frenada. Sube solo dentro del derrame del dulce de
+   * leche, y por una razón medida: ahí la tanda v5 se mueve **41,8/255** entre
+   * cuadros vecinos —siete veces más que v2 (5,8) y v4 (5,9)— y además reparte
+   * solo 12 cuadros en 15,5vh, es decir 11,6px de scroll por cuadro. Con el
+   * suelo normal la animación cae a 110/11,6 = 9,5 cuadros/s justo al frenar y
+   * el goteo se ve a trompicones. En el resto de la secuencia esa misma
+   * velocidad da una animación continua, porque su metraje apenas se mueve de
+   * un cuadro al siguiente. 280px/s devuelven los 24 cuadros/s del metraje.
+   *
+   * No afecta a ningún otro aterrizaje, y se puede comprobar: el suelo solo
+   * actúa en los últimos CK_TAIL_PX de un recorrido, y la única parada que cae
+   * dentro de estos cuadros es la del relleno. La de la masa madre aterriza en
+   * el cuadro 172 y la del horneado en el 210, fuera del rango; las del
+   * carrusel y la intro, también fuera.
+   *
+   * El arreglo de fondo sería densificar v5 (skill 02 de animación por scroll),
+   * pero se decidió no tocar los assets.
+   */
+  private ckFloorSpeed(): number {
+    const f = this.targetF;
+    return f >= DERRAME_A && f <= DERRAME_B ? CK_MIN_SPEED_DERRAME : CK_MIN_SPEED;
+  }
+
+  /**
    * Un fotograma de seguimiento. Corre dentro del rAF que ya tenía el
    * componente, ANTES de `updateHero`, para que la coreografía lea la posición
    * nueva en el mismo frame y no vaya un tick por detrás.
@@ -1183,7 +1304,7 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
 
     // Suelo de velocidad, solo en la cola: es ahí donde el lerp repta y se nota.
     if (Math.abs(dist) < CK_TAIL_PX) {
-      const minStep = CK_MIN_SPEED * dt;
+      const minStep = this.ckFloorSpeed() * dt;
       if (Math.abs(step) < minStep) step = Math.sign(dist) * Math.min(minStep, Math.abs(dist));
     }
     let next = pos + step;
