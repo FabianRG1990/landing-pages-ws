@@ -215,10 +215,10 @@ const LETTERING_GEOM: Record<FlavorKey, { src: string; W: number; CX: number; CY
 // coreografía. Si mañana se retoca CAROUSEL_VH o INTRO_VH, las paradas se
 // recolocan solas y siguen cayendo sobre el mismo fotograma.
 //
-// Por qué el croissant que se abre se parte en DOS paradas (`frame: 40` y el
-// congelado en 80): de una sola pieza serían 80 cuadros en un segundo, 3,3x la
-// velocidad natural del metraje — un borrón. Partido queda en 1,7x. Con este
-// reparto ningún viaje pasa de 2,2x.
+// El croissant que se abre se parte en DOS paradas (`frame: 68` y el congelado
+// en 80) porque de una sola pieza serían 80 cuadros en un viaje, muy por encima
+// de la velocidad natural del metraje — un borrón. Con este reparto y
+// CK_TWEEN_MS ningún viaje pasa de 2x.
 type CheckpointAt =
   | { kind: 'intro'; p: number } // fracción de la intro del DOM (0..1 sobre SEQ)
   | { kind: 'frame'; frame: number } // cuadro del video
@@ -231,7 +231,14 @@ const CHECKPOINTS: { at: CheckpointAt; label: string }[] = [
   // a opacidad plena. Más allá empieza a irse, así que es el único punto donde
   // "croissant real + texto" conviven en reposo.
   { at: { kind: 'intro', p: RISE_A }, label: 'Todo empieza antes del primer bocado' },
-  { at: { kind: 'frame', frame: 40 }, label: 'Croissant a medio abrir' },
+  // 68 y no 40: el título "Elige tu sabor" se dibuja con
+  // `capOpacity(f, 34, 50, 70, 79)`, así que solo entre los cuadros 50 y 70
+  // está NEGRO, centrado y a tamaño pleno — fuera de esa meseta va con
+  // globalAlpha < 1, 18px por debajo de su sitio y al 90-99% de su tamaño.
+  // En 40 el texto se veía gris y a medio colocar. Dentro de la meseta se elige
+  // el extremo abierto (el croissant llega a separarse del todo, con el hilo de
+  // dulce estirado), dejando 2 cuadros de margen antes de que empiece a irse.
+  { at: { kind: 'frame', frame: 68 }, label: 'Elige tu sabor · croissant abierto' },
   // 0.04 y no 0: el lettering del primer sabor hace su fade de entrada en el
   // 3% inicial del carrusel (INTRO_T en renderFlavorCarousel). Parar en 0 lo
   // dejaría a medio aparecer.
@@ -247,7 +254,10 @@ const CHECKPOINTS: { at: CheckpointAt; label: string }[] = [
   { at: { kind: 'frame', frame: 210 }, label: 'Recién salido del horno' },
 ];
 
-const CK_TWEEN_MS = 1000;
+// 1400 y no 1000: a un segundo, el viaje más cargado (los 68 cuadros hasta
+// "Elige tu sabor") corría a 2,8x la velocidad natural del metraje y la
+// animación se leía a medias. A 1400ms ese viaje baja a 2,0x y ninguno lo pasa.
+const CK_TWEEN_MS = 1400;
 // Umbral de rueda: un clic de rueda en Windows son ~100px, así que un solo clic
 // ya dispara un viaje. En trackpad, donde un swipe emite decenas de eventos
 // pequeños, hace falta acumular — y por eso mismo un hueco de CK_GESTURE_GAP_MS
