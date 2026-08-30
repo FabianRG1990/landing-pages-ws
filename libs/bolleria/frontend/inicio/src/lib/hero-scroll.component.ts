@@ -216,9 +216,8 @@ const LETTERING_GEOM: Record<FlavorKey, { src: string; W: number; CX: number; CY
 // recolocan solas y siguen cayendo sobre el mismo fotograma.
 //
 // El croissant que se abre se parte en DOS paradas (`frame: 68` y el congelado
-// en 80) porque de una sola pieza serían 80 cuadros en un viaje, muy por encima
-// de la velocidad natural del metraje — un borrón. Con este reparto y
-// CK_TWEEN_MS ningún viaje pasa de 2x.
+// en 80) porque de una sola pieza serían 80 cuadros en un recorrido, muy por
+// encima de la velocidad natural del metraje — un borrón.
 type CheckpointAt =
   | { kind: 'intro'; p: number } // fracción de la intro del DOM (0..1 sobre SEQ)
   | { kind: 'frame'; frame: number } // cuadro del video
@@ -254,18 +253,75 @@ const CHECKPOINTS: { at: CheckpointAt; label: string }[] = [
   { at: { kind: 'frame', frame: 210 }, label: 'Recién salido del horno' },
 ];
 
-const CK_TWEEN_MS = 1900;
-// Umbral de rueda: un clic de rueda en Windows son ~100px, así que un solo clic
-// ya dispara un viaje. En trackpad, donde un swipe emite decenas de eventos
-// pequeños, hace falta acumular — y por eso mismo un hueco de CK_GESTURE_GAP_MS
-// sin eventos cuenta como gesto nuevo y reinicia el acumulador: sin eso, la
-// cola de inercia de un swipe de Mac encadenaría media secuencia sola.
-const CK_WHEEL_THRESHOLD = 60;
-// Silencio de rueda que marca el FIN de un gesto. Es lo ÚNICO que vuelve a
-// armar el controlador: mientras sigan llegando eventos —rueda girando sin
-// parar, cola de inercia de un trackpad— no se acepta ningún salto nuevo, así
-// que un scroll largo se detiene en la parada en vez de atravesar varias.
-const CK_QUIET_MS = 150;
+// Modelo de movimiento: objetivo en PARADAS + seguimiento amortiguado.
+//
+// La rueda no mueve píxeles: mueve un ÍNDICE de parada. Un gesto vale una
+// parada, y da igual que el tramo mida 20vh o 100vh. Antes el presupuesto iba
+// en píxeles (delta × 1,6) y el mismo gesto de 5 muescas valía 4 paradas entre
+// los sabores —separados 20-25vh— y solo 1 en la intro —82vh—: el carrusel se
+// atravesaba entero de un empujón mientras los tramos largos costaban lo mismo
+// que uno corto. Contando en paradas, el coste en gestos es el mismo en todo el
+// recorrido.
+//
+// La posición persigue a `stops[ckIdx]` con una interpolación exponencial (el
+// modelo de Lenis) amortiguada sobre la VELOCIDAD. De ahí sale gratis lo que
+// hacía falta: la velocidad es proporcional a la distancia restante, así que un
+// gesto suelto recorre su tramo despacio y se aprecia, mientras que varios
+// gestos seguidos empujan el índice lejos, alejan el objetivo y la secuencia
+// corre deprisa SIN detenerse en cada parada. Es la lectura de
+// `scroll-snap-type: proximity` y del `targetContentOffset` de iOS —la
+// intensidad del gesto decide dónde se acaba parando— en vez de
+// `scroll-snap-stop: always`, que obligaría a frenar en todas.
+//
+// Cada gesto nuevo suma una parada al objetivo TAMBIÉN con un recorrido en
+// curso: es lo que permite encadenar y seguir de largo en vez de esperar a que
+// el viaje termine. El silencio que separa un gesto del siguiente es 200ms, y
+// no 90: una rueda girada con el dedo suelta sus muescas cada 30-80ms, y con
+// un umbral corto cada muesca contaba como gesto propio: medido, cinco
+// muescas de un mismo impulso daban cinco paradas y volvían a atropellar los
+// sabores. Dos scrolls que el usuario percibe como distintos siempre distan
+// bastante más de 200ms.
+const CK_GESTURE_MS = 200;
+// Bonificación por intensidad dentro de un gesto. Los primeros CK_BURST_FREE
+// píxeles son francos —un impulso normal de la rueda vale UNA parada, que es lo
+// que se pedía para los sabores— y a partir de ahí cada CK_BURST_STEP suma otra.
+// El tramo franco es lo que permite servir a la vez los dos extremos: 6 muescas
+// (720px) siguen valiendo una parada y 40 muescas seguidas (4800px) atraviesan
+// el hero entero, que es lo que necesita quien no quiere ver la animación.
+// Sin el tramo franco la relación sería lineal y ningún valor cumple ambos.
+const CK_BURST_FREE = 700;
+const CK_BURST_STEP = 420;
+// La amortiguación se aplica a la VELOCIDAD, no a la posición. Un lerp sobre la
+// posición (el modelo directo de Lenis) sale disparado en el primer fotograma:
+// medido, daba un pico de 2,97x su propia media, tan brusco como el ease que se
+// descartó por tosco. Amortiguando la velocidad se obtiene un arranque y una
+// frenada suaves —un muelle críticamente amortiguado— sin perder lo esencial,
+// que la velocidad siga siendo proporcional a la distancia que queda.
+//
+// Velocidad que se pide, en fracción de la distancia restante por segundo.
+const CK_APPROACH = 1.6;
+// Con qué rapidez la velocidad real alcanza a la pedida (por fotograma a 60fps).
+// Es lo que da el arranque progresivo.
+//
+// CUIDADO al tocar este par: juntos forman un sistema de segundo orden
+//   x'' + ws*x' + ws*K*x = 0,  con ws = -ln(1 - CK_VEL_SMOOTH)*60 y K = CK_APPROACH
+// que solo queda críticamente amortiguado (sin rebote) si ws >= 4K. Bajar el
+// suavizado buscando un arranque más elegante mete el sistema en subamortiguado:
+// probado con 0.055/1.95, el recorrido se pasaba a 87vh y volvía a 82,8vh — un
+// rebote perfectamente visible al final de cada parada. Con 0.1/1.6: ws = 6,3 y
+// 4K = 6,4, justo en el límite y sin rebote medible.
+const CK_VEL_SMOOTH = 0.1;
+// Margen (en vh) por encima de la última parada dentro del cual un gesto hacia
+// ARRIBA devuelve el mando al controlador. Ver `ckShouldIntercept`.
+const CK_REENTRY_VH = 18;
+// Suelo de velocidad (px/s) para cortar la cola asintótica del lerp, y franja
+// final en la que se aplica. El lerp converge de forma exponencial: el último
+// 5% del recorrido cuesta tanto como el primer 50%, y ese rastro hacía que un
+// gesto suelto siguiera reptando ~2,5s después de haber llegado a la vista.
+// Limitar el suelo a la cola —fuera de ella la velocidad natural ya lo supera—
+// deja intacto el arranque progresivo también en los tramos cortos.
+const CK_MIN_SPEED = 110;
+const CK_TAIL_PX = 100;
 const CK_EPS = 2;
 
 const HERO_CAPTIONS: HeroCaption[] = [
@@ -366,16 +422,30 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
   // `stops` va en px relativos al borde superior del wrap; `wrapTop` es su
   // origen en coordenadas de página. Ambos se refrescan en cada `updateHero`,
   // que ya corre por rAF, así que sobreviven a resize y a reflow sin listeners
-  // propios. El tween guarda su destino en px ABSOLUTOS de página porque es lo
-  // que consume `scrollTo`.
+  // propios.
   private stops: number[] = [];
   private wrapTop = 0;
-  private ckTween: { from: number; to: number; t0: number } | null = null;
-  // Listo para aceptar un salto. Se desarma al disparar uno y solo lo rearma un
-  // silencio de rueda (ver onWheel): un gesto, un viaje.
-  private ckArmed = true;
-  private wheelAccum = 0;
+  // Objetivo del recorrido: el ÍNDICE de una parada, no unos píxeles. Al leerse
+  // como `stops[ckIdx]` en cada fotograma, un resize —que mueve todas las
+  // paradas, porque el reparto está en vh— lo arrastra consigo sin código de
+  // reescalado, y el objetivo no puede quedarse apuntando a medio tramo.
+  private ckIdx = 0;
+  // Mientras `ckRunning`, el componente es dueño del scroll; al llegar, lo suelta.
+  private ckRunning = false;
+  /** Velocidad actual en px/s. Es ESTADO: sobrevive a que el objetivo cambie a
+   * mitad de recorrido, y por eso un gesto nuevo acelera sin dar un tirón. */
+  private ckVel = 0;
   private lastWheelAt = 0;
+  private ckFrameAt = 0;
+  /** Último scroll escrito por el controlador; -1 cuando no tiene el mando. */
+  private ckLastWrittenY = -1;
+  /** Sentido del gesto en curso. Al invertirlo, el índice se rebasa desde la
+   * posición real en vez de seguir contando sobre un objetivo que iba al revés. */
+  private ckGestureDir: 1 | -1 = 1;
+  /** |delta| acumulado en el gesto en curso, para la bonificación por intensidad. */
+  private ckGestureAccum = 0;
+  /** Paradas ya concedidas por esa bonificación, para no contarlas dos veces. */
+  private ckGestureBonus = 0;
 
   constructor() {
     // Al terminar el preloader: revela el logo del hero y calcula la posición inicial.
@@ -394,10 +464,11 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
       this.store.settleTick();
       if (this.isBrowser && this.store.screen() === 'inicio' && this.plDone) {
         this.heroInDone = false;
-        // `go()` ya devolvió el scroll a 0: un viaje en curso apuntaría a un
+        // `go()` ya devolvió el scroll a 0: un recorrido en curso apuntaría a un
         // destino de la posición anterior y arrastraría al usuario de vuelta.
-        this.ckTween = null;
-        this.wheelAccum = 0;
+        this.ckRunning = false;
+        this.ckVel = 0;
+        this.ckIdx = 0;
         this.playHeroIn();
         this.updateHero();
       }
@@ -1021,76 +1092,114 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
     return this.ready && this.stops.length > 0 && !this.store.scrollLocked() && this.checkpointsSupported();
   }
 
-  /** Un viaje por gesto: durante uno en curso no se acepta nada, así que la
-   * referencia es siempre la posición real. Los gestos NO se encolan. */
-  private ckHere(): number {
-    return window.scrollY - this.wrapTop;
+  /**
+   * Objetivo en px de página. Sale SIEMPRE de una parada, así que un recorrido
+   * no puede acabar a medio tramo y un cambio de `innerHeight` —que recoloca
+   * todas las paradas, porque el reparto está en vh— lo arrastra consigo.
+   */
+  private ckTargetY(): number {
+    const i = Math.max(0, Math.min(this.ckIdx, this.stops.length - 1));
+    return this.wrapTop + this.stops[i];
   }
 
   /**
-   * Decide si este gesto lo gobiernan las paradas o el scroll nativo. Depende
-   * de la DIRECCIÓN: parado en la última, hacia abajo se suelta (ahí empieza el
+   * Decide si este gesto lo gobierna el controlador o el scroll nativo. Depende
+   * de la DIRECCIÓN: en la última parada, hacia abajo se suelta (ahí empieza el
    * texto de lectura libre) pero hacia arriba se vuelve a capturar, para que la
    * secuencia se recorra en reversa con las mismas paradas.
    */
   private ckShouldIntercept(dir: number): boolean {
-    if (this.ckTween) return true;
     const y = window.scrollY - this.wrapTop;
     const last = this.stops[this.stops.length - 1];
-    return dir > 0 ? y < last - CK_EPS : y > CK_EPS && y <= last + CK_EPS;
+    // OJO: para bajar NO basta con "hay un recorrido en curso, luego intercepto".
+    // Con esa regla, bajando a fondo cada evento entraba por estar el viaje vivo,
+    // el objetivo estaba topado en la última parada y el hero no soltaba nunca:
+    // había que dejar de girar la rueda y esperar a que el viaje acabara para
+    // poder salir, y bajando rápido se sentía pegado en "Recién salido del
+    // horno". Se suelta en cuanto la POSICIÓN llega a la última, haya viaje o no;
+    // el propio `ckAdvance` detecta entonces el scroll ajeno y cede el mando.
+    if (dir > 0) return y < last - CK_EPS;
+    if (this.ckRunning) return true;
+    // Volviendo hacia arriba desde el texto de lectura hace falta un margen de
+    // recaptura: con solo CK_EPS, el scroll nativo podía dejar al usuario en una
+    // franja muerta justo por encima de la última parada (medido: 453vh contra
+    // una última parada en 449,6) sin que el controlador llegara a engancharse.
+    // El margen se queda corto a propósito para no secuestrar a quien solo está
+    // releyendo un renglón del texto.
+    return y > CK_EPS && y <= last + CK_REENTRY_VH * 0.01 * window.innerHeight;
   }
 
-  /** Viaja a la primera parada estrictamente por delante en la dirección dada.
-   * Buscar por posición (y no llevar un índice) es lo que hace que reenganche
-   * solo después de arrastrar el thumb de la scrollbar o de un salto de ancla. */
-  private ckStep(dir: 1 | -1): void {
-    if (!this.stops.length) return;
-    const y = this.ckHere();
-    let next = -1;
+  /**
+   * Parada de la que arranca un gesto: la última que queda por detrás si se
+   * baja, la primera que queda por delante si se sube. Estando entre dos (tras
+   * un resize o un arrastre de la barra) el gesto avanza a la siguiente de
+   * verdad, en vez de saltarse la que tenía a dos píxeles.
+   */
+  private ckBaseIdx(dir: 1 | -1): number {
+    const rel = window.scrollY - this.wrapTop;
     if (dir > 0) {
-      next = this.stops.findIndex((s) => s > y + CK_EPS);
-    } else {
-      for (let i = this.stops.length - 1; i >= 0; i--) {
-        if (this.stops[i] < y - CK_EPS) {
-          next = i;
-          break;
-        }
-      }
+      let i = 0;
+      for (let k = 0; k < this.stops.length; k++) if (this.stops[k] <= rel + CK_EPS) i = k;
+      return i;
     }
-    if (next < 0) return;
-    this.ckTweenTo(this.stops[next]);
+    for (let k = 0; k < this.stops.length; k++) if (this.stops[k] >= rel - CK_EPS) return k;
+    return this.stops.length - 1;
   }
 
-  private ckTweenTo(stop: number): void {
-    const from = window.scrollY;
-    const to = this.wrapTop + stop;
-    if (Math.abs(to - from) < 1) return;
-    this.ckTween = { from, to, t0: performance.now() };
-  }
-
-  /** Avanza el viaje un frame. Corre dentro del rAF que ya tenía el componente,
-   * ANTES de `updateHero`, para que la coreografía lea la posición nueva en el
-   * mismo frame y no vaya un tick por detrás. */
+  /**
+   * Un fotograma de seguimiento. Corre dentro del rAF que ya tenía el
+   * componente, ANTES de `updateHero`, para que la coreografía lea la posición
+   * nueva en el mismo frame y no vaya un tick por detrás.
+   */
   private ckAdvance(): void {
-    const tw = this.ckTween;
-    if (!tw) return;
+    if (!this.ckRunning) return;
     if (!this.ckEnabled()) {
-      this.ckTween = null;
+      this.ckRunning = false;
       return;
     }
-    const t = this.clamp01((performance.now() - tw.t0) / CK_TWEEN_MS);
-    // easeInOutSine y no easeInOutCubic. Lo que decide si un tramo se aprecia no
-    // es la duración media sino el PICO de velocidad en mitad del viaje: cubic
-    // llega a 3x su propia media, así que el viaje de 68 cuadros pasaba por su
-    // centro a ~146 cuadros/s, 6x la velocidad del metraje — de ahí que se
-    // viera tosco. Sine tiene un pico de 1,57x, y con CK_TWEEN_MS el mismo
-    // viaje no pasa de 2,3x. Sigue arrancando y frenando suave, sin rebote.
-    const e = -(Math.cos(Math.PI * t) - 1) / 2;
-    // `instant` es obligatorio: `html { scroll-behavior: smooth }` es global, y
-    // sin esto cada paso del tween lanzaría además la animación nativa del
-    // navegador — dos interpolaciones peleando por el mismo scroll.
-    window.scrollTo({ top: tw.from + (tw.to - tw.from) * e, behavior: 'instant' as ScrollBehavior });
-    if (t >= 1) this.ckTween = null;
+    const now = performance.now();
+    const dt = this.ckFrameAt ? Math.min(0.05, (now - this.ckFrameAt) / 1000) : 1 / 60;
+    this.ckFrameAt = now;
+
+    const pos = window.scrollY;
+    // Si el scroll se movió desde FUERA (arrastre del thumb de la scrollbar, un
+    // ancla, un reset de `go()`, o el scroll nativo al soltar en la última
+    // parada), el controlador cede el mando en vez de arrastrar al usuario de
+    // vuelta a su objetivo. Se compara con lo último que escribió él mismo:
+    // cualquier otra cosa no es suya.
+    if (this.ckLastWrittenY >= 0 && Math.abs(pos - this.ckLastWrittenY) > 4) {
+      this.ckRunning = false;
+      this.ckLastWrittenY = -1;
+      this.ckVel = 0;
+      return;
+    }
+    const targetY = this.ckTargetY();
+    const dist = targetY - pos;
+    // Independiente del framerate: a 30fps cada fotograma avanza lo que a 60fps
+    // avanzarían dos.
+    const smooth = 1 - Math.pow(1 - CK_VEL_SMOOTH, dt * 60);
+    this.ckVel += (dist * CK_APPROACH - this.ckVel) * smooth;
+    let step = this.ckVel * dt;
+
+    // Suelo de velocidad, solo en la cola: es ahí donde el lerp repta y se nota.
+    if (Math.abs(dist) < CK_TAIL_PX) {
+      const minStep = CK_MIN_SPEED * dt;
+      if (Math.abs(step) < minStep) step = Math.sign(dist) * Math.min(minStep, Math.abs(dist));
+    }
+    let next = pos + step;
+
+    // Sin esto la asíntota nunca llega y el hero queda a medio píxel de la
+    // parada, con el cuadro equivocado congelado.
+    if (Math.abs(dist) < 1) {
+      next = targetY;
+      this.ckVel = 0;
+      this.ckRunning = false;
+    }
+    window.scrollTo({ top: next, behavior: 'instant' as ScrollBehavior });
+    // Se relee en vez de guardar `next`: el navegador redondea y satura contra
+    // los límites del documento, y comparar con un valor que nunca llegó a
+    // existir daría un falso "lo movieron desde fuera" en el frame siguiente.
+    this.ckLastWrittenY = this.ckRunning ? window.scrollY : -1;
   }
 
   private readonly onWheel = (e: WheelEvent): void => {
@@ -1098,45 +1207,54 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
     // deltaMode: 0 = px, 1 = líneas, 2 = páginas. Firefox usa líneas.
     const dy = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaMode === 2 ? e.deltaY * window.innerHeight : e.deltaY;
     if (!dy) return;
-    const dir = dy > 0 ? 1 : -1;
-    if (!this.ckShouldIntercept(dir)) {
-      this.wheelAccum = 0;
-      return;
-    }
-    // Siempre: dentro de la zona el scroll nativo no manda, ni siquiera cuando
-    // el gesto se va a descartar — si no, la rueda movería la página por debajo
-    // del viaje en curso.
+    const dir: 1 | -1 = dy > 0 ? 1 : -1;
+    if (!this.ckShouldIntercept(dir)) return;
     e.preventDefault();
 
     const now = performance.now();
-    const quiet = now - this.lastWheelAt;
+    // Un gesto acaba donde empieza el silencio; invertir el sentido también
+    // cuenta como gesto nuevo, porque lo que el usuario pide ya es otra cosa.
+    const nuevoGesto = !this.ckRunning || now - this.lastWheelAt >= CK_GESTURE_MS || dir !== this.ckGestureDir;
     this.lastWheelAt = now;
 
-    // UN VIAJE POR GESTO. Un silencio de CK_QUIET_MS es lo único que rearma el
-    // controlador; mientras la rueda siga girando (o mientras corra la inercia
-    // de un trackpad) los eventos se descartan en vez de acumularse. Sin esto,
-    // un scroll normal disparaba tres o cuatro saltos encolados de una vez y el
-    // recorrido se volvía impredecible.
-    if (quiet > CK_QUIET_MS) {
-      this.wheelAccum = 0;
-      if (!this.ckTween) this.ckArmed = true;
+    if (nuevoGesto) {
+      // Si el gesto continúa en el mismo sentido de un viaje vivo, se cuenta
+      // sobre el objetivo ya encolado: así dos o tres gestos seguidos apilan
+      // paradas, el objetivo se aleja y —al ser la velocidad proporcional a la
+      // distancia— la secuencia corre de largo sin frenar en cada una. Si el
+      // sentido cambia, se parte de la posición REAL, no de un objetivo que
+      // apuntaba al lado contrario.
+      const base = this.ckRunning && dir === this.ckGestureDir ? this.ckIdx : this.ckBaseIdx(dir);
+      // Todo gesto vale UNA parada, mida lo que mida. Es lo que iguala el coste
+      // de un tramo de 20vh (entre sabores) y uno de 100vh (la fermentación).
+      this.ckIdx = base + dir;
+      this.ckGestureDir = dir;
+      this.ckGestureAccum = 0;
+      this.ckGestureBonus = 0;
+      if (!this.ckRunning) {
+        this.ckFrameAt = 0;
+        this.ckLastWrittenY = -1;
+        this.ckVel = 0;
+        this.ckRunning = true;
+      }
     }
-    if (this.ckTween || !this.ckArmed) return;
-
-    if (this.wheelAccum !== 0 && Math.sign(this.wheelAccum) !== dir) this.wheelAccum = 0;
-    this.wheelAccum += dy;
-    if (Math.abs(this.wheelAccum) >= CK_WHEEL_THRESHOLD) {
-      this.wheelAccum = 0;
-      this.ckArmed = false;
-      this.ckStep(dir);
+    // Intensidad DENTRO del gesto. La rueda girada a fondo llega como una ráfaga
+    // sin silencios, o incluso como un solo evento de miles de píxeles: sin este
+    // escalón sería un único gesto y avanzaría una sola parada.
+    this.ckGestureAccum += Math.abs(dy);
+    const sobra = this.ckGestureAccum - CK_BURST_FREE;
+    const bonus = sobra <= 0 ? 0 : 1 + Math.floor(sobra / CK_BURST_STEP);
+    if (bonus > this.ckGestureBonus) {
+      this.ckIdx += (bonus - this.ckGestureBonus) * dir;
+      this.ckGestureBonus = bonus;
     }
+    // El índice no se sale de la lista: pasada la última parada manda el scroll
+    // nativo (`ckShouldIntercept`), así que ahí no hay nada que encolar.
+    this.ckIdx = Math.max(0, Math.min(this.stops.length - 1, this.ckIdx));
   };
 
   private readonly onKeyDown = (e: KeyboardEvent): void => {
     if (!this.ckEnabled() || e.defaultPrevented || e.ctrlKey || e.metaKey || e.altKey) return;
-    // Misma regla que la rueda: un viaje por pulsación. `repeat` descarta el
-    // autorepeat de mantener la tecla, y el tween en curso descarta el resto.
-    if (e.repeat || this.ckTween) return;
     const t = e.target;
     if (t instanceof HTMLElement && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
     const last = this.stops[this.stops.length - 1];
@@ -1144,19 +1262,38 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
     // Válvula de escape para quien ya vio la intro: una tecla y sale del hero.
     if (e.key === 'End' && y < last - CK_EPS) {
       e.preventDefault();
-      this.ckTweenTo(last);
+      this.ckGoTo(this.stops.length - 1, 1);
       return;
     }
     if (e.key === 'Home' && y > CK_EPS && y <= last + CK_EPS) {
       e.preventDefault();
-      this.ckTweenTo(this.stops[0]);
+      this.ckGoTo(0, -1);
       return;
     }
     const dir = e.key === 'ArrowDown' || e.key === 'PageDown' || e.key === ' ' || e.key === 'Spacebar' ? 1 : e.key === 'ArrowUp' || e.key === 'PageUp' ? -1 : 0;
     if (!dir || !this.ckShouldIntercept(dir)) return;
     e.preventDefault();
-    this.ckStep(dir as 1 | -1);
+    // Con el teclado el gesto es discreto: cada pulsación pide una parada más, y
+    // mantener la tecla las encadena — el equivalente a seguir girando la rueda.
+    const d = dir as 1 | -1;
+    const base = this.ckRunning && d === this.ckGestureDir ? this.ckIdx : this.ckBaseIdx(d);
+    const next = base + d;
+    if (next >= 0 && next < this.stops.length) this.ckGoTo(next, d);
   };
+
+  /** Fija el objetivo en una parada concreta. */
+  private ckGoTo(idx: number, dir: 1 | -1): void {
+    if (!this.ckRunning) {
+      this.ckFrameAt = 0;
+      this.ckLastWrittenY = -1;
+      this.ckVel = 0;
+      this.ckRunning = true;
+    }
+    this.ckGestureDir = dir;
+    this.ckGestureAccum = 0;
+    this.ckGestureBonus = 0;
+    this.ckIdx = Math.max(0, Math.min(this.stops.length - 1, idx));
+  }
 
   // ---- scroll -> coreografía (port de updateHero) ----
   private updateHero(): void {
