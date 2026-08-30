@@ -69,7 +69,7 @@
   }
 
   p {
-    font: 300 14px/1.6 'Jost', sans-serif;
+    font: 400 16px/1.65 'Jost', sans-serif;
     margin: 0;
   }
 
@@ -78,7 +78,7 @@
   a {
     display: inline-block;
     margin-top: 18px;
-    font: 500 12px 'Jost', sans-serif;
+    font: 500 14px 'Jost', sans-serif;
     letter-spacing: 0.08em;
     text-transform: uppercase;
     padding: 12px 24px;
@@ -124,14 +124,14 @@
 
 .bol-cart-drawer__line-option {
   display: block;
-  font: 500 11.5px 'Jost', sans-serif;
+  font: 500 14px 'Jost', sans-serif;
   letter-spacing: 0.03em;
   color: var(--acc, #c8912a);
   margin-top: 2px;
 }
 
 .bol-cart-drawer__line-price {
-  font: 400 12px 'Jost', sans-serif;
+  font: 400 15px 'Jost', sans-serif;
   color: #9a8f72;
   font-variant-numeric: lining-nums tabular-nums;
 }
@@ -182,7 +182,7 @@
   margin-bottom: 14px;
 
   span:first-child {
-    font: 400 12px 'Jost', sans-serif;
+    font: 400 15px 'Jost', sans-serif;
     letter-spacing: 0.1em;
     text-transform: uppercase;
     color: #9a8f72;
@@ -201,7 +201,7 @@
   align-items: center;
   justify-content: center;
   gap: 9px;
-  font: 600 13px 'Jost', sans-serif;
+  font: 600 14px 'Jost', sans-serif;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   padding: 15px;
@@ -228,7 +228,7 @@
   right: 14px;
   padding: 4px 10px;
   border-radius: 999px;
-  font: 600 9px 'Jost', sans-serif;
+  font: 600 11px 'Jost', sans-serif;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   white-space: nowrap;
@@ -245,7 +245,7 @@
   background: none;
   border: none;
   color: #9a8f72;
-  font: 400 11px 'Jost', sans-serif;
+  font: 400 14px 'Jost', sans-serif;
   cursor: pointer;
   padding: 6px;
 

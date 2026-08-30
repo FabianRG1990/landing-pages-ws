@@ -286,13 +286,22 @@
   pointer-events: none;
 
   span {
-    font: 500 10.5px 'Jost', sans-serif;
-    letter-spacing: 0.28em;
+    // Era el texto más pequeño de toda la portada (10,5px) y encima con 0,28em
+    // de tracking: separar tanto las letras rompe la palabra en signos sueltos y
+    // se lee peor, no mejor. Sube a 13px con un tracking más corto, y el peso
+    // pasa a 600 porque este rótulo es una instrucción -si no se ve, la persona
+    // no sabe que hay que bajar.
+    font: 600 13px 'Jost', sans-serif;
+    letter-spacing: 0.2em;
     text-transform: uppercase;
-    color: var(--olive);
+    // El oliva a este tamaño se apagaba contra el fondo claro del hero; el
+    // dorado de acento es el color con el que el sitio señala lo accionable.
+    color: var(--acc, #c8912a);
   }
 
   svg {
     animation: hbob 1.8s ease-in-out infinite;
+    width: 24px;
+    height: 24px;
   }
 }

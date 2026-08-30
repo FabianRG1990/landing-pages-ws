@@ -9,7 +9,7 @@
   margin-bottom: 44px;
 
   .bol-contact__eyebrow {
-    font: 600 12px 'Cinzel', serif;
+    font: 600 13px 'Cinzel', serif;
     letter-spacing: 0.34em;
     text-transform: uppercase;
     color: var(--olive);
@@ -19,7 +19,7 @@
     margin: 14px 0 0;
   }
   p {
-    font: 300 15px / 1.6 'Jost', sans-serif;
+    font: 400 16px / 1.65 'Jost', sans-serif;
     color: #6b6552;
     margin: 12px auto 0;
     max-width: 440px;
@@ -88,7 +88,7 @@
 }
 
 .bol-contact__label {
-  font: 600 12px 'Jost', sans-serif;
+  font: 600 13px 'Jost', sans-serif;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: #9a8f72;
@@ -110,7 +110,7 @@
   margin-top: 4px;
 
   span:first-child {
-    font-size: 14px;
+    font-size: 15px;
     color: #6b6552;
     min-width: 108px;
   }
@@ -132,7 +132,7 @@
   border-radius: 14px;
   padding: 13px;
   color: var(--ink);
-  font: 500 12px 'Jost', sans-serif;
+  font: 500 14px 'Jost', sans-serif;
   letter-spacing: 0.06em;
 
   @media (hover: hover) and (pointer: fine) {
@@ -155,7 +155,7 @@
     margin: 0 0 4px;
   }
   p {
-    font: 300 13px 'Jost', sans-serif;
+    font: 400 16px / 1.6 'Jost', sans-serif;
     color: #9a8f72;
     margin: 0 0 22px;
   }
@@ -167,7 +167,7 @@
   gap: 14px;
 
   label {
-    font: 500 12px 'Jost', sans-serif;
+    font: 500 14px 'Jost', sans-serif;
     color: #6b6552;
     display: block;
     margin-bottom: 6px;
@@ -178,6 +178,13 @@
   display: flex;
   gap: 11px;
   margin-top: 4px;
+
+  // Con el cuerpo a 14px, "Enviar correo" ya no cabe de lado a lado en un móvil
+  // y partía su rótulo en dos renglones. Apilados ocupan el ancho entero, se
+  // leen de un vistazo y de paso ganan un objetivo táctil mucho mayor.
+  @media (max-width: 560px) {
+    flex-direction: column;
+  }
 }
 
 .bol-contact__send-wa {
@@ -191,7 +198,7 @@
   border: none;
   border-radius: 999px;
   padding: 14px;
-  font: 600 12px 'Jost', sans-serif;
+  font: 600 14px 'Jost', sans-serif;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   cursor: pointer;
@@ -210,7 +217,7 @@
   border: none;
   border-radius: 999px;
   padding: 14px;
-  font: 600 12px 'Jost', sans-serif;
+  font: 600 14px 'Jost', sans-serif;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   cursor: pointer;
@@ -254,7 +261,7 @@
   color: var(--ink);
 }
 .bol-contact__map-cta {
-  font: 500 11px 'Jost', sans-serif;
+  font: 500 13px 'Jost', sans-serif;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--olive);
