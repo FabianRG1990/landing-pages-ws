@@ -4,17 +4,23 @@
   "projectType": "application",
   "prefix": "bol",
   "sourceRoot": "apps/bolleria/src",
-  "tags": ["scope:bolleria"],
+  "tags": [
+    "scope:bolleria"
+  ],
   "targets": {
     "build": {
       "executor": "@angular/build:application",
-      "outputs": ["{options.outputPath}"],
+      "outputs": [
+        "{options.outputPath}"
+      ],
       "options": {
         "outputPath": "dist/apps/bolleria",
         "browser": "apps/bolleria/src/main.ts",
         "index": "apps/bolleria/src/index.html",
         "tsConfig": "apps/bolleria/tsconfig.app.json",
-        "polyfills": ["zone.js"],
+        "polyfills": [
+          "zone.js"
+        ],
         "inlineStyleLanguage": "scss",
         "assets": [
           {
@@ -22,7 +28,9 @@
             "input": "apps/bolleria/public"
           }
         ],
-        "styles": ["apps/bolleria/src/styles.scss"],
+        "styles": [
+          "apps/bolleria/src/styles.scss"
+        ],
         "server": "apps/bolleria/src/main.server.ts",
         "outputMode": "static",
         "prerender": true
@@ -30,10 +38,28 @@
       "configurations": {
         "production": {
           "budgets": [
-            { "type": "initial", "maximumWarning": "1mb", "maximumError": "1.5mb" },
-            { "type": "anyComponentStyle", "maximumWarning": "18kb", "maximumError": "24kb" }
+            {
+              "type": "initial",
+              "maximumWarning": "1mb",
+              "maximumError": "1.5mb"
+            },
+            {
+              "type": "anyComponentStyle",
+              "maximumWarning": "18kb",
+              "maximumError": "24kb"
+            }
           ],
-          "outputHashing": "all"
+          "outputHashing": "all",
+          "assets": [
+            {
+              "glob": "**/*",
+              "input": "apps/bolleria/public",
+              "ignore": [
+                "calibrador-*",
+                "importar.json"
+              ]
+            }
+          ]
         },
         "development": {
           "optimization": false,
@@ -46,10 +72,16 @@
     "serve": {
       "continuous": true,
       "executor": "@angular/build:dev-server",
-      "options": { "port": 4211 },
+      "options": {
+        "port": 4211
+      },
       "configurations": {
-        "production": { "buildTarget": "bolleria:build:production" },
-        "development": { "buildTarget": "bolleria:build:development" }
+        "production": {
+          "buildTarget": "bolleria:build:production"
+        },
+        "development": {
+          "buildTarget": "bolleria:build:development"
+        }
       },
       "defaultConfiguration": "development"
     },

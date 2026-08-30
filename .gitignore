@@ -69,3 +69,5 @@ vitest.config.*.timestamp*
 .env
 .env.local
 .env.*.local
+# Cuarentena de la limpieza de assets (borrar tras confirmar que nada se rompió)
+_quarantine/
