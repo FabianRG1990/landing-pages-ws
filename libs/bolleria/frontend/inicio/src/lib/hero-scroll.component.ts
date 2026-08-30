@@ -254,17 +254,18 @@ const CHECKPOINTS: { at: CheckpointAt; label: string }[] = [
   { at: { kind: 'frame', frame: 210 }, label: 'Recién salido del horno' },
 ];
 
-// 1400 y no 1000: a un segundo, el viaje más cargado (los 68 cuadros hasta
-// "Elige tu sabor") corría a 2,8x la velocidad natural del metraje y la
-// animación se leía a medias. A 1400ms ese viaje baja a 2,0x y ninguno lo pasa.
-const CK_TWEEN_MS = 1400;
+const CK_TWEEN_MS = 1900;
 // Umbral de rueda: un clic de rueda en Windows son ~100px, así que un solo clic
 // ya dispara un viaje. En trackpad, donde un swipe emite decenas de eventos
 // pequeños, hace falta acumular — y por eso mismo un hueco de CK_GESTURE_GAP_MS
 // sin eventos cuenta como gesto nuevo y reinicia el acumulador: sin eso, la
 // cola de inercia de un swipe de Mac encadenaría media secuencia sola.
 const CK_WHEEL_THRESHOLD = 60;
-const CK_GESTURE_GAP_MS = 120;
+// Silencio de rueda que marca el FIN de un gesto. Es lo ÚNICO que vuelve a
+// armar el controlador: mientras sigan llegando eventos —rueda girando sin
+// parar, cola de inercia de un trackpad— no se acepta ningún salto nuevo, así
+// que un scroll largo se detiene en la parada en vez de atravesar varias.
+const CK_QUIET_MS = 150;
 const CK_EPS = 2;
 
 const HERO_CAPTIONS: HeroCaption[] = [
@@ -370,6 +371,9 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
   private stops: number[] = [];
   private wrapTop = 0;
   private ckTween: { from: number; to: number; t0: number } | null = null;
+  // Listo para aceptar un salto. Se desarma al disparar uno y solo lo rearma un
+  // silencio de rueda (ver onWheel): un gesto, un viaje.
+  private ckArmed = true;
   private wheelAccum = 0;
   private lastWheelAt = 0;
 
@@ -1017,10 +1021,10 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
     return this.ready && this.stops.length > 0 && !this.store.scrollLocked() && this.checkpointsSupported();
   }
 
-  /** Posición de referencia: el destino del viaje en curso si lo hay — así un
-   * gesto durante un viaje encadena la parada SIGUIENTE en vez de repetir. */
+  /** Un viaje por gesto: durante uno en curso no se acepta nada, así que la
+   * referencia es siempre la posición real. Los gestos NO se encolan. */
   private ckHere(): number {
-    return this.ckTween ? this.ckTween.to - this.wrapTop : window.scrollY - this.wrapTop;
+    return window.scrollY - this.wrapTop;
   }
 
   /**
@@ -1075,8 +1079,13 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
       return;
     }
     const t = this.clamp01((performance.now() - tw.t0) / CK_TWEEN_MS);
-    // easeInOutCubic: arranca y frena suave, sin rebote.
-    const e = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    // easeInOutSine y no easeInOutCubic. Lo que decide si un tramo se aprecia no
+    // es la duración media sino el PICO de velocidad en mitad del viaje: cubic
+    // llega a 3x su propia media, así que el viaje de 68 cuadros pasaba por su
+    // centro a ~146 cuadros/s, 6x la velocidad del metraje — de ahí que se
+    // viera tosco. Sine tiene un pico de 1,57x, y con CK_TWEEN_MS el mismo
+    // viaje no pasa de 2,3x. Sigue arrancando y frenando suave, sin rebote.
+    const e = -(Math.cos(Math.PI * t) - 1) / 2;
     // `instant` es obligatorio: `html { scroll-behavior: smooth }` es global, y
     // sin esto cada paso del tween lanzaría además la animación nativa del
     // navegador — dos interpolaciones peleando por el mismo scroll.
@@ -1094,20 +1103,40 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
       this.wheelAccum = 0;
       return;
     }
+    // Siempre: dentro de la zona el scroll nativo no manda, ni siquiera cuando
+    // el gesto se va a descartar — si no, la rueda movería la página por debajo
+    // del viaje en curso.
     e.preventDefault();
+
     const now = performance.now();
-    if (now - this.lastWheelAt > CK_GESTURE_GAP_MS) this.wheelAccum = 0;
+    const quiet = now - this.lastWheelAt;
     this.lastWheelAt = now;
+
+    // UN VIAJE POR GESTO. Un silencio de CK_QUIET_MS es lo único que rearma el
+    // controlador; mientras la rueda siga girando (o mientras corra la inercia
+    // de un trackpad) los eventos se descartan en vez de acumularse. Sin esto,
+    // un scroll normal disparaba tres o cuatro saltos encolados de una vez y el
+    // recorrido se volvía impredecible.
+    if (quiet > CK_QUIET_MS) {
+      this.wheelAccum = 0;
+      if (!this.ckTween) this.ckArmed = true;
+    }
+    if (this.ckTween || !this.ckArmed) return;
+
     if (this.wheelAccum !== 0 && Math.sign(this.wheelAccum) !== dir) this.wheelAccum = 0;
     this.wheelAccum += dy;
     if (Math.abs(this.wheelAccum) >= CK_WHEEL_THRESHOLD) {
       this.wheelAccum = 0;
+      this.ckArmed = false;
       this.ckStep(dir);
     }
   };
 
   private readonly onKeyDown = (e: KeyboardEvent): void => {
     if (!this.ckEnabled() || e.defaultPrevented || e.ctrlKey || e.metaKey || e.altKey) return;
+    // Misma regla que la rueda: un viaje por pulsación. `repeat` descarta el
+    // autorepeat de mantener la tecla, y el tween en curso descarta el resto.
+    if (e.repeat || this.ckTween) return;
     const t = e.target;
     if (t instanceof HTMLElement && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
     const last = this.stops[this.stops.length - 1];
