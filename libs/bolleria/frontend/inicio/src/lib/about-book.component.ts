@@ -989,10 +989,68 @@ const STORIES: StoryContent[] = [
 // de pagina; el warp de 4 puntos absorbe la perspectiva real al dibujar).
 const PANEL_W = 700;
 const PANEL_H = 820;
-// Posicion relativa (0..1 dentro del panel de cierre) de cada icono de red,
-// usada tanto para dibujarlos en el panel como para ubicar los <a> reales
-// encima del canvas (ver socialLinkStyle).
-const SOCIAL_POS = { instagram: { u: PAGE_CENTER_U, v: 0.63 }, facebook: { u: PAGE_CENTER_U, v: 0.74 } };
+// Posicion relativa (0..1 dentro del panel de cierre) del CENTRO de cada boton
+// de red, usada tanto para dibujarlos como para ubicar encima los <a> reales
+// que los hacen clickeables (ver socialLinkStyle).
+//
+// La separacion (0.13) sale de las medidas de abajo: con los 0.11 de cuando
+// esto eran dos palabras sueltas, dos pildoras de 68 de alto quedaban a 22
+// unidades de panel -unos 9px en pantalla-, tocandose casi. Con 0.13 respiran.
+const SOCIAL_POS = { instagram: { u: PAGE_CENTER_U, v: 0.62 }, facebook: { u: PAGE_CENTER_U, v: 0.75 } };
+
+/**
+ * El boton de red, en unidades del panel (700x820). No hay medidas en pixeles
+ * de pantalla: se dibuja en el mismo lienzo que la frase de cierre y se estampa
+ * con ella, asi que hereda de balde la perspectiva, la curvatura, la textura y
+ * la luz del papel. Es lo que lo hace parte de la impresion y no algo pegado
+ * encima -que es justo lo que fallaba con el boton hecho de HTML.
+ *
+ * El ancho es holgadamente menor que la columna de texto (575) para que el
+ * boton no compita con la frase de cierre que tiene encima.
+ */
+const SOCIAL_BTN = {
+  w: 304,
+  h: 60,
+  r: 30,
+  /** Lado del glifo y aire entre glifo y palabra. */
+  icono: 27,
+  gap: 13,
+  /** Cuerpo de la palabra y separacion entre letras (el aire de versalita del sitio). */
+  font: 22,
+  track: 3,
+} as const;
+/**
+ * Cuanto mas alta es el area pulsable que el cajetin dibujado.
+ *
+ * Medido en un movil de 390px: ahi el libro entero mide 342px y el boton baja a
+ * 42x8px, que con el dedo es casi imposible de acertar. El area crece la mitad
+ * de su alto, que es lo que cabe en el aire entre los dos cajetines (106.6
+ * unidades de panel entre centros, 90 de area: quedan 16.6 sin tocarse). No
+ * puede crecer mas sin que el area de Facebook empiece a robarle pulsaciones a
+ * la de Instagram.
+ */
+const SOCIAL_HIT_ALTO = 1.5;
+
+/**
+ * Los glifos oficiales de cada red, tomados de Phosphor Icons -el paquete
+ * @ng-icons ya instalado en el workspace-, no redibujados a mano. Vienen en un
+ * lienzo de 256x256; `drawSocialGlyph` los escala.
+ *
+ * Se usa la variante de CONTORNO y no la maciza. Medido en pantalla, el glifo
+ * macizo a este tamano -unos 10px reales- se empastaba: la camara de Instagram
+ * quedaba en un cuadrado dorado y la f de Facebook en un disco, porque sus
+ * huecos caen por debajo del pixel. El contorno ademas comparte grosor de linea
+ * con el filete del cajetin, que es lo que hace que los dos se lean como una
+ * sola pieza impresa.
+ */
+type SocialKind = 'instagram' | 'facebook';
+
+const SOCIAL_GLYPH: Readonly<Record<SocialKind, string>> = {
+  instagram:
+    'M128,80a48,48,0,1,0,48,48A48.05,48.05,0,0,0,128,80Zm0,80a32,32,0,1,1,32-32A32,32,0,0,1,128,160ZM176,24H80A56.06,56.06,0,0,0,24,80v96a56.06,56.06,0,0,0,56,56h96a56.06,56.06,0,0,0,56-56V80A56.06,56.06,0,0,0,176,24Zm40,152a40,40,0,0,1-40,40H80a40,40,0,0,1-40-40V80A40,40,0,0,1,80,40h96a40,40,0,0,1,40,40ZM192,76a12,12,0,1,1-12-12A12,12,0,0,1,192,76Z',
+  facebook:
+    'M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm8,191.63V152h24a8,8,0,0,0,0-16H136V112a16,16,0,0,1,16-16h16a8,8,0,0,0,0-16H152a32,32,0,0,0-32,32v24H96a8,8,0,0,0,0,16h24v63.63a88,88,0,1,1,16,0Z',
+};
 
 /**
  * Álbum "Acerca de nosotros": un único render, el mismo canvas/video de
@@ -1039,6 +1097,30 @@ export class AboutBookComponent {
   // posicionan como <a> de verdad encima del canvas (ver socialLinkStyle) para
   // que sean clickeables — todo lo demas es pixeles de canvas, sin DOM.
   readonly showSocialLinks = computed(() => this.coverOpen() && !this.busy() && this.current() === LAST);
+  /** Boton de red sobre el que esta el puntero (o el foco), si hay alguno. */
+  private readonly socialHover = signal<SocialKind | null>(null);
+
+  /**
+   * Marca o desmarca un boton de red y repinta.
+   *
+   * El boton esta dibujado DENTRO de la hoja, asi que no puede responder al
+   * puntero con CSS: probado, el resplandor de una capa HTML encima sale
+   * rectangular y sin la inclinacion del papel, y se ve pegado. Lo que se
+   * cambia es la pagina entera por su version con ese cajetin marcado, que es
+   * la unica manera de que la respuesta ocurra en la tinta y no sobre ella.
+   */
+  marcaSocial(kind: SocialKind | null): void {
+    if (this.socialHover() === kind) return;
+    this.socialHover.set(kind);
+    if (this.ready()) this.draw(this.lastDrawn);
+  }
+
+  /** La pagina `page`, en su version marcada si toca. */
+  private panelDeTexto(page: number): HTMLCanvasElement | null {
+    const marcado = this.socialHover();
+    if (page === LAST && marcado) return this.socialPanels[marcado] ?? this.textPanels[page - 1] ?? null;
+    return this.textPanels[page - 1] ?? null;
+  }
 
   // ImageBitmap (no <img>): un <img> ya decodificado puede ser descartado por el
   // navegador bajo presion de memoria y forzar un redecode silencioso -y una
@@ -1129,6 +1211,8 @@ export class AboutBookComponent {
    */
   private asentBuf: Record<'left' | 'right', [number, number][] | null> = { left: null, right: null };
   private textPanels: HTMLCanvasElement[] = [];
+  /** La pagina de cierre repintada con uno u otro boton marcado. Ver `marcaSocial`. */
+  private socialPanels: Record<'instagram' | 'facebook', HTMLCanvasElement | null> = { instagram: null, facebook: null };
   private ctx: CanvasRenderingContext2D | null = null;
   private dpr = 1;
   private raf = 0;
@@ -1148,6 +1232,14 @@ export class AboutBookComponent {
     ]);
     this.photos = this.rawPhotos.map((p) => (p ? this.renderPhotoPanel(p) : null));
     this.textPanels = STORIES.map((s, i) => this.renderTextPanel(s, i === LAST - 1, i + 1));
+    // La pagina de cierre se pinta ademas con cada boton resaltado. Son dos
+    // lienzos mas -no hay forma de "encender" un trozo de un bitmap ya
+    // estampado- y se cambian enteros al pasar el puntero (ver marcaSocial).
+    const cierre = STORIES[LAST - 1];
+    this.socialPanels = {
+      instagram: this.renderTextPanel(cierre, true, LAST, 'instagram'),
+      facebook: this.renderTextPanel(cierre, true, LAST, 'facebook'),
+    };
     // Despues de `prepareFonts`: el panel se compone UNA sola vez, asi que una
     // familia que no este lista en este instante se queda de reemplazo para
     // siempre (mismo motivo que los paneles de texto).
@@ -1470,7 +1562,7 @@ export class AboutBookComponent {
    * con el warp de 4 puntos -nunca se re-renderiza texto en cada frame de la
    * animación, solo se transforma el bitmap ya dibujado.
    */
-  private renderTextPanel(story: StoryContent, isClosing: boolean, page: number): HTMLCanvasElement {
+  private renderTextPanel(story: StoryContent, isClosing: boolean, page: number, marcado: SocialKind | null = null): HTMLCanvasElement {
     const c = document.createElement('canvas');
     c.width = PANEL_W;
     c.height = PANEL_H;
@@ -1525,8 +1617,13 @@ export class AboutBookComponent {
         y += step;
       }
       ctx.restore();
-      this.drawSocialIcon(ctx, SOCIAL_POS.instagram, '#5e6a34', 'instagram');
-      this.drawSocialIcon(ctx, SOCIAL_POS.facebook, '#5e6a34', 'facebook');
+      // Los botones van DENTRO del mismo giro que la frase: son tinta de esta
+      // pagina, no algo apoyado encima, y tienen que inclinarse con ella.
+      ctx.save();
+      giraLienzo();
+      this.drawSocialButton(ctx, SOCIAL_POS.instagram, 'instagram', marcado === 'instagram');
+      this.drawSocialButton(ctx, SOCIAL_POS.facebook, 'facebook', marcado === 'facebook');
+      ctx.restore();
       return c;
     }
 
@@ -1601,13 +1698,97 @@ export class AboutBookComponent {
     ctx.restore();
   }
 
-  private drawSocialIcon(ctx: CanvasRenderingContext2D, pos: { u: number; v: number }, color: string, kind: 'instagram' | 'facebook'): void {
-    const x = PANEL_W * pos.u;
-    const y = PANEL_H * pos.v;
+  /** Contorno de pildora, el mismo que usan los CTA del sitio (radio = medio alto). */
+  private pillPath(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number): void {
+    ctx.beginPath();
+    ctx.moveTo(x + r, y);
+    ctx.lineTo(x + w - r, y);
+    ctx.arcTo(x + w, y, x + w, y + r, r);
+    ctx.lineTo(x + w, y + h - r);
+    ctx.arcTo(x + w, y + h, x + w - r, y + h, r);
+    ctx.lineTo(x + r, y + h);
+    ctx.arcTo(x, y + h, x, y + h - r, r);
+    ctx.lineTo(x, y + r);
+    ctx.arcTo(x, y, x + r, y, r);
+    ctx.closePath();
+  }
+
+  /**
+   * Un boton de red, impreso en la pagina.
+   *
+   * Es un CAJETIN DE FILETE, no una pildora con relieve: un contorno fino en el
+   * mismo oro del divisor de espiga, la palabra en versalitas espaciadas y el
+   * logo de la red, todo del mismo color y sin una sola luz especular.
+   *
+   * La version anterior era una placa metalica con degradado, brillo y sombra
+   * proyectada. Se veia bien, pero delataba lo que era: un boton de pantalla
+   * pegado sobre la foto de un libro. Nada impreso tiene reflejos propios ni
+   * proyecta sombra sobre el papel que lo sostiene. Quitando el relieve, el
+   * boton pasa a estar hecho de lo mismo que el resto de la pagina -tinta- y
+   * el ojo deja de leerlo como un anadido.
+   *
+   * Todo el lienzo se estampa con `multiply` (ver drawRestText), que solo puede
+   * OSCURECER el papel: por eso aca no hay ningun color claro. Los que habia
+   * -crema sobre dorado- serian simplemente invisibles.
+   */
+  private drawSocialButton(ctx: CanvasRenderingContext2D, pos: { u: number; v: number }, kind: SocialKind, marcado = false): void {
+    const { w, h, r, icono, gap, font, track } = SOCIAL_BTN;
+    const cx = PANEL_W * pos.u;
+    const cy = PANEL_H * pos.v;
+
     ctx.save();
-    ctx.fillStyle = color;
-    ctx.font = '600 24px Cinzel, serif';
-    ctx.fillText(kind === 'instagram' ? 'INSTAGRAM' : 'FACEBOOK', x, y);
+    ctx.fillStyle = GOLD;
+    ctx.strokeStyle = GOLD;
+    // Un filete de imprenta es fino y parejo. Mas grueso empieza a leerse como
+    // el borde de un boton de interfaz, que es justo lo que se esta evitando.
+    // Al marcarlo engorda apenas lo justo para notarse.
+    ctx.lineWidth = marcado ? 2.4 : 1.6;
+    this.pillPath(ctx, cx - w / 2, cy - h / 2, w, h, r);
+    if (marcado) {
+      // Tinta muy diluida, no un relleno: el cajetin se "moja" al pasar por
+      // encima. Un fondo opaco lo sacaria del papel y desharia lo editorial.
+      ctx.save();
+      ctx.globalAlpha = 0.13;
+      ctx.fill();
+      ctx.restore();
+    }
+    ctx.stroke();
+
+    // Glifo y palabra se centran COMO GRUPO: centrar cada uno por su lado
+    // dejaria el conjunto descolgado a un lado del cajetin.
+    const label = kind === 'instagram' ? 'INSTAGRAM' : 'FACEBOOK';
+    ctx.font = `600 ${font}px Cinzel, serif`;
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+    const anchoTexto = this.measureTracked(ctx, label, track);
+    let px = cx - (icono + gap + anchoTexto) / 2;
+    this.drawSocialGlyph(ctx, kind, px, cy - icono / 2, icono);
+    px += icono + gap;
+    this.fillTracked(ctx, label, px, cy, track);
+    ctx.restore();
+  }
+
+  /** Ancho de un rotulo contando el aire entre letras, que `measureText` no ve. */
+  private measureTracked(ctx: CanvasRenderingContext2D, text: string, track: number): number {
+    const letras = [...text];
+    return letras.reduce((sum, ch) => sum + ctx.measureText(ch).width, 0) + track * (letras.length - 1);
+  }
+
+  /** Escribe letra a letra: el canvas no tiene el `letter-spacing` del sitio. */
+  private fillTracked(ctx: CanvasRenderingContext2D, text: string, x: number, y: number, track: number): void {
+    let cx = x;
+    for (const ch of [...text]) {
+      ctx.fillText(ch, cx, y);
+      cx += ctx.measureText(ch).width + track;
+    }
+  }
+
+  /** El logo de la red, del lienzo de 256 en que viene al tamano pedido. */
+  private drawSocialGlyph(ctx: CanvasRenderingContext2D, kind: SocialKind, x: number, y: number, size: number): void {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.scale(size / 256, size / 256);
+    ctx.fill(new Path2D(SOCIAL_GLYPH[kind]));
     ctx.restore();
   }
 
@@ -3024,7 +3205,7 @@ export class AboutBookComponent {
       const page = !t || f < cut ? front : back;
       this.drawRestPhoto(ctx, this.photoPanel(page), frame, ox, oy, scale, aFoto);
       this.drawRestLogo(ctx, this.logoPanel(page), frame, ox, oy, scale, aFoto);
-      this.drawRestText(ctx, this.textPanels[page - 1] ?? null, frame, ox, oy, scale, aTexto);
+      this.drawRestText(ctx, this.panelDeTexto(page), frame, ox, oy, scale, aTexto);
       return;
     }
 
@@ -3632,6 +3813,11 @@ export class AboutBookComponent {
   async restart(): Promise<void> {
     if (this.busy() || !this.coverOpen() || this.current() !== LAST) return;
     this.busy.set(true);
+    // Se sale de la pagina de cierre con el puntero encima de un boton: sus
+    // <a> se destruyen ahi mismo y el `mouseleave` ya no llega nunca, asi que
+    // la marca se quedaria puesta y al volver a la 7 el cajetin apareceria
+    // encendido sin nadie encima.
+    this.marcaSocial(null);
     await this.playChain([PAGE_REST, 1]);
     this.coverOpen.set(false);
     this.current.set(1);
@@ -3702,6 +3888,11 @@ export class AboutBookComponent {
   async prev(): Promise<void> {
     if (this.busy() || !this.coverOpen() || this.current() <= 1) return;
     this.busy.set(true);
+    // Se sale de la pagina de cierre con el puntero encima de un boton: sus
+    // <a> se destruyen ahi mismo y el `mouseleave` ya no llega nunca, asi que
+    // la marca se quedaria puesta y al volver a la 7 el cajetin apareceria
+    // encendido sin nadie encima.
+    this.marcaSocial(null);
     // No-op salvo que se venga de un "siguiente": ahi el libro esta en GIRO_LO.
     await this.dissolveTo(GIRO_HI, SNAP_FADE_MS);
     const entra = this.current() - 1;
@@ -3752,12 +3943,12 @@ export class AboutBookComponent {
   }
 
   /**
-   * Posición real (en px CSS, no de canvas) del link de red social sobre el
-   * panel de cierre, para que el <a> real quede clickeable exactamente encima
-   * de donde el ícono se dibujó -interpolación bilineal del cuadrilátero real
-   * de la página derecha, igual que el resto del compositor.
+   * Posición y tamaño reales (en px CSS, no de canvas) del área clickeable de
+   * cada botón de red, para que caiga exactamente encima del botón que se
+   * dibujó en la hoja -misma cadena de proyección que usa el compositor para
+   * estamparlo, así que los dos se mueven juntos por definición.
    */
-  socialLinkStyle(kind: 'instagram' | 'facebook'): Record<string, string> {
+  socialLinkStyle(kind: SocialKind): Record<string, string> {
     const c = this.canvasRef()?.nativeElement;
     if (!c) return { display: 'none' };
     const bmp = this.frames[Math.round(PAGE_REST) - 1];
@@ -3776,16 +3967,38 @@ export class AboutBookComponent {
     // `poseAt`- asi que da igual cual se pase; se deja `physFrame` porque es lo
     // correcto si algun dia esa pagina vuelve a llevar pose.
     const s = this.restSurface('right', this.physFrame);
-    if (s) {
-      const enPagina = AboutBookComponent.quadHomography(AboutBookComponent.uvQuad(s.uv))(pos.u, pos.v);
-      const p = this.meshPoint(s.pts, enPagina.x, enPagina.y, ox, oy, scale);
-      return { left: `${p.x / this.dpr}px`, top: `${p.y / this.dpr}px` };
-    }
-    const [tl, tr, br, bl] = this.scaleQuad(CONTENT_RIGHT_QUAD, ox, oy, scale);
-    const top = { x: tl.x + (tr.x - tl.x) * pos.u, y: tl.y + (tr.y - tl.y) * pos.u };
-    const bottom = { x: bl.x + (br.x - bl.x) * pos.u, y: bl.y + (br.y - bl.y) * pos.u };
-    const px = (top.x + (bottom.x - top.x) * pos.v) / this.dpr;
-    const py = (top.y + (bottom.y - top.y) * pos.v) / this.dpr;
-    return { left: `${px}px`, top: `${py}px` };
+    const enPantalla = ((): ((u: number, v: number) => { x: number; y: number }) => {
+      if (s) {
+        const h = AboutBookComponent.quadHomography(AboutBookComponent.uvQuad(s.uv));
+        return (u, v) => {
+          const enPagina = h(u, v);
+          const p = this.meshPoint(s.pts, enPagina.x, enPagina.y, ox, oy, scale);
+          return { x: p.x / this.dpr, y: p.y / this.dpr };
+        };
+      }
+      const [tl, tr, br, bl] = this.scaleQuad(CONTENT_RIGHT_QUAD, ox, oy, scale);
+      return (u, v) => {
+        const top = { x: tl.x + (tr.x - tl.x) * u, y: tl.y + (tr.y - tl.y) * u };
+        const bottom = { x: bl.x + (br.x - bl.x) * u, y: bl.y + (br.y - bl.y) * u };
+        return { x: (top.x + (bottom.x - top.x) * v) / this.dpr, y: (top.y + (bottom.y - top.y) * v) / this.dpr };
+      };
+    })();
+    const centro = enPantalla(pos.u, pos.v);
+    // El area clickeable se MIDE sobre la hoja, no se fija en pixeles: el libro
+    // escala con la pantalla y una caja fija dejaria de cubrir el boton pintado
+    // -en movil llegaba a ser mas grande que el, tanto que las dos cajas se
+    // solapaban y la de Facebook robaba clics a la de Instagram.
+    const mu = SOCIAL_BTN.w / PANEL_W / 2;
+    const mv = (SOCIAL_BTN.h * SOCIAL_HIT_ALTO) / PANEL_H / 2;
+    const izq = enPantalla(pos.u - mu, pos.v);
+    const der = enPantalla(pos.u + mu, pos.v);
+    const arr = enPantalla(pos.u, pos.v - mv);
+    const aba = enPantalla(pos.u, pos.v + mv);
+    return {
+      left: `${centro.x}px`,
+      top: `${centro.y}px`,
+      width: `${Math.hypot(der.x - izq.x, der.y - izq.y)}px`,
+      height: `${Math.hypot(aba.x - arr.x, aba.y - arr.y)}px`,
+    };
   }
 }

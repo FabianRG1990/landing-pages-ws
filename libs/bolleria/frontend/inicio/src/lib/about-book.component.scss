@@ -102,17 +102,32 @@
   }
 }
 
-// Único link real sobre el canvas (redes sociales en la página de cierre):
-// todo lo demás (fotos, texto) son píxeles dibujados en el mismo canvas del
-// video, nunca un elemento u motor de render aparte. Se posiciona por JS
-// (ver socialLinkStyle) exactamente encima del ícono ya dibujado.
+// Únicos links reales sobre el canvas (redes sociales en la página de cierre):
+// todo lo demás (fotos, texto, los botones mismos) son píxeles dibujados en el
+// mismo canvas del video, nunca un elemento u motor de render aparte.
+//
+// Invisible a propósito: el botón ya está pintado en la hoja, con su perspectiva
+// y su luz. Esto es solo el área que se puede pulsar, y su posición Y SU TAMAÑO
+// los calcula socialLinkStyle midiendo sobre la hoja, para que sigan al botón
+// dibujado a cualquier tamaño de pantalla.
 .bol-book__social-hit {
   position: absolute;
-  width: 120px;
-  height: 32px;
   transform: translate(-50%, -50%);
-  // invisible a proposito: el icono/texto real ya esta pintado en el canvas,
-  // esto es solo el area clickeable
+  cursor: pointer;
+
+  // Esta capa NO pinta nada, ni siquiera al pasar el puntero: la respuesta al
+  // hover ocurre dentro del papel (el componente repinta la hoja con el cajetín
+  // marcado, ver marcaSocial). Se intentó primero con un resplandor de CSS acá
+  // y se veía lo que era: un rectángulo luminoso, sin la inclinación de la
+  // página, flotando sobre un botón que sí está inclinado.
+  //
+  // El foco sí lleva anillo propio: el navegador tiene que poder señalar dónde
+  // está el teclado, y el marcado de la tinta por sí solo no lo deja claro.
+  &:focus-visible {
+    outline: 2px solid var(--olive);
+    outline-offset: 4px;
+    border-radius: 999px;
+  }
 }
 
 // --- Controles --------------------------------------------------------------

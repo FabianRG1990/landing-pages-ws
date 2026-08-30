@@ -10,13 +10,37 @@
     @if (!coverOpen()) {
       <button type="button" class="bol-book__cover-hit" [disabled]="busy() || !ready()" (click)="open()" aria-label="Abrir el libro"></button>
     }
-    <!-- Todo el contenido (fotos, texto) se dibuja sobre el canvas -salvo
-         estos dos links, que necesitan ser elementos reales para ser
-         clickeables. Se posicionan calculando dónde cayó el ícono dibujado
-         (ver socialLinkStyle) para que queden exactamente encima. -->
+    <!-- TODO se dibuja sobre el canvas -fotos, texto y los propios botones de
+         redes, que son tinta de la página de cierre (ver drawSocialButton)-.
+         Estos dos <a> son solo el área que se puede pulsar: van vacíos y sin
+         pintar nada, colocados justo encima del cajetín dibujado con las
+         medidas que da socialLinkStyle. El puntero encima marca el cajetín
+         repintando la hoja, porque un bitmap no responde al hover por sí solo. -->
     @if (showSocialLinks()) {
-      <a [href]="contact.instagram" target="_blank" rel="noopener" class="bol-book__social-hit" [ngStyle]="socialLinkStyle('instagram')" aria-label="Seguinos en Instagram"></a>
-      <a [href]="contact.facebook" target="_blank" rel="noopener" class="bol-book__social-hit" [ngStyle]="socialLinkStyle('facebook')" aria-label="Seguinos en Facebook"></a>
+      <a
+        [href]="contact.instagram"
+        target="_blank"
+        rel="noopener"
+        class="bol-book__social-hit"
+        [ngStyle]="socialLinkStyle('instagram')"
+        aria-label="Seguinos en Instagram"
+        (mouseenter)="marcaSocial('instagram')"
+        (mouseleave)="marcaSocial(null)"
+        (focus)="marcaSocial('instagram')"
+        (blur)="marcaSocial(null)"
+      ></a>
+      <a
+        [href]="contact.facebook"
+        target="_blank"
+        rel="noopener"
+        class="bol-book__social-hit"
+        [ngStyle]="socialLinkStyle('facebook')"
+        aria-label="Seguinos en Facebook"
+        (mouseenter)="marcaSocial('facebook')"
+        (mouseleave)="marcaSocial(null)"
+        (focus)="marcaSocial('facebook')"
+        (blur)="marcaSocial(null)"
+      ></a>
     }
   </div>
 
