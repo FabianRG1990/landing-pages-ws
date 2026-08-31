@@ -2,6 +2,16 @@
   max-width: 1120px;
   margin: 0 auto;
   padding: 120px 40px 70px;
+
+  // En un telefono angosto (iPhone SE, 320px) los 40px de margen a cada lado
+  // dejan 240px utiles, y la tarjeta de correo necesita 291: el icono de 44px
+  // mas el gap mas "labolleria.crb@gmail.com", que mide 189px y es una sola
+  // palabra que el navegador no puede partir. El resultado era 11px de scroll
+  // horizontal en toda la pagina. Con 24px de margen y el valor a 15px el
+  // correo entra entero, sin cortarlo ni encoger el icono.
+  @media (max-width: 400px) {
+    padding: 120px 24px 70px;
+  }
 }
 
 .bol-contact__head {
@@ -98,6 +108,13 @@
   color: var(--ink);
   font-variant-numeric: lining-nums tabular-nums;
   margin-top: 2px;
+  // Red de seguridad: si algun dia el correo o la direccion crecen, se parten
+  // antes de empujar la pagina a lo ancho.
+  overflow-wrap: anywhere;
+
+  @media (max-width: 400px) {
+    font-size: 15px;
+  }
 }
 
 // El horario va en dos renglones (días a la izquierda, horas a la derecha).

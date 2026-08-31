@@ -73,6 +73,41 @@ const DIR_A = 'assets/hero-frames-v2';
 const DIR_B = 'assets/hero-frames-v4';
 const DIR_C = 'assets/hero-frames-v5';
 
+/**
+ * Tandas reducidas para telefono (`-m`).
+ *
+ * Los cuadros originales estan pensados para escritorio y en un telefono NO se
+ * aprovechan: instrumentando `drawImage` durante el recorrido completo, el
+ * factor de dibujo maximo medido es 0,515 en iPhone 15, 0,420 en iPhone SE y
+ * 0,589 en Pixel 7 — es decir que mas de la mitad de cada pixel descargado se
+ * tira. Descargarlos enteros costaba 106 MB por visita en datos moviles.
+ *
+ * Las tandas `-m` son los MISMOS cuadros al 65 %. Ese 65 % no es arbitrario:
+ * queda por encima del peor factor medido (0,589), asi que en el telefono la
+ * imagen se sigue REDUCIENDO al pintarse (0,589/0,65 = 0,91) y nunca se
+ * amplia, que es la unica forma de que no haya perdida visible.
+ *
+ * El umbral son 440 px de ancho de viewport: cubre todos los telefonos en
+ * vertical (SE 320, Galaxy S8 360, iPhone 15 393, Pixel 7 412, Pro Max 430) y
+ * deja fuera tablets y el modo horizontal, donde el area de dibujo crece y si
+ * harian falta los cuadros grandes.
+ */
+const DIR_A_M = 'assets/hero-frames-v2-m';
+const DIR_B_M = 'assets/hero-frames-v4-m';
+const DIR_C_M = 'assets/hero-frames-v5-m';
+const SMALL_FRAMES_MAX_VW = 440;
+const SMALL_FRAMES_SCALE = 0.65;
+/** Tope de cuadros en vuelo para la precarga oportunista. Ver `ensureHeroFrame`. */
+const PREFETCH_MAX = 6;
+/**
+ * Holgura extra para el cuadro que toca pintar. No es un permiso para saltarse
+ * el tope: bajando deprisa el cuadro a pintar cambia en cada fotograma, asi que
+ * sin tope propio ese camino solo tambien acumulaba —medido, 55 peticiones a la
+ * vez—. Quedarse sin hueco no rompe nada: `nearestGoodHeroFrameIdx` pinta el
+ * vecino de su misma tanda y el cuadro se vuelve a pedir al fotograma siguiente.
+ */
+const URGENT_EXTRA = 3;
+
 const CROI_W = 1099;
 const CROI_CX = 724;
 const CROI_CY = 725;
@@ -584,11 +619,28 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
     this.updateHero();
   };
 
+  /**
+   * Se decide UNA sola vez y nunca se revisa: los cuadros ya cargados son de
+   * una tanda concreta, y `frameShrink` tiene que seguir describiendo esa
+   * misma tanda. Si esto se recalculara al rotar el telefono, los cuadros en
+   * memoria y el factor de dibujo dejarian de corresponderse y el croissant
+   * cambiaria de tamano de golpe.
+   */
+  private readonly smallFrames = typeof window !== 'undefined' && window.innerWidth <= SMALL_FRAMES_MAX_VW;
+
+  /** Relacion entre el archivo servido y el cuadro nominal de su tanda. */
+  private get frameShrink(): number {
+    return this.smallFrames ? SMALL_FRAMES_SCALE : 1;
+  }
+
   // ---- carga de frames ----
   private framePath(i: number): string {
-    if (i >= SPLIT_C) return `${DIR_B}/frame_${String(i - SPLIT_C + 67).padStart(4, '0')}.webp`;
-    if (i >= SPLIT_B) return `${DIR_C}/frame_${String(i - SPLIT_B).padStart(4, '0')}.webp?v=colorfix3`;
-    return `${DIR_A}/frame_${String(i).padStart(4, '0')}.webp`;
+    const a = this.smallFrames ? DIR_A_M : DIR_A;
+    const b = this.smallFrames ? DIR_B_M : DIR_B;
+    const c = this.smallFrames ? DIR_C_M : DIR_C;
+    if (i >= SPLIT_C) return `${b}/frame_${String(i - SPLIT_C + 67).padStart(4, '0')}.webp`;
+    if (i >= SPLIT_B) return `${c}/frame_${String(i - SPLIT_B).padStart(4, '0')}.webp?v=colorfix3`;
+    return `${a}/frame_${String(i).padStart(4, '0')}.webp`;
   }
 
   /**
@@ -658,9 +710,73 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
     this.broken.add(i);
   }
 
+  /**
+   * Carga una lista de cuadros con la concurrencia ACOTADA, y ese limite es
+   * justo lo que hace que la portada arranque.
+   *
+   * Pidiendolos todos a la vez con un `Promise.all` el ancho de banda se
+   * reparte entre las peticiones abiertas y ninguna termina pronto: medido en
+   * 4G, el primer cuadro se pedia a los 4,5 s y no llegaba hasta los 17,2 s
+   * porque compartia la linea con otros cuarenta y tres. De cuatro en cuatro
+   * llegan de forma escalonada, y los primeros —los unicos que hacen falta
+   * para empezar— estan disponibles en un par de segundos.
+   */
+  private async cargarCuadros(indices: number[], concurrencia: number): Promise<void> {
+    let p = 0;
+    const worker = async (): Promise<void> => {
+      while (p < indices.length) await this.loadHeroFrame(indices[p++]);
+    };
+    await Promise.all(Array.from({ length: Math.min(concurrencia, indices.length) }, worker));
+  }
+
   private async bootHeroFrames(): Promise<void> {
     if (this.booted) return;
     this.booted = true;
+
+    if (this.smallFrames) {
+      // --- Telefono ---
+      // Antes se esperaba a setenta cuadros pedidos de golpe: en 4G el hero no
+      // se activaba hasta pasados unos 45 s y quien entraba desde el movil
+      // recorria toda la portada sin ver la animacion. Ahora arranca con ocho,
+      // pedidos de cuatro en cuatro.
+      // Las fotos y los rotulos del carrusel salen ANTES que los cuadros, no
+      // despues: el carrusel no dibuja la secuencia, sino estas nueve imagenes
+      // aparte, y cae muy pronto en el recorrido. Pidiendolas por detras de los
+      // cuadros llegaban sobre los 5,7 s, y quien bajaba a ritmo normal se
+      // plantaba en el tramo de los sabores antes de eso: el carrusel limpiaba
+      // el lienzo y no pintaba nada —instrumentado en el canal, cuatro
+      // pantallas seguidas con solo `clearRect` y ni un `drawImage`—. Son
+      // ligeras y no compiten: van sin `await` para no retrasar el arranque.
+      this.loadFlavorImages();
+
+      // Los dos ultimos NO son decorativos: el carrusel de sabores no dibuja la
+      // secuencia, sino ESTOS dos cuadros congelados (`flavorKeyframe` para
+      // 'dulce' y `flavorKeyframeExit`). Sin ellos el carrusel limpia el lienzo
+      // y no pinta nada: cuatro pantallas seguidas en blanco justo en el tramo
+      // de los sabores, medido bajando en 4G. El 108 ademas no cae en la malla
+      // —que va de ocho en ocho— asi que llegaba de los ultimos.
+      await this.cargarCuadros([0, 1, 2, 3, 4, 5, 6, 7, FREEZE_FRAME, FREEZE_FRAME_EXIT], 4);
+      this.ready = true;
+      this.sizeHeroCanvas();
+      this.renderHeroFloat(0);
+
+      // Cobertura del recorrido completo antes que el relleno fino: sembrar
+      // uno de cada ocho garantiza que cualquier punto del scroll tenga un
+      // vecino cercano DE SU MISMA TANDA, que es lo que
+      // `nearestGoodHeroFrameIdx` necesita para sustituir sin que se note.
+      // Sin esto, bajar deprisa llegaba a tramos sin un solo cuadro y la
+      // escena se quedaba congelada mientras el texto seguia avanzando.
+      const malla: number[] = [];
+      for (let i = 8; i < N; i += 8) malla.push(i);
+      await this.cargarCuadros(malla, 4);
+
+      const resto: number[] = [];
+      for (let i = 8; i < N; i++) if (i % 8 !== 0) resto.push(i);
+      void this.cargarCuadros(resto, 6);
+      return;
+    }
+
+    // --- Escritorio: sin cambios ---
     const first = Math.min(70, N);
     await Promise.all(Array.from({ length: first }, (_, i) => this.loadHeroFrame(i)));
     this.ready = true;
@@ -706,6 +822,7 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
     scaleMul: number,
     blurPx: number,
     squishY = 1,
+    shrink = 1,
   ): void {
     const ctx = this.ctx;
     const c = this.canvasRef().nativeElement;
@@ -716,8 +833,19 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
     const boxCss = Math.min(0.9 * window.innerWidth, 720);
     const targetCroiW = PHOTO_FRAC_W * boxCss * dpr * (scaleMul || 1);
     const s = targetCroiW / croiW;
-    const dw = img.naturalWidth * s,
-      dh = img.naturalHeight * s * squishY;
+    // Mismo tamano NOMINAL que en `drawHeroImg`, y por el mismo motivo: aqui
+    // llegan DOS clases de imagen. Las fotos de sabores son de tamano completo
+    // (`shrink` = 1), pero los dos cuadros congelados salen de `this.frames`, y
+    // en telefono esos son la tanda `-m` al 65 %. Usando `naturalWidth` en
+    // crudo, la calibracion —expresada en pixeles del cuadro original— dibujaba
+    // esos dos al 65 % y, como el rectangulo se ancla en su esquina, el
+    // croissant caia 53 px CSS arriba y a la izquierda de su sitio: medido, 627
+    // px de ancho en la secuencia contra 408 en el carrusel, el mismo cuadro 80
+    // y el mismo instante. Era el brinco del croissant pequeno al entrar en los
+    // sabores y al salir de ellos. En escritorio `shrink` vale 1 en los dos
+    // casos y la expresion es la de siempre.
+    const dw = (img.naturalWidth / (shrink || 1)) * s,
+      dh = (img.naturalHeight / (shrink || 1)) * s * squishY;
     const dx = cw / 2 - croiCx * s,
       dy = ch / 2 - croiCy * s * squishY + (yOffset || 0);
     try {
@@ -770,18 +898,38 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
     return b >= SPLIT_B && b < SPLIT_C ? CROI2_SQUISH_Y : 1;
   }
 
-  private flavorKeyframe(key: FlavorKey): { img?: HTMLImageElement; W: number; CX: number; CY: number; squishY: number } {
+  /**
+   * `shrink` distingue las dos procedencias que se mezclan en el carrusel: las
+   * fotos de sabores son archivos de tamano completo, mientras que 'dulce' y la
+   * salida son cuadros de la secuencia y en telefono vienen reducidos. Quien
+   * dibuja no puede adivinarlo, asi que viaja con la geometria.
+   */
+  private flavorKeyframe(key: FlavorKey): { img?: HTMLImageElement; W: number; CX: number; CY: number; squishY: number; shrink: number } {
     if (key === 'dulce') {
       const [w, cx, cy] = this.croiFor(FREEZE_FRAME);
-      return { img: this.frames[FREEZE_FRAME], W: w, CX: cx, CY: cy, squishY: this.squishFor(FREEZE_FRAME) };
+      return {
+        img: this.frames[FREEZE_FRAME],
+        W: w,
+        CX: cx,
+        CY: cy,
+        squishY: this.squishFor(FREEZE_FRAME),
+        shrink: this.frameShrink,
+      };
     }
     const g = FLAVOR_GEOM[key];
-    return { img: this.flavorImgs[key], W: g.W, CX: g.CX, CY: g.CY, squishY: 1 };
+    return { img: this.flavorImgs[key], W: g.W, CX: g.CX, CY: g.CY, squishY: 1, shrink: 1 };
   }
 
-  private flavorKeyframeExit(): { img?: HTMLImageElement; W: number; CX: number; CY: number; squishY: number } {
+  private flavorKeyframeExit(): { img?: HTMLImageElement; W: number; CX: number; CY: number; squishY: number; shrink: number } {
     const [w, cx, cy] = this.croiFor(FREEZE_FRAME_EXIT);
-    return { img: this.frames[FREEZE_FRAME_EXIT], W: w, CX: cx, CY: cy, squishY: this.squishFor(FREEZE_FRAME_EXIT) };
+    return {
+      img: this.frames[FREEZE_FRAME_EXIT],
+      W: w,
+      CX: cx,
+      CY: cy,
+      squishY: this.squishFor(FREEZE_FRAME_EXIT),
+      shrink: this.frameShrink,
+    };
   }
 
   private renderFlavorCarousel(): void {
@@ -806,17 +954,34 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
     const gA = LETTERING_GEOM[seq[idx]],
       gB = LETTERING_GEOM[seq[idx + 1]];
 
-    const aOutT = ease(this.clamp01((rawFrac - 0.4) / 0.08));
-    const bInT = this.clamp01((rawFrac - 0.44) / 0.16);
-    let alphaImgA = 1 - aOutT;
-    const alphaImgB = Math.pow(bInT, 2.0);
-    const scaleImgA = 1 - 0.15 * aOutT,
-      scaleImgB = 0.9 + 0.1 * bInT;
-    const blurImgA = 5 * aOutT,
-      blurImgB = 7 * (1 - bInT);
+    // Cruce de la IMAGEN, complementario: `alphaImgA + alphaImgB` vale 1 en
+    // todo el tramo, asi que no existe un instante sin nada dibujado.
+    //
+    // Antes las dos curvas iban escalonadas y no se tocaban: A se apagaba del
+    // todo en rawFrac 0,48 mientras B —cuya opacidad iba AL CUADRADO— apenas
+    // alcanzaba el 6 %, y ademas las dos se dibujan con 5-7 px de desenfoque,
+    // que reparte esa poca tinta hasta dejarla por debajo del umbral visible.
+    // Resultado: el lienzo se quedaba COMPLETAMENTE vacio a mitad de cada
+    // cambio de sabor. Medido contando pixeles opacos del canvas, recorriendo
+    // cada transicion de 3 en 3 px: cero opacos en las cinco, tanto en iPhone
+    // 15 como en escritorio de 1440x900. Los rotulos tampoco lo tapaban —su
+    // relevo ocurre antes (0,28-0,40) y despues (0,60-0,72), de modo que en esa
+    // franja tambien estan los dos en cero.
+    //
+    // Se conserva el vocabulario del carrusel —el mismo encogimiento de 0,15,
+    // los mismos desenfoques de 5 y 7 px— y los extremos 0,40 y 0,60, que son
+    // los que ya delimitaban el cruce entre las dos curvas viejas. Solo cambian
+    // las curvas de la imagen: la coreografia de los rotulos no se toca.
+    const xT = ease(this.clamp01((rawFrac - 0.4) / 0.2));
+    let alphaImgA = 1 - xT;
+    const alphaImgB = xT;
+    const scaleImgA = 1 - 0.15 * xT,
+      scaleImgB = 0.9 + 0.1 * xT;
+    const blurImgA = 5 * xT,
+      blurImgB = 7 * (1 - xT);
     let riseTxtA = 0,
       riseTxtB = 0;
-    const riseImgB = -10 * (this.dpr || 1) * (1 - bInT);
+    const riseImgB = -10 * (this.dpr || 1) * (1 - xT);
 
     const OUT_START = 0.28,
       OUT_END = 0.4,
@@ -845,8 +1010,10 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
     const yOffB = isExit
       ? band.croissantCy - c.height / 2 + this.extraLift(FREEZE_FRAME_EXIT) - this.introSettle(FREEZE_FRAME_EXIT)
       : yOff;
-    if (A.img) this.drawGenericCroissant(A.img, A.W, A.CX, A.CY, alphaImgA, yOff + riseImgA * 0.5, scaleMul * scaleImgA, blurImgA, A.squishY);
-    if (B.img) this.drawGenericCroissant(B.img, B.W, B.CX, B.CY, alphaImgB, yOffB + riseImgB, scaleMul * scaleImgB, blurImgB, B.squishY);
+    if (A.img)
+      this.drawGenericCroissant(A.img, A.W, A.CX, A.CY, alphaImgA, yOff + riseImgA * 0.5, scaleMul * scaleImgA, blurImgA, A.squishY, A.shrink);
+    if (B.img)
+      this.drawGenericCroissant(B.img, B.W, B.CX, B.CY, alphaImgB, yOffB + riseImgB, scaleMul * scaleImgB, blurImgB, B.squishY, B.shrink);
     this.drawLettering(this.letteringImgs[seq[idx]], gA.W, gA.CX, gA.CY, alphaTxtA, riseTxtA, letteringCy, scaleMul * scaleTxtA);
     if (!isExit) this.drawLettering(this.letteringImgs[seq[idx + 1]], gB.W, gB.CX, gB.CY, alphaTxtB, riseTxtB, letteringCy, scaleMul * scaleTxtB);
     this.captionRef().nativeElement.style.opacity = '0';
@@ -906,8 +1073,19 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
     // el croissant sin necesidad y rompía la consistencia de tamaño con el resto
     // de la animación. Se quita: el ancho es la única referencia real acá.
     const s = targetCroiW / CW;
-    const dw = img.naturalWidth * s,
-      dh = img.naturalHeight * s * SQY;
+    // Se dibuja segun el tamano NOMINAL de la tanda, no segun el del archivo.
+    // Toda la calibracion del hero (CROI_W/CX/CY, sus arrays por cuadro, la
+    // deriva...) esta expresada en pixeles del cuadro original; si aqui se
+    // usara `naturalWidth` a secas, servir la tanda `-m` dibujaria el croissant
+    // al 65 % y descolocado, porque esas constantes seguirian midiendo en la
+    // escala vieja. Dividir por `frameShrink` reconstruye el ancho nominal, de
+    // modo que el rectangulo de destino sale identico con cualquiera de las dos
+    // tandas y no hay que tocar una sola constante de calibracion. En
+    // escritorio `frameShrink` vale 1 y la expresion es la de siempre.
+    const nomW = img.naturalWidth / this.frameShrink,
+      nomH = img.naturalHeight / this.frameShrink;
+    const dw = nomW * s,
+      dh = nomH * s * SQY;
     const dx = cw / 2 - CX * s;
     const dy = ch / 2 - CY * s * SQY + (yOffset || 0);
     try {
@@ -919,20 +1097,57 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
     }
   }
 
-  private ensureHeroFrame(i: number): void {
+  /**
+   * `urgente` distingue el cuadro que hace falta AHORA (lo pide `drawHeroFrame`
+   * cuando va a pintar y no lo tiene) de la precarga oportunista que `updateHero`
+   * dispara por delante del scroll.
+   *
+   * En telefono esa precarga va ACOTADA, y no es un detalle: `updateHero` pide
+   * 67 cuadros en cada fotograma, asi que sin tope se abrian hasta 135
+   * peticiones a la vez —medido bajando en 4G—. Eso deshace justo lo que
+   * consigue el arranque escalonado de `cargarCuadros`: repartida entre 135
+   * descargas, la linea no termina ninguna pronto, y el cuadro que toca pintar
+   * no llega antes que uno que hace falta sesenta cuadros mas tarde. Con el
+   * tope solo viajan los mas cercanos —el bucle los recorre de dentro hacia
+   * fuera, asi que son los primeros en pedirse— y el resto entra en cuanto se
+   * libera un hueco, en el fotograma siguiente. En escritorio no se aplica: esa
+   * carga no se toca.
+   */
+  private ensureHeroFrame(i: number, urgente = false): void {
     if (i < 0 || i >= N || this.frames[i] || this.broken.has(i) || this.inflight.has(i)) return;
+    if (this.smallFrames && this.inflight.size >= PREFETCH_MAX + (urgente ? URGENT_EXTRA : 0)) return;
     this.inflight.add(i);
     this.loadHeroFrame(i).then(() => this.inflight.delete(i));
   }
 
-  private nearestGoodHeroFrame(want: number): HTMLImageElement | null {
+  /** A que tanda de assets pertenece un cuadro (0=v2, 1=v5, 2=v4). */
+  private tandaDe(i: number): 0 | 1 | 2 {
+    return i >= SPLIT_C ? 2 : i >= SPLIT_B ? 1 : 0;
+  }
+
+  /**
+   * Devuelve el INDICE del cuadro cargado mas cercano, no la imagen: quien
+   * dibuja necesita saber cual es para pedir SU calibracion (ver
+   * `drawHeroFrame`). Prefiere un cuadro de la misma tanda porque las tres
+   * tienen encuadres distintos —v2 es cuadrada 1440x1440, v5 retrato
+   * 1080x1920 y v4 apaisada 1920x1080— y sustituir entre tandas cambia el
+   * tamano del croissant de golpe aunque la geometria sea la correcta.
+   */
+  private nearestGoodHeroFrameIdx(want: number): number {
+    const t = this.tandaDe(want);
     for (let o = 1; o < N; o++) {
-      const a = this.frames[want - o];
-      if (a) return a;
-      const b = this.frames[want + o];
-      if (b) return b;
+      const a = want - o,
+        b = want + o;
+      if (a >= 0 && this.frames[a] && this.tandaDe(a) === t) return a;
+      if (b < N && this.frames[b] && this.tandaDe(b) === t) return b;
     }
-    return null;
+    for (let o = 1; o < N; o++) {
+      const a = want - o,
+        b = want + o;
+      if (a >= 0 && this.frames[a]) return a;
+      if (b < N && this.frames[b]) return b;
+    }
+    return -1;
   }
 
   private getCarouselBand(): { letteringCy: number; croissantCy: number; scaleMul: number } | null {
@@ -1014,10 +1229,25 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
     const max = N - 1;
     const b = Math.max(0, Math.min(max, base));
     const i = Math.round(b);
+    // `gi` es el cuadro que de verdad se va a pintar, que no siempre es `i`:
+    // mientras la secuencia se descarga, `i` puede no haber llegado todavia y
+    // hay que recurrir al vecino disponible. TODA la calibracion de abajo va
+    // con `gi` y no con `i`, y esa es la correccion: antes se pintaba la
+    // imagen del vecino con las coordenadas del cuadro que faltaba. Como cada
+    // tanda tiene su propio encuadre, eso mandaba el croissant a una esquina y
+    // lo cambiaba de tamano —el sintoma de "la animacion se pierde y el
+    // croissant salta de sitio" al entrar por primera vez con la red lenta.
+    let gi = i;
     let baseImg: HTMLImageElement | null = this.frames[i] ?? null;
     if (!baseImg) {
-      this.ensureHeroFrame(i);
-      baseImg = this.nearestGoodHeroFrame(i);
+      // Urgente: es el cuadro que se iba a pintar en este mismo fotograma, asi
+      // que no se encola detras de la precarga.
+      this.ensureHeroFrame(i, true);
+      const j = this.nearestGoodHeroFrameIdx(i);
+      if (j >= 0) {
+        baseImg = this.frames[j] ?? null;
+        gi = j;
+      }
     }
     if (!baseImg || !ctx || !c) return;
     ctx.clearRect(0, 0, c.width, c.height);
@@ -1032,13 +1262,13 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
     // La geometría del recorte va con el cuadro ENTERO: describe dónde está el
     // croissant dentro de ese archivo concreto, así que interpolarla lo
     // desalinearía de su propia imagen.
-    const [cW, cCX, cCY] = this.croiFor(i);
-    const squishY = this.squishFor(i);
+    const [cW, cCX, cCY] = this.croiFor(gi);
+    const squishY = this.squishFor(gi);
     const ramp0 = this.clamp01(b / FREEZE_FRAME_FOR_SCALE_RAMP);
     const scaleMulRamp = (band ? 1 + (band.scaleMul - 1) * ramp0 : 1) * this.masaZoom * (1 - CAPTION_STAGE_SHRINK * dripOp);
     // El anclaje se corre para que la subida del croissant dentro del metraje
     // salga continua en vez de cuantizada al cuadro. Ver `croiDriftY`.
-    this.drawHeroImg(baseImg, 1, yOffset, cW, cCX, cCY + this.croiDriftY(b, i), squishY, scaleMulRamp);
+    this.drawHeroImg(baseImg, 1, yOffset, cW, cCX, cCY + this.croiDriftY(b, gi), squishY, scaleMulRamp);
     this.drawEligeTuSaborTitle(b);
   }
 

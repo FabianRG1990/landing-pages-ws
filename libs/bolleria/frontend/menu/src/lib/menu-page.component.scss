@@ -52,6 +52,24 @@
   top: 74px;
   z-index: 20;
   padding: 8px 0;
+
+  // En telefono las cuatro pastillas se reparten en DOS filas, y al hacer
+  // scroll ese bloque sticky se queda encima de la carta tapando nombres y
+  // precios: medido en iPhone 15, un precio queda oculto en 5 de 21 pasos del
+  // recorrido, y varios nombres de producto en 2. Las pastillas ya son opacas
+  // (esa parte esta resuelta), pero los huecos entre ellas y entre las dos
+  // filas dejan pasar el texto igual.
+  //
+  // La salida habitual —un fondo o un velo detras de la fila— esta descartada:
+  // se probo dos veces y siempre leyo como una barra ajena pegada sobre el
+  // fondo artistico. Asi que en movil las pastillas simplemente dejan de
+  // seguir el scroll y se quedan con el encabezado. `static` ocupa exactamente
+  // el mismo sitio que `sticky` en reposo, de modo que la pagina en su estado
+  // inicial no cambia ni un pixel: lo unico que cambia es que ya no se
+  // despegan. En escritorio siguen fijas como siempre.
+  @media (max-width: 900px) {
+    position: static;
+  }
 }
 
 .bol-menu__tab {
@@ -230,6 +248,13 @@
   text-transform: uppercase;
   cursor: pointer;
   white-space: nowrap;
+
+  // 125x40 medidos: es EL boton que arma el pedido, y se queda 4px por debajo
+  // del minimo tactil. Solo en pantallas tactiles se le dan 2px mas por arriba
+  // y por abajo (44px justos); en escritorio conserva su altura original.
+  @media (max-width: 900px) {
+    padding: 12px 18px;
+  }
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.5),
     inset 0 -2px 2px rgba(103, 68, 15, 0.35);
@@ -257,8 +282,14 @@
   color: var(--cream);
   overflow: hidden;
 
+  // `relative` y no `static`: en static este contenedor deja de ser el bloque
+  // de referencia de su hijo absolute `.bol-menu__cart-mark` (right:-46px), la
+  // marca de agua se ancla al viewport, escapa de este `overflow: hidden` y
+  // desborda la pagina 46px a la derecha en CUALQUIER telefono (medido en
+  // iPhone 15/SE, Pixel 7 y Galaxy S8). `relative` restaura el recorte sin
+  // reintroducir el sticky, que aqui no aplica porque la columna ya se apilo.
   @media (max-width: 860px) {
-    position: static;
+    position: relative;
   }
 }
 

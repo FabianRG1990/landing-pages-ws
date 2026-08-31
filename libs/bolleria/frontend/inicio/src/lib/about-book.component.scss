@@ -52,6 +52,31 @@
   // acompaña ese momento.
   margin: -176px auto 0;
   aspect-ratio: 860 / 698;
+
+  // En telefono este bloque estaba encima de su propia cabecera.
+  //
+  // Los -176px son una medida ABSOLUTA calibrada contra un libro de 844px de
+  // alto (escritorio), donde valen el 21 % de su altura. En movil el libro
+  // mide 280px y esos mismos 176px son el 63 %: enterraban el titulo entero
+  // ("Nuestra historia, pagina a pagina" quedaba partido por el libro), tapaban
+  // el "Abri el libro y conoce como empezamos" y dejaban los botones de
+  // Anterior/Siguiente cruzados por encima de la ilustracion — medido: la
+  // cabecera ocupaba y=236..367 y el libro y=191..471.
+  //
+  // `-17vw` es la MISMA proporcion que en escritorio (~21 % de la altura del
+  // libro) expresada de forma relativa, asi que se comporta igual en un iPhone
+  // SE que en un Pro Max en vez de depender del tamano de pantalla.
+  //
+  // Los margenes laterales negativos cancelan el `padding: 0 24px` del
+  // contenedor SOLO para el libro: la cabecera conserva su margen de lectura y
+  // el libro pasa a ocupar el ancho completo de la pantalla, que es lo unico
+  // que se puede agrandar sin recortar el cuadro (ver nota abajo).
+  @media (max-width: 900px) {
+    margin: -17vw -24px 0;
+    // El ancho hay que declararlo: `width: min(1040px, 100%)` lo deja clavado
+    // al contenedor y los margenes negativos por si solos no lo ensanchan.
+    width: calc(100% + 48px);
+  }
 }
 .bol-book__canvas {
   position: absolute;
@@ -150,6 +175,14 @@
   // sobra en el peor caso -> nunca se solapa con el libro.
   margin-top: -100px;
   min-height: 46px;
+
+  // Mismo problema que en `.bol-book__stage`: -100px es el aire que sobra bajo
+  // un libro de 844px de alto (12 % de su altura). Sobre el libro de movil ese
+  // valor fijo metia Anterior/Siguiente DENTRO de la ilustracion. `-9.5vw`
+  // mantiene esa misma proporcion a cualquier ancho de pantalla.
+  @media (max-width: 900px) {
+    margin-top: -9.5vw;
+  }
 }
 .bol-book__open {
   display: inline-flex;

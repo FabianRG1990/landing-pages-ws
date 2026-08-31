@@ -70,7 +70,7 @@ export class OrderPdfService {
 
     const mark = new Image();
     mark.onload = () => (this.markImg = mark);
-    mark.src = 'assets/mark.png';
+    mark.src = 'assets/mark.webp';
   }
 
   private bgForPdf(w: number, h: number): string | null {

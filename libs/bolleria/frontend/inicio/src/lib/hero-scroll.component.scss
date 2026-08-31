@@ -82,16 +82,15 @@
     color: color-mix(in srgb, var(--ink) 52%, transparent);
   }
 
+  // En pantallas angostas estas frases no tienen columna propia: comparten el
+  // ancho con el croissant y con los rotulos centrados, y se cruzan encima de
+  // ellos. Medido en iPhone 15 y iPhone SE recorriendo el hero en 46 pasos:
+  // se solapan con `.bol-hero-caption` en 9 pasos, con `.bol-hero-hint` en 2 y
+  // con `.bol-hero-masa` en 1-5 — texto sobre texto, ilegible. No hay hueco
+  // donde reubicarlas sin quitarle aire al contenido principal, asi que en
+  // movil no se muestran; en escritorio siguen intactas.
   @media (max-width: 899px) {
-    right: 5%;
-    top: 68%;
-    bottom: 10%;
-    width: min(36vw, 160px);
-
-    li {
-      font-size: clamp(12px, 3.2vw, 14px);
-      line-height: 1.3;
-    }
+    display: none;
   }
 }
 
@@ -231,7 +230,10 @@
   left: 0;
   right: 0;
   bottom: 0;
+  // Mismo motivo que en `.bol-hero-hint`: la ultima linea del rotulo cae en la
+  // franja que la barra de URL tapa. Se sube exactamente el alto de esa barra.
   padding: 104px 32px 68px;
+  padding-bottom: max(68px, calc(100vh - 100svh + 68px));
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -274,9 +276,24 @@
   gap: 0.32em;
 }
 
+// `100vh` en moviles NO es el area visible: es el viewport GRANDE, el que
+// queda cuando la barra de URL esta oculta. Con la barra a la vista el
+// navegador recorta la parte inferior de ese 100vh, y ahi es justo donde vive
+// este rotulo. Medido en Pixel 7 (vh=839): el hint ocupa y=757..809, Chrome
+// Android corta en y=783 —lo parte por la mitad— y Safari iOS en y=735 —lo
+// oculta entero—. Es el rotulo que avisa de que la pagina continua: si no se
+// ve, nadie sabe que hay que bajar.
+//
+// `100vh - 100svh` es exactamente la altura de ese cromo del navegador, y es
+// una constante por dispositivo: no cambia durante el scroll, asi que no
+// provoca reflow ni temblor (que es lo que pasaria midiendo el escenario en
+// `dvh`). En escritorio ambas unidades valen lo mismo, la resta da 0 y el
+// `max()` deja los 30px de siempre: no cambia un pixel. En navegadores sin
+// `svh` el calc es invalido y tambien cae a los 30px originales.
 .bol-hero-hint {
   position: absolute;
   bottom: 30px;
+  bottom: max(30px, calc(100vh - 100svh + 30px));
   left: 0;
   right: 0;
   display: flex;

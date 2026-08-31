@@ -49,6 +49,14 @@
   border: none;
   cursor: pointer;
   color: #6b6552;
+
+  // 36x34 medidos: es el unico modo de cerrar el cajon del pedido con el dedo.
+  // El padding lo lleva a 44x44 y el margin negativo lo mantiene alineado con
+  // el borde de la cabecera, exactamente donde estaba.
+  @media (max-width: 900px) {
+    padding: 5px;
+    margin: -5px;
+  }
 }
 
 .bol-cart-drawer__body {

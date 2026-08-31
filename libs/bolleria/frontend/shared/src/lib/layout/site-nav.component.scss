@@ -228,10 +228,17 @@
 
 // Sin isla ni vidrio en mobile tampoco — mismo tratamiento "impreso sobre la
 // página" que el resto, solo el ícono con su halo crema.
+// El area de toque medida era 36x29: por debajo del minimo de 44x44 de las
+// Human Interface Guidelines de Apple y de los 48x48 de Material. Se agranda
+// con `padding` y se compensa con un `margin` negativo identico, asi que el
+// icono queda EXACTAMENTE donde estaba y lo unico que crece es la superficie
+// que responde al dedo (52x45).
 .bol-nav__hamburger {
   display: none;
   align-items: center;
   justify-content: center;
+  padding: 10px;
+  margin: -10px;
   background: none;
   border: none;
   color: #2e2a1c;
@@ -256,7 +263,10 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 18px;
+  // 6px de gap + 6px de padding por lado en cada link = los mismos 18px de
+  // separacion visual entre palabras que antes, pero con cada link a 53px de
+  // alto en vez de 41 (minimo tactil de 44).
+  gap: 6px;
   transition: clip-path 0.55s cubic-bezier(0.7, 0, 0.3, 1);
   clip-path: circle(0% at calc(100% - 40px) 40px);
   display: flex;
@@ -266,10 +276,13 @@
   }
 }
 
+// 42x40 medidos -> 56x54. `top`/`right` bajan en la misma cantidad que el
+// padding, de modo que la cruz se dibuja en el mismo sitio de siempre.
 .bol-mobile-menu__close {
   position: absolute;
-  top: 22px;
-  right: 22px;
+  top: 15px;
+  right: 15px;
+  padding: 7px;
   background: none;
   border: none;
   color: var(--cream);
@@ -285,6 +298,7 @@
 .bol-mobile-menu__link {
   font: 500 34px 'Cormorant Garamond', serif;
   color: var(--cream);
+  padding: 6px 16px;
 }
 
 .bol-mobile-menu__tag {

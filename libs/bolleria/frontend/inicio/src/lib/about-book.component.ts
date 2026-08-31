@@ -791,7 +791,7 @@ const ajusteTexto = (page: number): AjusteTexto => ({ ...TEXTO_BASE, ...(TEXTO_P
 // por el papel. Es la misma razon por la que los textos van con `multiply` (ver
 // el paso 3 de drawContent), y ademas es lo que deja que el grano y el
 // degradado de la pagina se vean A TRAVES del trazo.
-const LOGO_URL = 'assets/logo-clean.png';
+const LOGO_URL = 'assets/logo-clean.webp';
 const LOGO_PAGE = LAST;
 const LOGO_LINE = 'Recetario Artesanal';
 // Fraccion del ancho del panel que ocupa la marca. En un colofon el sello va
@@ -1218,7 +1218,55 @@ export class AboutBookComponent {
   private raf = 0;
 
   constructor() {
-    if (this.isBrowser) void this.boot();
+    if (this.isBrowser) this.arrancarCuandoSeAcerque();
+  }
+
+  /**
+   * El libro NO se descarga al abrir la pagina, sino cuando el visitante se
+   * acerca a el.
+   *
+   * `boot()` pide de golpe los 169 cuadros del libro mas las fotos: 170
+   * peticiones y unos 6 MB. Al lanzarse desde el constructor eso ocurria a la
+   * vez que el hero pedia los suyos, y en 4G medido el libro se llevaba el
+   * 79 % de la linea durante los primeros catorce segundos — el primer cuadro
+   * del hero se pedia a los 4,5 s y no llegaba hasta los 17,2 s. Resultado: se
+   * recorria toda la portada sin animacion, que es exactamente el sintoma de
+   * "las imagenes cargan y las animaciones salen completamente perdidas".
+   *
+   * El libro esta a unas ocho pantallas de scroll del hero, asi que no hay
+   * ningun motivo para competir con el. Con `rootMargin` de dos pantallas
+   * empieza a cargar bastante antes de asomar y llega listo; hasta entonces su
+   * canvas ya estaba invisible por diseño (`.is-ready`).
+   */
+  private arrancarCuandoSeAcerque(): void {
+    // Sin IntersectionObserver (o si algo falla) se carga igual, como antes:
+    // vale mas un arranque temprano que un libro que no llega nunca.
+    if (typeof IntersectionObserver === 'undefined') {
+      void this.boot();
+      return;
+    }
+    queueMicrotask(() => {
+      const el = this.canvasRef?.()?.nativeElement;
+      if (!el) {
+        void this.boot();
+        return;
+      }
+      const io = new IntersectionObserver(
+        (entradas) => {
+          if (!entradas.some((e) => e.isIntersecting)) return;
+          io.disconnect();
+          void this.boot();
+        },
+        // Cuatro pantallas de antelacion, no dos: el hero mide 700vh, asi que
+        // el libro esta a unas ocho pantallas del inicio y con un margen corto
+        // la peticion salia demasiado tarde —medido: entraba en pantalla a los
+        // 15,8 s y todavia no habia cargado—. Con 400% empieza a bajar cuando
+        // el visitante va por la mitad del hero, que para entonces ya tiene sus
+        // cuadros y no compite por la linea.
+        { rootMargin: '400% 0px' },
+      );
+      io.observe(el);
+    });
   }
 
   private async boot(): Promise<void> {

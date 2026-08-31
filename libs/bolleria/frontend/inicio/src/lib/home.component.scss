@@ -175,6 +175,16 @@
     font: 500 14px 'Jost', sans-serif;
     letter-spacing: 0.08em;
     text-transform: uppercase;
+
+    // 170x20 medidos en movil: se toca con el dedo, no con un puntero. Se
+    // lleva a 44px de alto con padding vertical compensado por un margin
+    // negativo igual, para que la linea base siga cayendo donde caia y el
+    // `align-items: baseline` de la fila no se mueva. Solo en tactil: en
+    // escritorio el enlace queda exactamente como estaba.
+    @media (max-width: 900px) {
+      padding: 12px 0;
+      margin: -12px 0;
+    }
   }
 }
 .bol-cats__grid {

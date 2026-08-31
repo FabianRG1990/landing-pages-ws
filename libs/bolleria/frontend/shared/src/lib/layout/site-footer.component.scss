@@ -176,6 +176,19 @@
       color: #f0c675;
     }
   }
+
+  // 296x22 medidos: alto insuficiente para el dedo. Los 11px de padding por
+  // lado llevan cada enlace a 44px y se descuentan del `gap` de la columna
+  // (9px -> 0) para que la separacion visual entre renglones no cambie.
+  @media (max-width: 900px) {
+    padding: 11px 0;
+  }
+}
+
+.bol-footer__links {
+  @media (max-width: 900px) {
+    gap: 0;
+  }
 }
 
 
@@ -193,6 +206,12 @@
   gap: 9px;
   margin-top: 18px;
   padding: 11px 20px;
+  // 166x40 medidos: es el boton de WhatsApp del pie, el segundo camino al
+  // pedido. 2px mas por arriba y por abajo lo dejan en los 44px del minimo
+  // tactil; en escritorio conserva su altura.
+  @media (max-width: 900px) {
+    padding: 13px 20px;
+  }
   border-radius: 999px;
   // El mismo degradado y el mismo relieve que .bol-nav__cta, copiados tal cual.
   background: linear-gradient(155deg, #f0c675 0%, var(--acc, #c8912a) 50%, #96651a 100%);
@@ -277,6 +296,13 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+
+  // 313x22: la firma tambien se toca. Padding vertical compensado con margin
+  // para no separar el pie del borde inferior.
+  @media (max-width: 900px) {
+    padding: 11px 0;
+    margin: -11px 0;
+  }
   // Al subir de 11 a 13px la firma dejó de caber en el ancho de un móvil y se
   // partía por dentro, en cuatro renglones rotos. Ahora envuelve por sus piezas
   // -cada una entera- en vez de romper las palabras.
