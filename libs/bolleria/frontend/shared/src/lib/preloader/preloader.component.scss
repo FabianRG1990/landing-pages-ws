@@ -1,6 +1,12 @@
 .bol-preloader {
   position: fixed;
   inset: 0;
+  // La ventana en su tamaño GRANDE (`lvh`), no el `100%` que implica `inset: 0`.
+  // En un móvil con barra de herramientas dinámica —Firefox de Android, medido
+  // el 2026-08-31— al retraerse la barra queda a la vista más pantalla de la
+  // que mide el elemento fijo, y se veía la página por una franja abajo.
+  // `lvh` es la altura con el cromo del navegador retraído, o sea el peor caso.
+  min-height: 100lvh;
   z-index: 2000;
   background: #faf6ec;
   display: flex;

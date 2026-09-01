@@ -29,6 +29,39 @@ export function diagRegistra(nombre: string, f: DiagFuente): void {
   fuentes.set(nombre, f);
 }
 
+/**
+ * Cuentafotogramas. Se mira el PEOR intervalo de la última ventana, no la
+ * media: una animación que va a 60 y da un parón de 250 ms se lee mal en la
+ * media y se ve fatal en pantalla. Es justo lo que hay que poder leer en el
+ * teléfono mientras pasa la cortina.
+ */
+const reloj = { fps: 0, peor: 0 };
+function arrancaReloj(): void {
+  let previo = 0;
+  let peorVentana = 0;
+  let cuenta = 0;
+  let inicio = 0;
+  const paso = (t: number): void => {
+    if (previo) {
+      const dt = t - previo;
+      if (dt > peorVentana) peorVentana = dt;
+      cuenta++;
+      if (t - inicio >= 500) {
+        reloj.fps = Math.round((cuenta * 1000) / (t - inicio));
+        reloj.peor = Math.round(peorVentana);
+        cuenta = 0;
+        peorVentana = 0;
+        inicio = t;
+      }
+    } else {
+      inicio = t;
+    }
+    previo = t;
+    requestAnimationFrame(paso);
+  };
+  requestAnimationFrame(paso);
+}
+
 function pinta(pre: HTMLElement): void {
   const partes: string[] = [];
   for (const [nombre, f] of fuentes) {
@@ -46,6 +79,7 @@ function pinta(pre: HTMLElement): void {
   partes.push(
     [
       '▸ pagina',
+      `  FPS: ${reloj.fps}   peor pausa: ${reloj.peor} ms   <- disparar la cortina y mirar aqui`,
       `  viewport: ${window.innerWidth}x${window.innerHeight}  dpr ${window.devicePixelRatio}`,
       `  scrollX: ${Math.round(window.scrollX)}   <- distinto de 0 = deriva lateral`,
       `  scrollW/clientW: ${d.scrollWidth}/${d.clientWidth}`,
@@ -90,6 +124,7 @@ export function instalaDiag(): void {
   // Un refresco por fotograma sería ruido ilegible en un teléfono; 4 veces por
   // segundo se lee y sigue siendo suficiente para ver un contador subir
   // mientras el dedo se mueve.
+  arrancaReloj();
   pinta(pre);
   setInterval(() => pinta(pre), 250);
 }

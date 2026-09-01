@@ -5,6 +5,12 @@
 .bol-curtain {
   position: fixed;
   inset: 0;
+  // La ventana en su tamaño GRANDE (`lvh`), no el `100%` que implica `inset: 0`.
+  // En un móvil con barra de herramientas dinámica —Firefox de Android, medido
+  // el 2026-08-31— al retraerse la barra queda a la vista más pantalla de la
+  // que mide el elemento fijo, y se veía la página por una franja abajo.
+  // `lvh` es la altura con el cromo del navegador retraído, o sea el peor caso.
+  min-height: 100lvh;
   z-index: 1500;
   display: flex;
   align-items: center;
@@ -41,32 +47,45 @@
 // El fondo real del sitio (harina + espiga de trigo + veta de lienzo — el
 // mismo asset que ya usa el hero), no un degradado abstracto: esto es lo que
 // le da presencia/detalle real que un gradiente no puede imitar.
+//
+// Va HORNEADO en el propio archivo, y el aspecto es exactamente el de antes.
+// Antes se conseguía en tiempo real con dos capas: la imagen del hero con
+// `filter: grayscale(1) brightness(0.42) contrast(1.18)` —oscurecida bastante
+// más que el hero real, porque aquí es de noche y el detalle debe notarse sin
+// competir con el horno— y encima un duotono oliva vía `mix-blend-mode: color`,
+// que toma matiz y saturación del tinte y conserva la luminosidad y la textura
+// de la imagen de abajo.
+//
+// Las dos son operaciones FIJAS sobre una imagen FIJA, y sin embargo el
+// navegador las recalculaba a pantalla completa en cada fotograma de la
+// animación. Chromium se lo come; WebKit no. Medido aislando la cortina en
+// WebKit, en ms por fotograma:
+//
+//   cortina completa            247      <- ~4 fotogramas para toda la animacion
+//   sin el filtro               185
+//   sin las 4 capas del fondo   121
+//   cortina vacia                63      <- el suelo de la pagina
+//
+// A 4 fotogramas, al fundido del logo (400 ms) le tocaba uno o dos: de ahi el
+// "el logo aparece, se desaparece y al final vuelve a aparecer" que se
+// reportaba SOLO en Safari. La imagen horneada quita 126 de esos 184 ms.
+//
+// Se generó haciendo que el navegador aplicara el CSS de arriba y leyendo los
+// píxeles (ver la nota del commit), no reimplementando el duotono a mano: por
+// eso es el mismo resultado y no uno parecido. Si algún día cambia
+// `hero-bg-*.webp`, hay que volver a hornear.
+//
+// La viñeta y el foco siguen siendo capas vivas: medidas, cuestan 0.
 .bol-curtain__backdrop-img {
   position: absolute;
   inset: 0;
-  background-image: url('/assets/hero-bg-mobile.webp');
+  background-image: url('/assets/curtain-bg-mobile.webp');
   background-size: cover;
   background-position: center;
-  // Oscurecido bastante más que el hero real: aquí es de noche/de fondo, no
-  // la escena principal — el detalle de la textura debe notarse, no competir
-  // con el horno.
-  filter: grayscale(1) brightness(0.42) contrast(1.18);
 
   @media (min-width: 900px) {
-    background-image: url('/assets/hero-bg-desktop.webp');
+    background-image: url('/assets/curtain-bg-desktop.webp');
   }
-}
-
-// Tiñe la imagen (ya en escala de grises) de verde oliva vía
-// `mix-blend-mode: color`: esta técnica ("duotono") toma el matiz/saturación
-// de esta capa y conserva la luminosidad/textura de la imagen de abajo — por
-// eso el dorado original desaparece del todo sin perder ni un rastro de
-// harina ni la veta del lienzo.
-.bol-curtain__backdrop-tint {
-  position: absolute;
-  inset: 0;
-  background: var(--oliveD);
-  mix-blend-mode: color;
 }
 
 // Viñeta: oscurece hacia los bordes/esquinas para que el foco caiga sobre el
