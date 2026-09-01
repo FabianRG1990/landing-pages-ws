@@ -408,6 +408,13 @@
 
   &--open {
     clip-path: circle(150% at calc(100% - 40px) 40px);
+    // El panel no tiene desplazamiento propio ni debe tenerlo: son tres
+    // enlaces centrados. Sin esto, el dedo se encadenaba al documento y movía
+    // la página de detrás con el menú abierto. El bloqueo de verdad lo hace
+    // `scrollLocked` (ver bolleria.store.ts); esto lo resuelve además en el
+    // compositor, sin depender de que un `preventDefault` llegue a tiempo.
+    touch-action: none;
+    overscroll-behavior: contain;
   }
 }
 

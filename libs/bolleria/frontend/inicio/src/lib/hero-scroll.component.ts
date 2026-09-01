@@ -10,7 +10,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { BolleriaStore } from '@bolleria-ui-shared';
+import { BolleriaStore, diagRegistra } from '@bolleria-ui-shared';
 
 type FlavorKey = 'dulce' | 'mantequilla' | 'pistacho' | 'crema' | 'nutella';
 
@@ -643,6 +643,23 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
     window.addEventListener('touchmove', this.onTouchMove, { passive: false });
     window.addEventListener('touchend', this.onTouchEnd, { passive: true });
     window.addEventListener('touchcancel', this.onTouchEnd, { passive: true });
+
+    // DIAG (temporal, ver diag.ts). Lo que hay que poder leer en el teléfono
+    // es POR QUÉ el controlador no mueve la página: si no está habilitado, si
+    // el toque no le llega, o si le llega y el navegador ya no le deja
+    // cancelar el desplazamiento.
+    diagRegistra('hero', () => ({
+      ready: this.ready,
+      ckEnabled: this.ckEnabled(),
+      tactil: this.tactil(),
+      paradas: this.stops.length,
+      touchAction: this.wrapRef()?.nativeElement.style.touchAction || '(vacio)',
+      toques: this.diagToques,
+      'toques fuera del wrap': this.diagFuera,
+      empujones: this.diagEmpujones,
+      'touchmove NO cancelable': this.diagNoCancelable,
+      ultimoObjetivo: this.diagUltimoObjetivo,
+    }));
   }
 
   ngOnDestroy(): void {
@@ -1627,6 +1644,7 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
    * sabe con certeza porque el gesto empieza al posarse.
    */
   private ckEmpujar(dy: number, nuevoGesto: boolean): void {
+    this.diagEmpujones++; // DIAG
     const dir: 1 | -1 = dy > 0 ? 1 : -1;
     if (nuevoGesto) {
       // Si el gesto continúa en el mismo sentido de un viaje vivo, se cuenta
@@ -1707,7 +1725,14 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
     // menú y el carrito viven fuera de ese elemento, así que sus toques —y sus
     // taps— no pasan por aquí.
     const wrap = this.wrapRef()?.nativeElement;
-    if (!wrap || !(e.target instanceof Node) || !wrap.contains(e.target)) return;
+    this.diagToques++; // DIAG
+    if (e.target instanceof Element) {
+      this.diagUltimoObjetivo = e.target.tagName.toLowerCase() + '.' + String(e.target.className).slice(0, 24);
+    }
+    if (!wrap || !(e.target instanceof Node) || !wrap.contains(e.target)) {
+      this.diagFuera++; // DIAG
+      return;
+    }
     const t = e.touches[0];
     this.tActivo = true;
     this.tX0 = t.clientX;
@@ -1751,7 +1776,14 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
       this.tActivo = false;
       return;
     }
-    e.preventDefault();
+    // `cancelable` vale false cuando el navegador YA dio el gesto por
+    // desplazamiento y lo pasó al compositor: ahí `preventDefault` no cancela
+    // nada y además avisa por consola. Quien de verdad nos reserva el eje es
+    // `touch-action` (ver el bloque que lo escribe en cada fotograma); esto es
+    // la segunda línea de defensa, y contar los fallos es lo que delata si la
+    // primera no está funcionando en un teléfono que no tengo delante.
+    if (e.cancelable) e.preventDefault();
+    else this.diagNoCancelable++;
     // El gesto nace al posarse el dedo y muere al levantarlo. Nada más lo
     // corta: ni una pausa a mitad del arrastre, ni —y esto es lo que hubo que
     // corregir— que el viaje termine antes que el dedo. La rueda deduce el
@@ -1772,6 +1804,13 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
 
   /** Marca que el próximo empujón abre un gesto (se pone al posar el dedo). */
   private tGestoNuevo = true;
+
+  // ---- DIAG (temporal, ver diag.ts) ----
+  private diagNoCancelable = 0;
+  private diagToques = 0;
+  private diagFuera = 0;
+  private diagEmpujones = 0;
+  private diagUltimoObjetivo = '';
 
   private readonly onTouchEnd = (): void => {
     // `tCapturado` y no `tComprometido`, y esta distinción costó un fallo:
@@ -1881,8 +1920,17 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
     // Se recalcula en cada fotograma, y ahí está la seguridad: en cuanto se
     // pasa la última parada —el texto de la masa madre y todo lo que sigue— el
     // valor vuelve a vacío y el teléfono recupera su desplazamiento de siempre.
-    // Se cede `pan-x` y `pinch-zoom` en vez de poner `none`: quitar el zoom de
-    // pellizco sería quitarle a alguien la forma de leer la letra pequeña.
+    // NO se cede `pan-x`. La intención original era conservar el zoom de
+    // pellizco —quitárselo a alguien es quitarle la forma de leer la letra
+    // pequeña— y para eso se escribió `pan-x pinch-zoom`, pero `pan-x` no hacía
+    // ninguna falta: `pinch-zoom` a secas ya conserva el zoom, y `pan-x` es
+    // ADEMÁS una autorización explícita a desplazarse en horizontal.
+    //
+    // En Safari de iOS eso se nota y en Chrome de Android no. Reportado en un
+    // iPhone con iOS 26.5: «usted hace scroll para abajo y la aplicación se
+    // mueve diagonal, se mueve para todo lado». Es literal — le estábamos
+    // diciendo al navegador que ese gesto podía llevarse el eje X, en una
+    // página que no tiene nada que desplazar de lado.
     if (R.wrap) {
       const ultima = this.stops[this.stops.length - 1];
       const rel = window.scrollY - this.wrapTop;
@@ -1901,7 +1949,7 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
       // paradas, que es un precio muy pequeño al lado de dejar a alguien sin
       // poder bajar.
       const mandaElDedo = this.tactil() && this.ckEnabled() && rel >= -CK_EPS && rel < ultima - CK_EPS;
-      const ta = mandaElDedo ? 'pan-x pinch-zoom' : '';
+      const ta = mandaElDedo ? 'pinch-zoom' : '';
       if (R.wrap.style.touchAction !== ta) R.wrap.style.touchAction = ta;
     }
     const SEQ = G.SEQ;

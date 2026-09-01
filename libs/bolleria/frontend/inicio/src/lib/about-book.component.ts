@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, ElementRef, NgZone, PLATFORM_ID, computed, inject, signal, viewChild } from '@angular/core';
 import { NgStyle, isPlatformBrowser } from '@angular/common';
-import { CONTACT } from '@bolleria-ui-shared';
+import { CONTACT, diagRegistra } from '@bolleria-ui-shared';
 
 const FRAME_COUNT = 169;
 const FRAMES_DIR = 'assets/about-book-frames';
@@ -1122,12 +1122,30 @@ export class AboutBookComponent {
     return this.textPanels[page - 1] ?? null;
   }
 
-  // ImageBitmap (no <img>): un <img> ya decodificado puede ser descartado por el
-  // navegador bajo presion de memoria y forzar un redecode silencioso -y una
-  // pausa real- la primera vez que se vuelve a dibujar, minutos despues de la
-  // precarga. ImageBitmap mantiene los pixeles decodificados en memoria mientras
-  // se conserve la referencia, sin ese riesgo.
-  private frames: ImageBitmap[] = [];
+  /**
+   * <img> y NO ImageBitmap, y el cambio de opinion tiene una causa medida.
+   *
+   * Aqui hubo ImageBitmap a proposito, con este razonamiento: un <img> ya
+   * decodificado puede ser descartado por el navegador bajo presion de memoria
+   * y forzar un redecode silencioso -y una pausa real- la primera vez que se
+   * vuelve a dibujar; ImageBitmap conserva los pixeles mientras exista la
+   * referencia. Impecable en un escritorio. En un telefono es justo al reves:
+   * son 169 cuadros de 860x698, o sea unos 406 MB de pixeles que el navegador
+   * tiene PROHIBIDO liberar, y en iOS ese techo no se negocia. Reportado en un
+   * iPhone con iOS 26.5: "el libro no carga nunca", sin un solo error en
+   * consola -porque todas las ramas de fallo eran `catch {}` mudos-.
+   *
+   * Lo que decidio el cambio no es una teoria, es un control dentro de esta
+   * misma aplicacion: el hero carga 233 cuadros en el MISMO telefono y va
+   * perfecto, y lo hace con <img>, concurrencia acotada y una lista de cuadros
+   * rotos (ver `loadHeroFrame` en hero-scroll.component.ts). La unica
+   * diferencia entre el que funciona y el que no era esta. Un redecode
+   * ocasional es peor que ImageBitmap; un libro que no llega nunca es peor que
+   * las dos cosas.
+   */
+  private frames: HTMLImageElement[] = [];
+  /** Cuadros que fallaron, con el motivo. Los lee el panel de DIAG. */
+  private readonly fallos: string[] = [];
   // Fotos crudas, tal como se descargan (a color completo, sin procesar).
   private rawPhotos: (ImageBitmap | null)[] = [];
   // Panel final por foto: solo la foto, con recorte "cover" que llena el
@@ -1219,6 +1237,21 @@ export class AboutBookComponent {
 
   constructor() {
     if (this.isBrowser) this.arrancarCuandoSeAcerque();
+    // DIAG (temporal, ver diag.ts). Lo que hay que poder leer en el telefono es
+    // en que punto se queda el libro: si el observador llego a disparar, si la
+    // descarga termino, y que se perdio por el camino.
+    diagRegistra('libro', () => ({
+      arrancado: this.diagArrancado,
+      'descarga terminada': this.diagDescargado,
+      listo: this.ready(),
+      'cuadros cargados': `${this.frames.filter(Boolean).length}/${FRAME_COUNT}`,
+      fallos: this.fallos.length,
+      detalle: this.fallos.slice(0, 4).join(' | ') || '(ninguno)',
+      lienzo: (() => {
+        const c = this.canvasRef()?.nativeElement;
+        return c ? `${c.width}x${c.height}` : '(sin lienzo)';
+      })(),
+    }));
   }
 
   /**
@@ -1242,20 +1275,20 @@ export class AboutBookComponent {
     // Sin IntersectionObserver (o si algo falla) se carga igual, como antes:
     // vale mas un arranque temprano que un libro que no llega nunca.
     if (typeof IntersectionObserver === 'undefined') {
-      void this.boot();
+      void this.boot().catch((e) => this.fallos.push(`boot: ${String(e).slice(0, 120)}`)); // DIAG: si esto revienta, `ready` no llega nunca y antes no se veia
       return;
     }
     queueMicrotask(() => {
       const el = this.canvasRef?.()?.nativeElement;
       if (!el) {
-        void this.boot();
+        void this.boot().catch((e) => this.fallos.push(`boot: ${String(e).slice(0, 120)}`)); // DIAG: si esto revienta, `ready` no llega nunca y antes no se veia
         return;
       }
       const io = new IntersectionObserver(
         (entradas) => {
           if (!entradas.some((e) => e.isIntersecting)) return;
           io.disconnect();
-          void this.boot();
+          void this.boot().catch((e) => this.fallos.push(`boot: ${String(e).slice(0, 120)}`)); // DIAG: si esto revienta, `ready` no llega nunca y antes no se veia
         },
         // Cuatro pantallas de antelacion, no dos: el hero mide 700vh, asi que
         // el libro esta a unas ocho pantallas del inicio y con un margen corto
@@ -1269,15 +1302,21 @@ export class AboutBookComponent {
     });
   }
 
+  /** DIAG: banderas de progreso del arranque. */
+  private diagArrancado = false;
+  private diagDescargado = false;
+
   private async boot(): Promise<void> {
+    this.diagArrancado = true; // DIAG
     await Promise.all([
-      ...Array.from({ length: FRAME_COUNT }, (_, i) => this.loadFrame(i)),
+      this.loadFramesAcotado(),
       ...STORIES.map((s, i) => this.loadPhoto(i, s.photo)),
       this.loadWheatIcon(),
       this.loadLogo(),
       this.loadCurl(),
       this.prepareFonts(),
     ]);
+    this.diagDescargado = true; // DIAG
     this.photos = this.rawPhotos.map((p) => (p ? this.renderPhotoPanel(p) : null));
     this.textPanels = STORIES.map((s, i) => this.renderTextPanel(s, i === LAST - 1, i + 1));
     // La pagina de cierre se pinta ademas con cada boton resaltado. Son dos
@@ -1313,15 +1352,47 @@ export class AboutBookComponent {
     }
   }
 
-  private async loadFrame(i: number): Promise<void> {
+  /**
+   * Un cuadro, por <img> y sin `fetch` intermedio. Nunca rechaza: un cuadro que
+   * no llega se anota en `fallos` y `draw()` lo omite, igual que antes -pero
+   * ahora se puede LEER que falto, que es lo que faltaba para diagnosticar un
+   * telefono que no tengo delante.
+   */
+  private loadFrame(i: number): Promise<void> {
+    if (this.frames[i]) return Promise.resolve();
     const url = `${FRAMES_DIR}/frame_${String(i + 1).padStart(4, '0')}.webp`;
-    try {
-      const res = await fetch(url);
-      const blob = await res.blob();
-      this.frames[i] = await createImageBitmap(blob);
-    } catch {
-      // se ignora: draw() simplemente omite el cuadro si no llego a cargar
-    }
+    return new Promise((res) => {
+      const img = new Image();
+      img.onload = () => {
+        if (img.naturalWidth > 0) this.frames[i] = img;
+        else this.fallos.push(`cuadro ${i + 1}: ancho 0`);
+        res();
+      };
+      img.onerror = () => {
+        this.fallos.push(`cuadro ${i + 1}: error de carga`);
+        res();
+      };
+      img.decoding = 'async';
+      img.src = url;
+    });
+  }
+
+  /**
+   * Los 169 cuadros con la concurrencia ACOTADA, no con un `Promise.all` de
+   * 169 peticiones a la vez.
+   *
+   * El limite no es cosmetico. Es el mismo motivo por el que el hero lo hace
+   * asi (ver `cargarCuadros`): 169 descargas simultaneas se reparten el
+   * ancho de banda a partes iguales, de modo que NINGUNA termina pronto y el
+   * pico de decodificacion cae todo junto. Con un ancho acotado los primeros
+   * cuadros llegan enseguida y el pico de memoria queda repartido en el tiempo.
+   */
+  private async loadFramesAcotado(): Promise<void> {
+    let siguiente = 0;
+    const obrero = async (): Promise<void> => {
+      while (siguiente < FRAME_COUNT) await this.loadFrame(siguiente++);
+    };
+    await Promise.all(Array.from({ length: 12 }, () => obrero()));
   }
 
   private async loadPhoto(i: number, url: string | null): Promise<void> {
@@ -1333,7 +1404,8 @@ export class AboutBookComponent {
       const res = await fetch(url);
       const blob = await res.blob();
       this.rawPhotos[i] = await createImageBitmap(blob);
-    } catch {
+    } catch (e) {
+      this.fallos.push(`foto ${i + 1}: ${String(e).slice(0, 80)}`);
       this.rawPhotos[i] = null;
     }
   }
@@ -1342,8 +1414,9 @@ export class AboutBookComponent {
     try {
       const res = await fetch(LOGO_URL);
       this.logoArt = await createImageBitmap(await res.blob());
-    } catch {
-      // se ignora: sin marca, la pagina de cierre queda como estaba -en blanco-
+    } catch (e) {
+      // sin marca, la pagina de cierre queda como estaba -en blanco-
+      this.fallos.push(`logo: ${String(e).slice(0, 80)}`);
       this.logoArt = null;
     }
   }
@@ -1359,8 +1432,9 @@ export class AboutBookComponent {
         if (m.bv) m.bv = this.limpiaVisibilidad(m.bv);
       }
       this.buildFlatFront();
-    } catch {
-      // se ignora: sin malla, drawContent deja el contenido quieto en su pagina
+    } catch (e) {
+      // sin malla, drawContent deja el contenido quieto en su pagina
+      this.fallos.push(`malla: ${String(e).slice(0, 80)}`);
     }
   }
 
@@ -1981,9 +2055,9 @@ export class AboutBookComponent {
     if (!ctx || !c || !bmp) return;
     this.lastDrawn = frame;
     ctx.clearRect(0, 0, c.width, c.height);
-    const scale = Math.min(c.width / bmp.width, c.height / bmp.height);
-    const dw = bmp.width * scale;
-    const dh = bmp.height * scale;
+    const scale = Math.min(c.width / bmp.naturalWidth, c.height / bmp.naturalHeight);
+    const dw = bmp.naturalWidth * scale;
+    const dh = bmp.naturalHeight * scale;
     const ox = (c.width - dw) / 2;
     const oy = (c.height - dh) / 2;
     this.pintaCuadro(ctx, frame, ox, oy, dw, dh, 1);
@@ -4001,9 +4075,9 @@ export class AboutBookComponent {
     if (!c) return { display: 'none' };
     const bmp = this.frames[Math.round(PAGE_REST) - 1];
     if (!bmp) return { display: 'none' };
-    const scale = Math.min(c.width / bmp.width, c.height / bmp.height);
-    const ox = (c.width - bmp.width * scale) / 2;
-    const oy = (c.height - bmp.height * scale) / 2;
+    const scale = Math.min(c.width / bmp.naturalWidth, c.height / bmp.naturalHeight);
+    const ox = (c.width - bmp.naturalWidth * scale) / 2;
+    const oy = (c.height - bmp.naturalHeight * scale) / 2;
     const pos = SOCIAL_POS[kind];
     // Va por la MISMA superficie por la que se dibuja el panel -la hoja en
     // reposo con SHEET_TEXT_UV-, no por CONTENT_RIGHT_QUAD, que es otra zona

@@ -72,9 +72,21 @@ export const BolleriaStore = signalStore(
       Object.entries(store.cart()).map(([key, qty]) => ({ id: key, qty, ...parseCartKey(key) })),
     ),
     waDirect: computed(() => waDirectLink()),
-    /** Cierto mientras el preloader o la cortina cubren la pantalla — el scroll
-     * se bloquea (ver `installScrollLock`) exactamente durante esa ventana. */
-    scrollLocked: computed(() => !store.loaded() || store.curtain()),
+    /** Cierto mientras el preloader, la cortina o el menú móvil cubren la
+     * pantalla — el scroll se bloquea (ver `installScrollLock`) exactamente
+     * durante esa ventana.
+     *
+     * El menú entró aquí por un fallo reportado en el teléfono: `.bol-mobile-menu`
+     * es `position: fixed; inset: 0` y NO tiene desplazamiento propio, así que
+     * un dedo sobre el menú abierto se encadenaba al documento y movía la
+     * página de detrás. Se cerraba el menú y se había quedado en otro sitio.
+     *
+     * `installScrollLock` es la pieza correcta y no una improvisación: cancela
+     * desde el PRIMER `touchmove`, que es la única ventana en la que Safari de
+     * iOS todavía atiende la cancelación. De propina, `ckEnabled()` también
+     * consulta esto, así que con el menú abierto el controlador de paradas del
+     * hero se aparta solo. */
+    scrollLocked: computed(() => !store.loaded() || store.curtain() || store.mobileOpen()),
   })),
 
   withComputed((store) => ({
