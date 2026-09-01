@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, HostListener, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, HostListener, computed, inject, signal } from '@angular/core';
 import { BolleriaStore, MenuItem, formatColones } from '@bolleria-ui-shared';
 
 @Component({
@@ -24,6 +24,40 @@ export class MenuPageComponent {
   readonly dialogItem = signal<MenuItem | null>(null);
   readonly selectedOption = signal<string | null>(null);
 
+  /**
+   * Cuántas unidades de cada producto hay en el pedido, SUMANDO sus sabores.
+   *
+   * El carrito no está indexado por producto sino por `cartKey(id, sabor)`, así
+   * que un mismo producto puede tener varias líneas —una por sabor elegido— y
+   * el contador de la fila tiene que enseñar el total, no el de una de ellas.
+   * Es la razón por la que esto no puede ser un `cart()[it.id]` directo.
+   */
+  private readonly qtyByItem = computed(() => {
+    const m: Record<string, number> = {};
+    for (const l of this.cartLines()) m[l.item.id] = (m[l.item.id] ?? 0) + l.qty;
+    return m;
+  });
+  qtyOf(id: string): number {
+    return this.qtyByItem()[id] ?? 0;
+  }
+
+  /**
+   * Producto que acaba de recibir una unidad, para el impulso del contador.
+   *
+   * El contador aparece con sus propios `@keyframes` —eso lo dispara el
+   * navegador solo, al crearse el elemento—, pero al agregar una SEGUNDA unidad
+   * el elemento ya existe y una animación no se reinicia sola. De ahí esta
+   * clase temporal: lo que la mueve es una `transition`, que sí vuelve a
+   * dispararse con cada cambio de clase sin depender de saltarse un fotograma.
+   */
+  readonly popId = signal<string | null>(null);
+  private popTimer?: ReturnType<typeof setTimeout>;
+  private pulso(id: string): void {
+    clearTimeout(this.popTimer);
+    this.popId.set(id);
+    this.popTimer = setTimeout(() => this.popId.set(null), 220);
+  }
+
   setActiveCat(key: string): void {
     this.store.setActiveCat(key);
   }
@@ -38,6 +72,7 @@ export class MenuPageComponent {
   }
   addToCart(id: string): void {
     this.store.addToCart(id);
+    this.pulso(id);
   }
   /** Productos con `options`: "Agregar" abre el diálogo de sabor en vez de agregar directo. */
   openOptions(it: MenuItem): void {
@@ -56,6 +91,7 @@ export class MenuPageComponent {
     const opt = this.selectedOption();
     if (!it || !opt) return;
     this.store.addToCart(it.id, opt);
+    this.pulso(it.id);
     this.closeOptions();
   }
   @HostListener('document:keydown.escape')

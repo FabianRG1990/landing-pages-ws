@@ -374,6 +374,39 @@ const CK_MIN_SPEED_DERRAME = 280;
 const CK_TAIL_PX = 100;
 const CK_EPS = 2;
 
+// ─────────────────────────── El gesto en tactil ───────────────────────────
+// El controlador de paradas no cambia ni una constante para el telefono: las
+// mismas doce paradas, el mismo muelle, el mismo suelo de velocidad. Lo unico
+// que cambia es POR DONDE entra el gesto, porque un telefono no tiene rueda.
+//
+// La equivalencia es directa: un deslizamiento es un gesto, igual que un golpe
+// de rueda, y los pixeles que recorre el dedo alimentan el mismo acumulador que
+// alimentaba `deltaY`. Asi `CK_BURST_FREE` y `CK_BURST_STEP` conservan su
+// significado y no hay un segundo juego de numeros que mantener.
+
+/** Desplazamiento minimo para dar un barrido por empezado. Por debajo, el
+ *  contacto todavia puede ser un toque y no se le roba al navegador. */
+const T_UMBRAL_PX = 8;
+
+/**
+ * Segundos de inercia que se le atribuyen a un envion al levantar el dedo.
+ *
+ * Sin este termino un envion rapido y un arrastre lento de la MISMA longitud
+ * valdrian lo mismo, y entonces deslizar deprisa no correria mas — que es justo
+ * lo que se pide. La rueda no lo necesita porque ahi la intensidad ya viene en
+ * la cantidad de eventos; el dedo, en cambio, esta limitado por el alto de la
+ * pantalla y no puede recorrer mas de ~650 px por gesto.
+ *
+ * Lo que se suma es la distancia que el scroll nativo HABRIA recorrido con esa
+ * velocidad de salida. Con la deceleracion habitual de iOS y Android eso son
+ * unos 250 ms de viaje, asi que un envion de 2000 px/s aporta 500 px: sumados a
+ * los ~300 que recorre el dedo pasan del tramo franco y valen una parada extra.
+ */
+const T_INERCIA_S = 0.25;
+
+/** Ventana sobre la que se mide la velocidad de salida (ms). */
+const T_VEL_MS = 100;
+
 const HERO_CAPTIONS: HeroCaption[] = [
   {
     inA: 106,
@@ -604,6 +637,12 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
     // modo tableta se atienden en vivo sin re-registrar nada.
     window.addEventListener('wheel', this.onWheel, { passive: false });
     window.addEventListener('keydown', this.onKeyDown);
+    // `passive: false` en touchmove por lo mismo que en wheel: hay que poder
+    // cancelar el desplazamiento nativo. Los otros dos no cancelan nada.
+    window.addEventListener('touchstart', this.onTouchStart, { passive: true });
+    window.addEventListener('touchmove', this.onTouchMove, { passive: false });
+    window.addEventListener('touchend', this.onTouchEnd, { passive: true });
+    window.addEventListener('touchcancel', this.onTouchEnd, { passive: true });
   }
 
   ngOnDestroy(): void {
@@ -612,6 +651,10 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
     window.removeEventListener('resize', this.onResize);
     window.removeEventListener('wheel', this.onWheel);
     window.removeEventListener('keydown', this.onKeyDown);
+    window.removeEventListener('touchstart', this.onTouchStart);
+    window.removeEventListener('touchmove', this.onTouchMove);
+    window.removeEventListener('touchend', this.onTouchEnd);
+    window.removeEventListener('touchcancel', this.onTouchEnd);
   }
 
   private readonly onResize = (): void => {
@@ -1401,14 +1444,19 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
 
   // ---- controlador de paradas ----
   /**
-   * Solo en escritorio. En táctil capturar el gesto obliga a `touch-action:
-   * none` y a reimplementar la inercia entera — es donde este patrón se rompe
-   * más y donde más tráfico hay, así que ahí se deja el scroll nativo sobre el
-   * recorrido ya recortado. Con `reduce` no hay animación que apreciar.
+   * En escritorio y en táctil. Durante mucho tiempo esto exigió puntero fino
+   * porque capturar el gesto del dedo obliga a apagar el desplazamiento nativo
+   * en la zona del hero, y ese es el fallo más caro que se puede cometer en un
+   * teléfono. Se hace igualmente, y lo que lo vuelve asumible es que el apagado
+   * está acotado a la franja donde el controlador manda de verdad
+   * (`touchAction` se recalcula en cada fotograma) y que el resto del recorrido
+   * —el texto de la masa madre y todo lo que viene debajo— sigue con el
+   * desplazamiento del navegador.
+   *
+   * Con `reduce` no hay animación que apreciar y se deja el scroll nativo.
    */
   private checkpointsSupported(): boolean {
-    if (this.reduced()) return false;
-    return window.matchMedia?.('(pointer: fine)').matches ?? true;
+    return !this.reduced();
   }
 
   private ckEnabled(): boolean {
@@ -1567,7 +1615,19 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
     // cuenta como gesto nuevo, porque lo que el usuario pide ya es otra cosa.
     const nuevoGesto = !this.ckRunning || now - this.lastWheelAt >= CK_GESTURE_MS || dir !== this.ckGestureDir;
     this.lastWheelAt = now;
+    this.ckEmpujar(dy, nuevoGesto);
+  };
 
+  /**
+   * Núcleo del gesto. Lo llaman la rueda y el dedo con el MISMO significado de
+   * `dy` —píxeles de recorrido con signo— y por eso el teléfono no necesita un
+   * segundo juego de constantes: `CK_BURST_FREE` y `CK_BURST_STEP` gobiernan
+   * los dos. Lo único que cada entrada decide por su cuenta es cuándo empieza
+   * un gesto nuevo: la rueda lo deduce del silencio entre eventos, el dedo lo
+   * sabe con certeza porque el gesto empieza al posarse.
+   */
+  private ckEmpujar(dy: number, nuevoGesto: boolean): void {
+    const dir: 1 | -1 = dy > 0 ? 1 : -1;
     if (nuevoGesto) {
       // Si el gesto continúa en el mismo sentido de un viaje vivo, se cuenta
       // sobre el objetivo ya encolado: así dos o tres gestos seguidos apilan
@@ -1582,12 +1642,7 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
       this.ckGestureDir = dir;
       this.ckGestureAccum = 0;
       this.ckGestureBonus = 0;
-      if (!this.ckRunning) {
-        this.ckFrameAt = 0;
-        this.ckLastWrittenY = -1;
-        this.ckVel = 0;
-        this.ckRunning = true;
-      }
+      this.ckArrancar();
     }
     // Intensidad DENTRO del gesto. La rueda girada a fondo llega como una ráfaga
     // sin silencios, o incluso como un solo evento de miles de píxeles: sin este
@@ -1598,10 +1653,152 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
     if (bonus > this.ckGestureBonus) {
       this.ckIdx += (bonus - this.ckGestureBonus) * dir;
       this.ckGestureBonus = bonus;
+      // El seguimiento puede haberse apagado al llegar al objetivo anterior
+      // mientras el dedo seguía puesto; si la intensidad encola otra parada hay
+      // que volver a encenderlo o el objetivo nuevo se quedaría sin quien lo
+      // persiga. En la rueda no hacía falta porque ahí ese caso abría un gesto.
+      this.ckArrancar();
     }
     // El índice no se sale de la lista: pasada la última parada manda el scroll
     // nativo (`ckShouldIntercept`), así que ahí no hay nada que encolar.
     this.ckIdx = Math.max(0, Math.min(this.stops.length - 1, this.ckIdx));
+  }
+
+  /** Enciende el seguimiento si estaba apagado, sin tocarlo si ya iba. */
+  private ckArrancar(): void {
+    if (this.ckRunning) return;
+    this.ckFrameAt = 0;
+    this.ckLastWrittenY = -1;
+    this.ckVel = 0;
+    this.ckRunning = true;
+  }
+
+  // ---- el mismo controlador, pero con el dedo ----
+  /** Contacto vivo que todavía puede convertirse en un barrido nuestro. */
+  private tActivo = false;
+  /** Ya se decidió que este contacto es un barrido vertical. */
+  private tComprometido = false;
+  /**
+   * El controlador llegó a aceptar este barrido. NO es lo mismo que
+   * `tComprometido`: un barrido puede ser vertical y aun así caer fuera del
+   * tramo que gobierna el hero, y entonces lo atiende el navegador.
+   */
+  private tCapturado = false;
+  private tX0 = 0;
+  private tY0 = 0;
+  private tYPrev = 0;
+  /** Posiciones recientes, para medir con qué velocidad se levanta el dedo. */
+  private tMuestras: { y: number; t: number }[] = [];
+
+  /**
+   * Solo donde el puntero principal es el dedo. En un portátil con pantalla
+   * táctil el puntero fino sigue mandando y no se le toca nada.
+   */
+  private tactil(): boolean {
+    return window.matchMedia?.('(pointer: coarse)').matches ?? false;
+  }
+
+  private readonly onTouchStart = (e: TouchEvent): void => {
+    this.tActivo = false;
+    this.tComprometido = false;
+    this.tCapturado = false;
+    if (!this.tactil() || !this.ckEnabled() || e.touches.length !== 1) return;
+    // Solo los toques que nacen DENTRO del recorrido del hero. El navbar, el
+    // menú y el carrito viven fuera de ese elemento, así que sus toques —y sus
+    // taps— no pasan por aquí.
+    const wrap = this.wrapRef()?.nativeElement;
+    if (!wrap || !(e.target instanceof Node) || !wrap.contains(e.target)) return;
+    const t = e.touches[0];
+    this.tActivo = true;
+    this.tX0 = t.clientX;
+    this.tY0 = t.clientY;
+    this.tYPrev = t.clientY;
+    this.tMuestras = [{ y: t.clientY, t: performance.now() }];
+  };
+
+  private readonly onTouchMove = (e: TouchEvent): void => {
+    if (!this.tActivo) return;
+    if (e.touches.length !== 1) {
+      // Un segundo dedo es un pellizco para hacer zoom: se suelta el gesto.
+      this.tActivo = false;
+      return;
+    }
+    const t = e.touches[0];
+    const ahora = performance.now();
+    this.tMuestras.push({ y: t.clientY, t: ahora });
+    while (this.tMuestras.length > 2 && ahora - this.tMuestras[0].t > T_VEL_MS) this.tMuestras.shift();
+
+    if (!this.tComprometido) {
+      const dx = Math.abs(t.clientX - this.tX0);
+      const dyTot = Math.abs(t.clientY - this.tY0);
+      // Por debajo del umbral todavía puede ser un toque: no se le quita al
+      // navegador. Y si va más de lado que de arriba abajo, tampoco es nuestro.
+      if (Math.max(dx, dyTot) < T_UMBRAL_PX) return;
+      if (dx >= dyTot) {
+        this.tActivo = false;
+        return;
+      }
+      this.tComprometido = true;
+    }
+
+    // Mismo signo que `deltaY`: dedo hacia arriba = bajar por la página.
+    const dy = this.tYPrev - t.clientY;
+    this.tYPrev = t.clientY;
+    if (!dy) return;
+    const dir: 1 | -1 = dy > 0 ? 1 : -1;
+    if (!this.ckEnabled() || !this.ckShouldIntercept(dir)) {
+      // Se acabó nuestro tramo: se devuelve el gesto al navegador.
+      this.tActivo = false;
+      return;
+    }
+    e.preventDefault();
+    // El gesto nace al posarse el dedo y muere al levantarlo. Nada más lo
+    // corta: ni una pausa a mitad del arrastre, ni —y esto es lo que hubo que
+    // corregir— que el viaje termine antes que el dedo. La rueda deduce el
+    // final del gesto del silencio entre eventos y por eso incluye
+    // `!this.ckRunning`; copiar aquí esa condición hacía que un solo
+    // deslizamiento contara como dos en los tramos cortos, donde el viaje se
+    // completa en menos de lo que dura el barrido. Medido: bajando entre los
+    // sabores, tres deslizamientos seguidos saltaron dos paradas cada uno.
+    //
+    // Invertir el sentido sin levantar sí abre un gesto nuevo, igual que en la
+    // rueda: lo que se está pidiendo ya es otra cosa.
+    const nuevoGesto = this.tGestoNuevo || dir !== this.ckGestureDir;
+    this.tGestoNuevo = false;
+    this.tCapturado = true;
+    this.lastWheelAt = ahora;
+    this.ckEmpujar(dy, nuevoGesto);
+  };
+
+  /** Marca que el próximo empujón abre un gesto (se pone al posar el dedo). */
+  private tGestoNuevo = true;
+
+  private readonly onTouchEnd = (): void => {
+    // `tCapturado` y no `tComprometido`, y esta distinción costó un fallo:
+    // pasada la última parada el barrido sigue siendo vertical —y por tanto
+    // "comprometido"— pero lo atiende el navegador. Aplicándole igualmente el
+    // envión, la intensidad encolaba una parada, el objetivo se topaba en la
+    // última y el controlador tiraba de la página HACIA ATRÁS. Medido: bajando
+    // por el texto de la masa madre, la posición oscilaba 2963 ↔ 3148 sin
+    // avanzar nunca.
+    //
+    // La segunda condición cubre el caso simétrico: un barrido que sí fue
+    // nuestro pero que ya llegó a la última parada mientras el dedo seguía
+    // puesto. Ahí el envión tampoco debe encolar nada.
+    const eraNuestro = this.tCapturado && this.ckShouldIntercept(this.ckGestureDir);
+    this.tActivo = false;
+    this.tComprometido = false;
+    this.tCapturado = false;
+    this.tGestoNuevo = true;
+    if (!eraNuestro || this.tMuestras.length < 2) return;
+    const a = this.tMuestras[0];
+    const b = this.tMuestras[this.tMuestras.length - 1];
+    const dt = (b.t - a.t) / 1000;
+    if (dt <= 0) return;
+    const v = (a.y - b.y) / dt; // px/s, positivo = bajando
+    // Si el dedo se frenó o cambió de sentido al final no hubo envión.
+    if (Math.sign(v) !== this.ckGestureDir) return;
+    this.ckEmpujar(Math.abs(v) * T_INERCIA_S * this.ckGestureDir, false);
   };
 
   private readonly onKeyDown = (e: KeyboardEvent): void => {
@@ -1674,6 +1871,39 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
     // resize (fuentes que cargan, barra de URL del navegador que se retrae).
     this.wrapTop = window.scrollY + rect.top;
     this.stops = this.computeStops(G);
+    // Cesión del eje vertical al controlador, y SOLO mientras manda de verdad.
+    //
+    // No basta con `preventDefault` en touchmove: en cuanto el navegador da un
+    // gesto por reconocido como desplazamiento, lo pasa al compositor y deja de
+    // atender la cancelacion. `touch-action` es lo que se consulta ANTES de
+    // eso, y es lo único que garantiza que el dedo sea nuestro.
+    //
+    // Se recalcula en cada fotograma, y ahí está la seguridad: en cuanto se
+    // pasa la última parada —el texto de la masa madre y todo lo que sigue— el
+    // valor vuelve a vacío y el teléfono recupera su desplazamiento de siempre.
+    // Se cede `pan-x` y `pinch-zoom` en vez de poner `none`: quitar el zoom de
+    // pellizco sería quitarle a alguien la forma de leer la letra pequeña.
+    if (R.wrap) {
+      const ultima = this.stops[this.stops.length - 1];
+      const rel = window.scrollY - this.wrapTop;
+      // El límite es EXACTAMENTE el mismo que usa `ckShouldIntercept` para
+      // bajar, y tiene que serlo. El primer intento cedía el eje también dentro
+      // del margen de recaptura (`CK_REENTRY_VH`), pensando en los gestos hacia
+      // arriba — y el resultado, con toques reales, fue que la página se
+      // quedaba MUERTA en la última parada: el controlador ya había soltado el
+      // mando, pero `touch-action` seguía impidiendo que el navegador
+      // desplazara. Medido: tres deslizamientos seguidos sin moverse de 2963.
+      //
+      // Ese margen no se puede aplicar aquí porque `touch-action` no distingue
+      // el sentido: se decide al posarse el dedo, antes de saber hacia dónde
+      // va. Volviendo desde el texto de la masa madre, el primer deslizamiento
+      // hacia arriba lo hace el navegador y a partir del siguiente vuelven las
+      // paradas, que es un precio muy pequeño al lado de dejar a alguien sin
+      // poder bajar.
+      const mandaElDedo = this.tactil() && this.ckEnabled() && rel >= -CK_EPS && rel < ultima - CK_EPS;
+      const ta = mandaElDedo ? 'pan-x pinch-zoom' : '';
+      if (R.wrap.style.touchAction !== ta) R.wrap.style.touchAction = ta;
+    }
     const SEQ = G.SEQ;
     const p = this.clamp01(scrolled / (SEQ || 1));
     const seg = (a: number, b: number) => this.clamp01((p - a) / (b - a));

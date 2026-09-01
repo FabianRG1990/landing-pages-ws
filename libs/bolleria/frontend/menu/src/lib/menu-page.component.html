@@ -32,18 +32,34 @@
                   type="button"
                   (click)="openOptions(it)"
                   class="bol-menu__row-add"
-                  [attr.aria-label]="'Elegir sabor de ' + it.name"
+                  [attr.aria-label]="'Elegir sabor de ' + it.name + (qtyOf(it.id) ? ', ' + qtyOf(it.id) + ' en el pedido' : '')"
                 >
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Agregar
+                  <!-- Solo cuenta: no es un boton ni se puede pulsar por separado.
+                       Va oculto al lector de pantalla porque la cantidad ya viaja
+                       en el `aria-label` del boton, y repetirla la leeria dos
+                       veces. En escritorio no se muestra -el pedido esta al lado
+                       y siempre a la vista-; ver `.bol-menu__row-qty`. -->
+                  @if (qtyOf(it.id); as n) {
+                    <span class="bol-menu__row-qty" [class.is-pop]="popId() === it.id" aria-hidden="true">{{ n }}</span>
+                  }
                 </button>
               } @else {
                 <button
                   type="button"
                   (click)="addToCart(it.id)"
                   class="bol-menu__row-add"
-                  [attr.aria-label]="'Agregar ' + it.name + ' al pedido'"
+                  [attr.aria-label]="'Agregar ' + it.name + ' al pedido' + (qtyOf(it.id) ? ', ' + qtyOf(it.id) + ' en el pedido' : '')"
                 >
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Agregar
+                  <!-- Solo cuenta: no es un boton ni se puede pulsar por separado.
+                       Va oculto al lector de pantalla porque la cantidad ya viaja
+                       en el `aria-label` del boton, y repetirla la leeria dos
+                       veces. En escritorio no se muestra -el pedido esta al lado
+                       y siempre a la vista-; ver `.bol-menu__row-qty`. -->
+                  @if (qtyOf(it.id); as n) {
+                    <span class="bol-menu__row-qty" [class.is-pop]="popId() === it.id" aria-hidden="true">{{ n }}</span>
+                  }
                 </button>
               }
             </div>

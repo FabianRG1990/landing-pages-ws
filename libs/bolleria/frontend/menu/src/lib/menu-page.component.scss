@@ -212,9 +212,82 @@
   font: 500 22px / 1.4 'EB Garamond', var(--hf, 'Cormorant Garamond'), serif;
 }
 
+// Contador de unidades ya pedidas, en la esquina del boton AGREGAR.
+//
+// SOLO EN MOVIL, y por una razon concreta: por encima de 860px la tarjeta del
+// pedido va al lado de la carta y pegada con `sticky`, o sea que lo agregado
+// esta siempre a la vista y el contador seria informacion repetida. A partir de
+// 860px la tarjeta se apila DEBAJO de toda la lista -en un Pixel 7 queda a mas
+// de 1500px de scroll del primer producto-, y sin este numero no hay forma de
+// saber que el toque hizo algo.
+//
+// Encima del boton y no dentro de la fila a proposito: la fila ya se parte en
+// dos lineas en un iPhone SE de 320px (el nombre pide 220px y el bloque de
+// precio + boton ocupa ~193px de los 240px utiles), asi que cualquier cosa que
+// sume ancho empujaria mas productos a partirse. Colocado en absolute no ocupa
+// ancho ninguno.
 .bol-menu__row-qty {
-  font: 500 14px 'Jost', sans-serif;
-  color: var(--olive);
+  display: none;
+
+  @media (max-width: 860px) {
+    display: grid;
+    place-items: center;
+    position: absolute;
+    // Asoma 7px por arriba: la fila tiene 22px de `padding-top`, asi que no
+    // llega a tocar la linea divisoria del producto de encima.
+    top: -7px;
+    right: -6px;
+    min-width: 22px;
+    height: 22px;
+    padding: 0 5px;
+    border-radius: 999px;
+    // Verde oliva sobre el dorado del boton: es el color de la propia tarjeta
+    // del pedido, o sea que el numero remite a donde ha ido a parar el
+    // producto. El anillo color crema lo despega del degradado.
+    background: var(--olive, #5e6a34);
+    color: var(--cream, #fdf6e6);
+    border: 2px solid var(--cream, #fdf6e6);
+    font: 600 12px / 1 'Jost', sans-serif;
+    letter-spacing: 0;
+    font-variant-numeric: lining-nums tabular-nums;
+    box-shadow: 0 2px 6px -2px rgba(46, 42, 28, 0.5);
+
+    // Dos mecanismos, cada uno donde funciona. Al aparecer manda la animacion,
+    // que el navegador dispara solo al crearse el elemento. De la segunda
+    // unidad en adelante el elemento YA existe y una animacion no se reinicia
+    // sola, asi que ahi manda la transicion, que si vuelve a dispararse con
+    // cada cambio de clase -y sin depender de colar un fotograma entre quitar
+    // y volver a poner la clase, que es donde este tipo de efecto suele
+    // fallar-. Ver `pulso()` en el componente.
+    animation: bol-qty-pop 0.34s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+
+    &.is-pop {
+      transform: scale(1.32);
+    }
+  }
+}
+
+@keyframes bol-qty-pop {
+  0% {
+    transform: scale(0.2);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bol-menu__row-qty {
+    animation: none;
+    transition: none;
+
+    &.is-pop {
+      transform: none;
+    }
+  }
 }
 
 .bol-menu__row-end {
@@ -238,6 +311,9 @@
   display: flex;
   align-items: center;
   gap: 6px;
+  // Bloque de referencia del contador de unidades, que va en absolute sobre su
+  // esquina -ver `.bol-menu__row-qty`-.
+  position: relative;
   background: linear-gradient(155deg, #f0c675 0%, var(--acc, #c8912a) 50%, #96651a 100%);
   color: #fffaf0;
   border: none;
@@ -290,6 +366,14 @@
   // reintroducir el sticky, que aqui no aplica porque la columna ya se apilo.
   @media (max-width: 860px) {
     position: relative;
+    // `top: auto` es obligatorio al salir de `sticky`: el `top: 130px` de
+    // arriba lo heredaba tambien `relative`, y ahi ese desplazamiento PINTA la
+    // tarjeta 130px mas abajo sin mover su hueco en la maqueta. Resultado
+    // medido: la tarjeta terminaba 130px por debajo del final de su propia
+    // seccion y se metia 36px por debajo del pie -en Pixel 7 y en iPhone SE,
+    // el mismo numero-. Con esto vuelven a quedar los 60px de `padding-bottom`
+    // de `.bol-menu` entre una cosa y la otra.
+    top: auto;
   }
 }
 

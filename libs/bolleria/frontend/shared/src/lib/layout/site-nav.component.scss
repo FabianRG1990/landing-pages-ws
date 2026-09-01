@@ -255,6 +255,141 @@
   }
 }
 
+// ── Telefono, arriba del todo: la pildora del escritorio, en pequeno ──
+//
+// Antes el telefono solo tenia el hamburguesa, de modo que entrar en la
+// portada no ofrecia ningun camino visible al menu: habia que saber que ese
+// icono abre algo. Ahora la misma pildora del escritorio —los mismos links,
+// los mismos laureles, el mismo doble filo dorado— se muestra mientras el
+// hero esta arriba del todo, y cede el sitio al hamburguesa en cuanto la
+// pagina se mueve (la misma clase `--compact` que ya encoge el logo, para que
+// no haya dos estados de scroll que puedan desincronizarse).
+//
+// Los numeros salen de medir, no de tantear. A tamano de escritorio la
+// pildora ocupa 535 px y junto al logo solo quedan 170-262 px segun el
+// telefono: reducirla entera al 32-49 % dejaria la letra en 4,5-7 px. Lo que
+// si entra es esta version —letra de 12 px, laureles de 15 y logo de 44— que
+// mide 224 px y deja 21 px de aire en el telefono mas estrecho que la recibe.
+//
+// El corte en 360 px no es redondo por gusto: por debajo (el iPhone SE viejo,
+// 320) NADA entra —medido: la pildora toca el logo y se sale 6 px— asi que
+// ahi se queda el hamburguesa de siempre. De 360 en adelante entran todos:
+// Galaxy S8 360, SE3 y 12 mini 375, iPhone 12/13 390, iPhone 15 393, Pixel 7
+// 412 y Pro Max 430.
+//
+// El CTA "Pedir" se queda fuera: con el subiria a 285 px y dejaria sin barra
+// a los telefonos de 360-390. No se pierde nada con ello, porque hoy en
+// telefono el carrito tampoco se abre desde la portada — `openCart()` solo se
+// llama desde ese boton, que estaba oculto.
+@media (min-width: 360px) and (max-width: 768px) {
+  // Absoluto para que los dos puedan cruzarse con un fundido: si el
+  // hamburguesa siguiera en el flujo, aparecer y desaparecer moveria la
+  // pildora de sitio. `right` descuenta los 10 px de relleno tactil para que
+  // el icono quede EXACTAMENTE donde estaba.
+  .bol-nav__hamburger {
+    position: absolute;
+    top: 50%;
+    right: calc(clamp(20px, 4vw, 44px) - 10px);
+    margin: 0;
+    transform: translateY(-50%);
+    transition: opacity 0.28s;
+  }
+
+  // El ancho total esta topado: a 360 px, descontando el margen de pagina, el
+  // logo y la separacion minima, quedan 233 px para TODA la pildora. Dentro de
+  // ese presupuesto hay que repartir relleno, laureles, letra y huecos, y la
+  // primera version se lo comio casi entero en letra: la de 12 px dejaba los
+  // laureles a 1 px de las palabras —medido— y el laurel no trae margen
+  // transparente que disimule (su tinta ocupa 89 de sus 90 px), asi que ese
+  // 1 px era el hueco real y se veia apelmazado.
+  //
+  // Ahora la letra baja a 10 px y ese ancho liberado se va a los huecos: 5-6 px
+  // a cada lado de los laureles y un espaciado entre letras de 0,17em, que es
+  // lo que le devuelve el aire del escritorio (0,22em) en vez del 0,07em
+  // apretado de antes. La pildora mide practicamente lo mismo —229 px contra
+  // 224— pero repartido de otra forma.
+  .bol-nav__links {
+    display: flex;
+    gap: 12px;
+    // 24 a la izquierda y 22 a la derecha, y la diferencia NO es un descuido:
+    // el espaciado entre letras se suma tambien DESPUES de la ultima letra, asi
+    // que con relleno simetrico el bloque de texto queda opticamente corrido a
+    // la izquierda. Restar esos ~1,7 px a la derecha lo centra de verdad.
+    padding: 8px 22px 8px 24px;
+    transition: opacity 0.28s;
+
+    &::before {
+      left: 5px;
+      width: 13px;
+      height: 13px;
+    }
+    &::after {
+      right: 5px;
+      width: 13px;
+      height: 13px;
+    }
+  }
+
+  .bol-nav__link {
+    font-size: 10px;
+    letter-spacing: 0.17em;
+    // El area de toque medida era de 21 px de alto, la mitad de los 44 que
+    // piden las Human Interface Guidelines. Se agranda con relleno y se
+    // compensa con margen negativo identico, asi que la pildora NO crece: lo
+    // unico que crece es la superficie que responde al dedo. Los dos adornos
+    // van anclados al borde de la caja, asi que se recolocan con el mismo
+    // desplazamiento para quedarse donde estaban.
+    padding: 13px 0 18px;
+    margin: -13px 0 -13px;
+
+    // Centrada en el hueco VISIBLE entre dos palabras, que no es el hueco de
+    // las cajas: la palabra anterior acaba 1,7 px antes de su borde por ese
+    // mismo espaciado final. Sin esta correccion la espiga quedaba pegada a la
+    // palabra de la izquierda y suelta de la derecha.
+    // El hueco visible va de -13,7 px (donde acaba la tinta de la palabra
+    // anterior: 12 de separacion mas 1,7 de espaciado final) al borde de esta
+    // caja. Centrar una espiga de 5 px en ese hueco la deja en -13,7/2 - 5/2.
+    // Vertical: medida la banda de mayusculas, va de 2 a 11 px dentro de la
+    // linea (centro en 6,5). La espiga de 8 px centrada ahi arranca en 2,5, que
+    // sumado al relleno superior de 13 da estos 15,5. Con los 14 de antes
+    // quedaba 1,5 px alta.
+    &:not(:first-child)::before {
+      top: 15.5px;
+      left: -9.35px;
+      width: 5px;
+      height: 8px;
+    }
+    // El subrayado tambien abarcaba el espaciado final y sobresalia de la
+    // palabra por la derecha; se recorta exactamente esa cantidad.
+    &::after {
+      right: 0.17em;
+      bottom: 13px;
+    }
+  }
+
+  .bol-nav__cta {
+    display: none;
+  }
+
+  // 44 px en los DOS estados: si arriba midiera 44 y al bajar volviera a los
+  // 46 de escritorio, el logo creceria al hacer scroll, que es al reves de lo
+  // que hace en todas partes.
+  .bol-nav__logo,
+  .bol-nav--compact .bol-nav__logo {
+    height: 44px;
+  }
+
+  .bol-nav:not(.bol-nav--compact) .bol-nav__hamburger {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .bol-nav--compact .bol-nav__links {
+    opacity: 0;
+    pointer-events: none;
+  }
+}
+
 .bol-mobile-menu {
   position: fixed;
   inset: 0;

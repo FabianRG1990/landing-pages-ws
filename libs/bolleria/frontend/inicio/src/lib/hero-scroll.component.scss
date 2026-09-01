@@ -137,6 +137,27 @@
   pointer-events: none;
   z-index: 5;
   transform: rotate(-1deg);
+
+  // En telefono el rotulo caia ENCIMA del croissant. Medido en iPhone 15: el
+  // texto ocupaba 237..343 y la tinta del croissant empieza en 286, o sea 57 px
+  // montados sobre la masa. Y mientras tanto quedaban 212 px sin usar entre el
+  // navbar (acaba en 74) y el croissant.
+  //
+  // El 4% esta medido contra la caja del croissant, que en telefono es un
+  // cuadrado de 90vw: el rotulo nace dentro de ella. Restandole esta cantidad
+  // sale por arriba y se instala en esa franja libre.
+  //
+  // El desplazamiento va en PIXELES y no en porcentaje, y eso importa: el
+  // rotulo mide siempre lo mismo en telefono —la fuente esta topada en 28 px
+  // por el clamp— mientras que la caja si encoge con la pantalla, asi que un
+  // porcentaje se queda corto justo donde menos aire hay. Probado: con -17 %
+  // quedaban 27 px de aire a 430 px de ancho pero solo 7 a 360.
+  //
+  // En escritorio la caja es mucho mayor que el texto y no hay invasion, asi
+  // que ahi se queda el 4% de siempre.
+  @media (max-width: 899px) {
+    top: calc(4% - 88px);
+  }
 }
 
 .bol-hero-introcap__inner {
@@ -144,11 +165,19 @@
   padding: 16px 28px;
 }
 
+// Resplandor crema detras del texto. Su unica razon de ser era que la frase se
+// leyera POR ENCIMA de la masa del croissant; sobre el fondo liso no aporta
+// nada y, contra la foto, es la mancha nublada que se veia. En telefono el
+// rotulo ya no pisa la imagen, asi que aqui sobra y se quita.
 .bol-hero-introcap__glow {
   position: absolute;
   inset: -14px;
   background: radial-gradient(ellipse at center, rgba(250, 246, 236, 0.85) 0%, rgba(250, 246, 236, 0.42) 55%, transparent 78%);
   filter: blur(3px);
+
+  @media (max-width: 899px) {
+    display: none;
+  }
 }
 
 .bol-hero-introcap__text {
@@ -156,6 +185,19 @@
   font: italic 500 clamp(28px, 3.9vw, 46px) / 1.22 'Cormorant Garamond', serif;
   letter-spacing: -0.008em;
   color: #2e2a1c;
+
+  // En telefono la frase parte en dos renglones muy dispares —medidos, 294 px
+  // y 73— y el corto quedaba colgando a la izquierda, con aspecto de sobra.
+  // `balance` reparte las palabras entre los dos renglones: 188 y 179. Necesita
+  // que el elemento sea de bloque (es un `span`, y en linea la propiedad no
+  // hace nada), y el centrado es lo que coloca el renglon corto bajo el eje del
+  // largo. Donde el navegador no soporte `balance` queda el corte de siempre,
+  // pero ya centrado y no colgando.
+  @media (max-width: 899px) {
+    display: block;
+    text-align: center;
+    text-wrap: balance;
+  }
 }
 
 .bol-hero-masa {
