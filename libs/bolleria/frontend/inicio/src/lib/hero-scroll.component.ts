@@ -371,6 +371,11 @@ const CK_MIN_SPEED = 110;
 const DERRAME_A = 108;
 const DERRAME_B = 146;
 const CK_MIN_SPEED_DERRAME = 280;
+// Duración de un viaje entre paradas con el dedo, en segundos. Es lo que hace
+// que la animación corra a su propio ritmo en vez de al del gesto: mida el
+// tramo 150 px o 700, el viaje dura lo mismo, así que un barrido flojo y uno
+// enérgico se ven idénticos. Ver `ckFloorSpeed`.
+const CK_VIAJE_S = 1;
 const CK_TAIL_PX = 100;
 const CK_EPS = 2;
 
@@ -407,6 +412,20 @@ const T_INERCIA_S = 0.25;
 /** Ventana sobre la que se mide la velocidad de salida (ms). */
 const T_VEL_MS = 100;
 
+/**
+ * Gracia tras levantar el dedo, durante la cual la salvaguarda de «scroll
+ * ajeno» no mira (ver `ckAdvance`). Cubre el reajuste asíncrono de posición que
+ * Safari de iOS hace al terminar el gesto, que es lo que abortaba el viaje a la
+ * parada justo al soltar.
+ *
+ * 400 ms y no menos porque el hero se dibuja a 16 fps en WebKit —medido con el
+ * panel de diagnóstico contra producción, frente a los 60 de Chromium—, así que
+ * un margen de 100 ms serían apenas dos fotogramas y podría quedarse corto. Y no
+ * más porque pasado ese punto la salvaguarda tiene que volver a proteger: es lo
+ * que impide que el controlador arrastre de vuelta a quien ya se salió del hero.
+ */
+const T_GRACIA_MS = 400;
+
 const HERO_CAPTIONS: HeroCaption[] = [
   {
     inA: 106,
@@ -419,20 +438,43 @@ const HERO_CAPTIONS: HeroCaption[] = [
     words: 'Aquí el relleno nunca se queda corto.'.split(' '),
   },
   {
-    inA: 160,
-    inB: 172,
+    // 158/164 y no 160/172: la parada de esta leyenda cae en el cuadro 172, y
+    // con 172 de `inB` la opacidad llegaba a 1 JUSTO ahí — cero margen. Medido,
+    // la rampa entera son 67 px de scroll, así que aterrizar 15 px corto dejaba
+    // el texto en op 0,78, y op se pinta además como `blur((1-op)*3)`: el texto
+    // se veía literalmente desenfocado. Ahora la meseta empieza 36 px antes de
+    // la parada y acaba 47 px después.
+    //
+    // `inA` NO baja hasta 154 (el `outB` del relleno, que daría 51 px de margen)
+    // porque hasta el cuadro 158 sigue cayendo el hilo de dulce de leche, y esta
+    // leyenda va ARRIBA, justo donde cae. 15 px de margen valen menos que no
+    // escribir sobre el goteo.
+    inA: 158,
+    inB: 164,
     outA: 190,
-    outB: 200,
+    // 199 y no 200 para que el relevo con el horneado sea exacto, igual que el
+    // del relleno con esta (154). Gana la PRIMERA leyenda con opacidad > 0,001,
+    // así que un solape de un solo cuadro dejaba al horneado enmascarado hasta
+    // que la fermentación se apagaba y entonces aparecía de golpe a op 0,33:
+    // un parpadeo en 8 px de scroll. Compartiendo cuadro las dos valen 0 ahí.
+    outB: 199,
     eyebrow: 'Fermentación',
     flavor: 'rise',
     position: 'top',
     text: 'La masa madre descansa, fermenta y crece a su propio ritmo.',
   },
   {
-    inA: 203,
-    inB: 210,
-    outA: 214,
-    outB: 224,
+    // El caso extremo del mismo defecto: con 203/210 la rampa medía 26 px y la
+    // meseta 19, contra una parada en el cuadro 210 apoyada en la rodilla.
+    // Quedarse 10 px corto daba op 0,42 -> blur 1,7 px. `inA` no puede bajar de
+    // 199: el pan se hornea entre los cuadros 197 y 200 (comprobado mirando el
+    // metraje), y antes de eso "Recién salido del horno" caería sobre masa
+    // cruda. Con 199/202 la meseta empieza 32 px antes de la parada, y `outA`
+    // sube a 222 para dar 51 px por arriba — el metraje llega al cuadro 232.
+    inA: 199,
+    inB: 202,
+    outA: 222,
+    outB: 230,
     eyebrow: 'Horneado',
     flavor: 'plain',
     position: 'top',
@@ -661,19 +703,19 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
     // es POR QUÉ el controlador no mueve la página: si no está habilitado, si
     // el toque no le llega, o si le llega y el navegador ya no le deja
     // cancelar el desplazamiento.
+    // Compacto a propósito: en un iPhone en horizontal el panel entero no cabe
+    // y se cortaba justo por los renglones que hacían falta. Los booleanos que
+    // ya se dieron por buenos (ready, ckEnabled, tactil, paradas, touchAction)
+    // van todos en una línea; lo que cambia gesto a gesto va arriba y solo.
     diagRegistra('hero', () => ({
-      ready: this.ready,
-      ckEnabled: this.ckEnabled(),
-      tactil: this.tactil(),
-      paradas: this.stops.length,
-      touchAction: this.wrapRef()?.nativeElement.style.touchAction || '(vacio)',
-      toques: this.diagToques,
-      'toques fuera del wrap': this.diagFuera,
       VEREDICTO: this.diagVeredicto(),
-      empujones: this.diagEmpujones,
-      'abortos (soltar el mando)': this.diagAbortos,
-      'touchmove NO cancelable': this.diagNoCancelable,
-      ultimoObjetivo: this.diagUltimoObjetivo,
+      'VIAJES-LLEGADAS-ABORTOS': `${this.diagViajes} - ${this.diagLlegadas} - ${this.diagAbortos}   (salvados ${this.diagSalvados})`,
+      'ULTIMO GESTO': this.diagUltimoGesto,
+      'CADENCIA peor': `${Number.isFinite(this.diagPeorCadencia) ? Math.round(this.diagPeorCadencia) : '-'} cuadros/s (el metraje son 24)`,
+      'LEYENDA en reposo': `${this.diagCapReposo}   (op 1.000 = nitida)`,
+      umbrales: `franco ${Math.round(this.ckBurstFree())} / paso ${Math.round(this.ckBurstStep())}`,
+      toques: `${this.diagToques} (fuera ${this.diagFuera}) · empujones ${this.diagEmpujones} · no-cancel ${this.diagNoCancelable}`,
+      estado: `ready ${this.ready} · ck ${this.ckEnabled()} · tactil ${this.tactil()} · paradas ${this.stops.length} · ta ${this.wrapRef()?.nativeElement.style.touchAction || '-'}`,
     }));
   }
 
@@ -1574,7 +1616,66 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
    */
   private ckFloorSpeed(): number {
     const f = this.targetF;
+    if (this.ckPantallaCorta()) {
+      // Velocidad para que el viaje dure lo mismo mida lo que mida. Es la
+      // tercera forma que pruebo de fijar esta velocidad y la primera estable,
+      // porque no mide nada fotograma a fotograma:
+      //
+      //   · desde `frameToScroll`: pasado el congelado suma el hueco y el
+      //     largo del carrusel, el suelo se disparaba y los viajes entre
+      //     sabores se completaban en 0,02 s;
+      //   · desde CUM: falla en el tramo que sale del carrusel, donde parte de
+      //     los píxeles no son metraje;
+      //   · midiendo px/cuadro en vivo: se vuelve inestable justo donde el
+      //     vídeo retoma tras el congelado, porque ahí el cuadro salta 28 de
+      //     golpe con poco scroll. Reportado desde el teléfono con esa versión
+      //     puesta: «después del sabor de Nutella la animación pega saltos y
+      //     saltos, muy notorios y muy feos», y el panel marcaba una cadencia
+      //     de 5 cuadros/s. La razón medida daba tanto valores diminutos
+      //     —cadencia por los suelos— como enormes —los saltos—.
+      //
+      // La distancia total del viaje, en cambio, se conoce sin medir nada y no
+      // depende del punto del recorrido. Si a mitad de viaje se encola otra
+      // parada, `ckDistMax` crece y la velocidad sube con ella: encadenando
+      // gestos se sigue saliendo de largo.
+      if (this.ckDistMax > 0) return Math.max(CK_MIN_SPEED, this.ckDistMax / CK_VIAJE_S);
+    }
     return f >= DERRAME_A && f <= DERRAME_B ? CK_MIN_SPEED_DERRAME : CK_MIN_SPEED;
+  }
+
+  /**
+   * Con el dedo, el suelo deja de ser un remate de la frenada y pasa a
+   * gobernar el viaje ENTERO. Es un cambio de criterio, y lo pidió el uso real:
+   *
+   *   «que aunque el scroll sea rápido o lento, la animación corra sola de un
+   *   checkpoint al siguiente, a su velocidad; sin importar si es una persona
+   *   mayor que desliza muy despacio o un adolescente que desliza fuerte».
+   *
+   * El modelo de muelle hace la velocidad proporcional a la distancia que
+   * queda, así que un viaje de una sola parada —que es lo que da un barrido
+   * normal— se recorre despacio. Medido en el tramo de la fermentación: 52
+   * cuadros repartidos en 693 px son 13,3 px por cuadro, y con el suelo fijo de
+   * 110 px/s la animación cae a 8 cuadros/s. El metraje es de 24, así que se
+   * ve a saltos y el texto tarda segundo y medio en terminar de aparecer —de
+   * ahí el «las letras de fermentación salen borrosas, no han terminado de
+   * desplegar»—. No eran dos fallos: era este.
+   *
+   * Por eso el suelo se calcula ahora desde la densidad del metraje en el
+   * cuadro que se está mostrando, y no como una constante. Sale gratis una
+   * comprobación: aplicada al derrame del dulce de leche, la fórmula da
+   * 11,6 × 24 = 278 px/s, que es el 280 que allí se había calibrado a mano.
+   * Un mismo criterio explica el caso particular que ya estaba resuelto.
+   *
+   * Encadenando gestos el objetivo se aleja, la velocidad natural del muelle
+   * supera al suelo y manda ella: quien barre varias veces seguidas sigue
+   * saliendo de largo, que es lo que se pedía para quien no quiere ver la
+   * intro.
+   *
+   * Acotado a la familia WebKit del dedo a propósito: en escritorio y en
+   * Android el recorrido no se toca.
+   */
+  private ckFloorEnTodoElViaje(): boolean {
+    return this.ckPantallaCorta();
   }
 
   /**
@@ -1606,16 +1707,57 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
     // vuelta a su objetivo. Se compara con lo último que escribió él mismo:
     // cualquier otra cosa no es suya.
     //
-    // Dos correcciones sobre la versión original, las dos por iOS:
+    // Tres correcciones sobre la versión original, las tres por iOS:
     //   · con el dedo puesto y el gesto ya aceptado como nuestro no hay nadie
     //     más moviendo la página, así que aquí no hay nada que vigilar;
     //   · fuera de eso se aceptan las DOS referencias —lo releído y lo pedido—
-    //     porque la relectura llega tarde en Safari (ver `ckIntentoY`).
-    const ajeno =
+    //     porque la relectura llega tarde en Safari (ver `ckIntentoY`);
+    //   · y hay una ventana de gracia al LEVANTAR el dedo, que es lo que de
+    //     verdad rompía el hero en un iPhone. El instante en que se suelta es
+    //     justo aquel en que `tCapturado` deja de proteger y el viaje a la
+    //     parada tiene que empezar; ahí Safari reajusta la posición por su
+    //     cuenta —la confirma de forma asíncrona— y el primer fotograma
+    //     después del gesto la encuentra distinta de todo lo que el
+    //     controlador escribió o pidió. La salvaguarda lo lee como «me han
+    //     movido desde fuera» y aborta el viaje ANTES de que dé un solo paso.
+    //
+    //     Reportado con esas palabras desde el teléfono: con el dedo puesto la
+    //     animación fluye perfecta, y al levantarlo frena en seco donde esté
+    //     —a mitad de un fotograma, sin llegar a ninguna parada—. En Android
+    //     no ocurre porque Chromium confirma el scroll de forma síncrona y las
+    //     referencias siguen cuadrando.
+    //
+    //     La ventana solo se abre tras un gesto NUESTRO y solo con el dedo, de
+    //     modo que lo que la salvaguarda vigila de verdad —el arrastre del
+    //     thumb de la barra, un ancla, un reset de `go()`— sigue protegido en
+    //     escritorio exactamente igual que antes.
+    const enGracia = now - this.tSueltoAt < T_GRACIA_MS;
+    const habriaAbortado =
       !this.tCapturado &&
       this.ckLastWrittenY >= 0 &&
       Math.abs(pos - this.ckLastWrittenY) > 4 &&
       (this.ckIntentoY < 0 || Math.abs(pos - this.ckIntentoY) > 4);
+    // DIAG. No es un contador de adorno: es la prueba de si el diagnóstico era
+    // el correcto. Si en el teléfono esto sube, la salvaguarda SÍ estaba
+    // matando el viaje al levantar el dedo y la ventana de gracia lo está
+    // impidiendo. Si se queda en cero, la causa es otra y hay que buscarla en
+    // otro sitio en vez de insistir aquí.
+    if (habriaAbortado && enGracia) this.diagSalvados++;
+    // Y en la familia WebKit del dedo la salvaguarda se apaga ENTERA, porque
+    // ahí no es utilizable. Medido en el iPhone con el panel: de 63 empujones,
+    // la ventana de gracia tuvo que salvar 59 abortos, y aun así 6 de los 7
+    // viajes murieron pasados los 400 ms —«el croissant apenas está abriendo,
+    // no ha llegado a las letras y quedó parado»—. Si hay que rescatar 59 de
+    // 63, la relectura de `scrollY` no cuadra en NINGÚN momento del viaje, no
+    // solo al levantar el dedo, así que alargar la ventana únicamente mueve el
+    // problema más adelante en el recorrido.
+    //
+    // Lo que la salvaguarda vigila de verdad —el arrastre del tirador de la
+    // barra, un ancla, un reset de `go()`— o no existe con el dedo o ya está
+    // cubierto por `ckShouldIntercept` (que suelta el mando por POSICIÓN en
+    // cuanto se pasa la última parada) y por `eraNuestro` en `onTouchEnd`. En
+    // escritorio y en Android no cambia nada: ahí sigue entera.
+    const ajeno = habriaAbortado && !enGracia && !this.ckPantallaCorta();
     if (ajeno) {
       this.diagAbortos++; // DIAG
       this.ckRunning = false;
@@ -1626,14 +1768,17 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
     }
     const targetY = this.ckTargetY();
     const dist = targetY - pos;
+    if (Math.abs(dist) > this.ckDistMax) this.ckDistMax = Math.abs(dist);
     // Independiente del framerate: a 30fps cada fotograma avanza lo que a 60fps
     // avanzarían dos.
     const smooth = 1 - Math.pow(1 - CK_VEL_SMOOTH, dt * 60);
     this.ckVel += (dist * CK_APPROACH - this.ckVel) * smooth;
     let step = this.ckVel * dt;
 
-    // Suelo de velocidad, solo en la cola: es ahí donde el lerp repta y se nota.
-    if (Math.abs(dist) < CK_TAIL_PX) {
+    // Suelo de velocidad. En escritorio y Android, solo en la cola: es ahí
+    // donde el lerp repta y se nota. Con el dedo, en todo el viaje, para que la
+    // animación corra siempre a la cadencia de su metraje (ver `ckFloorSpeed`).
+    if (this.ckFloorEnTodoElViaje() || Math.abs(dist) < CK_TAIL_PX) {
       const minStep = this.ckFloorSpeed() * dt;
       if (Math.abs(step) < minStep) step = Math.sign(dist) * Math.min(minStep, Math.abs(dist));
     }
@@ -1650,6 +1795,16 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
       next = targetY;
       this.ckVel = 0;
       this.ckRunning = false;
+      this.diagLlegadas++; // DIAG
+      // DIAG: cadencia media del viaje que acaba de terminar, y la peor de
+      // todas las vistas. Solo cuenta si hubo metraje avanzando: los viajes
+      // entre sabores son carrusel, no vídeo, y no tienen cadencia que medir.
+      if (this.ckCuadrosViaje > 3 && this.ckTiempoViaje > 0.1) {
+        const cps = this.ckCuadrosViaje / this.ckTiempoViaje;
+        if (cps < this.diagPeorCadencia) this.diagPeorCadencia = cps;
+      }
+      this.ckCuadrosViaje = 0;
+      this.ckTiempoViaje = 0;
     }
     window.scrollTo({ top: next, behavior: 'instant' as ScrollBehavior });
     // Se relee en vez de guardar `next`: el navegador redondea y satura contra
@@ -1657,6 +1812,32 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
     // existir daría un falso "lo movieron desde fuera" en el frame siguiente.
     this.ckLastWrittenY = this.ckRunning ? window.scrollY : -1;
     this.ckIntentoY = this.ckRunning ? next : -1;
+
+    // Densidad del metraje, medida: cuántos px de scroll cuesta un cuadro AQUÍ.
+    // `targetF` lo escribe `updateHero`, que corre después de este método en el
+    // mismo fotograma, así que lo que se compara son dos fotogramas seguidos.
+    //
+    // Cuando el cuadro no avanza —el congelado del carrusel— la razón se pone a
+    // cero en vez de conservar la última: si se conservara, el suelo del vídeo
+    // se aplicaría a los viajes entre sabores, que no son metraje, y los
+    // dispararía. A cero, esos viajes vuelven al suelo fijo de siempre.
+    // DIAG. La cadencia REAL de la animación, que es lo que se percibe como
+    // brinco: cuántos cuadros de vídeo por segundo se están recorriendo. El
+    // metraje son 24; por debajo de ~18 se ven los cuadros sueltos. Se guarda
+    // la PEOR del recorrido, no la media, porque un tramo bueno con un bache se
+    // lee bien en la media y se ve mal en pantalla. Solo se mira donde el
+    // cuadro avanza de verdad y sin el salto con el que el vídeo retoma tras el
+    // congelado, que no es una cadencia sino una discontinuidad.
+    // Se acumula y se promedia POR VIAJE, no se toma el mínimo instantáneo. El
+    // mínimo no servía: todo viaje termina frenando, así que siempre capturaba
+    // el último fotograma y marcaba 4-5 cuadros/s hasta en Chromium, donde la
+    // animación se ve perfectamente. Era un número inútil.
+    const dF = Math.abs(this.targetF - this.ckFPrev);
+    if (this.ckFPrev >= 0 && dF < 5 && dt > 0) {
+      this.ckCuadrosViaje += dF;
+      this.ckTiempoViaje += dt;
+    }
+    this.ckFPrev = this.targetF;
   }
 
   private readonly onWheel = (e: WheelEvent): void => {
@@ -1707,8 +1888,14 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
     // sin silencios, o incluso como un solo evento de miles de píxeles: sin este
     // escalón sería un único gesto y avanzaría una sola parada.
     this.ckGestureAccum += Math.abs(dy);
-    const sobra = this.ckGestureAccum - CK_BURST_FREE;
-    const bonus = sobra <= 0 ? 0 : 1 + Math.floor(sobra / CK_BURST_STEP);
+    const sobra = this.ckGestureAccum - this.ckBurstFree();
+    // Sin techo, igual que con la rueda: encadenando gestos se sigue de largo
+    // y quien ya vio la intro no tiene que pasar por las doce paradas. Llegó a
+    // haber uno de tres, puesto cuando los umbrales eran demasiado generosos y
+    // un gesto normal se comía media secuencia; corregido el franco, el techo
+    // sobraba y lo único que hacía era impedir salir del hero de un barrido.
+    const bonus = sobra <= 0 ? 0 : 1 + Math.floor(sobra / this.ckBurstStep());
+    this.diagUltimoGesto = `${Math.round(this.ckGestureAccum)}px -> ${1 + bonus} parada(s)`; // DIAG
     if (bonus > this.ckGestureBonus) {
       this.ckIdx += (bonus - this.ckGestureBonus) * dir;
       this.ckGestureBonus = bonus;
@@ -1729,7 +1916,9 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
     this.ckFrameAt = 0;
     this.ckLastWrittenY = -1;
     this.ckVel = 0;
+    this.ckDistMax = 0;
     this.ckRunning = true;
+    this.diagViajes++; // DIAG
   }
 
   // ---- el mismo controlador, pero con el dedo ----
@@ -1748,6 +1937,18 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
   private tYPrev = 0;
   /** Posiciones recientes, para medir con qué velocidad se levanta el dedo. */
   private tMuestras: { y: number; t: number }[] = [];
+  /** Cuándo se levantó el dedo de un barrido nuestro (ver `T_GRACIA_MS`). */
+  private tSueltoAt = 0;
+  /**
+   * Distancia más larga que ha tenido que recorrer el viaje en curso. Crece si
+   * a mitad de camino se encola otra parada, y con ella la velocidad. Se pone a
+   * cero al arrancar cada viaje.
+   */
+  private ckDistMax = 0;
+  /** Cuadro del fotograma anterior, solo para el contador de cadencia. */
+  private ckFPrev = -1;
+  private ckCuadrosViaje = 0;
+  private ckTiempoViaje = 0;
 
   /**
    * Solo donde el puntero principal es el dedo. En un portátil con pantalla
@@ -1756,6 +1957,65 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
   private tactil(): boolean {
     return window.matchMedia?.('(pointer: coarse)').matches ?? false;
   }
+
+  /**
+   * El dedo en la familia WebKit de Apple: iPhone y iPad, en Safari y también
+   * en Chrome y Firefox de iOS, que por obligación usan el mismo motor. Safari
+   * de macOS queda fuera porque su puntero es fino y `tactil()` ya lo excluye,
+   * así que el escritorio no ve nada de esto. Mismo criterio que la cortina.
+   */
+  private ckPantallaCorta(): boolean {
+    return this.tactil() && /apple/i.test(navigator.vendor || '');
+  }
+
+  /**
+   * Umbrales del descuento por intensidad. Con la RUEDA son los px medidos:
+   * 700 son seis muescas de 120, el impulso que debe seguir valiendo una sola
+   * parada. En un iPhone no pueden serlo, y no por WebKit sino por aritmética:
+   *
+   *   iPhone 13   pantalla 664 px   barrido máximo 584 px   <  700
+   *   Pixel 7     pantalla 839 px   barrido máximo 759 px   >  700
+   *
+   * Un barrido no puede recorrer más que la pantalla, así que en el iPhone el
+   * descuento era INALCANZABLE: cada gesto valía una parada y las paradas son
+   * doce. Reproducido contra producción con el viewport del iPhone 13 y
+   * barridos táctiles de 250 px — ocho barridos, ocho paradas, avanzando los
+   * 166 px exactos que separan a los sabores del carrusel. En un Pixel 7 la
+   * pantalla da de sí lo suficiente para superarlo, y de ahí que el mismo
+   * recorrido se sintiera bien en Android y eterno en el iPhone.
+   *
+   * En fracción de la altura de la ventana el coste deja de depender del
+   * tamaño del teléfono.
+   *
+   * Los valores salen del iPhone de verdad, no de una simulación: el panel
+   * publica lo que acumuló el último gesto, y ahí se leyó `405px -> 2 paradas`
+   * en una pantalla de 695 px de alto. Ese 405 es lo que acumula un barrido
+   * NORMAL, el que da alguien que solo quiere pasar a la escena siguiente.
+   *
+   * Y la regla de producto es que ese barrido normal valga UNA parada: las
+   * paradas existen para que la animación se detenga donde toca y se pueda
+   * leer sin ir adivinando dónde parar el dedo. Con el franco por debajo de
+   * 405 valían dos o tres, y un solo gesto se comía la ilustración, el
+   * croissant real y su texto de una vez; para ver el sabor de mantequilla
+   * había que aterrizar ya en el de Nutella. Es el mismo criterio que hace que
+   * el hero se sienta bien en Android, donde el franco de 700 px absolutos
+   * queda justo por encima de lo que acumula un barrido corriente.
+   *
+   * De ahí `0,95 × alto`: en esta pantalla son 660 px —prácticamente los 700
+   * de la rueda, que es lo que Android ya está usando— pero expresado en
+   * fracción sigue siendo alcanzable en un teléfono pequeño, que era el
+   * defecto original. Para encolar una parada más hay que barrer claramente
+   * más fuerte, y encadenando gestos se sigue de largo sin tope: quien ya vio
+   * la intro no tiene que pasar por las doce.
+   */
+  private ckBurstFree(): number {
+    return this.ckPantallaCorta() ? window.innerHeight * 0.95 : CK_BURST_FREE;
+  }
+
+  private ckBurstStep(): number {
+    return this.ckPantallaCorta() ? window.innerHeight * 0.45 : CK_BURST_STEP;
+  }
+
 
   private readonly onTouchStart = (e: TouchEvent): void => {
     this.tActivo = false;
@@ -1853,6 +2113,23 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
   private diagEmpujones = 0;
   private diagAbortos = 0;
   private diagUltimoObjetivo = '';
+  /** Viajes a una parada que llegaron a arrancar. */
+  private diagViajes = 0;
+  /** ...y los que llegaron de verdad. */
+  private diagLlegadas = 0;
+  /** Abortos que la ventana de gracia impidió (ver `T_GRACIA_MS`). */
+  private diagSalvados = 0;
+  /**
+   * Lo que acumuló el último gesto y cuántas paradas le valió. Es el dato que
+   * hace falta para calibrar sin tener el teléfono delante: el envión depende
+   * de la deceleración que informe cada navegador, y ese número no se puede
+   * deducir desde fuera. Leyendo esto tras un barrido suave y tras uno fuerte
+   * se sabe exactamente dónde caen los umbrales en un iPhone de verdad.
+   */
+  private diagUltimoGesto = '(ninguno)';
+  /** Peor cadencia de la animación vista hasta ahora, en cuadros/s. */
+  private diagPeorCadencia = Number.POSITIVE_INFINITY;
+  private diagCapReposo = '(ninguna)'; // DIAG
 
   /**
    * Una frase, no una tabla. El iPhone del caso es de trabajo y no permite
@@ -1865,8 +2142,10 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
     if (!this.ckEnabled()) return 'el controlador esta APAGADO -> scroll nativo sobre 700vh';
     if (this.diagToques === 0) return 'todavia no ha tocado la pantalla';
     if (this.diagEmpujones === 0) return 'los dedos NO llegan al controlador (mire "toques fuera del wrap")';
-    if (this.diagAbortos > this.diagEmpujones) return 'el controlador SUELTA EL MANDO en cada gesto (abortos altos)';
-    return 'el controlador manda y avanza bien';
+    if (this.diagViajes === 0) return 'el dedo llega pero NINGUN viaje a una parada arranca';
+    if (this.diagSalvados > 0) return `ERA ESO: la salvaguarda mataba el viaje al soltar (${this.diagSalvados} salvados)`;
+    if (this.diagLlegadas === 0) return `NO ERA ESO: ${this.diagViajes} viajes arrancaron, 0 llegaron, 0 salvados`;
+    return `el controlador manda y avanza bien (${this.diagLlegadas} de ${this.diagViajes} viajes llegaron)`;
   }
 
   private readonly onTouchEnd = (): void => {
@@ -1882,6 +2161,9 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
     // nuestro pero que ya llegó a la última parada mientras el dedo seguía
     // puesto. Ahí el envión tampoco debe encolar nada.
     const eraNuestro = this.tCapturado && this.ckShouldIntercept(this.ckGestureDir);
+    // Abre la ventana de gracia, y solo si el barrido llegó a ser nuestro: un
+    // toque cualquiera de la página no debe desarmar la salvaguarda.
+    if (eraNuestro) this.tSueltoAt = performance.now();
     this.tActivo = false;
     this.tComprometido = false;
     this.tCapturado = false;
@@ -2122,6 +2404,13 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
         break;
       }
     }
+    // DIAG: con qué opacidad se quedó la leyenda una vez el viaje terminó. Si
+    // el texto se sigue viendo borroso, este número separa las dos causas
+    // posibles sin otra ronda a ciegas: <1 = la parada aterriza desviada (y
+    // cuánto), =1 = el desenfoque no viene de aquí sino del rasterizado.
+    if (!this.ckRunning && activeCap) {
+      this.diagCapReposo = `${activeCap.eyebrow || 'relleno'} op ${activeOp.toFixed(3)} · cuadro ${f.toFixed(1)}`;
+    }
     if (R.photoBox) {
       const band = this.getCarouselBand();
       if (band) {
@@ -2166,8 +2455,18 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
           });
         } else if (activeCap.flavor === 'rise' || activeCap.flavor === 'plain') {
           if (R.captionText) {
-            R.captionText.style.transform = `scale(${0.95 + 0.05 * activeOp})`;
-            R.captionText.style.filter = `blur(${(1 - activeOp) * 3}px)`;
+            // A opacidad plena se BORRAN las dos propiedades en vez de dejarlas
+            // en su valor neutro. Safari promueve a capa propia cualquier
+            // elemento con `filter`, la rasteriza una vez y luego la compone
+            // escalada: `blur(0px)` + `scale(1)` no es lo mismo que no tener
+            // ninguna de las dos, y el texto en reposo puede quedar blando.
+            if (activeOp >= 0.999) {
+              R.captionText.style.transform = '';
+              R.captionText.style.filter = '';
+            } else {
+              R.captionText.style.transform = `scale(${0.95 + 0.05 * activeOp})`;
+              R.captionText.style.filter = `blur(${(1 - activeOp) * 3}px)`;
+            }
           }
         }
       }

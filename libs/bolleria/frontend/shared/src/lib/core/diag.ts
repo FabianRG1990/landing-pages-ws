@@ -105,7 +105,11 @@ export function instalaDiag(): void {
     'right:0',
     'bottom:0',
     'z-index:2147483647',
-    'max-height:46vh',
+    // 80 y no 46: en un iPhone en horizontal el panel se cortaba justo por
+    // los renglones que hacían falta, y con `pointer-events:none` no se puede
+    // desplazar para ver el resto — esa propiedad no se toca, porque un panel
+    // que robe gestos falsearía lo que se está midiendo.
+    'max-height:80vh',
     'overflow:auto',
     'pointer-events:none',
     'background:rgba(10,12,6,0.92)',
