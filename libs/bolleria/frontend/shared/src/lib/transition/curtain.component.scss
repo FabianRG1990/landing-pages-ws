@@ -128,6 +128,48 @@
   transform: scale(1);
   opacity: 1;
 }
+
+// ---------- La misma escena, ya rendida (familia WebKit) ----------
+// Ver el comentario largo de `sprite` en curtain.component.ts: en WebKit la
+// escena de arriba cuesta la mitad de los fotogramas de toda la cortina, y el
+// coste está repartido entre sus ~30 elementos, así que no hay nada que limar.
+//
+// `curtain-oven.webp` es una tira horizontal de 19 cuadros de 520x600 que
+// rindió Chromium con ESTOS mismos estilos, buscando cada instante por CDP:
+// cubre los 738 ms de animación interna (la puerta gira 550 ms, el logo sube
+// con 220 ms de retraso, el vapor con 320) y a partir de ahí ya no se movía
+// nada — medido, del cuadro 19 en adelante la diferencia era de 1/255.
+//
+// La cuenta de `background-position`: con la imagen a 19 veces el ancho de la
+// caja, un porcentaje `p` desplaza `p x (19 - 1)` cajas, así que ir de 0 % a
+// 100 % en 18 escalones recorre los 19 cuadros, uno por escalón.
+.bol-curtain__sprite {
+  position: absolute;
+  inset: 0;
+  background-image: url('/assets/curtain-oven.webp');
+  background-repeat: no-repeat;
+  background-size: 1900% 100%;
+  background-position: 0% 0%;
+}
+.bol-curtain__sprite--open {
+  animation: bol-curtain-horno 0.738s steps(18) forwards;
+}
+@keyframes bol-curtain-horno {
+  from {
+    background-position: 0% 0%;
+  }
+  to {
+    background-position: 100% 0%;
+  }
+}
+// Sin animación no hay puerta que abrir: se muestra directamente el último
+// cuadro, coherente con lo que hace `reducedFade` (cruce de opacidad y ya).
+@media (prefers-reduced-motion: reduce) {
+  .bol-curtain__sprite--open {
+    animation: none;
+    background-position: 100% 0%;
+  }
+}
 // Acercamiento de cámara continuo y casi imperceptible momento a momento
 // mientras el horno está abierto (principio de "dolly" — dar sensación de
 // continuidad/narrativa entre pantallas) — la transición es deliberadamente

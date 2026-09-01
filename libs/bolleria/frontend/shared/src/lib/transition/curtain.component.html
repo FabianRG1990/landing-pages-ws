@@ -10,6 +10,10 @@
   <div class="bol-curtain__backdrop-glow"></div>
 
   <div class="bol-curtain__scene">
+    @if (sprite()) {
+      <!-- La misma escena, ya rendida: ver `sprite` en el componente. -->
+      <div class="bol-curtain__sprite" [class.bol-curtain__sprite--open]="stage() === 'open' || stage() === 'out'"></div>
+    } @else {
     <div class="bol-curtain__shadow"></div>
     <div class="bol-curtain__shadow bol-curtain__shadow--contact"></div>
     <div class="bol-curtain__leg bol-curtain__leg--l"></div>
@@ -61,5 +65,6 @@
         </div>
       </div>
     </div>
+    }
   </div>
 </div>

@@ -524,6 +524,19 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
   private ckFrameAt = 0;
   /** Último scroll escrito por el controlador; -1 cuando no tiene el mando. */
   private ckLastWrittenY = -1;
+  /**
+   * Lo que el controlador PIDIÓ en el último fotograma, que no siempre es lo
+   * que la relectura devolvió. En Safari de iOS la posición se confirma de
+   * forma asíncrona: `window.scrollY` justo después de `scrollTo` puede seguir
+   * dando la de antes, y el fotograma siguiente encuentra ya la nueva. Con una
+   * sola referencia eso se lee como «me movieron desde fuera» y el controlador
+   * suelta el mando en CADA fotograma — cada deslizamiento avanzaría unos
+   * pocos píxeles y haría falta una cantidad absurda de gestos para cruzar el
+   * hero, que es justo lo reportado en un iPhone con iOS 26.5. Guardando las
+   * dos referencias, la salvaguarda solo salta si la posición no coincide con
+   * NINGUNA de las dos, que es lo que de verdad significa un scroll ajeno.
+   */
+  private ckIntentoY = -1;
   /** Sentido del gesto en curso. Al invertirlo, el índice se rebasa desde la
    * posición real en vez de seguir contando sobre un objetivo que iba al revés. */
   private ckGestureDir: 1 | -1 = 1;
@@ -656,7 +669,9 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
       touchAction: this.wrapRef()?.nativeElement.style.touchAction || '(vacio)',
       toques: this.diagToques,
       'toques fuera del wrap': this.diagFuera,
+      VEREDICTO: this.diagVeredicto(),
       empujones: this.diagEmpujones,
+      'abortos (soltar el mando)': this.diagAbortos,
       'touchmove NO cancelable': this.diagNoCancelable,
       ultimoObjetivo: this.diagUltimoObjetivo,
     }));
@@ -1574,7 +1589,14 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
       return;
     }
     const now = performance.now();
-    const dt = this.ckFrameAt ? Math.min(0.05, (now - this.ckFrameAt) / 1000) : 1 / 60;
+    // El tope estaba en 0,05 s, o sea 20 fps. Un teléfono lento no llega: medido
+    // en WebKit, un fotograma durante la cortina cuesta 179 ms. Por encima del
+    // tope el paso deja de ser proporcional al tiempo real y el recorrido
+    // avanza al 29 % de la velocidad prevista, con lo que un gesto parece no
+    // hacer nada. Se sube a 0,25 s; lo que evita el salto tras volver de otra
+    // pestaña ya no es el tope, sino el recorte contra el objetivo de más
+    // abajo, que impide pasarse de la parada por mucho que valga `dt`.
+    const dt = this.ckFrameAt ? Math.min(0.25, (now - this.ckFrameAt) / 1000) : 1 / 60;
     this.ckFrameAt = now;
 
     const pos = window.scrollY;
@@ -1583,9 +1605,22 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
     // parada), el controlador cede el mando en vez de arrastrar al usuario de
     // vuelta a su objetivo. Se compara con lo último que escribió él mismo:
     // cualquier otra cosa no es suya.
-    if (this.ckLastWrittenY >= 0 && Math.abs(pos - this.ckLastWrittenY) > 4) {
+    //
+    // Dos correcciones sobre la versión original, las dos por iOS:
+    //   · con el dedo puesto y el gesto ya aceptado como nuestro no hay nadie
+    //     más moviendo la página, así que aquí no hay nada que vigilar;
+    //   · fuera de eso se aceptan las DOS referencias —lo releído y lo pedido—
+    //     porque la relectura llega tarde en Safari (ver `ckIntentoY`).
+    const ajeno =
+      !this.tCapturado &&
+      this.ckLastWrittenY >= 0 &&
+      Math.abs(pos - this.ckLastWrittenY) > 4 &&
+      (this.ckIntentoY < 0 || Math.abs(pos - this.ckIntentoY) > 4);
+    if (ajeno) {
+      this.diagAbortos++; // DIAG
       this.ckRunning = false;
       this.ckLastWrittenY = -1;
+      this.ckIntentoY = -1;
       this.ckVel = 0;
       return;
     }
@@ -1602,6 +1637,11 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
       const minStep = this.ckFloorSpeed() * dt;
       if (Math.abs(step) < minStep) step = Math.sign(dist) * Math.min(minStep, Math.abs(dist));
     }
+    // Nunca más allá del objetivo. Con el tope de `dt` alto un fotograma muy
+    // largo podría dar un paso mayor que la distancia que queda y pasarse de la
+    // parada; recortarlo aquí hace que un fotograma lento avance TODO lo que le
+    // toca y ni un píxel más, en vez de rebotar.
+    if (Math.abs(step) > Math.abs(dist)) step = dist;
     let next = pos + step;
 
     // Sin esto la asíntota nunca llega y el hero queda a medio píxel de la
@@ -1616,6 +1656,7 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
     // los límites del documento, y comparar con un valor que nunca llegó a
     // existir daría un falso "lo movieron desde fuera" en el frame siguiente.
     this.ckLastWrittenY = this.ckRunning ? window.scrollY : -1;
+    this.ckIntentoY = this.ckRunning ? next : -1;
   }
 
   private readonly onWheel = (e: WheelEvent): void => {
@@ -1810,7 +1851,23 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
   private diagToques = 0;
   private diagFuera = 0;
   private diagEmpujones = 0;
+  private diagAbortos = 0;
   private diagUltimoObjetivo = '';
+
+  /**
+   * Una frase, no una tabla. El iPhone del caso es de trabajo y no permite
+   * guardar ni compartir capturas, así que el diagnóstico tiene que poder
+   * LEERSE EN VOZ ALTA. Esta línea distingue las tres situaciones posibles y
+   * dice cuál es sin que haya que interpretar seis contadores.
+   */
+  private diagVeredicto(): string {
+    if (!this.ready) return 'el hero aun no tiene cuadros (ready=false)';
+    if (!this.ckEnabled()) return 'el controlador esta APAGADO -> scroll nativo sobre 700vh';
+    if (this.diagToques === 0) return 'todavia no ha tocado la pantalla';
+    if (this.diagEmpujones === 0) return 'los dedos NO llegan al controlador (mire "toques fuera del wrap")';
+    if (this.diagAbortos > this.diagEmpujones) return 'el controlador SUELTA EL MANDO en cada gesto (abortos altos)';
+    return 'el controlador manda y avanza bien';
+  }
 
   private readonly onTouchEnd = (): void => {
     // `tCapturado` y no `tComprometido`, y esta distinción costó un fallo:
