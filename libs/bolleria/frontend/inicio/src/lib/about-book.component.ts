@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, ElementRef, NgZone, PLATFORM_ID, computed, inject, signal, viewChild } from '@angular/core';
 import { NgStyle, isPlatformBrowser } from '@angular/common';
 import { CONTACT, diagRegistra } from '@bolleria-ui-shared';
+import { WarpGL } from './about-book-warp-gl';
 
 const FRAME_COUNT = 169;
 const FRAMES_DIR = 'assets/about-book-frames';
@@ -1194,6 +1195,30 @@ export class AboutBookComponent {
   // `contentLayer` junta todo lo que dibujamos nosotros, `maskLayer` la silueta
   // de la hoja que tapa lo que esta quieto, y `shadeLayer` la luminancia del
   // propio video por la que se multiplica el resultado.
+  /**
+   * Deformador por GPU. Se intenta SIEMPRE y si no puede se cae al camino de
+   * canvas 2D de abajo, que no se ha tocado: sin WebGL, con el contexto
+   * perdido o con cualquier fallo, el libro sigue viendose igual que antes.
+   */
+  private readonly warpGL = new WarpGL();
+
+  /**
+   * El deformador por GPU va ENCENDIDO.
+   *
+   * Medido en el aparato real (iPhone 15, 60 Hz en reposo, lienzo 920x746) la
+   * vuelta de pagina pasa de 8 fotogramas a 101 ms -10 fps- a 38 fotogramas a
+   * 21 ms -47 fps-: 4,6x. Y es ademas mas correcto, no solo mas rapido: cada
+   * celda va con dos triangulos, que comparten vertices y por tanto son
+   * continuos, en vez de la transformada afin desde 3 esquinas del camino 2D,
+   * que convierte cada celda en un paralelogramo y quiebra las lineas en cada
+   * frontera.
+   *
+   * `?gl=0` fuerza el camino de canvas 2D. Se conserva para poder comparar las
+   * dos versiones en el mismo aparato sin publicar nada, y como salida de
+   * emergencia si algun navegador diera problema.
+   */
+  private readonly glActivo = this.isBrowser && new URLSearchParams(location.search).get('gl') !== '0';
+
   private contentLayer: HTMLCanvasElement | null = null;
   private maskLayer: HTMLCanvasElement | null = null;
   private acumLayer: HTMLCanvasElement | null = null;
@@ -1251,6 +1276,25 @@ export class AboutBookComponent {
         const c = this.canvasRef()?.nativeElement;
         return c ? `${c.width}x${c.height}` : '(sin lienzo)';
       })(),
+      // DIAG: lo que hay que leer despues de pasar UNA pagina. El objetivo son
+      // 16,7 ms por fotograma; lo reportado en Safari fue caer a 9 fps, o sea
+      // unos 111 ms. Este renglon lo mide en el aparato de verdad.
+      // DIAG: sin este renglon no hay forma de saber, desde una captura del
+      // telefono, CUAL de las dos versiones se esta midiendo. Si dice
+      // `canvas 2D` es que la GPU no entro (o no hay WebGL en ese aparato).
+      MOTOR: !this.glActivo
+        ? 'canvas 2D   (forzado con ?gl=0)'
+        : this.diagGL > 0
+          ? `WebGL  (${this.diagGL} paneles por GPU)`
+          : this.warpGL.vivo
+            ? 'WebGL pedido, aun sin dibujar'
+            : 'WebGL NO disponible en este aparato',
+      'VOLTEO fotogramas': (() => {
+        const v = this.diagIv;
+        if (!v.length) return '(pasa una pagina y mira aqui)';
+        const med = v.reduce((a, b) => a + b, 0) / v.length;
+        return `${v.length} fotog · media ${med.toFixed(0)} ms (${(1000 / med).toFixed(0)} fps) · peor ${Math.max(...v).toFixed(0)} ms`;
+      })(),
     }));
   }
 
@@ -1300,6 +1344,16 @@ export class AboutBookComponent {
       );
       io.observe(el);
     });
+  }
+
+  /** DIAG: intervalos entre fotogramas del ultimo volteo, en ms. */
+  private diagIv: number[] = [];
+
+  /** DIAG: cuantos paneles ha deformado la GPU en el volteo en curso. */
+  private diagGL = 0;
+  private diagCuentaGL(): boolean {
+    this.diagGL++;
+    return true;
   }
 
   /** DIAG: banderas de progreso del arranque. */
@@ -2775,6 +2829,44 @@ export class AboutBookComponent {
     const bleed = 0.5 / SUB;
     const w = img.width;
     const h = img.height;
+
+    // Camino por GPU. La decision de que celdas se ven se calcula AQUI, con el
+    // mismo `bleed` y el mismo `meshVisible` que abajo, para que las dos rutas
+    // pinten exactamente el mismo conjunto de celdas.
+    const celdaVisible = (gx: number, gy: number): boolean => {
+      const eu0 = Math.max(0, gx / SUB - bleed);
+      const ev0 = Math.max(0, gy / SUB - bleed);
+      const eu1 = Math.min(1, (gx + 1) / SUB + bleed);
+      const ev1 = Math.min(1, (gy + 1) / SUB + bleed);
+      const a = toUV(eu0, ev0);
+      const b = toUV(eu1, ev0);
+      const c = toUV(eu0, ev1);
+      const d = toUV(eu1, ev1);
+      return (
+        this.meshVisible(vis, a.x, a.y) &&
+        this.meshVisible(vis, b.x, b.y) &&
+        this.meshVisible(vis, c.x, c.y) &&
+        this.meshVisible(vis, d.x, d.y)
+      );
+    };
+    if (
+      this.glActivo &&
+      this.warpGL.vivo &&
+      this.diagCuentaGL() &&
+      this.warpGL.render(
+        ctx,
+        img,
+        SUB,
+        (eu, ev) => {
+          const q = toUV(eu, ev);
+          return this.meshPoint(pts, q.x, q.y, ox, oy, scale);
+        },
+        celdaVisible,
+        fillOccluded,
+      )
+    ) {
+      return;
+    }
     // Con `fillOccluded`, DOS PASADAS en orden de pintor: primero las celdas que
     // el propio rollo tapa y encima las que se ven. Saltarlas dejaba agujeros:
     // entre los cuadros 106 y 126 hay hasta 61 de los 169 vertices sin ninguna
@@ -2971,7 +3063,19 @@ export class AboutBookComponent {
     // derecha, y al rellenarla entera se comia 625 px del texto quieto de alli.
     // En el cruce -108 al 126- ninguna esta llena y entran las dos, que es
     // justo donde hacen falta.
-    const soloFrente = !mesh.fv.includes('0');
+    // `fv` sin ceros dice que el video no OCULTA ningun vertice del frente, y
+    // eso se estaba leyendo como "la hoja esta plana". Es falso desde el cuadro
+    // 88: la hoja ya enrolla y lo que el video enseña del dorso es el LABIO
+    // -1 vertice en el 88, 51 en el 102, 87 en el 107-. Ese labio se quedaba
+    // fuera de la silueta y el texto y el ornamento de la pagina de abajo se
+    // pintaban encima de el.
+    //
+    // Comprobado dibujando las dos mallas sobre el fotograma: la del frente se
+    // detiene en el pliegue, la del dorso si envuelve el labio pegada al papel.
+    // La geometria ya estaba en el asset; solo la excluia esta guarda.
+    const frenteEntero = !mesh.fv.includes('0');
+    const dorsoALaVista = !!mesh.bv && mesh.bv.includes('1');
+    const soloFrente = frenteEntero && !dorsoALaVista;
     const soloDorso = !soloFrente && !!mesh.bv && !mesh.bv.includes('0');
     const caraFrente = soloDorso ? null : mesh.f;
     // El dorso solo entra donde LLEVA FOTO. No porque la opacidad mande sobre
@@ -2982,7 +3086,17 @@ export class AboutBookComponent {
     // se cortaba en recto mucho antes de que la hoja llegara-, y el acumulado
     // dejaba ese recorte fijo para el resto de la vuelta. Con el dorso fuera de
     // esos cuadros el borde se queda en 557..560, que es donde tiene que estar.
-    const caraDorso = soloFrente || (mesh.ba ?? 0) <= 0 ? null : mesh.b;
+    //
+    // Al filtro de `ba` se le añade una segunda puerta, y no se le quita la
+    // suya: con el frente ENTERO y el dorso a la vista entra igual. Asi el
+    // arreglo del labio toca 16 cuadros -88-91, 95-102 y 104-107- y deja los
+    // 108-116 exactamente como estaban, que son los de la regresion medida
+    // (el borde derecho de la foto quieta cayendo de 560 a 411 px).
+    //
+    // Medido sobre los 16 cuadros de video: la silueta pasa de 1.004.218 a
+    // 1.301.966 px, y de la nueva solo el 1,5% cae en fondo vacio -la punta
+    // del dorso asomando por encima del libro-, donde punzar no borra nada.
+    const caraDorso = soloFrente ? null : (frenteEntero && dorsoALaVista) || (mesh.ba ?? 0) > 0 ? mesh.b : null;
     const pinta = (pol: Point[]): void => {
       m.beginPath();
       for (let k = 0; k < pol.length; k++) {
@@ -3840,7 +3954,15 @@ export class AboutBookComponent {
         new Promise<void>((resolve) => {
           const start = performance.now();
           let arrancada = false;
+          this.diagIv = []; // DIAG: intervalos de ESTE volteo
+          this.diagGL = 0; // DIAG
+          let diagPrev = 0; // DIAG
           const tick = (now: number): void => {
+            // DIAG: el intervalo REAL entre fotogramas dibujados. Se mira el
+            // peor y no la media: un volteo que promedia 30 pero da un parón de
+            // 200 ms se lee bien en la media y se ve fatal en pantalla.
+            if (diagPrev) this.diagIv.push(now - diagPrev);
+            diagPrev = now;
             const t = now - start;
             const tt = Math.min(1, t / durationMs);
             const f = frameAtProgress(totalDist * ease(tt));

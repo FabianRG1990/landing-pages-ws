@@ -18,7 +18,12 @@ const fuentes = new Map<string, DiagFuente>();
 /** ¿Pidió el visitante el panel? Falso en el servidor y en una visita normal. */
 export function diagActivo(): boolean {
   if (typeof location === 'undefined') return false;
-  return new URLSearchParams(location.search).get('diag') === '1';
+  const q = new URLSearchParams(location.search);
+  // `gl=0` tambien lo abre. Ese parametro fuerza el viejo camino de canvas 2D,
+  // y quien lo escribe es para comparar: se quiere el panel sin tener que
+  // encadenar dos parametros con un `&`, que en el teclado de un telefono es
+  // justo lo que hace que la prueba no se haga.
+  return q.get('diag') === '1' || q.get('gl') === '0';
 }
 
 /**

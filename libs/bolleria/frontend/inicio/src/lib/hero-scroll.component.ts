@@ -620,6 +620,25 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
     this.bootHeroFrames();
     const loop = () => {
       this.raf = requestAnimationFrame(loop);
+      // Fuera de pantalla no hay coreografía que actualizar, y esto NO es un
+      // ahorro cosmético: medido con el perfilador mientras se pasan páginas
+      // del libro —con el hero ya muy por encima—, `updateHero` +
+      // `getBoundingClientRect` + `getCarouselBand` costaban 924 ms contra los
+      // 966 ms de TODO el dibujado del libro. O sea que el hero invisible se
+      // llevaba la mitad del presupuesto de fotograma del libro, y encima
+      // `getBoundingClientRect` fuerza un recálculo de layout cada vez.
+      //
+      // La condición no es solo "no se ve": con un viaje a una parada vivo o
+      // con el dedo puesto hay que seguir, porque el propio movimiento es lo
+      // que puede devolver el hero a la pantalla.
+      const trabajando = this.heroCerca || this.ckRunning || this.tCapturado;
+      // Una ÚLTIMA pasada completa al apagarse. Sin ella el hero se congela con
+      // lo que hubiera en ese instante: `touch-action` a medio ceder —que es
+      // exactamente lo que rompió el scroll en iOS—, el lienzo visible y
+      // `this.active` mintiendo. Con ella, el estado en el que se queda es el
+      // que le tocaba.
+      if (!trabajando && this.heroQuieto) return;
+      this.heroQuieto = !trabajando;
       // Antes de updateHero: el viaje mueve el scroll y la coreografía lo lee ya
       // movido en este mismo frame, sin quedarse un tick por detrás.
       this.ckAdvance();
@@ -686,6 +705,7 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
     };
     this.raf = requestAnimationFrame(loop);
     window.addEventListener('resize', this.onResize, { passive: true });
+    this.vigilarPresencia();
     // `passive: false` porque hay que poder cancelar el scroll nativo. Se
     // registran siempre (no solo si hoy hay puntero fino): `ckEnabled()` decide
     // en cada evento, así que un cambio de `prefers-reduced-motion` o el paso a
@@ -719,8 +739,27 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
     }));
   }
 
+  /**
+   * ¿Está el hero en pantalla, o cerca? Con `IntersectionObserver` y no
+   * midiendo el rectángulo en cada fotograma, porque medirlo es justamente uno
+   * de los costes que se quieren quitar: `getBoundingClientRect` fuerza layout.
+   *
+   * Medio viewport de margen para que despierte ANTES de asomar: si despertara
+   * al entrar, el primer fotograma visible sería el único con la coreografía
+   * sin actualizar, y se vería el salto.
+   */
+  private vigilarPresencia(): void {
+    const el = this.wrapRef()?.nativeElement;
+    if (!el || typeof IntersectionObserver === 'undefined') return;
+    this.ioHero = new IntersectionObserver((e) => (this.heroCerca = e.some((x) => x.isIntersecting)), {
+      rootMargin: '50% 0px',
+    });
+    this.ioHero.observe(el);
+  }
+
   ngOnDestroy(): void {
     if (!this.isBrowser) return;
+    this.ioHero?.disconnect();
     cancelAnimationFrame(this.raf);
     window.removeEventListener('resize', this.onResize);
     window.removeEventListener('wheel', this.onWheel);
@@ -2130,6 +2169,10 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
   /** Peor cadencia de la animación vista hasta ahora, en cuadros/s. */
   private diagPeorCadencia = Number.POSITIVE_INFINITY;
   private diagCapReposo = '(ninguna)'; // DIAG
+  /** Sin `IntersectionObserver` se queda en true: el comportamiento de siempre. */
+  private heroCerca = true;
+  private heroQuieto = false;
+  private ioHero?: IntersectionObserver;
 
   /**
    * Una frase, no una tabla. El iPhone del caso es de trabajo y no permite
