@@ -10,7 +10,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { BolleriaStore, diagRegistra } from '@bolleria-ui-shared';
+import { BolleriaStore } from '@bolleria-ui-shared';
 
 type FlavorKey = 'dulce' | 'mantequilla' | 'pistacho' | 'crema' | 'nutella';
 
@@ -418,8 +418,8 @@ const T_VEL_MS = 100;
  * Safari de iOS hace al terminar el gesto, que es lo que abortaba el viaje a la
  * parada justo al soltar.
  *
- * 400 ms y no menos porque el hero se dibuja a 16 fps en WebKit —medido con el
- * panel de diagnóstico contra producción, frente a los 60 de Chromium—, así que
+ * 400 ms y no menos porque el hero se dibuja a 16 fps en WebKit —medido en el
+ * aparato real contra producción, frente a los 60 de Chromium—, así que
  * un margen de 100 ms serían apenas dos fotogramas y podría quedarse corto. Y no
  * más porque pasado ese punto la salvaguarda tiene que volver a proteger: es lo
  * que impide que el controlador arrastre de vuelta a quien ya se salió del hero.
@@ -718,25 +718,6 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
     window.addEventListener('touchmove', this.onTouchMove, { passive: false });
     window.addEventListener('touchend', this.onTouchEnd, { passive: true });
     window.addEventListener('touchcancel', this.onTouchEnd, { passive: true });
-
-    // DIAG (temporal, ver diag.ts). Lo que hay que poder leer en el teléfono
-    // es POR QUÉ el controlador no mueve la página: si no está habilitado, si
-    // el toque no le llega, o si le llega y el navegador ya no le deja
-    // cancelar el desplazamiento.
-    // Compacto a propósito: en un iPhone en horizontal el panel entero no cabe
-    // y se cortaba justo por los renglones que hacían falta. Los booleanos que
-    // ya se dieron por buenos (ready, ckEnabled, tactil, paradas, touchAction)
-    // van todos en una línea; lo que cambia gesto a gesto va arriba y solo.
-    diagRegistra('hero', () => ({
-      VEREDICTO: this.diagVeredicto(),
-      'VIAJES-LLEGADAS-ABORTOS': `${this.diagViajes} - ${this.diagLlegadas} - ${this.diagAbortos}   (salvados ${this.diagSalvados})`,
-      'ULTIMO GESTO': this.diagUltimoGesto,
-      'CADENCIA peor': `${Number.isFinite(this.diagPeorCadencia) ? Math.round(this.diagPeorCadencia) : '-'} cuadros/s (el metraje son 24)`,
-      'LEYENDA en reposo': `${this.diagCapReposo}   (op 1.000 = nitida)`,
-      umbrales: `franco ${Math.round(this.ckBurstFree())} / paso ${Math.round(this.ckBurstStep())}`,
-      toques: `${this.diagToques} (fuera ${this.diagFuera}) · empujones ${this.diagEmpujones} · no-cancel ${this.diagNoCancelable}`,
-      estado: `ready ${this.ready} · ck ${this.ckEnabled()} · tactil ${this.tactil()} · paradas ${this.stops.length} · ta ${this.wrapRef()?.nativeElement.style.touchAction || '-'}`,
-    }));
   }
 
   /**
@@ -1816,12 +1797,6 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
       this.ckLastWrittenY >= 0 &&
       Math.abs(pos - this.ckLastWrittenY) > 4 &&
       (this.ckIntentoY < 0 || Math.abs(pos - this.ckIntentoY) > 4);
-    // DIAG. No es un contador de adorno: es la prueba de si el diagnóstico era
-    // el correcto. Si en el teléfono esto sube, la salvaguarda SÍ estaba
-    // matando el viaje al levantar el dedo y la ventana de gracia lo está
-    // impidiendo. Si se queda en cero, la causa es otra y hay que buscarla en
-    // otro sitio en vez de insistir aquí.
-    if (habriaAbortado && enGracia) this.diagSalvados++;
     // Y en la familia WebKit del dedo la salvaguarda se apaga ENTERA, porque
     // ahí no es utilizable. Medido en el iPhone con el panel: de 63 empujones,
     // la ventana de gracia tuvo que salvar 59 abortos, y aun así 6 de los 7
@@ -1838,7 +1813,6 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
     // escritorio y en Android no cambia nada: ahí sigue entera.
     const ajeno = habriaAbortado && !enGracia && !this.ckPantallaCorta();
     if (ajeno) {
-      this.diagAbortos++; // DIAG
       this.ckRunning = false;
       this.ckLastWrittenY = -1;
       this.ckIntentoY = -1;
@@ -1874,16 +1848,6 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
       next = targetY;
       this.ckVel = 0;
       this.ckRunning = false;
-      this.diagLlegadas++; // DIAG
-      // DIAG: cadencia media del viaje que acaba de terminar, y la peor de
-      // todas las vistas. Solo cuenta si hubo metraje avanzando: los viajes
-      // entre sabores son carrusel, no vídeo, y no tienen cadencia que medir.
-      if (this.ckCuadrosViaje > 3 && this.ckTiempoViaje > 0.1) {
-        const cps = this.ckCuadrosViaje / this.ckTiempoViaje;
-        if (cps < this.diagPeorCadencia) this.diagPeorCadencia = cps;
-      }
-      this.ckCuadrosViaje = 0;
-      this.ckTiempoViaje = 0;
     }
     window.scrollTo({ top: next, behavior: 'instant' as ScrollBehavior });
     // Se relee en vez de guardar `next`: el navegador redondea y satura contra
@@ -1891,32 +1855,6 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
     // existir daría un falso "lo movieron desde fuera" en el frame siguiente.
     this.ckLastWrittenY = this.ckRunning ? window.scrollY : -1;
     this.ckIntentoY = this.ckRunning ? next : -1;
-
-    // Densidad del metraje, medida: cuántos px de scroll cuesta un cuadro AQUÍ.
-    // `targetF` lo escribe `updateHero`, que corre después de este método en el
-    // mismo fotograma, así que lo que se compara son dos fotogramas seguidos.
-    //
-    // Cuando el cuadro no avanza —el congelado del carrusel— la razón se pone a
-    // cero en vez de conservar la última: si se conservara, el suelo del vídeo
-    // se aplicaría a los viajes entre sabores, que no son metraje, y los
-    // dispararía. A cero, esos viajes vuelven al suelo fijo de siempre.
-    // DIAG. La cadencia REAL de la animación, que es lo que se percibe como
-    // brinco: cuántos cuadros de vídeo por segundo se están recorriendo. El
-    // metraje son 24; por debajo de ~18 se ven los cuadros sueltos. Se guarda
-    // la PEOR del recorrido, no la media, porque un tramo bueno con un bache se
-    // lee bien en la media y se ve mal en pantalla. Solo se mira donde el
-    // cuadro avanza de verdad y sin el salto con el que el vídeo retoma tras el
-    // congelado, que no es una cadencia sino una discontinuidad.
-    // Se acumula y se promedia POR VIAJE, no se toma el mínimo instantáneo. El
-    // mínimo no servía: todo viaje termina frenando, así que siempre capturaba
-    // el último fotograma y marcaba 4-5 cuadros/s hasta en Chromium, donde la
-    // animación se ve perfectamente. Era un número inútil.
-    const dF = Math.abs(this.targetF - this.ckFPrev);
-    if (this.ckFPrev >= 0 && dF < 5 && dt > 0) {
-      this.ckCuadrosViaje += dF;
-      this.ckTiempoViaje += dt;
-    }
-    this.ckFPrev = this.targetF;
   }
 
   private readonly onWheel = (e: WheelEvent): void => {
@@ -1945,7 +1883,6 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
    * sabe con certeza porque el gesto empieza al posarse.
    */
   private ckEmpujar(dy: number, nuevoGesto: boolean): void {
-    this.diagEmpujones++; // DIAG
     const dir: 1 | -1 = dy > 0 ? 1 : -1;
     if (nuevoGesto) {
       // Si el gesto continúa en el mismo sentido de un viaje vivo, se cuenta
@@ -1974,7 +1911,6 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
     // un gesto normal se comía media secuencia; corregido el franco, el techo
     // sobraba y lo único que hacía era impedir salir del hero de un barrido.
     const bonus = sobra <= 0 ? 0 : 1 + Math.floor(sobra / this.ckBurstStep());
-    this.diagUltimoGesto = `${Math.round(this.ckGestureAccum)}px -> ${1 + bonus} parada(s)`; // DIAG
     if (bonus > this.ckGestureBonus) {
       this.ckIdx += (bonus - this.ckGestureBonus) * dir;
       this.ckGestureBonus = bonus;
@@ -1997,7 +1933,6 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
     this.ckVel = 0;
     this.ckDistMax = 0;
     this.ckRunning = true;
-    this.diagViajes++; // DIAG
   }
 
   // ---- el mismo controlador, pero con el dedo ----
@@ -2024,10 +1959,6 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
    * cero al arrancar cada viaje.
    */
   private ckDistMax = 0;
-  /** Cuadro del fotograma anterior, solo para el contador de cadencia. */
-  private ckFPrev = -1;
-  private ckCuadrosViaje = 0;
-  private ckTiempoViaje = 0;
 
   /**
    * Solo donde el puntero principal es el dedo. En un portátil con pantalla
@@ -2105,14 +2036,7 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
     // menú y el carrito viven fuera de ese elemento, así que sus toques —y sus
     // taps— no pasan por aquí.
     const wrap = this.wrapRef()?.nativeElement;
-    this.diagToques++; // DIAG
-    if (e.target instanceof Element) {
-      this.diagUltimoObjetivo = e.target.tagName.toLowerCase() + '.' + String(e.target.className).slice(0, 24);
-    }
-    if (!wrap || !(e.target instanceof Node) || !wrap.contains(e.target)) {
-      this.diagFuera++; // DIAG
-      return;
-    }
+    if (!wrap || !(e.target instanceof Node) || !wrap.contains(e.target)) return;
     const t = e.touches[0];
     this.tActivo = true;
     this.tX0 = t.clientX;
@@ -2160,10 +2084,8 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
     // desplazamiento y lo pasó al compositor: ahí `preventDefault` no cancela
     // nada y además avisa por consola. Quien de verdad nos reserva el eje es
     // `touch-action` (ver el bloque que lo escribe en cada fotograma); esto es
-    // la segunda línea de defensa, y contar los fallos es lo que delata si la
-    // primera no está funcionando en un teléfono que no tengo delante.
+    // solo la segunda línea de defensa.
     if (e.cancelable) e.preventDefault();
-    else this.diagNoCancelable++;
     // El gesto nace al posarse el dedo y muere al levantarlo. Nada más lo
     // corta: ni una pausa a mitad del arrastre, ni —y esto es lo que hubo que
     // corregir— que el viaje termine antes que el dedo. La rueda deduce el
@@ -2185,51 +2107,10 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
   /** Marca que el próximo empujón abre un gesto (se pone al posar el dedo). */
   private tGestoNuevo = true;
 
-  // ---- DIAG (temporal, ver diag.ts) ----
-  private diagNoCancelable = 0;
-  private diagToques = 0;
-  private diagFuera = 0;
-  private diagEmpujones = 0;
-  private diagAbortos = 0;
-  private diagUltimoObjetivo = '';
-  /** Viajes a una parada que llegaron a arrancar. */
-  private diagViajes = 0;
-  /** ...y los que llegaron de verdad. */
-  private diagLlegadas = 0;
-  /** Abortos que la ventana de gracia impidió (ver `T_GRACIA_MS`). */
-  private diagSalvados = 0;
-  /**
-   * Lo que acumuló el último gesto y cuántas paradas le valió. Es el dato que
-   * hace falta para calibrar sin tener el teléfono delante: el envión depende
-   * de la deceleración que informe cada navegador, y ese número no se puede
-   * deducir desde fuera. Leyendo esto tras un barrido suave y tras uno fuerte
-   * se sabe exactamente dónde caen los umbrales en un iPhone de verdad.
-   */
-  private diagUltimoGesto = '(ninguno)';
-  /** Peor cadencia de la animación vista hasta ahora, en cuadros/s. */
-  private diagPeorCadencia = Number.POSITIVE_INFINITY;
-  private diagCapReposo = '(ninguna)'; // DIAG
   /** Sin `IntersectionObserver` se queda en true: el comportamiento de siempre. */
   private heroCerca = true;
   private heroQuieto = false;
   private ioHero?: IntersectionObserver;
-
-  /**
-   * Una frase, no una tabla. El iPhone del caso es de trabajo y no permite
-   * guardar ni compartir capturas, así que el diagnóstico tiene que poder
-   * LEERSE EN VOZ ALTA. Esta línea distingue las tres situaciones posibles y
-   * dice cuál es sin que haya que interpretar seis contadores.
-   */
-  private diagVeredicto(): string {
-    if (!this.ready) return 'el hero aun no tiene cuadros (ready=false)';
-    if (!this.ckEnabled()) return 'el controlador esta APAGADO -> scroll nativo sobre 700vh';
-    if (this.diagToques === 0) return 'todavia no ha tocado la pantalla';
-    if (this.diagEmpujones === 0) return 'los dedos NO llegan al controlador (mire "toques fuera del wrap")';
-    if (this.diagViajes === 0) return 'el dedo llega pero NINGUN viaje a una parada arranca';
-    if (this.diagSalvados > 0) return `ERA ESO: la salvaguarda mataba el viaje al soltar (${this.diagSalvados} salvados)`;
-    if (this.diagLlegadas === 0) return `NO ERA ESO: ${this.diagViajes} viajes arrancaron, 0 llegaron, 0 salvados`;
-    return `el controlador manda y avanza bien (${this.diagLlegadas} de ${this.diagViajes} viajes llegaron)`;
-  }
 
   private readonly onTouchEnd = (): void => {
     // `tCapturado` y no `tComprometido`, y esta distinción costó un fallo:
@@ -2486,13 +2367,6 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
         activeOp = o;
         break;
       }
-    }
-    // DIAG: con qué opacidad se quedó la leyenda una vez el viaje terminó. Si
-    // el texto se sigue viendo borroso, este número separa las dos causas
-    // posibles sin otra ronda a ciegas: <1 = la parada aterriza desviada (y
-    // cuánto), =1 = el desenfoque no viene de aquí sino del rasterizado.
-    if (!this.ckRunning && activeCap) {
-      this.diagCapReposo = `${activeCap.eyebrow || 'relleno'} op ${activeOp.toFixed(3)} · cuadro ${f.toFixed(1)}`;
     }
     if (R.photoBox) {
       const band = this.getCarouselBand();

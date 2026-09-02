@@ -33,7 +33,12 @@
         ],
         "server": "apps/bolleria/src/main.server.ts",
         "outputMode": "static",
-        "prerender": true
+        "allowedCommonJsDependencies": [
+          "@babel/runtime",
+          "core-js",
+          "raf",
+          "rgbcolor"
+        ]
       },
       "configurations": {
         "production": {
@@ -49,22 +54,22 @@
               "maximumError": "24kb"
             }
           ],
-          "outputHashing": "all",
-          "assets": [
-            {
-              "glob": "**/*",
-              "input": "apps/bolleria/public",
-              "ignore": [
-                "calibrador-*",
-                "importar.json"
-              ]
-            }
-          ]
+          "outputHashing": "all"
         },
         "development": {
           "optimization": false,
           "extractLicenses": false,
-          "sourceMap": true
+          "sourceMap": true,
+          "assets": [
+            {
+              "glob": "**/*",
+              "input": "apps/bolleria/public"
+            },
+            {
+              "glob": "**/*",
+              "input": "tools/bolleria"
+            }
+          ]
         }
       },
       "defaultConfiguration": "production"

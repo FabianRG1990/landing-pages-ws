@@ -80,7 +80,9 @@ export class OrderPdfService {
     const c = document.createElement('canvas');
     c.width = w;
     c.height = h;
-    c.getContext('2d')!.drawImage(im, 0, 0, w, h);
+    const ctx = c.getContext('2d');
+    if (!ctx) return null;
+    ctx.drawImage(im, 0, 0, w, h);
     this.bgData = c.toDataURL('image/jpeg', 0.88);
     return this.bgData;
   }
@@ -94,7 +96,9 @@ export class OrderPdfService {
     const c = document.createElement('canvas');
     c.width = w;
     c.height = h;
-    c.getContext('2d')!.drawImage(im, 0, 0, w, h);
+    const ctx = c.getContext('2d');
+    if (!ctx) return null;
+    ctx.drawImage(im, 0, 0, w, h);
     this.markData = { url: c.toDataURL('image/png'), w, h };
     return this.markData;
   }

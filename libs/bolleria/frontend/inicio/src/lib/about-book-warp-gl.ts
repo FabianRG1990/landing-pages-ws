@@ -236,8 +236,15 @@ export class WarpGL {
     if (!tex) return this.rendirse();
 
     this.rejilla(sub);
-    const pos = this.posArr!;
-    const idx = this.idxArr!;
+    // `rejilla` acaba de crear los tres, y `preparar` el lienzo. Se comprueban
+    // en vez de afirmarlos con `!`: si alguno faltara, `render` devuelve false
+    // y el dibujado cae al camino de canvas 2D, que es exactamente lo que hay
+    // que hacer -y no reventar a mitad de un volteo.
+    const pos = this.posArr;
+    const idx = this.idxArr;
+    const uv = this.uvArr;
+    const cv = this.cv;
+    if (!pos || !idx || !uv || !cv) return false;
     const n = sub + 1;
 
     // Vertices. SIN el `bleed` del camino 2D: alli cada celda se ensancha medio
@@ -289,7 +296,7 @@ export class WarpGL {
     gl.bindTexture(gl.TEXTURE_2D, tex);
 
     gl.bindBuffer(gl.ARRAY_BUFFER, this.bufUV);
-    gl.bufferData(gl.ARRAY_BUFFER, this.uvArr!, gl.STATIC_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER, uv, gl.STATIC_DRAW);
     gl.enableVertexAttribArray(this.locU);
     gl.vertexAttribPointer(this.locU, 2, gl.FLOAT, false, 0, 0);
 
@@ -309,7 +316,7 @@ export class WarpGL {
     const bw = Math.min(W, Math.ceil(x1) + 1) - bx;
     const bh = Math.min(H, Math.ceil(y1) + 1) - by;
     if (bw <= 0 || bh <= 0) return true;
-    dst.drawImage(this.cv!, bx, by, bw, bh, bx, by, bw, bh);
+    dst.drawImage(cv, bx, by, bw, bh, bx, by, bw, bh);
     return true;
   }
 }

@@ -15,8 +15,6 @@ import {
   SiteFooterComponent,
   SiteNavComponent,
   installScrollLock,
-  // DIAG — temporal, ver diag.ts.
-  instalaDiag,
 } from '@bolleria-ui-shared';
 import { EntremesComponent, HeroScrollComponent, HomeComponent } from '@bolleria-ui-inicio';
 import { MenuPageComponent } from '@bolleria-ui-menu';
@@ -50,8 +48,6 @@ export class App {
   constructor() {
     if (this.isBrowser) {
       installScrollLock(() => this.store.scrollLocked());
-      // DIAG — no hace nada sin `?diag=1` en la URL.
-      instalaDiag();
     }
     // Reveal-on-load inicial (transcripción fiel de `playReveal()` tras el preloader).
     effect(() => {

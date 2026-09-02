@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, ElementRef, NgZone, PLATFORM_ID, computed, inject, signal, viewChild } from '@angular/core';
 import { NgStyle, isPlatformBrowser } from '@angular/common';
-import { CONTACT, diagRegistra } from '@bolleria-ui-shared';
+import { CONTACT } from '@bolleria-ui-shared';
 import { WarpGL } from './about-book-warp-gl';
 
 const FRAME_COUNT = 169;
@@ -1170,8 +1170,6 @@ export class AboutBookComponent {
    * las dos cosas.
    */
   private frames: HTMLImageElement[] = [];
-  /** Cuadros que fallaron, con el motivo. Los lee el panel de DIAG. */
-  private readonly fallos: string[] = [];
   // Fotos crudas, tal como se descargan (a color completo, sin procesar).
   private rawPhotos: (ImageBitmap | null)[] = [];
   // Panel final por foto: solo la foto, con recorte "cover" que llena el
@@ -1287,40 +1285,6 @@ export class AboutBookComponent {
 
   constructor() {
     if (this.isBrowser) this.arrancarCuandoSeAcerque();
-    // DIAG (temporal, ver diag.ts). Lo que hay que poder leer en el telefono es
-    // en que punto se queda el libro: si el observador llego a disparar, si la
-    // descarga termino, y que se perdio por el camino.
-    diagRegistra('libro', () => ({
-      arrancado: this.diagArrancado,
-      'descarga terminada': this.diagDescargado,
-      listo: this.ready(),
-      'cuadros cargados': `${this.frames.filter(Boolean).length}/${FRAME_COUNT}`,
-      fallos: this.fallos.length,
-      detalle: this.fallos.slice(0, 4).join(' | ') || '(ninguno)',
-      lienzo: (() => {
-        const c = this.canvasRef()?.nativeElement;
-        return c ? `${c.width}x${c.height}` : '(sin lienzo)';
-      })(),
-      // DIAG: lo que hay que leer despues de pasar UNA pagina. El objetivo son
-      // 16,7 ms por fotograma; lo reportado en Safari fue caer a 9 fps, o sea
-      // unos 111 ms. Este renglon lo mide en el aparato de verdad.
-      // DIAG: sin este renglon no hay forma de saber, desde una captura del
-      // telefono, CUAL de las dos versiones se esta midiendo. Si dice
-      // `canvas 2D` es que la GPU no entro (o no hay WebGL en ese aparato).
-      MOTOR: !this.glActivo
-        ? 'canvas 2D   (forzado con ?gl=0)'
-        : this.diagGL > 0
-          ? `WebGL  (${this.diagGL} paneles por GPU)`
-          : this.warpGL.vivo
-            ? 'WebGL pedido, aun sin dibujar'
-            : 'WebGL NO disponible en este aparato',
-      'VOLTEO fotogramas': (() => {
-        const v = this.diagIv;
-        if (!v.length) return '(pasa una pagina y mira aqui)';
-        const med = v.reduce((a, b) => a + b, 0) / v.length;
-        return `${v.length} fotog · media ${med.toFixed(0)} ms (${(1000 / med).toFixed(0)} fps) · peor ${Math.max(...v).toFixed(0)} ms`;
-      })(),
-    }));
   }
 
   /**
@@ -1340,24 +1304,32 @@ export class AboutBookComponent {
    * empieza a cargar bastante antes de asomar y llega listo; hasta entonces su
    * canvas ya estaba invisible por diseño (`.is-ready`).
    */
+  /**
+   * Un fallo aqui deja el libro sin abrir, pero NO debe tumbar la pagina: el
+   * resto de la portada funciona igual sin el.
+   */
+  private arranca(): void {
+    void this.boot().catch(() => undefined);
+  }
+
   private arrancarCuandoSeAcerque(): void {
     // Sin IntersectionObserver (o si algo falla) se carga igual, como antes:
     // vale mas un arranque temprano que un libro que no llega nunca.
     if (typeof IntersectionObserver === 'undefined') {
-      void this.boot().catch((e) => this.fallos.push(`boot: ${String(e).slice(0, 120)}`)); // DIAG: si esto revienta, `ready` no llega nunca y antes no se veia
+      this.arranca();
       return;
     }
     queueMicrotask(() => {
       const el = this.canvasRef?.()?.nativeElement;
       if (!el) {
-        void this.boot().catch((e) => this.fallos.push(`boot: ${String(e).slice(0, 120)}`)); // DIAG: si esto revienta, `ready` no llega nunca y antes no se veia
+        this.arranca();
         return;
       }
       const io = new IntersectionObserver(
         (entradas) => {
           if (!entradas.some((e) => e.isIntersecting)) return;
           io.disconnect();
-          void this.boot().catch((e) => this.fallos.push(`boot: ${String(e).slice(0, 120)}`)); // DIAG: si esto revienta, `ready` no llega nunca y antes no se veia
+          this.arranca();
         },
         // Cuatro pantallas de antelacion, no dos: el hero mide 700vh, asi que
         // el libro esta a unas ocho pantallas del inicio y con un margen corto
@@ -1371,22 +1343,8 @@ export class AboutBookComponent {
     });
   }
 
-  /** DIAG: intervalos entre fotogramas del ultimo volteo, en ms. */
-  private diagIv: number[] = [];
-
-  /** DIAG: cuantos paneles ha deformado la GPU en el volteo en curso. */
-  private diagGL = 0;
-  private diagCuentaGL(): boolean {
-    this.diagGL++;
-    return true;
-  }
-
-  /** DIAG: banderas de progreso del arranque. */
-  private diagArrancado = false;
-  private diagDescargado = false;
 
   private async boot(): Promise<void> {
-    this.diagArrancado = true; // DIAG
     await Promise.all([
       this.loadFramesAcotado(),
       ...STORIES.map((s, i) => this.loadPhoto(i, s.photo)),
@@ -1395,7 +1353,6 @@ export class AboutBookComponent {
       this.loadCurl(),
       this.prepareFonts(),
     ]);
-    this.diagDescargado = true; // DIAG
     this.photos = this.rawPhotos.map((p) => (p ? this.renderPhotoPanel(p) : null));
     this.textPanels = STORIES.map((s, i) => this.renderTextPanel(s, i === LAST - 1, i + 1));
     // La pagina de cierre se pinta ademas con cada boton resaltado. Son dos
@@ -1435,10 +1392,9 @@ export class AboutBookComponent {
   }
 
   /**
-   * Un cuadro, por <img> y sin `fetch` intermedio. Nunca rechaza: un cuadro que
-   * no llega se anota en `fallos` y `draw()` lo omite, igual que antes -pero
-   * ahora se puede LEER que falto, que es lo que faltaba para diagnosticar un
-   * telefono que no tengo delante.
+   * Un cuadro, por <img> y sin `fetch` intermedio. NUNCA rechaza: el que no
+   * llega se queda sin asignar y `draw()` lo omite. Un cuadro perdido degrada
+   * la animacion; una promesa rechazada tumbaria el arranque entero.
    */
   private loadFrame(i: number): Promise<void> {
     if (this.frames[i]) return Promise.resolve();
@@ -1447,13 +1403,9 @@ export class AboutBookComponent {
       const img = new Image();
       img.onload = () => {
         if (img.naturalWidth > 0) this.frames[i] = img;
-        else this.fallos.push(`cuadro ${i + 1}: ancho 0`);
         res();
       };
-      img.onerror = () => {
-        this.fallos.push(`cuadro ${i + 1}: error de carga`);
-        res();
-      };
+      img.onerror = () => res();
       img.decoding = 'async';
       img.src = url;
     });
@@ -1486,8 +1438,8 @@ export class AboutBookComponent {
       const res = await fetch(url);
       const blob = await res.blob();
       this.rawPhotos[i] = await createImageBitmap(blob);
-    } catch (e) {
-      this.fallos.push(`foto ${i + 1}: ${String(e).slice(0, 80)}`);
+    } catch {
+      // sin foto, esa pagina del libro queda solo con su texto
       this.rawPhotos[i] = null;
     }
   }
@@ -1496,9 +1448,8 @@ export class AboutBookComponent {
     try {
       const res = await fetch(LOGO_URL);
       this.logoArt = await createImageBitmap(await res.blob());
-    } catch (e) {
+    } catch {
       // sin marca, la pagina de cierre queda como estaba -en blanco-
-      this.fallos.push(`logo: ${String(e).slice(0, 80)}`);
       this.logoArt = null;
     }
   }
@@ -1514,9 +1465,8 @@ export class AboutBookComponent {
         if (m.bv) m.bv = this.limpiaVisibilidad(m.bv);
       }
       this.buildFlatFront();
-    } catch (e) {
+    } catch {
       // sin malla, drawContent deja el contenido quieto en su pagina
-      this.fallos.push(`malla: ${String(e).slice(0, 80)}`);
     }
   }
 
@@ -2518,6 +2468,9 @@ export class AboutBookComponent {
    * Se deja como una salida temprana, y no borrando la maquinaria, para que
    * volver a activarlas sea quitar esta linea.
    */
+  // Los dos parametros no se usan HOY, y se conservan a proposito: son la
+  // firma que vuelve a hacer falta en cuanto se quite la salida temprana.
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   private poseAt(_frame: number, _side: 'left' | 'right'): Warp | null {
     return null;
   }
@@ -2880,7 +2833,6 @@ export class AboutBookComponent {
     if (
       this.glActivo &&
       this.warpGL.vivo &&
-      this.diagCuentaGL() &&
       this.warpGL.render(
         ctx,
         img,
@@ -3982,15 +3934,7 @@ export class AboutBookComponent {
         new Promise<void>((resolve) => {
           const start = performance.now();
           let arrancada = false;
-          this.diagIv = []; // DIAG: intervalos de ESTE volteo
-          this.diagGL = 0; // DIAG
-          let diagPrev = 0; // DIAG
           const tick = (now: number): void => {
-            // DIAG: el intervalo REAL entre fotogramas dibujados. Se mira el
-            // peor y no la media: un volteo que promedia 30 pero da un parón de
-            // 200 ms se lee bien en la media y se ve fatal en pantalla.
-            if (diagPrev) this.diagIv.push(now - diagPrev);
-            diagPrev = now;
             const t = now - start;
             const tt = Math.min(1, t / durationMs);
             const f = frameAtProgress(totalDist * ease(tt));
