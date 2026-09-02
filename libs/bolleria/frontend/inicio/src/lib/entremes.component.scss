@@ -9,11 +9,16 @@
 // igual que la imagen, y no cambia de tono a medida que se hace scroll (antes
 // era una capa aparte que cubría toda la sección, y por eso su gradiente se
 // iba revelando distinto según cuánto se hubiera scrolleado).
+// Las dos capas de fondo —el velo y la foto— se declaran una sola vez porque
+// Safari necesita repetirlas más abajo sobre otro elemento, y dos listas que
+// hay que mantener a la par es justo como se desincronizan.
+$entremes-capas: linear-gradient(to bottom, rgba(46, 42, 28, 0.1) 0%, rgba(46, 42, 28, 0.5) 100%),
+  url('/assets/entremes-mostrador.webp');
+
 .bol-entremes {
   position: relative;
   height: 122vh;
-  background-image: linear-gradient(to bottom, rgba(46, 42, 28, 0.1) 0%, rgba(46, 42, 28, 0.5) 100%),
-    url('/assets/entremes-mostrador.webp');
+  background-image: $entremes-capas;
   background-size:
     100% 100%,
     cover;
@@ -30,6 +35,71 @@
     // bloque normal y corto, con el texto centrado adentro.
     height: auto;
     background-attachment: scroll, scroll;
+  }
+}
+
+// ── Safari: la foto brincaba al hacer scroll ──────────────────────────────────
+//
+// Reportado en Safari de macOS y SOLO ahí. La matriz encaja con la media query
+// de arriba: en el iPhone y en Android la regla de 900px ya cae a `scroll`, y
+// Chrome compone el fondo fijo en la GPU. Safari de escritorio es el único que
+// queda por encima de 900px siendo WebKit, y ahí `background-attachment: fixed`
+// no se puede componer: el fondo se repinta desde el hilo principal mientras el
+// scroll corre en otro, llega un fotograma tarde y da el brinco. Es un fallo
+// conocido de WebKit, no de esta página.
+//
+// La cura es no usar esa propiedad: una capa propia pegada con `sticky`, que
+// WebKit sí resuelve en el hilo del scroll. Va en un `::before` para no añadir
+// un nodo que los demás navegadores tendrían que ignorar.
+//
+// Se acota a Safari A PROPÓSITO. La entrada NO es la misma: hoy la foto está
+// clavada a la pantalla y la sección la destapa de abajo arriba; con la capa,
+// la foto sube con la página hasta engancharse. Limitándolo aquí, Chrome,
+// Firefox y Windows conservan exactamente la entrada de hoy y solo cambia donde
+// hoy está roto.
+//
+// Las dos condiciones son redundantes a propósito, y las dos están medidas en
+// Chromium, WebKit y Firefox: `-webkit-hyphens` solo lo reconoce WebKit, y
+// `-webkit-named-image` también. Si un día Chrome recuperara una, la otra sigue
+// dejándolo fuera; que la detección falle de más deja a ese Safari como está
+// hoy, que es el fallo barato.
+@supports (-webkit-hyphens: none) and (background: -webkit-named-image(i)) {
+  @media (min-width: 901px) and (prefers-reduced-motion: no-preference) {
+    .bol-entremes {
+      background-image: none;
+      // Sin esto la capa INVADE la sección siguiente: al sacarla del flujo con
+      // el margen negativo de abajo, su caja de contención queda degenerada y
+      // `sticky` no la suelta al terminar la sección; como además es un
+      // elemento posicionado, se pinta POR ENCIMA de las especialidades y las
+      // dos se superponen. Reportado y reproducido: las tarjetas de pan subían
+      // por delante de la foto, que seguía clavada.
+      //
+      // `clip` y NO `hidden`: `hidden` crea un contenedor de scroll y entonces
+      // `sticky` pasa a anclarse a él —que no se desplaza— en vez de a la
+      // ventana, y la capa dejaría de engancharse. `clip` recorta el pintado
+      // sin crear ese contenedor, que es exactamente lo que hace falta: la
+      // sección vuelve a ser una ventana sobre la foto, igual que lo era con
+      // `background-attachment: fixed`.
+      overflow: clip;
+
+      // `margin-bottom` negativo para que la capa no ocupe flujo: la sección
+      // sigue midiendo 122vh y el texto sticky conserva su recorrido intacto.
+      &::before {
+        content: '';
+        position: sticky;
+        top: 0;
+        display: block;
+        height: 100vh;
+        margin-bottom: -100vh;
+        background-image: $entremes-capas;
+        background-size:
+          100% 100%,
+          cover;
+        background-position:
+          center,
+          center;
+      }
+    }
   }
 }
 
