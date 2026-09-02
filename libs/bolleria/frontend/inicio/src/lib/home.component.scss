@@ -1,189 +1,84 @@
-.bol-intro {
+// ─── ESPECIALIDADES ──────────────────────────────────────────────────────────
+// Un solo bloque donde antes habia dos secciones con un titular cada una. Ver
+// la nota de home.component.html: el problema no era de tamanos, era que dos
+// encabezados seguidos se anulaban y en medio habia un parrafo y dos botones
+// que cortaban la lectura justo antes de las tarjetas.
+.bol-cats {
   max-width: 1200px;
   margin: 0 auto;
-  // 132px, no los ~70-90px del resto de gaps entre secciones: acá no hay que
-  // separar dos bloques estáticos, hay que despejar el nav fijo (~76px de
-  // alto en su estado --compact) más aire real antes del eyebrow.
-  padding: 132px 40px 10px;
-  text-align: center;
+  // 132 arriba, no los ~70-90 de separacion entre secciones: aqui no hay que
+  // separar dos bloques, hay que despejar el nav fijo (~76px en su estado
+  // --compact) mas aire real antes del rotulo. Lo heredamos de la intro que se
+  // fusiono; es el primer bloque de la pagina tras el hero.
+  padding: 132px 40px 30px;
 }
-.bol-intro__eyebrow {
+.bol-cats__intro {
+  text-align: center;
+  // 54px hasta la primera tarjeta: el titular necesita respirar por debajo o
+  // la parrilla lo lee como pie de foto en vez de como encabezado.
+  margin-bottom: 54px;
+}
+.bol-cats__eyebrow {
   font: 600 13px 'Cinzel', serif;
   letter-spacing: 0.34em;
   text-transform: uppercase;
   color: var(--olive);
 }
-.bol-intro__title {
-  font: 500 clamp(40px, 5.6vw, 72px) / 1 var(--hf, 'Cormorant Garamond'), serif;
-  letter-spacing: -0.01em;
-  margin: 16px auto 0;
-  max-width: 760px;
+// 84px de tope contra los 72 de antes. El titular ya no comparte la seccion
+// con nada: es lo unico que hay entre el hero y las tarjetas, y a esa escala
+// funciona como una apertura de revista. Se puede subir porque las dos lineas
+// nuevas son cortas -"horneado cada manana" mide 8.4em- y a 84px ocupan 705 de
+// los 1120px disponibles.
+.bol-cats__title {
+  font: 500 clamp(34px, 6.4vw, 84px) / 1.02 var(--hf, 'Cormorant Garamond'), serif;
+  letter-spacing: -0.015em;
+  margin: 18px auto 0;
+  max-width: 900px;
 
   em {
     font-style: italic;
     color: var(--acc, #c8912a);
   }
 }
-.bol-intro__lead {
-  font: 400 16px / 1.65 'Jost', sans-serif;
-  color: #6b6552;
-  margin: 18px auto 0;
-  max-width: 440px;
-}
-.bol-intro__ctas {
-  display: flex;
-  gap: 13px;
-  margin-top: 28px;
-  justify-content: center;
-  flex-wrap: wrap;
-
-  // Cuando los dos CTAs se apilan (mobile), el hueco entre ellos necesita
-  // más aire: la insignia "Envío Express" sobresale por encima del botón
-  // de WhatsApp y si no, queda pegada al botón de arriba.
-  @media (max-width: 480px) {
-    gap: 26px;
-  }
-}
-// Botones del hero: antes eran color plano sin sombra ni relieve — no
-// leían como botones, solo como texto con fondo. Ahora usan un gradiente
-// sutil (simula luz cayendo sobre una superficie curva/lacada), sombras en
-// capas (una ajustada para "anclar" el botón al suelo + una difusa y cálida
-// para profundidad) y una elevación real al hover, en vez de solo cambiar
-// de color.
-.bol-intro__cta-primary {
-  display: inline-flex;
-  align-items: center;
-  gap: 9px;
+// El enlace al menu completo CIERRA la seccion. Arriba, en voladizo a la
+// derecha del titulo, en movil se envolvia a una linea propia y quedaba
+// huerfano entre el titular y la primera tarjeta.
+.bol-cats__all {
+  display: block;
+  width: fit-content;
+  margin: 38px auto 0;
   font: 500 14px 'Jost', sans-serif;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  padding: 16px 26px 16px 30px;
-  border-radius: 999px;
-  background: linear-gradient(160deg, #443c28 0%, var(--ink) 55%, #1c1a11 100%);
-  color: var(--cream);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.09),
-    inset 0 -10px 14px -12px rgba(0, 0, 0, 0.4),
-    0 10px 24px -10px rgba(46, 42, 28, 0.55),
-    0 3px 8px -3px rgba(46, 42, 28, 0.4);
-  transition:
-    transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
-    box-shadow 0.35s ease;
-
-  svg {
-    transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
-  }
-
-  @media (hover: hover) and (pointer: fine) {
-    &:hover {
-      transform: translateY(-3px);
-      box-shadow:
-        inset 0 1px 0 rgba(255, 255, 255, 0.12),
-        inset 0 -10px 14px -12px rgba(0, 0, 0, 0.4),
-        0 18px 34px -12px rgba(46, 42, 28, 0.6),
-        0 6px 14px -4px rgba(46, 42, 28, 0.45);
-
-      svg {
-        transform: translateX(4px);
-      }
-    }
-  }
-
-  &:active {
-    transform: translateY(-1px);
-  }
-}
-.bol-intro__cta-secondary {
+  color: var(--acc, #c8912a);
+  // 44px de alto para el dedo sin que el texto crezca.
   position: relative;
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  font: 500 14px 'Jost', sans-serif;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  padding: 15px 26px;
-  border-radius: 999px;
-  border: 1.5px solid rgba(94, 106, 52, 0.5);
-  background: rgba(250, 246, 236, 0.55);
-  color: var(--olive);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.5),
-    0 8px 20px -12px rgba(46, 42, 28, 0.35);
-  transition:
-    transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
-    box-shadow 0.35s ease,
-    background 0.35s ease,
-    border-color 0.35s ease,
-    color 0.35s ease;
+  padding: 13px 6px;
+  transition: color 0.3s ease;
+
+  // El filete va en un ::after y no en un `border-bottom` del propio enlace:
+  // el borde se dibuja al final de la CAJA, o sea 13px por debajo del texto
+  // -el relleno del area tactil-, y se leia como un adorno suelto en vez de
+  // como un subrayado.
+  &::after {
+    content: '';
+    position: absolute;
+    left: 6px;
+    right: 6px;
+    bottom: 8px;
+    height: 1px;
+    background: currentcolor;
+    opacity: 0.35;
+    transition: opacity 0.3s ease;
+  }
 
   @media (hover: hover) and (pointer: fine) {
     &:hover {
-      transform: translateY(-3px);
-      background: var(--olive);
-      border-color: var(--olive);
-      color: #fff;
-      box-shadow: 0 16px 30px -12px rgba(46, 42, 28, 0.45);
+      color: var(--accd, #a5761c);
 
-      .bol-intro__cta-badge {
-        color: var(--ink);
+      &::after {
+        opacity: 1;
       }
-    }
-  }
-
-  &:active {
-    transform: translateY(-1px);
-  }
-}
-// Insignia "Envío Express": ancla en la esquina del botón de WhatsApp
-// porque ese botón ES el canal de pedido — conecta directamente el
-// concepto con la acción, en vez de agregar una línea nueva al layout.
-.bol-intro__cta-badge {
-  position: absolute;
-  top: -11px;
-  right: -10px;
-  padding: 4px 10px;
-  border-radius: 999px;
-  font: 600 11px 'Jost', sans-serif;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  white-space: nowrap;
-  color: var(--ink);
-  background: linear-gradient(135deg, #f3d68a 0%, var(--acc, #c8912a) 55%, var(--accd, #a5761c) 100%);
-  box-shadow:
-    0 0 0 2px var(--cream),
-    0 4px 10px -4px rgba(46, 42, 28, 0.5);
-}
-
-.bol-cats {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 64px 40px 30px;
-}
-.bol-cats__head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 20px;
-  margin-bottom: 26px;
-  flex-wrap: wrap;
-
-  h2 {
-    font: 500 clamp(30px, 3.6vw, 44px) / 1 var(--hf, 'Cormorant Garamond'), serif;
-    margin: 0;
-  }
-  a {
-    font: 500 14px 'Jost', sans-serif;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-
-    // 170x20 medidos en movil: se toca con el dedo, no con un puntero. Se
-    // lleva a 44px de alto con padding vertical compensado por un margin
-    // negativo igual, para que la linea base siga cayendo donde caia y el
-    // `align-items: baseline` de la fila no se mueva. Solo en tactil: en
-    // escritorio el enlace queda exactamente como estaba.
-    @media (max-width: 900px) {
-      padding: 12px 0;
-      margin: -12px 0;
     }
   }
 }
@@ -267,55 +162,27 @@
   text-transform: uppercase;
   color: #e3c988;
   font-variant-numeric: lining-nums tabular-nums;
+  // Nunca en dos renglones: "11 VARIEDADES" partido deja el numero solo
+  // encima de la palabra y se lee como dos datos distintos.
+  white-space: nowrap;
 }
 
-.bol-cta {
-  max-width: 1200px;
-  margin: 60px auto 0;
-  padding: 0 40px 30px;
-  text-align: center;
-
-  h2 {
-    font: 500 clamp(34px, 4.6vw, 58px) / 1.02 var(--hf, 'Cormorant Garamond'), serif;
-    margin: 0;
+// Telefono de pie. Con dos columnas la tarjeta mide 150px y el bloque de texto
+// tenia los tamanos del escritorio: "11 VARIEDADES" pedia 136px dentro de los
+// 110 que dejaba el relleno de 20px, asi que se partia. Se ajustan las tres
+// medidas juntas -relleno, nombre y contador- porque encogerlas por separado es
+// justo lo que descuadra la tarjeta.
+@media (max-width: 900px) {
+  .bol-cats__info {
+    padding: 14px 14px 13px;
   }
-  p {
-    font: 400 16px / 1.65 'Jost', sans-serif;
-    color: #6b6552;
-    margin: 14px auto 0;
-    max-width: 440px;
+  .bol-cats__name {
+    font-size: 19px;
   }
-}
-.bol-cta__link {
-  display: inline-block;
-  margin-top: 26px;
-  font: 500 14px 'Jost', sans-serif;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  padding: 16px 34px;
-  border-radius: 999px;
-  background: linear-gradient(155deg, #f0c675 0%, var(--acc, #c8912a) 50%, #96651a 100%);
-  color: #fffaf0;
-  box-shadow:
-    inset 0 1.5px 0 rgba(255, 255, 255, 0.55),
-    inset 0 -2px 3px rgba(103, 68, 15, 0.4),
-    0 10px 24px -8px rgba(90, 58, 15, 0.5);
-  transition:
-    box-shadow 0.3s,
-    transform 0.2s;
-
-  @media (hover: hover) and (pointer: fine) {
-    &:hover {
-      transform: translateY(-2px);
-      box-shadow:
-        inset 0 1.5px 0 rgba(255, 255, 255, 0.6),
-        inset 0 -2px 3px rgba(103, 68, 15, 0.4),
-        0 16px 32px -10px rgba(90, 58, 15, 0.6);
-    }
-  }
-
-  &:active {
-    transform: translateY(0);
+  .bol-cats__count {
+    margin-top: 3px;
+    font-size: 12.5px;
+    letter-spacing: 0.08em;
   }
 }
 
@@ -336,30 +203,24 @@
 // misma lectura que en la referencia. 3/2 es proporción fotográfica de toda la
 // vida y con 186px de ancho deja la tarjeta en 124 de alto.
 @media (max-height: 500px) and (orientation: landscape) {
-  .bol-intro {
-    // 74 = barra ceñida (56) + aire. El 132 de arriba despejaba una barra de 113.
-    padding: 74px 24px 6px;
+  .bol-cats {
+    // 74 = barra ceñida (56) + aire. El 132 de vertical despejaba una de 113.
+    padding: 74px 24px 12px;
   }
-  .bol-intro__title {
-    font-size: clamp(26px, 3.4vw, 40px);
+  .bol-cats__intro {
+    margin-bottom: 18px;
+  }
+  // Acostado el alto es el recurso escaso: 298px utiles en el aparato medido.
+  // El titular baja a un tercio de su tope para que el rotulo, las dos lineas y
+  // la fila de cuatro tarjetas entren en una sola pantalla.
+  .bol-cats__title {
+    font-size: clamp(24px, 3.4vw, 34px);
     margin-top: 8px;
   }
-  .bol-intro__lead {
-    margin-top: 10px;
-  }
-  .bol-intro__ctas {
+  .bol-cats__all {
     margin-top: 16px;
-  }
-
-  .bol-cats {
-    padding: 22px 24px 12px;
-  }
-  .bol-cats__head {
-    margin-bottom: 12px;
-
-    h2 {
-      font-size: clamp(22px, 3vw, 30px);
-    }
+    padding: 9px 6px;
+    font-size: 12px;
   }
   .bol-cats__grid {
     grid-template-columns: repeat(4, 1fr);
@@ -381,38 +242,18 @@
     margin-top: 2px;
     font-size: 10px;
   }
-
-  .bol-cta {
-    margin-top: 28px;
-    padding: 0 24px 16px;
-
-    h2 {
-      font-size: clamp(26px, 3.6vw, 40px);
-    }
-    p {
-      margin-top: 10px;
-    }
-  }
-  .bol-cta__link {
-    margin-top: 16px;
-    padding: 12px 28px;
-  }
 }
 
 // Laptop pequeña. Aquí no hay nada roto —todo entra— sino apretado, así que se
 // recorta solo el aire vertical y no se toca ni un tamaño de letra: el objetivo
 // es que quepa más contenido por pantalla, no rediseñar.
 @media (max-height: 760px) and (min-width: 901px) {
-  .bol-intro {
+  .bol-cats {
     padding-top: 100px;
   }
-  .bol-cats {
-    padding-top: 36px;
+  .bol-cats__intro {
+    margin-bottom: 34px;
   }
-  .bol-cats__head {
-    margin-bottom: 18px;
-  }
-  .bol-cta {
-    margin-top: 36px;
-  }
-}
+  .bol-cats__all {
+    margin-top: 26px;
+  }}

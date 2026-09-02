@@ -232,10 +232,9 @@
     }
   }
 }
-// Insignia "Envío Express": mismo criterio que en el hero
-// (bol-intro__cta-badge) y en el aside del menú (bol-menu__cart-badge) —
-// este cajón es el punto de checkout más visible del sitio (se abre desde
-// cualquier página al agregar un producto).
+// Insignia "Envío Express": mismo criterio que en el aside del menú
+// (bol-menu__cart-badge) — este cajón es el punto de checkout más visible del
+// sitio (se abre desde cualquier página al agregar un producto).
 .bol-cart-drawer__badge {
   position: absolute;
   top: -10px;

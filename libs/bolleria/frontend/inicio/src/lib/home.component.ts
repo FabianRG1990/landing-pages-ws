@@ -13,7 +13,6 @@ import { AboutBookComponent } from './about-book.component';
 export class HomeComponent {
   private readonly store = inject(BolleriaStore);
 
-  readonly waDirect = this.store.waDirect;
 
   goMenu(): void {
     this.store.go('menu');

@@ -4,7 +4,12 @@
   // (fotos grandes, con scrim oscuro) se leia como si fuera parte del mismo
   // bloque en vez de una seccion nueva -este aire extra marca el corte.
   margin: 120px auto 0;
-  padding: 0 24px;
+  // 90px abajo: el libro es ahora la ULTIMA seccion de la portada. Antes
+  // debajo iba el bloque "¿Con hambre? Armá tu pedido", que ponia ~150px de
+  // aire propio; al retirarlo el boton "Abrir el libro" quedaba a 40px del
+  // filete dorado del pie. Con 90 aqui mas los 34 de `.bol-footer` la
+  // separacion vuelve a los ~124px que el sitio usa entre secciones grandes.
+  padding: 0 24px 90px;
   text-align: center;
 
   // En movil el escenario se sale del ancho de la pantalla a proposito (117vw
@@ -416,6 +421,9 @@
 //   76lvh de alto -> 93,6lvh de ancho, que en 852x393 son 368x299. Cabe.
 //   20,9 % de 76lvh = 15,9lvh, de ahí el -16lvh.
 @media (max-height: 500px) and (orientation: landscape) {
+  .bol-book {
+    padding-bottom: 28px;
+  }
   .bol-book__stage {
     width: auto;
     height: 76lvh;
@@ -429,6 +437,9 @@
 // El 20,9 % de 95,8vh son exactamente 20vh, así que la proporción del margen se
 // conserva en todo el escalón sin depender del tamaño concreto.
 @media (max-height: 760px) and (min-width: 901px) {
+  .bol-book {
+    padding-bottom: 56px;
+  }
   .bol-book__stage {
     width: min(1040px, 100%, 118vh);
     margin: -20vh auto 0;

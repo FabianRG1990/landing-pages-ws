@@ -546,9 +546,10 @@
     }
   }
 }
-// Insignia "Envío Express": mismo criterio que en el hero (bol-intro__cta-badge)
-// — se ancla al botón que dispara el pedido real, en el momento exacto en que
-// el cliente decide cómo lo va a recibir.
+// Insignia "Envío Express": se ancla al botón que dispara el pedido real, en
+// el momento exacto en que el cliente decide cómo lo va a recibir. (La portada
+// tenía otra igual sobre su botón de WhatsApp; ese botón se retiró al fusionar
+// la intro con las especialidades.)
 .bol-menu__cart-badge {
   position: absolute;
   top: -10px;
