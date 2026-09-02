@@ -455,3 +455,178 @@
   letter-spacing: 0.3em;
   color: #e0b84a;
 }
+
+// ─── Pantallas BAJAS: teléfono acostado y laptop pequeña ──────────────────────
+//
+// El sitio entero se corta por ANCHURA —veinte breakpoints, ni uno por altura—
+// y estos dos aparatos no se definen por ser estrechos sino por ser bajos:
+//
+//   iPhone 15 acostado   852x393   la barra medía 113px = 29 % de la pantalla
+//   laptop de 14"       1280x720   la barra medía 113px = 16 %
+//   referencia          1440x900   la barra mide  113px = 13 %   <- así se queda
+//
+// La barra no encogía nunca: 26px de aire arriba y abajo más un logo de 58px,
+// midiera lo que midiera la pantalla. Acostado eso se comía casi un tercio del
+// alto útil y el contenido pasaba por debajo. Aquí se reduce el aire y el logo,
+// que es lo único que la hace alta; la píldora, los enlaces y el CTA no se
+// tocan, así que la barra sigue siendo el mismo objeto, solo que más ceñido.
+@media (max-height: 500px) and (orientation: landscape) {
+  .bol-nav {
+    padding: 6px clamp(16px, 3vw, 44px);
+
+    &--compact {
+      padding: 4px clamp(16px, 3vw, 44px);
+    }
+  }
+
+  .bol-nav__logo {
+    height: 30px;
+
+    .bol-nav--compact & {
+      height: 26px;
+    }
+  }
+
+  // El boton de PEDIR se retira aqui, y con el se va el suelo que tenia la
+  // barra. Medido en el aparato real (Galaxy S22 Ultra acostado, 796x298): el
+  // boton media 41px y era la pieza mas alta de la pildora, asi que la barra no
+  // podia bajar de 73px -el 24,5 % de la pantalla- sin encogerlo por debajo del
+  // tamano en que se falla al tocarlo.
+  //
+  // Sin el, la pildora la miden los enlaces (26px) y la barra cae a ~50px, el
+  // 17 %. En una pantalla de 298 eso son 23 puntos de contenido recuperados.
+  // MENU sigue en la barra, que es a donde llevaba el boton.
+  .bol-nav__cta {
+    display: none;
+  }
+
+  // Encoger el relleno sin encoger la LETRA no sirve de nada: 14px de Cinzel
+  // con 0,22em de tracking mas 7px de subrayado miden 26px, y esos 26 son el
+  // suelo de la pildora hiciera lo que hiciera el padding. Baja parejo:
+  //
+  //   14px -> 11px   ·   0,22em -> 0,16em   ·   subrayado 7px -> 4px
+  //
+  // 0,22em sobre 11px separa tanto las letras que la palabra se lee como signos
+  // sueltos; a 0,16em conserva el aire de rotulo y ocupa menos.
+  .bol-nav__link {
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    padding-bottom: 4px;
+  }
+
+  // Las espigas van en absoluto, asi que no median la pildora -pero a 34px se
+  // saldrian de una de 31-.
+  // El relleno LATERAL y el hueco entre enlaces no dan ni un pixel de altura, y
+  // apretarlos rompio el texto: con 22px de relleno la espiga derecha -22px de
+  // ancho pegada al borde- se comia la ultima letra de CONTACTO, y con 14px de
+  // hueco el separador, que se dibuja en `left: -16px`, caia encima de la
+  // palabra anterior. Se recupera lo horizontal y se conserva lo que si baja la
+  // barra, que es la letra y el relleno vertical.
+  .bol-nav__links {
+    padding: 6px 32px;
+    gap: 22px;
+
+    &::before,
+    &::after {
+      width: 22px;
+      height: 22px;
+    }
+
+    &::before {
+      left: 6px;
+    }
+
+    &::after {
+      right: 6px;
+    }
+  }
+}
+
+// 760px y no 800: la referencia que hay que dejar intacta es un escritorio de
+// 900px de viewport, y entre 760 y 900 no debe pasar nada. Por debajo de 760
+// están las laptops de 14" reales -1366x768 deja ~625 de viewport; 1920x1080 al
+// 150 % deja ~577-.
+@media (max-height: 760px) and (min-width: 901px) {
+  .bol-nav {
+    padding: 15px clamp(20px, 4vw, 44px);
+
+    &--compact {
+      padding: 10px clamp(20px, 4vw, 44px);
+    }
+  }
+
+  .bol-nav__logo {
+    height: 46px;
+
+    .bol-nav--compact & {
+      height: 40px;
+    }
+  }
+}
+
+// ─── Acostado: el mismo hamburguesa que en vertical ───────────────────────────
+//
+// El cambio a hamburguesa se decide por ANCHURA (`max-width: 768px`), y un
+// telefono acostado mide 796: caia del lado del escritorio y mostraba la
+// pildora entera. Aqui se reproduce el mismo comportamiento que en vertical:
+// la pildora se ve mientras el hero esta arriba del todo -para que la portada
+// ofrezca un camino visible al menu- y cede el sitio al hamburguesa en cuanto
+// la pagina se mueve, con la misma clase `--compact` que ya encoge el logo.
+// Asi no hay un segundo estado de scroll que pueda desincronizarse.
+@media (max-height: 500px) and (orientation: landscape) {
+  // Absoluto para que los dos puedan cruzarse con un fundido: en el flujo,
+  // aparecer y desaparecer moveria la pildora de sitio. El `right` descuenta
+  // los 10px de relleno tactil del icono para que quede donde estaba.
+  .bol-nav__hamburger {
+    display: flex;
+    position: absolute;
+    top: 50%;
+    right: calc(clamp(16px, 3vw, 44px) - 10px);
+    margin: 0;
+    transform: translateY(-50%);
+    transition: opacity 0.28s;
+  }
+
+  .bol-nav__links {
+    transition: opacity 0.28s;
+  }
+
+  .bol-nav:not(.bol-nav--compact) .bol-nav__hamburger {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .bol-nav--compact .bol-nav__links {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  // El panel abierto esta dimensionado para una pantalla de pie: el sello de
+  // 96px mas tres enlaces de 34px mas la firma suman ~313px, y aqui hay 298.
+  // Se compacta a ~190 y queda aire arriba y abajo. El area tactil de cada
+  // enlace se conserva por encima de los 44px que piden las guias -22px de
+  // letra mas 22 de relleno-, que es lo unico que no se puede negociar.
+  .bol-mobile-menu {
+    gap: 2px;
+  }
+
+  .bol-mobile-menu__mark {
+    width: 48px;
+    margin-bottom: 6px;
+  }
+
+  .bol-mobile-menu__link {
+    font-size: 22px;
+    padding: 11px 16px;
+  }
+
+  .bol-mobile-menu__tag {
+    margin-top: 10px;
+    font-size: 10px;
+  }
+
+  .bol-mobile-menu__close {
+    top: 8px;
+    right: 10px;
+  }
+}

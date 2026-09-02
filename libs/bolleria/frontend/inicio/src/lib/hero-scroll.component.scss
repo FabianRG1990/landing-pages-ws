@@ -96,8 +96,26 @@
 
 .bol-hero-photobox {
   position: relative;
-  width: min(90vw, 720px);
+  // El lado lo publica el componente en `--bol-hero-box` (ver `heroBoxCss`), y
+  // es EL MISMO numero con el que el lienzo escala sus cuadros. Antes esta
+  // linea era una quinta copia de la formula y por eso el DOM y el lienzo
+  // encajaban por repeticion en vez de por construccion.
+  //
+  // Se lee de una variable en px y no se escribe aqui en `vh` a proposito:
+  // `vh` es el viewport GRANDE y el componente mide `innerHeight`, que es el
+  // actual. Con la barra de URL de un movil desplegada son dos numeros
+  // distintos, y el croissant del DOM y el del lienzo cambiarian de tamano al
+  // cruzar el empalme.
+  //
+  // El respaldo solo se usa en el instante anterior a que corra el componente
+  // -y detras del preloader-: por eso replica la formula en unidades de CSS,
+  // para que ni siquiera ese instante se vea con el tamano viejo.
+  width: var(--bol-hero-box, min(90vw, 720px, 90vh));
   aspect-ratio: 1 / 1;
+
+  @media (max-height: 500px) and (orientation: landscape) {
+    width: var(--bol-hero-box, min(90vw, 720px, 62vh));
+  }
   display: flex;
   align-items: center;
   justify-content: center;
@@ -362,5 +380,100 @@
     animation: hbob 1.8s ease-in-out infinite;
     width: 24px;
     height: 24px;
+  }
+}
+
+
+// ─── Teléfono ACOSTADO: el escenario se mide sobre lo que se VE ───────────────
+//
+// Medido en el aparato real (Galaxy S22 Ultra, Chrome 152, Android 16, por USB):
+//
+//     innerHeight 298     100vh = 354     100svh = 298
+//
+// En Chrome de Android `100vh` es el viewport GRANDE, el de la barra de URL
+// retraída. El escenario mide 354 y su centro cae en 177, pero solo se ven 298:
+// TODO lo centrado queda 28px más abajo de donde debería, y los 56px de abajo
+// del escenario no se ven nunca. De ahí el choque que se reportó:
+//
+//     logo/croissant   y  85 .. 269
+//     hint             y 216 .. 268     -> "DESLIZÁ PARA DESCUBRIR" escrito
+//                                          encima de "BOLLERIA"
+//     rótulo           y 136 .. 364     -> 66px por debajo del borde
+//
+// El hint NO estaba mal puesto: se coloca a 30px del borde visible y su
+// compensación de barra de URL funciona. El desplazado era el escenario.
+//
+// Con `100svh` el escenario mide lo que se ve, su centro vuelve al centro real
+// y no hay franja perdida. Y entonces las compensaciones `100vh - 100svh` del
+// hint y del rótulo sobran: dentro de un escenario que ya es pequeño volverían
+// a subir el contenido 56px, que es el mismo error con el signo cambiado.
+//
+// En vertical y en escritorio no entra nada de esto.
+@media (max-height: 500px) and (orientation: landscape) {
+  .bol-hero-stage {
+    height: 100svh;
+
+    // `100svh` centra sobre lo que se ve, que es lo que hacia falta. Pero deja
+    // al descubierto la franja que la barra de URL ocupa: al retraerse, lo
+    // visible pasa de 298 a 354 y el escenario se queda en 298. Reportado: "el
+    // scroll hace que el background suba".
+    //
+    // Se pinta esa franja con una SOMBRA solida -desplazamiento vertical, cero
+    // difuminado- en vez de agrandar el escenario. Es a proposito: agrandarlo
+    // devolveria el centro a 177 y con el, el choque del logo con el hint. La
+    // sombra no ocupa layout, no la recorta el `overflow: hidden` del propio
+    // elemento -eso recorta hijos, no la caja de uno mismo- y donde no hay
+    // barra dinamica `100lvh - 100svh` vale 0 y no pinta nada.
+    box-shadow: 0 calc(100lvh - 100svh) 0 #faf6ec;
+  }
+
+  .bol-hero-hint {
+    bottom: 20px;
+    gap: 4px;
+  }
+
+  // 68px de aire inferior son el 23 % de una pantalla de 298: el rótulo se
+  // salía por abajo en casi todo el recorrido. Con el escenario ya medido sobre
+  // lo visible, basta con el aire que de verdad hace falta.
+  .bol-hero-caption {
+    padding: 40px 24px 24px;
+
+    &--top {
+      padding: 24px 24px 40px;
+    }
+  }
+}
+
+// ─── Acostado: el rótulo de la intro, como título ─────────────────────────────
+//
+// Regresión que introduje al achicar el cuadro del hero. El rótulo vive DENTRO
+// de `.bol-hero-photobox` (`left: 0; right: 0`), así que su ancho es el de esa
+// caja. Mientras la caja medía 720px no se notaba; al bajarla a 164 para que el
+// croissant cupiera acostado, el texto heredó 164px de ancho con una letra de
+// 31px y se apiló a una palabra por línea, encima de la foto:
+//
+//     Todo / empieza / antes del / primer / bocado.
+//
+// Se desancla del ancho de la caja —`left: 50%` + `max-content`— y se coloca en
+// la franja libre que hay entre la barra (acaba en 43) y la tinta del croissant.
+// El `top` es negativo porque se mide desde la caja, que empieza en 67.
+@media (max-height: 500px) and (orientation: landscape) {
+  .bol-hero-introcap {
+    top: -25px;
+    left: 50%;
+    right: auto;
+    width: max-content;
+    max-width: 88vw;
+    transform: translateX(-50%) rotate(-1deg);
+  }
+
+  .bol-hero-introcap__inner {
+    padding: 8px 20px;
+  }
+
+  // 31px es tamaño de portada, no de título sobre una franja de 24px. A 24px
+  // la frase entera cabe en UNA línea de ~420px sobre los 796 disponibles.
+  .bol-hero-introcap__text {
+    font-size: 24px;
   }
 }

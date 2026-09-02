@@ -105,3 +105,33 @@
   transform: scaleX(0);
   animation: ldBar 3.9s cubic-bezier(0.4, 0, 0.2, 1) 0.1s forwards;
 }
+
+// ─── Teléfono ACOSTADO ────────────────────────────────────────────────────────
+//
+// Mismo fallo de raíz que tenía el resto del sitio: `min(440px, 78vw)` solo
+// mira el ANCHO. Medido en el aparato real (Galaxy S22 Ultra acostado, 796x298):
+// 78vw son 621, así que manda el tope de 440 y con la proporción 1113/809 el
+// sello pide 440x320 en una pantalla de 298. No cabe ni él solo.
+//
+// Se ata a la altura, y con el mismo criterio que el hero para que las dos
+// cosas se lean del mismo tamaño: allí el cuadro es `0,55 × alto`. Aquí
+// `68svh` de ancho da `68 × 0,727 = 49 %` de alto, o sea 147px en 298; sumando
+// el hueco y la barra de progreso son 175 de 298 y queda aire por los dos lados.
+//
+// `svh` y no `vh`: en Chrome de Android `vh` es la ventana GRANDE -354px aquí-
+// y ese es justo el error que hacía que el hero se saliera de pantalla.
+@media (max-height: 500px) and (orientation: landscape) {
+  // 26px de hueco entre el sello y la barra son casi el 9 % de una pantalla de
+  // 298; con 16 sigue leyendose como dos piezas separadas.
+  .bol-preloader__inner {
+    gap: 16px;
+  }
+
+  .bol-preloader__mark {
+    width: min(440px, 78vw, 68svh);
+  }
+
+  .bol-preloader__track {
+    width: min(200px, 42vw);
+  }
+}

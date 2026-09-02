@@ -389,3 +389,48 @@
     }
   }
 }
+
+// ─── Pantallas BAJAS ──────────────────────────────────────────────────────────
+// Ver la nota larga en site-nav.component.scss.
+//
+// El libro es la pieza que peor lo llevaba, y por una razón medible: su alto
+// sale del ANCHO disponible -`width: min(1040px, 100%)` y luego la proporción
+// 860/698 del vídeo-, así que en una pantalla baja pide más alto del que hay:
+//
+//   iPhone 15 acostado   852x393   el lienzo pedía 997x809   (2,1 pantallas)
+//   laptop de 14"       1280x720   el lienzo pedía 1040x844  (1,2 pantallas)
+//
+// La cura es invertir de quién depende: en estas pantallas manda la ALTURA y el
+// ancho lo deriva `aspect-ratio`. Así el libro entra entero siempre.
+//
+// El margen negativo también se vuelve relativo. Los -176px de arriba son el
+// 20,9 % de un libro de 844, y ese porcentaje es lo que hay que conservar: es
+// el aire transparente que el vídeo deja encima del libro en reposo. Como el
+// alto pasa a ir en unidades de pantalla, el 20,9 % de ese alto también, y
+// entonces el título queda a la misma distancia del libro que en escritorio.
+
+// Teléfono acostado. La regla de móvil de más arriba está calibrada para un
+// teléfono DE PIE: 117vw y un margen izquierdo negativo para robarle ancho a
+// una pantalla estrecha. Acostado sobra ancho y falta alto, así que esa regla
+// juega justo en contra y hay que desactivarla entera.
+//   76lvh de alto -> 93,6lvh de ancho, que en 852x393 son 368x299. Cabe.
+//   20,9 % de 76lvh = 15,9lvh, de ahí el -16lvh.
+@media (max-height: 500px) and (orientation: landscape) {
+  .bol-book__stage {
+    width: auto;
+    height: 76lvh;
+    max-width: 100%;
+    margin: -16lvh auto 0;
+  }
+}
+
+// Laptop pequeña. 118vh de ancho da 95,8vh de alto, o sea que el libro ocupa
+// siempre el mismo trozo de pantalla en vez de crecer con el ancho del monitor.
+// El 20,9 % de 95,8vh son exactamente 20vh, así que la proporción del margen se
+// conserva en todo el escalón sin depender del tamaño concreto.
+@media (max-height: 760px) and (min-width: 901px) {
+  .bol-book__stage {
+    width: min(1040px, 100%, 118vh);
+    margin: -20vh auto 0;
+  }
+}

@@ -986,7 +986,7 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
     const cw = c.width,
       ch = c.height,
       dpr = this.dpr;
-    const boxCss = Math.min(0.9 * window.innerWidth, 720);
+    const boxCss = this.heroBoxCss();
     const targetCroiW = PHOTO_FRAC_W * boxCss * dpr * (scaleMul || 1);
     const s = targetCroiW / croiW;
     // Mismo tamano NOMINAL que en `drawHeroImg`, y por el mismo motivo: aqui
@@ -1030,7 +1030,7 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
     const c = this.canvasRef().nativeElement;
     if (!ctx || !c || !img || alpha <= 0.003 || !img.complete || !img.naturalWidth) return;
     const dpr = this.dpr || 1;
-    const boxCss = Math.min(0.9 * window.innerWidth, 720);
+    const boxCss = this.heroBoxCss();
     const targetW = 0.66 * boxCss * dpr * (scaleMul || 1);
     const s = targetW / W;
     const dw = img.naturalWidth * s,
@@ -1175,6 +1175,45 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
     this.captionRef().nativeElement.style.opacity = '0';
   }
 
+  /**
+   * Lado del cuadro del hero en px CSS. UNA sola fuente para todo el hero.
+   *
+   * Antes este numero estaba escrito CINCO veces -cuatro aqui y una en el
+   * SCSS- como `min(0.9 * innerWidth, 720)`, y encajaban por repeticion, no
+   * por construccion. Eso ademas escondia el fallo: la formula solo miraba el
+   * ANCHO, asi que en una ventana baja pedia mas alto del que hay.
+   *
+   *   referencia 1440x900   720x720  =  80 % del alto de pantalla
+   *   acostado    852x393   720x720  = 183 %   -> el croissant se salia entero
+   *
+   * El tope por altura lo arregla, y el factor es distinto acostado porque
+   * ahi la barra pesa mas: mide 73px, o sea el 19 % de la pantalla contra el
+   * 13 % de un escritorio. Con 0,62 quedan ~19 puntos libres por debajo del
+   * cuadro para el rotulo y la flecha; con el 0,80 de la referencia no cabrian.
+   *
+   * `0,90` en el resto NO cambia nada por encima de 800px de alto -ahi manda
+   * el tope de 720- y entra de forma continua por debajo, sin escalon.
+   */
+  private heroBoxCss(): number {
+    const w = window.innerWidth;
+    const h = window.innerHeight;
+    // `w > h` es la misma condicion que `orientation: landscape` en el SCSS.
+    const f = h <= 500 && w > h ? 0.55 : 0.9;
+    return Math.min(0.9 * w, 720, h * f);
+  }
+
+  /**
+   * ¿El texto de la masa madre se ancla arriba, como un titulo?
+   *
+   * Solo donde el alto escasea y la imagen se le echaria encima: la MISMA
+   * condicion que el escalon acostado del SCSS -`max-height: 500px` con
+   * `orientation: landscape`-, escrita aqui como aritmetica para que las dos
+   * no puedan separarse.
+   */
+  private masaAnclaAlta(): boolean {
+    return window.innerHeight <= 500 && window.innerWidth > window.innerHeight;
+  }
+
   private sizeHeroCanvas(): void {
     const c = this.canvasRef()?.nativeElement;
     if (!c) return;
@@ -1193,6 +1232,7 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
     }
     this.ctx = ctx;
     this.dpr = dpr;
+    this.photoBoxRef()?.nativeElement?.style.setProperty('--bol-hero-box', `${this.heroBoxCss()}px`);
     this.renderHeroFloat(this.lastF);
   }
 
@@ -1217,7 +1257,7 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
       CY = croiCy != null ? croiCy : CROI_CY;
     const SQY = squishY || 1;
     const scaleMul = scaleMulOverride != null ? scaleMulOverride : this.getCarouselBand()?.scaleMul ?? 1;
-    const boxCss = Math.min(0.9 * window.innerWidth, 720);
+    const boxCss = this.heroBoxCss();
     const targetCroiW = PHOTO_FRAC_W * boxCss * dpr * scaleMul;
     // Escalado solo por ancho, igual que en el resto de la secuencia (incluida
     // la apertura del croissant antes del carrusel, que usa esta misma fórmula
@@ -1309,7 +1349,7 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
   private getCarouselBand(): { letteringCy: number; croissantCy: number; scaleMul: number } | null {
     const c = this.canvasRef()?.nativeElement;
     if (!c) return null;
-    const boxCss = Math.min(0.9 * window.innerWidth, 720);
+    const boxCss = this.heroBoxCss();
     const U = boxCss * (this.dpr || 1);
     let bandH = U * 1.15;
     const scaleMul = bandH > c.height * 0.92 ? (c.height * 0.92) / bandH : 1;
@@ -2582,7 +2622,21 @@ export class HeroScrollComponent implements AfterViewInit, OnDestroy {
         const y0 = centerOf(i0);
         const y1 = centerOf(i1);
         const lineCenterY = y0 + (y1 - y0) * frac;
-        R.masaWrap.style.transform = `translate(-50%, ${vh / 2 - lineCenterY}px)`;
+        // Donde se ancla la linea enfocada. En una pantalla normal va al centro
+        // y el pan -que se dibuja ENCIMA, z-index 6 contra 1- pasa por detras
+        // de las palabras sin taparlas, porque hay alto de sobra a los lados.
+        //
+        // Acostado no lo hay: medido en 796x298, el pan ocupa y 29..193 y la
+        // linea enfocada cae en 149, o sea justo en medio de la imagen. Se leia
+        // "La masa madre es un fermento natural de harina y agua que [pan]
+        // forma el pan en un", con la hogaza dibujada entre las palabras.
+        //
+        // Anclando al 24 % en vez de al 50 % el texto sube a la franja de
+        // titulo -justo debajo de la barra, que mide 43px- y la imagen se queda
+        // sola en el centro. Es la misma lectura que ya tienen los rotulos de
+        // Fermentacion y Horneado, que en este tramo se colocan arriba.
+        const anclaMasa = this.masaAnclaAlta() ? 0.24 : 0.5;
+        R.masaWrap.style.transform = `translate(-50%, ${vh * anclaMasa - lineCenterY}px)`;
       }
       R.masaWrap.style.opacity = this.masaActive ? '1' : '0';
     }

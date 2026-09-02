@@ -318,3 +318,101 @@
     transform: translateY(0);
   }
 }
+
+// ─── Pantallas BAJAS ──────────────────────────────────────────────────────────
+// Ver la nota larga en site-nav.component.scss: el sitio se corta por anchura y
+// estos dos aparatos se definen por su ALTURA. Nada de esto entra en la
+// referencia de 900px de viewport.
+
+// Teléfono acostado: 852x393.
+//
+// El defecto medido era aritmético, no de gusto: con `aspect-ratio: 4/5` y dos
+// columnas, una tarjeta medía 372x464 en una pantalla de 393 de alto. No cabía
+// entera de ninguna manera, así que siempre se veía una y media cortada.
+//
+// Acostado sobra ancho y falta alto, que es justo lo contrario de lo que
+// asumía la regla de móvil. Volviendo a las cuatro columnas del escritorio y
+// girando la foto a apaisado, las cuatro categorías entran de un vistazo: es la
+// misma lectura que en la referencia. 3/2 es proporción fotográfica de toda la
+// vida y con 186px de ancho deja la tarjeta en 124 de alto.
+@media (max-height: 500px) and (orientation: landscape) {
+  .bol-intro {
+    // 74 = barra ceñida (56) + aire. El 132 de arriba despejaba una barra de 113.
+    padding: 74px 24px 6px;
+  }
+  .bol-intro__title {
+    font-size: clamp(26px, 3.4vw, 40px);
+    margin-top: 8px;
+  }
+  .bol-intro__lead {
+    margin-top: 10px;
+  }
+  .bol-intro__ctas {
+    margin-top: 16px;
+  }
+
+  .bol-cats {
+    padding: 22px 24px 12px;
+  }
+  .bol-cats__head {
+    margin-bottom: 12px;
+
+    h2 {
+      font-size: clamp(22px, 3vw, 30px);
+    }
+  }
+  .bol-cats__grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+  }
+  .bol-cats__card {
+    aspect-ratio: 3 / 2;
+    border-radius: 14px;
+  }
+  // El bloque de texto ocupaba 75px de los 124 de la tarjeta nueva: más de la
+  // mitad de la foto tapada. Con estos tamaños baja a ~44.
+  .bol-cats__info {
+    padding: 10px 12px 9px;
+  }
+  .bol-cats__name {
+    font-size: 15px;
+  }
+  .bol-cats__count {
+    margin-top: 2px;
+    font-size: 10px;
+  }
+
+  .bol-cta {
+    margin-top: 28px;
+    padding: 0 24px 16px;
+
+    h2 {
+      font-size: clamp(26px, 3.6vw, 40px);
+    }
+    p {
+      margin-top: 10px;
+    }
+  }
+  .bol-cta__link {
+    margin-top: 16px;
+    padding: 12px 28px;
+  }
+}
+
+// Laptop pequeña. Aquí no hay nada roto —todo entra— sino apretado, así que se
+// recorta solo el aire vertical y no se toca ni un tamaño de letra: el objetivo
+// es que quepa más contenido por pantalla, no rediseñar.
+@media (max-height: 760px) and (min-width: 901px) {
+  .bol-intro {
+    padding-top: 100px;
+  }
+  .bol-cats {
+    padding-top: 36px;
+  }
+  .bol-cats__head {
+    margin-bottom: 18px;
+  }
+  .bol-cta {
+    margin-top: 36px;
+  }
+}

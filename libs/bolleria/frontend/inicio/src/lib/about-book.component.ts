@@ -695,6 +695,24 @@ const STORY_PARA = 0.5;
 // alto total a proposito: dejandola fuera, el bloque se centra mal y el adorno
 // termina sobre el dibujo de la esquina de abajo.
 const STORY_DIVIDER_H = 34;
+// La CARA con la que se imprime la historia, y no es la del resto del sitio a
+// proposito. El panel se dibuja a 700px de ancho y en un telefono aterriza en
+// unos 185: el cuerpo de 55 se lee a 14px reales. 'Cormorant Garamond' es una
+// serif de DISPLAY -trazo finisimo, poco alto-de-x-, pensada para titulares, y
+// a ese tamano el trazo casi no sobrevive al remuestreo. 'EB Garamond' es la
+// cara de TEXTO de la misma familia (ya descargada en index.html, no cuesta un
+// byte mas): 4.5% mas de alto-de-x, o sea que se VE mas grande sin ocupar mas
+// sitio, y su renglon mas ancho mide 549px contra los 552 de hoy, asi que la
+// calibracion a mano de cada pagina -u, v, giro- no se toca.
+const STORY_FAMILY = '"EB Garamond", "Cormorant Garamond", serif';
+// Peso 500: es el mas alto que 'EB Garamond' tiene descargado. Pedir 600 lo
+// sintetizaria el navegador -falso negrita-, que sale emborronado y seria
+// contraproducente justo para lo que se busca aqui, que es legibilidad.
+const STORY_WEIGHT = 500;
+// La tinta, mas oscura que el #4a3d2a de antes. El texto va con `multiply`
+// sobre el papel, asi que el contraste que se ve es el del producto: lo que se
+// gana aqui es lo que se lee en las zonas sombreadas de la hoja.
+const STORY_INK = '#33291a';
 // Centro del texto dentro del panel, contra la DECORACION IMPRESA en la pagina
 // y no contra el borde del papel ni a ojo. Los cuatro dibujos de esquina estan
 // en (u,v) de pagina en 0.133/0.185, 0.885/0.096, 0.039/0.882 y 0.924/0.910: su
@@ -776,7 +794,14 @@ const TEXTO_POR_PAGINA: Readonly<Record<number, Partial<AjusteTexto>>> = {
   1: { ...TEXTO_COMUN, u: 0.5027, v: 0.4638, giro: -0.42 },
   2: { ...TEXTO_COMUN, u: 0.5107, v: 0.4695, giro: 0.97 },
   3: { ...TEXTO_COMUN, u: 0.4969, v: 0.5229, giro: -0.31 },
-  4: { font: 45, measure: 469, divider: 32, u: 0.5114, v: 0.5306, giro: -0.34 },
+  // La medida sube de 469 a 472 al cambiar a 'EB Garamond' (ver STORY_FAMILY),
+  // y no es un retoque estetico: con 469 el segundo parrafo se partia en CINCO
+  // renglones en vez de cuatro -"tanto nos gustan, como los" se salia por 2px- y
+  // el bloque, que ya es el mas alto del libro, crecia una linea entera. Con 472
+  // vuelve el reparto de siempre, 6+4. El renglon mas ancho pasa de 465 a 471px:
+  // tres pixeles por lado, y sigue 80px por debajo del renglon mas ancho del
+  // libro, asi que no se acerca a los dibujos de las esquinas.
+  4: { font: 45, measure: 472, divider: 32, u: 0.5114, v: 0.5306, giro: -0.34 },
   5: { ...TEXTO_COMUN, u: 0.5008, v: 0.5163, giro: -0.24 },
   6: { ...TEXTO_COMUN, u: 0.4839, v: 0.4716, giro: -0.3 },
   7: { ...TEXTO_COMUN, u: 0.5246, v: 0.3484, giro: -0.75 },
@@ -1397,7 +1422,10 @@ export class AboutBookComponent {
       // los paneles se dibujan UNA vez al cargar, asi que una familia que no
       // este lista en ese instante se queda con la de reemplazo para siempre.
       await Promise.all([
-        document.fonts.load(`400 ${STORY_FONT}px "Cormorant Garamond"`),
+        document.fonts.load(`${STORY_WEIGHT} ${STORY_FONT}px "EB Garamond"`),
+        document.fonts.load(`italic ${STORY_WEIGHT} ${STORY_FONT}px "EB Garamond"`),
+        // 'Cormorant Garamond' sigue haciendo falta: es la cursiva del colofon
+        // -el sello del final- y ademas el reemplazo de 'EB Garamond'.
         document.fonts.load(`italic 500 ${STORY_FONT}px "Cormorant Garamond"`),
         document.fonts.load('600 24px Cinzel'),
       ]);
@@ -1745,7 +1773,7 @@ export class AboutBookComponent {
     const ctx = c.getContext('2d');
     if (!ctx) return c;
     ctx.textAlign = 'center';
-    ctx.fillStyle = '#4a3d2a';
+    ctx.fillStyle = STORY_INK;
     // Los siete numeros de la tipografia salen de aqui y no de las constantes
     // sueltas: la pagina 4 lleva los suyos (ver TEXTO_POR_PAGINA).
     const t = ajusteTexto(page);
@@ -1774,7 +1802,7 @@ export class AboutBookComponent {
       // horizontalmente hasta que quepa. Con la frase de cierre eso ya la
       // dejaba al 70% de su ancho -letras estrechadas, distintas del resto del
       // libro- y al subir el cuerpo habria bajado al 59%.
-      ctx.font = `italic 500 ${Math.round(t.font * 0.95)}px "Cormorant Garamond", serif`;
+      ctx.font = `italic ${STORY_WEIGHT} ${Math.round(t.font * 0.95)}px ${STORY_FAMILY}`;
       const rows = story.lines.flatMap((line) => this.wrapLine(ctx, line, t.measure, false));
       const step = t.font * 0.95 * t.line;
       // El bloque se centra en la franja que queda por encima de los enlaces de
@@ -1803,7 +1831,7 @@ export class AboutBookComponent {
       return c;
     }
 
-    ctx.font = `400 ${t.font}px "Cormorant Garamond", serif`;
+    ctx.font = `${STORY_WEIGHT} ${t.font}px ${STORY_FAMILY}`;
     // Se reparte en renglones primero, sin dibujar todavia: asi se conoce el
     // alto real del bloque completo -espiga incluida- y se centra de verdad.
     const paragraphs = story.lines.map((line) => this.wrapLine(ctx, line, t.measure, true));
