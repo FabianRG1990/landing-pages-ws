@@ -59,6 +59,10 @@ export default [
               sourceTag: 'scope:automotivo',
               onlyDependOnLibsWithTags: ['scope:automotivo', 'scope:shared'],
             },
+            {
+              sourceTag: 'scope:bolleria',
+              onlyDependOnLibsWithTags: ['scope:bolleria', 'scope:shared'],
+            },
           ],
         },
       ],

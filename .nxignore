@@ -1,0 +1,7 @@
+# `remotion/` es un proyecto npm independiente: trae su propio package.json,
+# su package-lock.json y sus node_modules, y no forma parte de los workspaces
+# de yarn de este monorepo. Sin esta exclusión, @nx/eslint/plugin le infiere un
+# target `lint` (por su eslint.config.mjs) que en CI falla con
+# ERR_MODULE_NOT_FOUND al no existir @remotion/eslint-config-flat, porque
+# `yarn install` en la raíz nunca instala las dependencias de esa carpeta.
+remotion

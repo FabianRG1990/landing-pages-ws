@@ -1,0 +1,69 @@
+<footer class="bol-footer">
+  <div class="bol-footer__inner">
+    <div class="bol-footer__col bol-footer__col--brand">
+      <div class="bol-footer__seal">
+        <img src="assets/mark.webp" alt="Bollería Panadería" class="bol-footer__seal-mark" />
+      </div>
+      <div class="bol-footer__wordmark">Bollería<span>Panadería</span></div>
+    </div>
+
+    <span class="bol-footer__vseam" aria-hidden="true"></span>
+
+    <div class="bol-footer__col bol-footer__col--blurb">
+      <div class="bol-footer__heading">Sobre nosotros</div>
+      <p class="bol-footer__blurb">Pan artesanal, bollería francesa y masa madre horneados cada mañana en San José. Servicio express.</p>
+      <p class="bol-footer__tagline">Pan hecho con tiempo, horneado con oficio.</p>
+    </div>
+
+    <span class="bol-footer__vseam" aria-hidden="true"></span>
+
+    <div class="bol-footer__col bol-footer__col--nav">
+      <div class="bol-footer__heading">Navegación</div>
+      <div class="bol-footer__links">
+        <a href="#" (click)="$event.preventDefault(); go('inicio')">Inicio</a>
+        <a href="#" (click)="$event.preventDefault(); go('menu')">Menú</a>
+        <a href="#" (click)="$event.preventDefault(); go('contacto')">Contacto</a>
+      </div>
+    </div>
+
+    <span class="bol-footer__vseam" aria-hidden="true"></span>
+
+    <div class="bol-footer__col bol-footer__col--contact">
+      <div class="bol-footer__heading">Contacto</div>
+      <div class="bol-footer__contact">
+        <span style="font-variant-numeric: lining-nums tabular-nums">{{ contact.waDisplay }}</span>
+        <span>{{ contact.correo }}</span>
+        <span>{{ contact.horario }}</span>
+      </div>
+      <!-- Va en esta columna y no en una banda propia: acá ya viven el número, el
+           correo y el horario, así que el botón cae donde la persona ya está
+           mirando para contactar, y las cuatro columnas del pie no se tocan.
+           Como el pie se pinta en todas las pantallas, este es el acceso a
+           WhatsApp que existe siempre, esté donde esté la persona. -->
+      <a [href]="waDirect" target="_blank" rel="noopener" class="bol-footer__wa">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="#1f4230" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+        <span>Escribinos</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- Ya no advierte "datos de contacto por confirmar": desde el 2026-08-30 los
+       de CONTACT son los reales. Tampoco nombra la provincia, que decía San José
+       cuando el local está en las coordenadas de Alajuela; volverá a decirla
+       cuando el negocio pase la dirección exacta. -->
+  <div class="bol-footer__bottom">
+    <span>© 2026 Bollería Panadería</span>
+    <!-- Firma del estudio, a la derecha y en voz baja: la marca del cliente
+         manda a la izquierda. Es la convención de crédito de estudio, y por eso
+         no lleva el tamaño ni el color de un enlace de navegación. -->
+    <a href="https://claudioandrade.solutions/" target="_blank" rel="noopener" class="bol-footer__by">
+      <span>Diseño y desarrollo por</span>
+      <!-- Emblema y nombre viajan juntos: al envolver en móvil, el logo tiene que
+           bajar con su marca y no quedarse colgando al final del renglón anterior. -->
+      <span class="bol-footer__by-brand">
+        <img src="assets/cas-mark.webp" alt="" class="bol-footer__by-mark" width="22" height="22" loading="lazy" decoding="async" />
+        <span class="bol-footer__by-name">Claudio Andrade Solutions</span>
+      </span>
+    </a>
+  </div>
+</footer>

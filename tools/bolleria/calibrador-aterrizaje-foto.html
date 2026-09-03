@@ -1,0 +1,194 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <title>Calibrador del aterrizaje de la foto — about-book</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      :root {
+        --bg: #0e0c09;
+        --acc: #c8912a;
+        --dim: #8a8378;
+      }
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        background: var(--bg);
+        color: #e8e6e1;
+        font: 13px/1.5 ui-monospace, Consolas, monospace;
+      }
+      #capa {
+        display: grid;
+        grid-template-columns: 1fr 348px;
+        height: 100%;
+      }
+      #escena {
+        position: relative;
+        overflow: hidden;
+        background: #0e0c09;
+      }
+      /* La app se carga entera y se desplaza hasta el libro; el resto de la
+         página queda fuera del recuadro visible. */
+      #app {
+        position: absolute;
+        border: 0;
+        width: 1400px;
+        height: 1000px;
+        transform-origin: 0 0;
+      }
+      #cargando {
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-content: center;
+        gap: 10px;
+        text-align: center;
+        color: var(--dim);
+        background: var(--bg);
+        z-index: 5;
+      }
+      #cargando b {
+        color: var(--acc);
+        font-size: 15px;
+      }
+      #cargando.oculto {
+        display: none;
+      }
+      #fallo {
+        color: #e08a6a;
+        max-width: 460px;
+        line-height: 1.6;
+      }
+      #lado {
+        min-width: 0;
+        height: 100%;
+        overflow: hidden;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="capa">
+      <div id="escena">
+        <iframe id="app" src="/" title="Bollería"></iframe>
+        <div id="cargando">
+          <b>Cargando el libro…</b>
+          <span>se abre la app, se baja hasta «Acerca de nosotros» y se congela en la entrada de la foto</span>
+          <div id="fallo"></div>
+        </div>
+      </div>
+      <div id="lado"></div>
+    </div>
+
+    <script src="calibrador-aterrizaje-foto.js"></script>
+    <script>
+      (async () => {
+        const marco = document.getElementById('app');
+        const cargando = document.getElementById('cargando');
+        const fallo = document.getElementById('fallo');
+
+        const morir = (m) => {
+          fallo.textContent = m;
+          cargando.classList.remove('oculto');
+        };
+
+        // Un <iframe> no tiene `.complete` (eso es de <img>): si ya terminó de
+        // cargar antes de llegar aquí, el evento `load` no vuelve a dispararse y
+        // la espera se quedaría colgada para siempre.
+        await new Promise((r) => {
+          const listo = () => {
+            try {
+              return marco.contentDocument && marco.contentDocument.readyState === 'complete';
+            } catch {
+              return false;
+            }
+          };
+          if (listo()) return r();
+          marco.addEventListener('load', r, { once: true });
+        });
+
+        const W = marco.contentWindow;
+        if (!W) return morir('No se pudo acceder al iframe.');
+
+        // `ng` solo existe en el build de desarrollo. Sin él no hay forma de
+        // llegar al componente, y una réplica no serviría: lo que se calibra es
+        // cómo compone el componente, no cómo se ve un dibujo aparte.
+        for (let i = 0; i < 200 && !W.ng; i++) await new Promise((r) => setTimeout(r, 100));
+        if (!W.ng) {
+          return morir(
+            'La app cargó pero no expone `window.ng`. Eso pasa en un build de producción. ' +
+              'Levantá el dev server (nx run bolleria:serve) y volvé a abrir esta página desde él.',
+          );
+        }
+
+        const D = W.document;
+
+        // El preloader de la app tapa la página unos 4 segundos. Sin esperarlo,
+        // lo que se ve —y lo que se captura— es su fondo, no el libro.
+        for (let i = 0; i < 200 && !D.querySelector('.bol-preloader--done'); i++) {
+          if (!D.querySelector('.bol-preloader')) break;
+          await new Promise((r) => setTimeout(r, 100));
+        }
+
+        let host = null;
+        for (let i = 0; i < 200 && !host; i++) {
+          host = D.querySelector('bol-about-book');
+          if (!host) await new Promise((r) => setTimeout(r, 100));
+        }
+        if (!host) return morir('No apareció el componente bol-about-book en la app.');
+
+        /**
+         * Firma de dónde está el lienzo dentro del iframe. Se compara para no
+         * reescribir el `transform` en cada cuadro: el reencuadre tiene que ser
+         * continuo, pero solo hace falta cuando la caja se mueve de verdad.
+         */
+        const firmaDelLienzo = () => {
+          const lienzo = D.querySelector('canvas.bol-book__canvas');
+          if (!lienzo) return null;
+          const c = lienzo.getBoundingClientRect();
+          return c.left + '|' + c.top + '|' + c.width + '|' + c.height;
+        };
+
+        const encuadrar = () => {
+          const lienzo = D.querySelector('canvas.bol-book__canvas');
+          if (!lienzo) return null;
+          const caja = lienzo.getBoundingClientRect();
+          const esc = document.getElementById('escena').getBoundingClientRect();
+          // Escala para que el libro entre holgado, y traslación para centrarlo.
+          const k = Math.min(1, Math.min((esc.width - 40) / caja.width, (esc.height - 40) / caja.height));
+          const x = (esc.width - caja.width * k) / 2 - caja.left * k;
+          const y = (esc.height - caja.height * k) / 2 - caja.top * k;
+          marco.style.transform = `translate(${x}px, ${y}px) scale(${k})`;
+          return caja.left + '|' + caja.top + '|' + caja.width + '|' + caja.height;
+        };
+
+        host.scrollIntoView({ block: 'center' });
+        await new Promise((r) => setTimeout(r, 400));
+        encuadrar();
+        addEventListener('resize', encuadrar);
+
+        try {
+          await window.montarCalibradorAterrizajeFoto(W, document.getElementById('lado'));
+        } catch (e) {
+          return morir('El calibrador no pudo engancharse: ' + e.message);
+        }
+
+        // Reencuadre CONTINUO y no un `setTimeout` suelto: al congelar el libro
+        // el canvas cambia de tamaño, y con un solo reencuadre el libro se
+        // quedaba fuera del recuadro. Solo se recalcula cuando la caja cambia,
+        // así que no cuesta nada mientras está quieta.
+        let firma = firmaDelLienzo();
+        const vigila = () => {
+          const f = firmaDelLienzo();
+          if (f !== firma) {
+            firma = encuadrar();
+          }
+          requestAnimationFrame(vigila);
+        };
+        requestAnimationFrame(vigila);
+
+        cargando.classList.add('oculto');
+      })();
+    </script>
+  </body>
+</html>

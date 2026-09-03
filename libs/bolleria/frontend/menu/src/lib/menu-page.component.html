@@ -1,0 +1,153 @@
+<section class="bol-menu">
+  <div class="bol-menu__head">
+    <div class="bol-menu__eyebrow">Carta completa</div>
+    <h1>Menú</h1>
+    <p>Tocá <b>Agregar</b> y armamos tu pedido. Precios en colones.</p>
+  </div>
+
+  <div class="bol-menu__tabs">
+    @for (c of categories(); track c.key) {
+      <button type="button" (click)="setActiveCat(c.key)" class="bol-menu__tab" [class.bol-menu__tab--active]="c.active">
+        {{ c.label }}
+      </button>
+    }
+  </div>
+
+  <div class="bol-menu__layout">
+    <div class="bol-menu__items">
+      <h2 class="bol-menu__cat-title">
+        {{ activeCategory().label }}
+        <span></span>
+      </h2>
+      <div class="bol-menu__list" [style.--menu-rows]="rowsPerColumn(activeItems().length)">
+        @for (it of activeItems(); track it.id; let i = $index, count = $count) {
+          <div class="bol-menu__row" [class.bol-menu__row--last]="isLastInColumn(i, count)">
+            <div class="bol-menu__row-main">
+              <span class="bol-menu__row-name">{{ it.name }}</span>
+            </div>
+            <div class="bol-menu__row-end">
+              <span class="bol-menu__row-price">{{ fmt(it.price) }}</span>
+              @if (it.options?.length) {
+                <button
+                  type="button"
+                  (click)="openOptions(it)"
+                  class="bol-menu__row-add"
+                  [attr.aria-label]="'Elegir sabor de ' + it.name + (qtyOf(it.id) ? ', ' + qtyOf(it.id) + ' en el pedido' : '')"
+                >
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Agregar
+                  <!-- Solo cuenta: no es un boton ni se puede pulsar por separado.
+                       Va oculto al lector de pantalla porque la cantidad ya viaja
+                       en el `aria-label` del boton, y repetirla la leeria dos
+                       veces. En escritorio no se muestra -el pedido esta al lado
+                       y siempre a la vista-; ver `.bol-menu__row-qty`. -->
+                  @if (qtyOf(it.id); as n) {
+                    <span class="bol-menu__row-qty" [class.is-pop]="popId() === it.id" aria-hidden="true">{{ n }}</span>
+                  }
+                </button>
+              } @else {
+                <button
+                  type="button"
+                  (click)="addToCart(it.id)"
+                  class="bol-menu__row-add"
+                  [attr.aria-label]="'Agregar ' + it.name + ' al pedido' + (qtyOf(it.id) ? ', ' + qtyOf(it.id) + ' en el pedido' : '')"
+                >
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>Agregar
+                  <!-- Solo cuenta: no es un boton ni se puede pulsar por separado.
+                       Va oculto al lector de pantalla porque la cantidad ya viaja
+                       en el `aria-label` del boton, y repetirla la leeria dos
+                       veces. En escritorio no se muestra -el pedido esta al lado
+                       y siempre a la vista-; ver `.bol-menu__row-qty`. -->
+                  @if (qtyOf(it.id); as n) {
+                    <span class="bol-menu__row-qty" [class.is-pop]="popId() === it.id" aria-hidden="true">{{ n }}</span>
+                  }
+                </button>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+
+    <aside class="bol-menu__cart">
+      <img src="assets/mark-white.webp" alt="" class="bol-menu__cart-mark" />
+      <div class="bol-menu__cart-inner">
+        <div class="bol-menu__cart-title">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h2l1.6 11.2a1.5 1.5 0 0 0 1.5 1.3h8.3a1.5 1.5 0 0 0 1.5-1.2L21 8H6"/><circle cx="9.5" cy="20" r="1"/><circle cx="18" cy="20" r="1"/></svg>
+          Tu pedido
+        </div>
+        @if (cartEmpty()) {
+          <p class="bol-menu__cart-empty">Todavía no agregaste nada. Tocá <b>Agregar</b> en cualquier producto.</p>
+        }
+        @if (cartHas()) {
+          <div class="bol-menu__cart-lines">
+            @for (l of cartLines(); track l.id) {
+              <div class="bol-menu__cart-line">
+                <div class="bol-menu__cart-line-info">
+                  <div class="bol-menu__cart-line-name">
+                    {{ l.item.name }}
+                    @if (l.option) {
+                      <span class="bol-menu__cart-line-option">{{ l.option }}</span>
+                    }
+                  </div>
+                  <div class="bol-menu__cart-line-price">{{ fmt(l.item.price) }}</div>
+                </div>
+                <div class="bol-menu__cart-qty">
+                  <button type="button" (click)="dec(l.id)" aria-label="Quitar uno">−</button>
+                  <span>{{ l.qty }}</span>
+                  <button type="button" (click)="inc(l.id)" aria-label="Agregar uno">+</button>
+                </div>
+              </div>
+            }
+          </div>
+          <div class="bol-menu__cart-total">
+            <span>Total</span>
+            <span>{{ cartTotalFmt() }}</span>
+          </div>
+          <button type="button" (click)="startCheckout()" class="bol-menu__cart-checkout">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+            Pedir por WhatsApp
+            <span class="bol-menu__cart-badge">Envío Express</span>
+          </button>
+          <button type="button" (click)="clearCart()" class="bol-menu__cart-clear">Vaciar pedido</button>
+        }
+      </div>
+    </aside>
+  </div>
+
+  @if (dialogItem(); as item) {
+    <div class="bol-flavor-backdrop bol-flavor-backdrop--open" (click)="closeOptions()"></div>
+    <div
+      class="bol-flavor-dialog bol-flavor-dialog--open"
+      role="dialog"
+      aria-modal="true"
+      [attr.aria-label]="'Elegir sabor de ' + item.name"
+    >
+      <button type="button" class="bol-flavor-dialog__close" (click)="closeOptions()" aria-label="Cerrar">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
+      </button>
+      <div class="bol-flavor-dialog__eyebrow">Elegí el sabor</div>
+      <h3 class="bol-flavor-dialog__title">{{ item.name }}</h3>
+      <div class="bol-flavor-dialog__chips">
+        @for (opt of item.options; track opt) {
+          <button
+            type="button"
+            class="bol-flavor-dialog__chip"
+            [class.bol-flavor-dialog__chip--selected]="selectedOption() === opt"
+            (click)="chooseOption(opt)"
+          >
+            {{ opt }}
+          </button>
+        }
+      </div>
+      <button
+        type="button"
+        class="bol-flavor-dialog__confirm"
+        [disabled]="!selectedOption()"
+        (click)="confirmOption()"
+      >
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+        Agregar
+      </button>
+    </div>
+  }
+</section>

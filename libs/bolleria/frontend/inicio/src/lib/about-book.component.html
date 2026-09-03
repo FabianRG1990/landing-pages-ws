@@ -1,0 +1,71 @@
+<section class="bol-book">
+  <div class="bol-book__head">
+    <div class="bol-book__eyebrow">Acerca de nosotros</div>
+    <h2 class="bol-book__title">Nuestra historia, <em>página a página</em></h2>
+    <p class="bol-book__hint">Abrí el libro y conocé cómo empezamos.</p>
+  </div>
+
+  <div class="bol-book__stage">
+    <canvas #canvas class="bol-book__canvas" [class.is-ready]="ready()" [class.is-lifting]="lifting()"></canvas>
+    @if (!coverOpen()) {
+      <button type="button" class="bol-book__cover-hit" [disabled]="busy() || !ready()" (click)="open()" aria-label="Abrir el libro"></button>
+    }
+    <!-- TODO se dibuja sobre el canvas -fotos, texto y los propios botones de
+         redes, que son tinta de la página de cierre (ver drawSocialButton)-.
+         Estos dos <a> son solo el área que se puede pulsar: van vacíos y sin
+         pintar nada, colocados justo encima del cajetín dibujado con las
+         medidas que da socialLinkStyle. El puntero encima marca el cajetín
+         repintando la hoja, porque un bitmap no responde al hover por sí solo. -->
+    @if (showSocialLinks()) {
+      <a
+        [href]="contact.instagram"
+        target="_blank"
+        rel="noopener"
+        class="bol-book__social-hit"
+        [ngStyle]="socialLinkStyle('instagram')"
+        aria-label="Seguinos en Instagram"
+        (mouseenter)="marcaSocial('instagram')"
+        (mouseleave)="marcaSocial(null)"
+        (focus)="marcaSocial('instagram')"
+        (blur)="marcaSocial(null)"
+      ></a>
+      <a
+        [href]="contact.facebook"
+        target="_blank"
+        rel="noopener"
+        class="bol-book__social-hit"
+        [ngStyle]="socialLinkStyle('facebook')"
+        aria-label="Seguinos en Facebook"
+        (mouseenter)="marcaSocial('facebook')"
+        (mouseleave)="marcaSocial(null)"
+        (focus)="marcaSocial('facebook')"
+        (blur)="marcaSocial(null)"
+      ></a>
+    }
+  </div>
+
+  <div class="bol-book__controls">
+    @if (!coverOpen()) {
+      <button type="button" class="bol-book__open" [disabled]="busy() || !ready()" (click)="open()">
+        <span>Abrir el libro</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+      </button>
+    } @else if (current() === last) {
+      <button type="button" class="bol-book__nav bol-book__nav--prev" [disabled]="busy()" (click)="prev()">
+        <svg width="10" height="16" viewBox="0 0 14 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M10 2 3 11l7 9" /></svg>
+        Anterior
+      </button>
+      <button type="button" class="bol-book__restart" [disabled]="busy()" (click)="restart()">Volver a la portada</button>
+    } @else {
+      <button type="button" class="bol-book__nav bol-book__nav--prev" [disabled]="busy() || current() === 1" (click)="prev()">
+        <svg width="10" height="16" viewBox="0 0 14 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M10 2 3 11l7 9" /></svg>
+        Anterior
+      </button>
+      <div class="bol-book__counter">{{ pad(current()) }} / {{ pad(last) }}</div>
+      <button type="button" class="bol-book__nav bol-book__nav--next" [disabled]="busy()" (click)="next()">
+        Siguiente
+        <span class="bol-book__wheat" aria-hidden="true"></span>
+      </button>
+    }
+  </div>
+</section>

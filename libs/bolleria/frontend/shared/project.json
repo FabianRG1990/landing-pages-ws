@@ -1,0 +1,13 @@
+{
+  "name": "bolleria-ui-shared",
+  "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/bolleria/frontend/shared/src",
+  "prefix": "bol",
+  "projectType": "library",
+  "tags": ["scope:bolleria"],
+  "targets": {
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    }
+  }
+}

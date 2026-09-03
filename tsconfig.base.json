@@ -115,6 +115,13 @@
       ],
       "@aros-alex-ui-contacto": [
         "./libs/aros-alex/frontend/contacto/src/index.ts"
+      ],
+      "@bolleria-ui-shared": ["./libs/bolleria/frontend/shared/src/index.ts"],
+      "@bolleria-ui-shared/*": ["./libs/bolleria/frontend/shared/src/lib/*"],
+      "@bolleria-ui-inicio": ["./libs/bolleria/frontend/inicio/src/index.ts"],
+      "@bolleria-ui-menu": ["./libs/bolleria/frontend/menu/src/index.ts"],
+      "@bolleria-ui-contacto": [
+        "./libs/bolleria/frontend/contacto/src/index.ts"
       ]
     }
   },

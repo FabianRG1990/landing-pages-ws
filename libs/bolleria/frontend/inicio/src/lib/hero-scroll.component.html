@@ -1,0 +1,38 @@
+<div #heroWrap class="bol-hero-wrap">
+  <div #heroStage class="bol-hero-stage">
+    <picture class="bol-hero-bg" aria-hidden="true">
+      <source media="(min-width: 900px)" srcset="assets/hero-bg-desktop.webp" />
+      <img src="assets/hero-bg-mobile.webp" alt="" />
+    </picture>
+    <ul class="bol-hero-motto">
+      <li>El tiempo también es un ingrediente.</li>
+      <li>Cada espiga cuenta su propia historia.</li>
+      <li>Nada bueno se apura.</li>
+    </ul>
+    <div #photoBox class="bol-hero-photobox">
+      <img #heroPhoto src="assets/cr-photo-reg.webp" alt="Croissant recién horneado" class="bol-hero-img bol-hero-img--photo" />
+      <img #heroIllus src="assets/cr-illus-reg.webp" alt="Croissant ilustrado" class="bol-hero-img bol-hero-img--illus" />
+      <img #heroLogo src="assets/logo-clean.webp" alt="Bollería Panadería" class="bol-hero-img bol-hero-img--logo" />
+      <div #introCap class="bol-hero-introcap">
+        <div class="bol-hero-introcap__inner">
+          <div class="bol-hero-introcap__glow" aria-hidden="true"></div>
+          <span class="bol-hero-introcap__text">Todo empieza antes del primer bocado.</span>
+        </div>
+      </div>
+    </div>
+    <p #masaWrap class="bol-hero-masa" aria-hidden="true">
+      @for (word of masaWords; track $index) {
+        <span class="bol-hero-masa__word">{{ word }}</span>
+      }
+    </p>
+    <canvas #heroCanvas aria-hidden="true" class="bol-hero-canvas"></canvas>
+    <div #heroCaption class="bol-hero-caption">
+      <span #captionEyebrow class="bol-hero-caption__eyebrow"></span>
+      <span #captionText class="bol-hero-caption__text"></span>
+    </div>
+    <div #scrollHint class="bol-hero-hint">
+      <span>Deslizá para descubrir</span>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--acc,#C8912A)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M6 13l6 6 6-6"/></svg>
+    </div>
+  </div>
+</div>

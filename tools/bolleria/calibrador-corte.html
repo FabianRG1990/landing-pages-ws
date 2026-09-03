@@ -1,0 +1,682 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Calibrador del corte de la foto</title>
+<style>
+  :root{
+    --bg:#14100c; --panel:#1e1913; --linea:#2e2720; --texto:#e8dfd0;
+    --suave:#9a8f7e; --acento:#d9a441; --ok:#6fbf73; --mal:#d96a6a;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--texto);
+    font:13px/1.5 ui-sans-serif,system-ui,"Segoe UI",sans-serif;overflow:hidden}
+  #app{display:flex;height:100%}
+  #izq{flex:1;min-width:0;display:flex;align-items:center;justify-content:center;position:relative}
+  #lienzo{background:#0b0908;box-shadow:0 0 0 1px var(--linea);cursor:crosshair;touch-action:none}
+  #der{width:330px;flex:none;background:var(--panel);border-left:1px solid var(--linea);
+    padding:14px;overflow-y:auto}
+  h1{font-size:14px;margin:0 0 4px;letter-spacing:.04em}
+  .sub{color:var(--suave);font-size:12px;margin:0 0 14px}
+  .caja{border:1px solid var(--linea);border-radius:6px;padding:10px;margin-bottom:12px}
+  .caja h2{font-size:11px;text-transform:uppercase;letter-spacing:.09em;color:var(--suave);
+    margin:0 0 8px;font-weight:600}
+  .fila{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+  .fila:last-child{margin-bottom:0}
+  label{color:var(--suave);flex:none}
+  input[type=range]{flex:1;accent-color:var(--acento)}
+  select,button,input[type=number]{background:#2a231b;color:var(--texto);border:1px solid var(--linea);
+    border-radius:4px;padding:5px 8px;font:inherit}
+  button{cursor:pointer}
+  button:hover{border-color:var(--acento)}
+  button.pri{background:var(--acento);color:#231a0c;border-color:var(--acento);font-weight:600}
+  .cuadro{font-variant-numeric:tabular-nums;font-size:22px;font-weight:600;min-width:52px;text-align:right}
+  .modo{display:flex;gap:6px}
+  .modo button{flex:1}
+  .modo button[aria-pressed=true]{background:var(--acento);color:#231a0c;border-color:var(--acento)}
+  #mapa{display:grid;grid-template-columns:repeat(17,1fr);gap:2px;margin-top:6px}
+  #mapa i{aspect-ratio:1;background:#2a231b;border-radius:2px;font-style:normal;
+    font-size:8px;display:flex;align-items:center;justify-content:center;color:#6b6154;cursor:pointer}
+  #mapa i.hecho{background:var(--ok);color:#12300f}
+  #mapa i.todo{background:#4a7fbf;color:#0b1a2a}
+  #mapa i.aqui{outline:2px solid var(--acento);outline-offset:1px}
+  kbd{background:#2a231b;border:1px solid var(--linea);border-radius:3px;padding:1px 5px;
+    font:11px ui-monospace,monospace}
+  .ayuda{color:var(--suave);font-size:12px;line-height:1.7}
+  .ayuda div{display:flex;justify-content:space-between;gap:10px}
+  #aviso{position:absolute;left:50%;bottom:18px;transform:translateX(-50%);
+    background:#000c;border:1px solid var(--linea);border-radius:6px;padding:8px 14px;
+    opacity:0;transition:opacity .25s;pointer-events:none}
+  #aviso.ver{opacity:1}
+  textarea{width:100%;height:70px;background:#2a231b;color:var(--texto);border:1px solid var(--linea);
+    border-radius:4px;font:11px ui-monospace,monospace;padding:6px}
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="izq">
+    <canvas id="lienzo"></canvas>
+    <div id="aviso"></div>
+  </div>
+
+  <div id="der">
+    <h1>Calibrador del corte</h1>
+    <p class="sub">Corré la línea. Lo que queda del lado del lomo se borra.</p>
+
+    <div class="caja">
+      <h2>Cuadro</h2>
+      <div class="fila">
+        <button id="menos">◀</button>
+        <input type="range" id="slider">
+        <button id="mas">▶</button>
+        <span class="cuadro" id="numero">83</span>
+      </div>
+      <div class="fila">
+        <label>Foto</label>
+        <select id="pagina"></select>
+        <button id="play">▶ Reproducir</button>
+      </div>
+      <div id="mapa"></div>
+    </div>
+
+    <div class="caja">
+      <h2>Este cuadro</h2>
+      <div class="modo">
+        <button id="mNada" aria-pressed="false">Sin corte</button>
+        <button id="mLinea" aria-pressed="false">Línea</button>
+        <button id="mTodo" aria-pressed="false">Borrar todo</button>
+      </div>
+      <div class="fila" style="margin-top:8px">
+        <button id="voltear">Voltear lado ⇄</button>
+        <button id="copiar">Copiar anterior</button>
+      </div>
+      <div class="fila">
+        <button id="limpiar">Descalibrar este cuadro</button>
+      </div>
+    </div>
+
+    <div class="caja">
+      <h2>Ver</h2>
+      <div class="fila">
+        <label><input type="checkbox" id="verSombra" checked> Sombreado del vídeo</label>
+      </div>
+      <div class="fila">
+        <label><input type="checkbox" id="verPrevio" checked> Fantasma del cuadro anterior</label>
+      </div>
+      <div class="fila">
+        <label><input type="checkbox" id="verBorrado"> Ver en rojo lo borrado</label>
+      </div>
+      <div class="fila">
+        <label>Zoom</label>
+        <input type="range" id="zoom" min="80" max="220" value="130">
+        <span id="zoomTxt">130%</span>
+      </div>
+    </div>
+
+    <div class="caja">
+      <h2>Exportar</h2>
+      <div class="fila">
+        <button class="pri" id="exportar">Descargar JSON</button>
+        <button id="portapapeles">Copiar</button>
+      </div>
+      <div class="fila"><label style="flex:1">Pegar para retomar:</label></div>
+      <textarea id="pegar" placeholder="pegá aquí un JSON exportado y pulsá Importar"></textarea>
+      <div class="fila" style="margin-top:6px"><button id="importar">Importar</button></div>
+    </div>
+
+    <div class="caja">
+      <h2>Teclas</h2>
+      <div class="ayuda">
+        <div><span>Cuadro anterior / siguiente</span><span><kbd>←</kbd><kbd>→</kbd></span></div>
+        <div><span>De 5 en 5</span><span><kbd>⇧</kbd>+<kbd>←</kbd><kbd>→</kbd></span></div>
+        <div><span>Voltear el lado</span><span><kbd>F</kbd></span></div>
+        <div><span>Copiar del anterior</span><span><kbd>C</kbd></span></div>
+        <div><span>Sin corte / Borrar todo</span><span><kbd>Z</kbd><kbd>X</kbd></span></div>
+        <div><span>Reproducir</span><span><kbd>P</kbd></span></div>
+        <div><span>Mover la línea 1 px</span><span><kbd>W A S D</kbd></span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+// ---------------------------------------------------------------------------
+// Constantes copiadas TAL CUAL de about-book.component.ts. Si cambian alli,
+// hay que cambiarlas aqui, o lo que se calibre no sera lo que se ve.
+// ---------------------------------------------------------------------------
+const VW = 860, VH = 698;              // tamano nativo de los cuadros del video
+const LO = 83, HI = 133;               // MESH_LO / MESH_HI: el tramo con malla
+const FRAMES_DIR = 'assets/about-book-frames';
+const SHEET_PHOTO_UV = [               // ventana de la hoja donde va impresa la foto
+  { u: 0.17633, v: 0.06671 },
+  { u: 0.94096, v: 0.1376  },
+  { u: 0.93282, v: 0.93409 },
+  { u: 0.18047, v: 0.89216 },
+];
+const CONTENT_LEFT_QUAD = [
+  { x: 197, y: 282 }, { x: 397, y: 250 }, { x: 456, y: 467 }, { x: 241, y: 507 },
+];
+const PRINT_BORDER = 0.05;
+const PRINT_PAPER = '#F7F0E2';
+const SHADE_WHITE = 232.5;
+const SHADE_GAIN_LEVEL = Math.round((1 - SHADE_WHITE / 255) * 255);
+const FOTOS = [
+  'assets/about-1.webp','assets/about-2.webp','assets/about-3.webp',
+  'assets/about-4.webp','assets/about-5.webp','assets/about-6.webp',
+];
+const LLAVE = 'calib-corte-v1';
+
+// ---------------------------------------------------------------------------
+// Geometria, tambien copiada del componente
+// ---------------------------------------------------------------------------
+function quadAspect(q) {
+  const [tl, tr, br, bl] = q;
+  const d = (a, b) => Math.hypot(b.x - a.x, b.y - a.y);
+  return ((d(tl, tr) + d(bl, br)) / 2) / ((d(tl, bl) + d(tr, br)) / 2);
+}
+function quadHomography(quad) {
+  const [p0, p1, p2, p3] = quad;
+  const dx1 = p1.x - p2.x, dx2 = p3.x - p2.x, dx3 = p0.x - p1.x + p2.x - p3.x;
+  const dy1 = p1.y - p2.y, dy2 = p3.y - p2.y, dy3 = p0.y - p1.y + p2.y - p3.y;
+  const den = dx1 * dy2 - dx2 * dy1;
+  const g = (dx3 * dy2 - dx2 * dy3) / den;
+  const h = (dx1 * dy3 - dx3 * dy1) / den;
+  const a = p1.x - p0.x + g * p1.x, b = p3.x - p0.x + h * p3.x, cx = p0.x;
+  const d = p1.y - p0.y + g * p1.y, e = p3.y - p0.y + h * p3.y, cy = p0.y;
+  return (u, v) => { const w = g * u + h * v + 1;
+    return { x: (a * u + b * v + cx) / w, y: (d * u + e * v + cy) / w }; };
+}
+function meshPoint(pts, G, u, v) {
+  const n = G - 1;
+  const x = Math.min(n - 1e-6, Math.max(0, u * n));
+  const y = Math.min(n - 1e-6, Math.max(0, v * n));
+  const c = Math.floor(x), r = Math.floor(y), fx = x - c, fy = y - r;
+  const a = pts[r*G+c], b = pts[r*G+c+1], d = pts[(r+1)*G+c], e = pts[(r+1)*G+c+1];
+  return {
+    x: (a[0]*(1-fx)+b[0]*fx)*(1-fy) + (d[0]*(1-fx)+e[0]*fx)*fy,
+    y: (a[1]*(1-fx)+b[1]*fx)*(1-fy) + (d[1]*(1-fx)+e[1]*fx)*fy,
+  };
+}
+function meshVisible(vis, G, u, v) {
+  const n = G - 1;
+  const c = Math.min(n-1, Math.max(0, Math.floor(u*n)));
+  const r = Math.min(n-1, Math.max(0, Math.floor(v*n)));
+  return vis[r*G+c]==='1' && vis[r*G+c+1]==='1' && vis[(r+1)*G+c]==='1' && vis[(r+1)*G+c+1]==='1';
+}
+function celdaAfin(ctx, img, sx, sy, sw, sh, d0, d1, d2) {
+  if (sw <= 0 || sh <= 0) return;
+  ctx.save();
+  ctx.transform((d1.x-d0.x)/sw, (d1.y-d0.y)/sw, (d2.x-d0.x)/sh, (d2.y-d0.y)/sh, d0.x, d0.y);
+  ctx.drawImage(img, sx, sy, sw, sh, 0, 0, sw, sh);
+  ctx.restore();
+}
+/** El mismo warp por celdas que usa el componente para pegar un panel a la hoja. */
+function dibujaEnMalla(ctx, img, pts, G, vis, uv) {
+  const SUB = 16, bleed = 0.5 / SUB;
+  const toUV = quadHomography(uv.map(p => ({ x: p.u, y: p.v })));
+  const w = img.width, h = img.height;
+  for (let gy = 0; gy < SUB; gy++) for (let gx = 0; gx < SUB; gx++) {
+    const eu0 = Math.max(0, gx/SUB - bleed), ev0 = Math.max(0, gy/SUB - bleed);
+    const eu1 = Math.min(1, (gx+1)/SUB + bleed), ev1 = Math.min(1, (gy+1)/SUB + bleed);
+    const a = toUV(eu0,ev0), b = toUV(eu1,ev0), c = toUV(eu0,ev1), d = toUV(eu1,ev1);
+    if (!(meshVisible(vis,G,a.x,a.y) && meshVisible(vis,G,b.x,b.y) &&
+          meshVisible(vis,G,c.x,c.y) && meshVisible(vis,G,d.x,d.y))) continue;
+    celdaAfin(ctx, img, w*eu0, h*ev0, w*(eu1-eu0), h*(ev1-ev0),
+      meshPoint(pts,G,a.x,a.y), meshPoint(pts,G,b.x,b.y), meshPoint(pts,G,c.x,c.y));
+  }
+}
+function recorteCover(img, aspecto) {
+  const ia = img.width / img.height;
+  if (ia > aspecto) { const sw = img.height * aspecto;
+    return { sx:(img.width-sw)/2, sy:0, sw, sh:img.height }; }
+  const sh = img.width / aspecto;
+  return { sx:0, sy:(img.height-sh)/2, sw:img.width, sh };
+}
+/** El panel de la copia: papel crema, la foto recortada dentro y el grado de impresa. */
+function panelFoto(img) {
+  const aspecto = quadAspect(CONTENT_LEFT_QUAD);
+  const w = 720, h = Math.round(w / aspecto);
+  const c = Object.assign(document.createElement('canvas'), { width: w, height: h });
+  const ctx = c.getContext('2d');
+  const borde = Math.round(Math.min(w, h) * PRINT_BORDER);
+  ctx.fillStyle = PRINT_PAPER; ctx.fillRect(0, 0, w, h);
+  const iw = w - borde*2, ih = h - borde*2;
+  const r = recorteCover(img, iw / ih);
+  ctx.drawImage(img, r.sx, r.sy, r.sw, r.sh, borde, borde, iw, ih);
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighten';
+  ctx.fillStyle = 'rgb(28,24,20)'; ctx.fillRect(borde, borde, iw, ih);
+  ctx.globalCompositeOperation = 'saturation';
+  ctx.globalAlpha = 0.14; ctx.fillStyle = '#808080'; ctx.fillRect(borde, borde, iw, ih);
+  ctx.restore();
+  return c;
+}
+
+// ---------------------------------------------------------------------------
+// Carga
+// ---------------------------------------------------------------------------
+const lienzo = document.getElementById('lienzo');
+const ctx = lienzo.getContext('2d');
+const aviso = document.getElementById('aviso');
+let temporizador = 0;
+function decir(t) {
+  aviso.textContent = t; aviso.classList.add('ver');
+  clearTimeout(temporizador); temporizador = setTimeout(() => aviso.classList.remove('ver'), 1600);
+}
+
+const cargarImg = (src) => new Promise((res, rej) => {
+  const im = new Image(); im.onload = () => res(im); im.onerror = rej; im.src = src;
+});
+
+let curl = null, G = 17;
+const cuadrosVideo = new Map();
+async function video(n) {
+  if (!cuadrosVideo.has(n))
+    cuadrosVideo.set(n, await cargarImg(`${FRAMES_DIR}/frame_${String(n+1).padStart(4,'0')}.webp`));
+  return cuadrosVideo.get(n);
+}
+
+// La foto QUIETA de la pagina izquierda. En el componente sale de
+// `restSurface('left')`, que usa la malla `b` del cuadro 133 y la ventana
+// SHEET_PHOTO_UV. `poseAt` devuelve null, asi que NO se mueve entre cuadros:
+// se dibuja una sola vez y vale para toda la vuelta.
+let capaFoto = null;
+async function preparaFoto(indice) {
+  const img = await cargarImg(FOTOS[indice]);
+  const panel = panelFoto(img);
+  const m = curl.frames[String(HI)];
+  capaFoto = Object.assign(document.createElement('canvas'), { width: VW, height: VH });
+  const c = capaFoto.getContext('2d');
+  c.imageSmoothingEnabled = true; c.imageSmoothingQuality = 'high';
+  dibujaEnMalla(c, panel, m.b, G, m.bv, SHEET_PHOTO_UV);
+}
+
+// ---------------------------------------------------------------------------
+// Estado de la calibracion
+// ---------------------------------------------------------------------------
+// Por cada cuadro: modo 'nada' | 'linea' | 'todo', dos extremos de la recta en
+// coordenadas del VIDEO, y `lado` (+1/-1) que dice cual de las dos mitades se
+// CONSERVA. `tocado` distingue lo que decidiste vos de lo heredado.
+const est = { pagina: 5, cuadro: LO, marcas: {} };
+function nueva() {
+  // La recta arranca a la derecha de la foto -que ocupa x 191..462 del video- y
+  // `lado` +1 hace que se CONSERVE la izquierda: se borra hacia el lomo, que es
+  // por donde llega la hoja. Con eso, un cuadro sin tocar se ve entero.
+  return { modo: 'nada', ax: 478, ay: 170, bx: 508, by: 570, lado: 1, tocado: false };
+}
+function marca(f) { return (est.marcas[f] ??= nueva()); }
+
+function guarda() {
+  try { localStorage.setItem(LLAVE, JSON.stringify(est)); } catch { /* modo privado */ }
+}
+function restaura() {
+  try {
+    const s = JSON.parse(localStorage.getItem(LLAVE) || 'null');
+    if (s && s.marcas) { Object.assign(est, s); return true; }
+  } catch { /* nada */ }
+  return false;
+}
+
+/** Hereda del ultimo cuadro tocado hacia atras: asi solo movés lo que cambia. */
+function heredaSiHaceFalta(f) {
+  const m = marca(f);
+  if (m.tocado) return m;
+  for (let k = f - 1; k >= LO; k--) {
+    const p = est.marcas[k];
+    if (p && p.tocado) { Object.assign(m, { ...p, tocado: false }); return m; }
+  }
+  return m;
+}
+
+// ---------------------------------------------------------------------------
+// Pintado
+// ---------------------------------------------------------------------------
+let escala = 1.3;
+function ajustaLienzo() {
+  lienzo.width = VW; lienzo.height = VH;
+  lienzo.style.width = Math.round(VW * escala) + 'px';
+  lienzo.style.height = Math.round(VH * escala) + 'px';
+}
+
+const tmp = Object.assign(document.createElement('canvas'), { width: VW, height: VH });
+const sombra = Object.assign(document.createElement('canvas'), { width: VW, height: VH });
+const guardaAlfa = Object.assign(document.createElement('canvas'), { width: VW, height: VH });
+
+/**
+ * Semiplano que se CONSERVA, apoyado en la recta. Los vectores van
+ * NORMALIZADOS: multiplicar el vector crudo por el largo mandaba las esquinas a
+ * 120 000 px y el rasterizador dejaba de recortar.
+ */
+function semiplano(c, m) {
+  const dx = m.bx - m.ax, dy = m.by - m.ay;
+  const n = Math.hypot(dx, dy) || 1;
+  const ux = dx / n, uy = dy / n;                 // a lo largo de la recta
+  const nx = -uy * m.lado, ny = ux * m.lado;      // hacia el lado que se queda
+  const L = 3000;
+  c.beginPath();
+  c.moveTo(m.ax - ux * L, m.ay - uy * L);
+  c.lineTo(m.ax + ux * L, m.ay + uy * L);
+  c.lineTo(m.ax + ux * L + nx * L, m.ay + uy * L + ny * L);
+  c.lineTo(m.ax - ux * L + nx * L, m.ay - uy * L + ny * L);
+  c.closePath();
+}
+function clipConserva(c, m) { semiplano(c, m); c.clip(); }
+
+async function pinta() {
+  const f = est.cuadro;
+  const m = heredaSiHaceFalta(f);
+  const im = await video(f);
+  ctx.setTransform(1,0,0,1,0,0);
+  ctx.clearRect(0,0,VW,VH);
+  ctx.drawImage(im, 0, 0, VW, VH);
+
+  if (capaFoto) {
+    // La foto, recortada por la recta
+    const t = tmp.getContext('2d');
+    t.setTransform(1,0,0,1,0,0); t.clearRect(0,0,VW,VH);
+    if (m.modo !== 'todo') {
+      t.save();
+      if (m.modo === 'linea') clipConserva(t, m);
+      t.drawImage(capaFoto, 0, 0);
+      t.restore();
+    }
+    // Sombreado: la luminancia del propio cuadro, con la ganancia que usa el
+    // componente para dejar el papel a plena luz en factor 1.0.
+    if (document.getElementById('verSombra').checked) {
+      // Copia de la foto recortada: `multiply` en canvas pinta la fuente entera
+      // donde el destino es transparente, asi que despues hay que devolverle su
+      // alfa o el gris del sombreado cubre todo el lienzo.
+      const g2 = guardaAlfa.getContext('2d');
+      g2.setTransform(1,0,0,1,0,0);
+      g2.globalCompositeOperation = 'source-over';
+      g2.clearRect(0,0,VW,VH);
+      g2.drawImage(tmp, 0, 0);
+      const s = sombra.getContext('2d');
+      s.setTransform(1,0,0,1,0,0);
+      s.globalCompositeOperation = 'source-over';
+      s.fillStyle = '#fff'; s.fillRect(0,0,VW,VH);
+      s.drawImage(im, 0, 0, VW, VH);
+      s.globalCompositeOperation = 'saturation';
+      s.fillStyle = '#808080'; s.fillRect(0,0,VW,VH);
+      s.globalCompositeOperation = 'color-dodge';
+      s.fillStyle = `rgb(${SHADE_GAIN_LEVEL},${SHADE_GAIN_LEVEL},${SHADE_GAIN_LEVEL})`;
+      s.fillRect(0,0,VW,VH);
+      s.globalCompositeOperation = 'source-over';
+      t.globalCompositeOperation = 'multiply';
+      t.drawImage(sombra, 0, 0);
+      t.globalCompositeOperation = 'destination-in';
+      t.drawImage(guardaAlfa, 0, 0);
+      t.globalCompositeOperation = 'source-over';
+    }
+    ctx.drawImage(tmp, 0, 0);
+
+    // Lo borrado, en rojo, para ver el recorte de un vistazo
+    if (document.getElementById('verBorrado').checked && m.modo !== 'nada') {
+      const t2 = tmp.getContext('2d');
+      t2.setTransform(1,0,0,1,0,0); t2.clearRect(0,0,VW,VH);
+      t2.drawImage(capaFoto, 0, 0);
+      if (m.modo === 'linea') {
+        t2.globalCompositeOperation = 'destination-out';
+        semiplano(t2, m); t2.fill();
+        t2.globalCompositeOperation = 'source-over';
+      }
+      t2.globalCompositeOperation = 'source-in';
+      t2.fillStyle = 'rgba(217,106,106,.55)'; t2.fillRect(0,0,VW,VH);
+      t2.globalCompositeOperation = 'source-over';
+      ctx.drawImage(tmp, 0, 0);
+    }
+  }
+
+  // Fantasma del cuadro anterior
+  if (document.getElementById('verPrevio').checked) {
+    const p = est.marcas[f - 1];
+    if (p && p.modo === 'linea') {
+      ctx.save();
+      ctx.strokeStyle = 'rgba(217,164,65,.35)';
+      ctx.setLineDash([6,6]); ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(p.ax, p.ay); ctx.lineTo(p.bx, p.by); ctx.stroke();
+      ctx.restore();
+    }
+  }
+
+  // La recta y sus tiradores
+  if (m.modo === 'linea') {
+    ctx.save();
+    ctx.strokeStyle = m.tocado ? '#d9a441' : 'rgba(217,164,65,.55)';
+    ctx.lineWidth = 2;
+    const dx = m.bx - m.ax, dy = m.by - m.ay;
+    ctx.beginPath();
+    ctx.moveTo(m.ax - dx*4, m.ay - dy*4);
+    ctx.lineTo(m.bx + dx*4, m.by + dy*4);
+    ctx.stroke();
+    // flecha hacia el lado que se conserva
+    const n = Math.hypot(dx,dy) || 1;
+    const nx = (-dy/n)*m.lado, ny = (dx/n)*m.lado;
+    const cx = (m.ax+m.bx)/2, cy = (m.ay+m.by)/2;
+    ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(cx+nx*34, cy+ny*34); ctx.stroke();
+    ctx.beginPath(); ctx.arc(cx+nx*34, cy+ny*34, 4, 0, 7); ctx.fillStyle='#d9a441'; ctx.fill();
+    for (const [x,y] of [[m.ax,m.ay],[m.bx,m.by]]) {
+      ctx.beginPath(); ctx.arc(x, y, 7, 0, 7);
+      ctx.fillStyle = '#14100c'; ctx.fill();
+      ctx.strokeStyle = '#d9a441'; ctx.lineWidth = 2; ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  document.getElementById('numero').textContent = f;
+  document.getElementById('slider').value = f;
+  for (const b of ['Nada','Linea','Todo'])
+    document.getElementById('m'+b).setAttribute('aria-pressed',
+      String(m.modo === b.toLowerCase()));
+  pintaMapa();
+}
+
+function pintaMapa() {
+  const mapa = document.getElementById('mapa');
+  if (mapa.childElementCount !== HI - LO + 1) {
+    mapa.innerHTML = '';
+    for (let f = LO; f <= HI; f++) {
+      const i = document.createElement('i');
+      i.textContent = String(f).slice(-2);
+      i.title = 'cuadro ' + f;
+      i.onclick = () => { est.cuadro = f; pinta(); };
+      mapa.appendChild(i);
+    }
+  }
+  [...mapa.children].forEach((el, k) => {
+    const f = LO + k, m = est.marcas[f];
+    el.className = '';
+    if (m && m.tocado) el.classList.add(m.modo === 'todo' ? 'todo' : 'hecho');
+    if (f === est.cuadro) el.classList.add('aqui');
+  });
+}
+
+// ---------------------------------------------------------------------------
+// Raton
+// ---------------------------------------------------------------------------
+let arrastra = null;
+function aVideo(ev) {
+  const r = lienzo.getBoundingClientRect();
+  return { x: (ev.clientX - r.left) * (VW / r.width), y: (ev.clientY - r.top) * (VH / r.height) };
+}
+lienzo.addEventListener('pointerdown', (ev) => {
+  const m = heredaSiHaceFalta(est.cuadro);
+  const p = aVideo(ev);
+  if (m.modo !== 'linea') { m.modo = 'linea'; m.tocado = true; }
+  const dA = Math.hypot(p.x - m.ax, p.y - m.ay);
+  const dB = Math.hypot(p.x - m.bx, p.y - m.by);
+  // Cerca de un tirador lo movés; en cualquier otro sitio, la recta entera.
+  if (dA < 18 && dA <= dB) arrastra = { que: 'a' };
+  else if (dB < 18) arrastra = { que: 'b' };
+  else arrastra = { que: 'todo', x: p.x, y: p.y };
+  lienzo.setPointerCapture(ev.pointerId);
+  ev.preventDefault();
+});
+lienzo.addEventListener('pointermove', (ev) => {
+  if (!arrastra) return;
+  const m = marca(est.cuadro);
+  const p = aVideo(ev);
+  if (arrastra.que === 'a') { m.ax = p.x; m.ay = p.y; }
+  else if (arrastra.que === 'b') { m.bx = p.x; m.by = p.y; }
+  else {
+    const dx = p.x - arrastra.x, dy = p.y - arrastra.y;
+    m.ax += dx; m.ay += dy; m.bx += dx; m.by += dy;
+    arrastra.x = p.x; arrastra.y = p.y;
+  }
+  m.tocado = true;
+  pinta(); guarda();
+});
+addEventListener('pointerup', () => { arrastra = null; });
+
+// ---------------------------------------------------------------------------
+// Controles
+// ---------------------------------------------------------------------------
+function vaA(f) { est.cuadro = Math.min(HI, Math.max(LO, f)); pinta(); }
+function ponModo(modo) {
+  const m = heredaSiHaceFalta(est.cuadro);
+  m.modo = modo; m.tocado = true;
+  pinta(); guarda();
+}
+document.getElementById('menos').onclick = () => vaA(est.cuadro - 1);
+document.getElementById('mas').onclick   = () => vaA(est.cuadro + 1);
+document.getElementById('mNada').onclick  = () => ponModo('nada');
+document.getElementById('mLinea').onclick = () => ponModo('linea');
+document.getElementById('mTodo').onclick  = () => ponModo('todo');
+document.getElementById('voltear').onclick = () => {
+  const m = heredaSiHaceFalta(est.cuadro);
+  m.lado = -m.lado; m.tocado = true; pinta(); guarda();
+};
+document.getElementById('copiar').onclick = () => {
+  const p = est.marcas[est.cuadro - 1];
+  if (!p) return decir('el cuadro anterior no tiene nada');
+  est.marcas[est.cuadro] = { ...p, tocado: true };
+  pinta(); guarda(); decir('copiado del cuadro ' + (est.cuadro - 1));
+};
+document.getElementById('limpiar').onclick = () => {
+  delete est.marcas[est.cuadro]; pinta(); guarda(); decir('cuadro sin calibrar');
+};
+
+const slider = document.getElementById('slider');
+slider.min = LO; slider.max = HI; slider.value = LO;
+slider.oninput = () => vaA(+slider.value);
+
+const zoom = document.getElementById('zoom');
+zoom.oninput = () => {
+  escala = +zoom.value / 100;
+  document.getElementById('zoomTxt').textContent = zoom.value + '%';
+  ajustaLienzo(); pinta();
+};
+for (const id of ['verSombra','verPrevio','verBorrado'])
+  document.getElementById(id).onchange = () => pinta();
+
+const sel = document.getElementById('pagina');
+FOTOS.forEach((_, i) => {
+  const o = document.createElement('option');
+  o.value = i; o.textContent = 'página ' + (i + 1);
+  sel.appendChild(o);
+});
+sel.onchange = async () => {
+  est.pagina = +sel.value; await preparaFoto(est.pagina); pinta(); guarda();
+};
+
+let reproduce = 0;
+function play() {
+  if (reproduce) { clearInterval(reproduce); reproduce = 0; return; }
+  reproduce = setInterval(() => {
+    est.cuadro = est.cuadro >= HI ? LO : est.cuadro + 1;
+    pinta();
+  }, 60);
+}
+document.getElementById('play').onclick = play;
+
+addEventListener('keydown', (ev) => {
+  if (ev.target.tagName === 'TEXTAREA' || ev.target.tagName === 'INPUT') return;
+  const p = ev.shiftKey ? 5 : 1;
+  const m = () => heredaSiHaceFalta(est.cuadro);
+  switch (ev.key.toLowerCase()) {
+    case 'arrowleft':  vaA(est.cuadro - p); break;
+    case 'arrowright': vaA(est.cuadro + p); break;
+    case 'f': document.getElementById('voltear').click(); break;
+    case 'c': document.getElementById('copiar').click(); break;
+    case 'z': ponModo('nada'); break;
+    case 'x': ponModo('todo'); break;
+    case 'p': play(); break;
+    case 'w': case 'a': case 's': case 'd': {
+      const k = m(); k.modo = 'linea'; k.tocado = true;
+      const dx = ev.key === 'a' ? -1 : ev.key === 'd' ? 1 : 0;
+      const dy = ev.key === 'w' ? -1 : ev.key === 's' ? 1 : 0;
+      k.ax += dx; k.bx += dx; k.ay += dy; k.by += dy;
+      pinta(); guarda(); break;
+    }
+    default: return;
+  }
+  ev.preventDefault();
+});
+
+// ---------------------------------------------------------------------------
+// Exportar / importar
+// ---------------------------------------------------------------------------
+function comoJSON() {
+  const cortes = {}, tocado = {};
+  for (let f = LO; f <= HI; f++) {
+    const m = est.marcas[f];
+    if (!m || !m.tocado) continue;
+    tocado[f] = true;
+    cortes[f] = m.modo === 'linea'
+      ? { modo: 'linea', a: [+m.ax.toFixed(2), +m.ay.toFixed(2)],
+          b: [+m.bx.toFixed(2), +m.by.toFixed(2)], lado: m.lado }
+      : { modo: m.modo };
+  }
+  return JSON.stringify({
+    version: 1, que: 'calibrador-corte', vw: VW, vh: VH, lo: LO, hi: HI,
+    pagina: est.pagina + 1,
+    nota: 'a y b son dos puntos de la recta, en pixeles del video (860x698). ' +
+          '`lado` +1/-1 dice cual semiplano se CONSERVA: el que apunta la normal ' +
+          '(-dy,dx)*lado. modo "nada" = no se borra nada; "todo" = la foto no se ve.',
+    cortes, tocado,
+  }, null, 1);
+}
+document.getElementById('exportar').onclick = () => {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([comoJSON()], { type: 'application/json' }));
+  a.download = 'calib-corte.json'; a.click();
+  URL.revokeObjectURL(a.href);
+  decir('descargado');
+};
+document.getElementById('portapapeles').onclick = async () => {
+  try { await navigator.clipboard.writeText(comoJSON()); decir('copiado al portapapeles'); }
+  catch { document.getElementById('pegar').value = comoJSON(); decir('no pude copiar: te lo dejo en el cuadro de texto'); }
+};
+document.getElementById('importar').onclick = () => {
+  try {
+    const j = JSON.parse(document.getElementById('pegar').value);
+    if (j.que !== 'calibrador-corte') throw new Error('no es un JSON de esta herramienta');
+    est.marcas = {};
+    for (const [f, c] of Object.entries(j.cortes || {})) {
+      est.marcas[+f] = c.modo === 'linea'
+        ? { modo:'linea', ax:c.a[0], ay:c.a[1], bx:c.b[0], by:c.b[1], lado:c.lado, tocado:true }
+        : { ...nueva(), modo:c.modo, tocado:true };
+    }
+    if (j.pagina) { est.pagina = j.pagina - 1; sel.value = est.pagina; preparaFoto(est.pagina).then(pinta); }
+    pinta(); guarda(); decir('importado');
+  } catch (e) { decir('no pude importar: ' + e.message); }
+};
+
+// ---------------------------------------------------------------------------
+// Arranque
+// ---------------------------------------------------------------------------
+(async () => {
+  curl = await (await fetch('assets/about-book-curl.json')).json();
+  G = curl.grid?.[0] ?? 17;
+  restaura();
+  sel.value = est.pagina;
+  await preparaFoto(est.pagina);
+  ajustaLienzo();
+  // Precarga los cuadros para que moverse sea instantaneo
+  for (let f = LO; f <= HI; f++) video(f);
+  await pinta();
+  decir('listo — arrastrá la línea sobre la foto');
+})();
+</script>
+</body>
+</html>

@@ -21,3 +21,29 @@
 - The `nx-generate` skill handles generator discovery internally - don't call nx_docs just to look up generator syntax
 
 <!-- nx configuration end-->
+
+<!-- CLAUDE_ALIGNMENT_GATE_GLOBAL_POLICY_V1 -->
+
+# Global Clarify-Before-Change Policy
+
+For every software task that may modify a project, you MUST activate and follow the
+`alignment-gate` skill before making any project-state change.
+
+This applies to implementation, fixes, refactors, configuration, dependencies, generated code,
+file operations, commands with write effects, Git changes, and visual/UI modifications.
+
+Required sequence:
+
+1. Inspect relevant code and project instructions using read-only actions.
+2. Identify material ambiguity, risks, affected areas, and contradictions.
+3. Ask targeted questions until the task is implementation-ready.
+4. Produce an Understanding Contract.
+5. Calculate alignment confidence using the skill's confidence model.
+6. Reach at least 95% confidence without fabricating the score.
+7. Obtain explicit user approval of the contract.
+8. Only then modify project state.
+9. Stop and re-align if a material new uncertainty appears.
+
+Do not interpret urgency, silence, partial answers, or enthusiasm as approval.
+Do not ask questions already answered by the conversation or code.
+Prefer correctness and alignment over speed.
