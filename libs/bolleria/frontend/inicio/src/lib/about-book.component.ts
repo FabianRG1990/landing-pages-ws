@@ -713,6 +713,25 @@ const STORY_WEIGHT = 500;
 // sobre el papel, asi que el contraste que se ve es el del producto: lo que se
 // gana aqui es lo que se lee en las zonas sombreadas de la hoja.
 const STORY_INK = '#33291a';
+// Contorno del MISMO color por encima del relleno, en px del panel.
+//
+// No es un efecto: es compensacion de resolucion. El panel se dibuja siempre a
+// 700px de ancho y el warp lo lleva al tamano real de la pagina, que en una
+// pantalla de Windows a dpr 1 son 437px -o sea x0.62-. A esa reduccion el
+// antialiasing se come el filo del trazo y la letra se lee gris en vez de
+// negra; en un Mac a dpr 2 el mismo texto tiene el doble de pixeles y se ve
+// firme. Ese es el desnivel que reportaba el dueno del sitio.
+//
+// Medido sobre el bloque de la pagina 3, reducido a esos 437px, en fraccion de
+// pixeles con tinta: 8.04% solo con relleno, 9.23% con 0.5, 10.13% con 0.9 y
+// 11.23% con 1.4 -este ultimo ya embota las serifas-. 0.9 es donde la letra
+// gana cuerpo sin perder su dibujo.
+//
+// Se hace con `strokeText` y no subiendo el peso a 600 por dos razones: el 600
+// de 'EB Garamond' habria que descargarlo aparte (index.html trae 400 y 500), y
+// el contorno NO altera el avance, asi que el reparto en renglones de las siete
+// paginas -calibrado a mano- se queda exactamente igual.
+const STORY_STROKE = 0.9;
 // Centro del texto dentro del panel, contra la DECORACION IMPRESA en la pagina
 // y no contra el borde del papel ni a ojo. Los cuatro dibujos de esquina estan
 // en (u,v) de pagina en 0.133/0.185, 0.885/0.096, 0.039/0.882 y 0.924/0.910: su
@@ -1724,6 +1743,12 @@ export class AboutBookComponent {
     if (!ctx) return c;
     ctx.textAlign = 'center';
     ctx.fillStyle = STORY_INK;
+    // El contorno acompana al relleno en todo el panel (ver STORY_STROKE).
+    // `round` en las uniones: con `miter`, los angulos agudos de la serif
+    // sacan puntas que a esta escala se ven como suciedad.
+    ctx.strokeStyle = STORY_INK;
+    ctx.lineWidth = STORY_STROKE;
+    ctx.lineJoin = 'round';
     // Los siete numeros de la tipografia salen de aqui y no de las constantes
     // sueltas: la pagina 4 lleva los suyos (ver TEXTO_POR_PAGINA).
     const t = ajusteTexto(page);
@@ -1768,6 +1793,7 @@ export class AboutBookComponent {
       giraLienzo();
       for (const row of rows) {
         ctx.fillText(row, cx, y);
+        ctx.strokeText(row, cx, y);
         y += step;
       }
       ctx.restore();
@@ -1801,6 +1827,7 @@ export class AboutBookComponent {
     for (let i = 0; i < paragraphs.length; i++) {
       for (const row of paragraphs[i]) {
         ctx.fillText(row, cx, y);
+        ctx.strokeText(row, cx, y);
         y += rowH;
       }
       if (i < paragraphs.length - 1) y += paraGap;
