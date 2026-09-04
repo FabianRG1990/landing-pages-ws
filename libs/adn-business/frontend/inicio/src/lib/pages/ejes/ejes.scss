@@ -190,38 +190,6 @@
   color: var(--text-3);
 }
 
-/* ---------- Barra de avance ---------- */
-.ejes__barra {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  width: 100%;
-  max-width: var(--maxw);
-  margin-inline: auto;
-  padding: 0 var(--gutter) clamp(1.25rem, 3vh, 2rem);
-}
-
-.ejes__pista {
-  position: relative;
-  flex: 1;
-  height: 1px;
-  background: var(--line);
-}
-
-.ejes__relleno {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(90deg, var(--brand), var(--brand-light));
-  box-shadow: 0 0 12px rgba(127, 212, 236, 0.5);
-  transform-origin: left center;
-  will-change: transform;
-}
-
-.ejes__contador {
-  flex-shrink: 0;
-  color: var(--text-3);
-}
-
 /* ---------- Sin pin: se lee como documento ---------- */
 @media (max-width: 900px) {
   .ejes {
@@ -256,7 +224,4 @@
     text-align: left;
   }
 
-  .ejes__barra {
-    display: none;
-  }
 }
