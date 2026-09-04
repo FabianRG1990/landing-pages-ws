@@ -31,6 +31,7 @@ export class SmoothScroll {
   init(): void {
     if (!this.isBrowser || this.lenis) return;
 
+    this.fijarArranque();
     gsap.registerPlugin(ScrollTrigger);
 
     this.lenis = new Lenis({
@@ -46,6 +47,27 @@ export class SmoothScroll {
     this.tickerFn = (time: number) => this.lenis?.raf(time * 1000);
     gsap.ticker.add(this.tickerFn);
     gsap.ticker.lagSmoothing(0);
+  }
+
+  /**
+   * La página siempre empieza donde empieza.
+   *
+   * `history.scrollRestoration` viene en `auto`, así que al recargar el
+   * navegador es libre de devolverte al desplazamiento anterior. En una
+   * página normal eso es una cortesía; aquí no: hay dos secciones ancladas
+   * con `scrub`, y aterrizar a media secuencia deja el pin y la animación
+   * en un estado que nadie eligió — y qué sección te toque depende de la
+   * altura del documento, que cambia cada vez que se añade un anclaje.
+   *
+   * Con fragmento en la URL no se fuerza el tope, porque ahí sí hay una
+   * intención explícita. Que además SALTE al segmento es otra cosa, y hoy
+   * no ocurre: hay que esperar a que los anclajes existan para conocer el
+   * desplazamiento real. Queda pendiente y no lo introduce este cambio.
+   */
+  private fijarArranque(): void {
+    if (!('scrollRestoration' in history)) return;
+    history.scrollRestoration = 'manual';
+    if (!location.hash) window.scrollTo(0, 0);
   }
 
   /**

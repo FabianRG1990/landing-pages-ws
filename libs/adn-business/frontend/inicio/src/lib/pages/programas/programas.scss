@@ -39,9 +39,48 @@
   color: var(--text-2);
 }
 
+/* ---------------- La escena que se ancla ----------------
+   Solo existe como caja mientras el ensamblaje esta activo. Sin la clase,
+   la seccion se maqueta como siempre: eso es lo que ve el servidor al
+   prerenderizar, el movil y quien pide menos movimiento. */
+.prog__escena {
+  position: relative;
+}
+
+.prog__escena--anima {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+
+  /* Anclada, la intro no puede permitirse el respiro de una seccion
+     normal: encabezado y tabla tienen que caber juntos en la pantalla. */
+  .prog__intro {
+    padding-block: clamp(1.25rem, 4vh, 2.5rem) clamp(1.25rem, 3.5vh, 2rem);
+  }
+
+  /* Al empezar no hay tarjeta: ni contorno, ni fondo, ni sombra. Todo eso
+     llega. El borde real cede su sitio al armazon, que es el que se
+     ensambla; la piel entra despues, cuando el contorno ya cerro. */
+  .prog__marco {
+    background: none;
+    border-color: transparent;
+    box-shadow: none;
+  }
+}
+
+/* La caja da un contexto de posicionamiento SIN recorte: es donde viven la
+   piel y el armazon. El marco no sirve, porque `overflow-x: auto` obliga al
+   eje vertical a `auto` tambien y por tanto recorta las dos direcciones. */
+.prog__caja {
+  position: relative;
+}
+
 /* Contenedor que permite desplazar la tabla en pantallas estrechas
    sin que la pagina entera se mueva en horizontal */
 .prog__marco {
+  position: relative;
+  z-index: 2;
   overflow-x: auto;
   padding: 0.5rem;
   background: linear-gradient(
@@ -54,11 +93,135 @@
   box-shadow: var(--edge), var(--shadow-lg);
 }
 
+/* El degradado y la sombra del marco, en una capa aparte para poder
+   traerlos cuando toca. En reposo --montado no existe y vale 0, asi que
+   fuera del ensamblaje esta capa es invisible y manda la piel real. */
+.prog__piel {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  border-radius: var(--r-lg);
+  background: linear-gradient(
+    155deg,
+    rgba(255, 255, 255, 0.04),
+    rgba(255, 255, 255, 0.01) 60%
+  );
+  box-shadow: var(--edge), var(--shadow-lg);
+  opacity: var(--montado, 0);
+}
+
+/* Las cuatro esquinas en L que forman el contorno. Solo existe durante el
+   ensamblaje: fuera de el manda el borde real del marco y dos contornos
+   superpuestos se verian como una linea doble. */
+.prog__armazon {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+  opacity: 0;
+}
+
+.prog__escena--anima .prog__armazon {
+  opacity: 1;
+}
+
+.prog__pieza {
+  fill: none;
+  stroke-width: 1;
+  stroke-linecap: round;
+  /* --dx y --dy los fija el marcado: cada esquina viene de su diagonal.
+     El factor (1 - --e) es lo que hace que converjan al ensamblarse. */
+  transform: translate(calc((1 - var(--e, 1)) * var(--dx, 0px)), calc((1 - var(--e, 1)) * var(--dy, 0px)));
+  opacity: var(--e, 1);
+
+  /* En reposo el contorno es el borde de la tarjeta —blanco al 14%— y a esa
+     intensidad, a media opacidad y en movimiento, sencillamente no se ve:
+     la llegada de las piezas pasaba desapercibida. --vuelo es una campana
+     que vale 1 a mitad del trayecto y 0 en los dos extremos, asi que la
+     pieza viaja encendida y se apaga justo al encajar, sin que el color
+     final se desvie ni un punto del borde real. */
+  stroke: rgba(255, 255, 255, calc(0.14 + 0.6 * var(--vuelo, 0)));
+  filter: drop-shadow(0 0 8px rgba(255, 255, 255, calc(0.2 * var(--vuelo, 0))));
+}
+
 .tabla {
+  position: relative;
+  z-index: 2;
   width: 100%;
   min-width: 780px;
   border-collapse: collapse;
   text-align: left;
+}
+
+/* La ranura por la que entra cada pieza de contenido. El recorte lo hace
+   el overflow y el movimiento es una traslacion: trabajo del compositor,
+   sin repintado por fotograma. */
+.tabla__texto {
+  display: block;
+  /* El recorte solo existe mientras hay algo que recortar. Si se quedara
+     puesto, el anillo de foco del teclado sobre un CTA se cortaria contra
+     el borde de la ranura. */
+  overflow: var(--ranura, visible);
+}
+
+.prog__escena--anima {
+  --ranura: hidden;
+}
+
+.tabla__pieza {
+  display: block;
+  transform: translate(calc((1 - var(--e, 1)) * var(--dx, 0%)), calc((1 - var(--e, 1)) * var(--dy, 0%)));
+  opacity: var(--e, 1);
+}
+
+/* Cada tipo de pieza llega de un lado distinto: las etiquetas y los datos
+   entran por la izquierda, siguiendo la lectura, y las cabeceras caen desde
+   arriba, que es de donde cuelga una columna. */
+.tabla__esquina .tabla__pieza,
+.tabla__fila .tabla__pieza,
+.tabla__celda .tabla__pieza {
+  --dx: -100%;
+}
+
+.tabla__cab .tabla__pieza {
+  --dy: -115%;
+}
+
+/* Las reglas de la cuadricula. Van en pseudoelementos y no en `border`
+   porque un borde no se puede trazar: --rh barre la horizontal de
+   izquierda a derecha y --rv baja la vertical desde arriba. */
+.tabla__cab,
+.tabla__fila,
+.tabla__celda {
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    right: 0;
+    bottom: -0.5px;
+    left: 0;
+    height: 1px;
+    background: var(--regla, var(--line-soft));
+    transform: scaleX(var(--rh, 1));
+    transform-origin: left center;
+  }
+}
+
+.tabla__celda::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -0.5px;
+  width: 1px;
+  background: var(--line-soft);
+  transform: scaleY(var(--rv, 1));
+  transform-origin: center top;
 }
 
 .tabla__esquina {
@@ -66,13 +229,21 @@
   padding: 0 1.25rem 1rem 0;
   vertical-align: bottom;
   font-weight: var(--w-emph);
+
+  /* La celda vacia de la esquina no lleva regla: la cuadricula empieza
+     donde empieza la primera cabecera. */
+  &::before {
+    content: none;
+  }
 }
 
 .tabla__cab {
   padding: 0 1.25rem 1rem;
   vertical-align: bottom;
-  border-bottom: 1px solid var(--line-strong);
   font-weight: var(--w-read);
+  /* La regla bajo las cabeceras es la fuerte, la que separa el encabezado
+     del cuerpo. */
+  --regla: var(--line-strong);
 }
 
 .tabla__eje {
@@ -93,7 +264,7 @@
   vertical-align: top;
   color: var(--text-3);
   font-weight: var(--w-emph);
-  border-bottom: 1px solid var(--line);
+  --regla: var(--line);
 }
 
 .tabla__celda {
@@ -101,8 +272,6 @@
   vertical-align: top;
   font-size: var(--fs-small);
   color: var(--text-2);
-  border-bottom: 1px solid var(--line-soft);
-  border-left: 1px solid var(--line-soft);
   transition: background var(--dur-base) var(--ease-out);
 }
 
@@ -112,24 +281,37 @@
 
 /* La fila de entregables es lo que el cliente se lleva a casa: es el
    resultado de la tabla y por eso lleva el ambar. Las cabeceras, los
-   enlaces y los ejes se quedan en azul. */
+   enlaces y los ejes se quedan en azul.
+
+   --ambar es el remate del ensamblaje: la fila se tine al final, cuando
+   la tabla ya esta entera. En reposo vale 1 y la fila se ve como siempre. */
+/* La etiqueta pasa de gris de fila a ambar interpolando canal a canal.
+   `color-mix()` con un porcentaje sacado de una custom property no resuelve
+   —la declaracion entera cae y la etiqueta se queda gris—, asi que va con
+   `rgb()` y calc, que si evalua. Los extremos son --text-3 (124 135 145) y
+   --warm (224 186 89): si alguno de los dos tokens cambia, esta linea es la
+   unica que hay que revisar. */
 .tabla__clave .tabla__fila {
-  color: var(--warm);
+  color: rgb(
+    calc(124 + 100 * var(--ambar, 1))
+    calc(135 + 51 * var(--ambar, 1))
+    calc(145 - 56 * var(--ambar, 1))
+  );
 }
 
 .tabla__clave .tabla__celda {
   color: var(--text);
-  background: var(--warm-fill);
+  background: rgb(var(--warm-rgb) / calc(0.055 * var(--ambar, 1)));
 }
 
 .tabla__clave .tabla__celda:first-of-type {
-  box-shadow: inset 2px 0 0 var(--warm-line);
+  box-shadow: inset 2px 0 0 rgb(var(--warm-rgb) / calc(0.24 * var(--ambar, 1)));
 }
 
 /* Sin esto, la regla de hover de arriba gana por especificidad y la
    fila pierde el ambar justo al pasar por encima. */
 .tabla tbody tr.tabla__clave:hover .tabla__celda {
-  background: rgb(var(--warm-rgb) / 0.1);
+  background: rgb(var(--warm-rgb) / calc(0.1 * var(--ambar, 1)));
 }
 
 .tabla__celda--cta {
