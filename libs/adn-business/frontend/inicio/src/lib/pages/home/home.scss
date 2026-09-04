@@ -234,7 +234,7 @@
 .cifra {
   position: relative;
   padding: 1.75rem;
-  background: linear-gradient(150deg, var(--warm-fill), rgba(240, 184, 78, 0.012) 55%);
+  background: linear-gradient(150deg, var(--warm-fill), rgb(var(--warm-rgb) / 0.012) 55%);
   border: 1px solid var(--warm-line);
   border-radius: var(--r-lg);
   box-shadow: var(--edge), var(--shadow-md);
@@ -252,12 +252,12 @@
   left: 12%;
   right: 12%;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(240, 184, 78, 0.62), transparent);
+  background: linear-gradient(90deg, transparent, rgb(var(--warm-rgb) / 0.62), transparent);
 }
 
 .cifra:hover {
   transform: translateY(-3px);
-  border-color: rgba(240, 184, 78, 0.42);
+  border-color: rgb(var(--warm-rgb) / 0.42);
 }
 
 .cifra__valor {
@@ -268,7 +268,7 @@
   font-variant-numeric: tabular-nums;
   /* Ambar de arriba abajo, no blanco que vira: la cifra es el
      resultado y tiene que leerse como tal de un vistazo. */
-  background: linear-gradient(168deg, #f8d489 12%, var(--warm) 76%);
+  background: linear-gradient(168deg, var(--warm-light) 12%, var(--warm) 76%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;

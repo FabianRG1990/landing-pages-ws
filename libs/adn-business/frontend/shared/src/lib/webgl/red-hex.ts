@@ -144,7 +144,7 @@ export class RedHexComponent {
       uAncho: { value: anchoFrente },
       uBrand: { value: new THREE.Color(0x5ca0b4) },
       uLuz: { value: new THREE.Color(0x7fd4ec) },
-      uCalido: { value: new THREE.Color(0xf0b84e) }, // sigue a --warm
+      uCalido: { value: new THREE.Color(0xe0ba59) }, // sigue a --warm
     };
 
     // El pulso viaja hacia fuera desde el centro; la intensidad de cada

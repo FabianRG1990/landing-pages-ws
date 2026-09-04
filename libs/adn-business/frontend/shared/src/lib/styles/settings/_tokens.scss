@@ -36,9 +36,13 @@
   /* --- El contrapunto calido: complementario del teal a 140 grados.
          Solo aparece donde hay un RESULTADO —cifras, entregables,
          garantias— y nunca en marca, botones, enlaces ni tabla. --- */
-  --warm: #f0b84e; /* 10.37:1 */
-  --warm-line: rgba(240, 184, 78, 0.24); /* filo de tarjeta de cifra */
-  --warm-fill: rgba(240, 184, 78, 0.055); /* relleno, apenas un tinte */
+  /* El tinte iba copiado a mano en ocho sitios y cualquier ajuste
+     dejaba la mitad con el tono viejo. Todo sale ya de --warm-rgb. */
+  --warm-rgb: 224 186 89;
+  --warm: #e0ba59; /* 10.08:1 */
+  --warm-light: #ebd293; /* el mismo, 35% aclarado: alto de la cifra */
+  --warm-line: rgb(var(--warm-rgb) / 0.24); /* filo de tarjeta de cifra */
+  --warm-fill: rgb(var(--warm-rgb) / 0.055); /* relleno, apenas un tinte */
 
   --on-fill: #071019; /* texto sobre relleno de marca */
 
@@ -48,8 +52,8 @@
          textura sale de la marca y no de un catalogo de patrones.
          Vive en una unica capa fija; ninguna seccion la repite. */
   --malla-paso: 78px;
-  --malla-tinta: rgba(127, 212, 236, 0.05);
-  --malla-tinta-2: rgba(127, 212, 236, 0.045);
+  --malla-tinta: rgba(127, 212, 236, 0.065);
+  --malla-tinta-2: rgba(127, 212, 236, 0.058);
 
   /* --- Lineas y bordes: sobre oscuro, blanco translucido ---
          Al 5% un borde da 1.09:1 y sencillamente no llega al ojo:
@@ -72,7 +76,7 @@
   );
   --glow-warm: radial-gradient(
     52% 46% at 80% 18%,
-    rgba(240, 184, 78, 0.06),
+    rgb(var(--warm-rgb) / 0.06),
     transparent 72%
   );
 

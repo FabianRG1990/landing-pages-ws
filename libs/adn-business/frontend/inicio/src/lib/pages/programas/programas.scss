@@ -129,7 +129,7 @@
 /* Sin esto, la regla de hover de arriba gana por especificidad y la
    fila pierde el ambar justo al pasar por encima. */
 .tabla tbody tr.tabla__clave:hover .tabla__celda {
-  background: rgba(240, 184, 78, 0.1);
+  background: rgb(var(--warm-rgb) / 0.1);
 }
 
 .tabla__celda--cta {
