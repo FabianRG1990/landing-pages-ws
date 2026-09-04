@@ -4,9 +4,9 @@
 
 .cont {
   position: relative;
-  background:
-    radial-gradient(65% 55% at 78% 30%, rgba(92, 160, 180, 0.07), transparent 70%),
-    var(--void);
+  /* el radial se queda —es de esta seccion y viaja con ella—; el --void
+     sale para no tapar la trama fija */
+  background: radial-gradient(65% 55% at 78% 30%, rgba(92, 160, 180, 0.07), transparent 70%);
   border-bottom: 1px solid var(--line-soft);
 }
 
@@ -15,6 +15,12 @@
   grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
   gap: clamp(2.5rem, 6vw, 6rem);
   padding-block: clamp(4.5rem, 12vh, 8rem);
+}
+
+/* Solo la etiqueta de seccion: hijo directo. Dentro de .cont__texto
+   hay mas .mono (las garantias) y no deben heredarlo. */
+.cont__texto > .mono {
+  color: var(--warm);
 }
 
 .cont__texto h2 {
@@ -34,11 +40,13 @@
   margin-top: 2rem;
 }
 
+/* Las garantias son la promesa concreta —lo que el cliente se lleva
+   de esta seccion—, asi que entran en el ambar como las cifras. */
 .cont__garantias li {
   padding: 0.45rem 0.8rem;
-  color: var(--text-2);
-  background: rgba(255, 255, 255, 0.035);
-  border: 1px solid var(--line);
+  color: var(--warm);
+  background: var(--warm-fill);
+  border: 1px solid var(--warm-line);
   border-radius: 999px;
 }
 
@@ -99,7 +107,9 @@
   font: inherit;
   font-size: var(--fs-small);
   color: var(--text);
-  background: rgba(8, 9, 11, 0.55);
+  /* un punto por debajo de --void para que el campo se lea como un
+     hueco en el vidrio, no como otra tarjeta */
+  background: rgba(5, 10, 17, 0.55);
   border: 1px solid var(--line);
   border-radius: var(--r-sm);
   transition: border-color var(--dur-fast) var(--ease-out);
@@ -137,7 +147,7 @@
 
 .campo__error {
   font-size: var(--fs-caption);
-  color: #ff9b8a; /* 8.73:1 sobre el vidrio oscuro */
+  color: #ff9b8a; /* 8.16:1 sobre el vidrio del formulario */
 }
 
 /* Consentimiento: obligatorio por Ley 29733 */
@@ -199,7 +209,6 @@
 
 /* ---------------- Pie ---------------- */
 .pie {
-  background: var(--void);
   padding-top: clamp(3rem, 8vh, 5rem);
 }
 

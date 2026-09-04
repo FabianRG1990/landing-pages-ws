@@ -5,9 +5,8 @@
 .marca {
   position: relative;
   padding-top: clamp(4rem, 11vh, 8rem);
-  background:
-    radial-gradient(60% 100% at 50% 100%, rgba(92, 160, 180, 0.07), transparent 72%),
-    var(--void);
+  /* el radial viaja con la seccion; el --void sale para no tapar la trama */
+  background: radial-gradient(60% 100% at 50% 100%, rgba(92, 160, 180, 0.07), transparent 72%);
   overflow: hidden;
 }
 

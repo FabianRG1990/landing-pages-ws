@@ -123,6 +123,7 @@ export const PROGRAMAS = {
   filas: [
     {
       etiqueta: 'Objetivo',
+      destacar: false,
       valores: [
         'Profesionalizar la toma de decisiones con un directorio efectivo y asesoría continua.',
         'Transformar equipos, procesos y liderazgo con gestión de alto rendimiento.',
@@ -131,6 +132,7 @@ export const PROGRAMAS = {
     },
     {
       etiqueta: 'Módulos',
+      destacar: false,
       valores: [
         'Diagnóstico de gobernanza · Conformación de directorio · KPIs estratégicos · Sucesión y control de gestión',
         'Auditoría de talento · Plan de formación · Marketing y producto · Gestión por objetivos (OKR/OGSM)',
@@ -139,6 +141,7 @@ export const PROGRAMAS = {
     },
     {
       etiqueta: 'Entregables',
+      destacar: true,
       valores: [
         'Reglamento de directorio · Plan estratégico 3–5 años · Tablero de control',
         'Plan de talento · KPIs de clima y desempeño · Roadmap de innovación',
@@ -147,6 +150,7 @@ export const PROGRAMAS = {
     },
     {
       etiqueta: 'Formato',
+      destacar: false,
       valores: [
         'Acompañamiento continuo · desde 6 meses',
         'Acompañamiento continuo · desde 6 meses',

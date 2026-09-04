@@ -13,14 +13,21 @@
   white-space: nowrap;
 }
 
+/* Sin fondo propio: deja ver la capa fija de .malla. */
 .prog {
   position: relative;
-  background: var(--void);
   border-bottom: 1px solid var(--line-soft);
 }
 
 .prog__intro {
   padding-block: clamp(4.5rem, 12vh, 8rem) clamp(2.5rem, 6vh, 4rem);
+}
+
+/* Etiqueta de seccion en ambar: es lo que hace que el duo termico se
+   note en TODAS las secciones y no solo donde hay cifras. */
+.prog__intro .mono,
+.serv__intro .mono {
+  color: var(--warm);
 }
 
 .prog__intro h2 {
@@ -102,6 +109,28 @@
 
 .tabla tbody tr:hover .tabla__celda {
   background: rgba(255, 255, 255, 0.035);
+}
+
+/* La fila de entregables es lo que el cliente se lleva a casa: es el
+   resultado de la tabla y por eso lleva el ambar. Las cabeceras, los
+   enlaces y los ejes se quedan en azul. */
+.tabla__clave .tabla__fila {
+  color: var(--warm);
+}
+
+.tabla__clave .tabla__celda {
+  color: var(--text);
+  background: var(--warm-fill);
+}
+
+.tabla__clave .tabla__celda:first-of-type {
+  box-shadow: inset 2px 0 0 var(--warm-line);
+}
+
+/* Sin esto, la regla de hover de arriba gana por especificidad y la
+   fila pierde el ambar justo al pasar por encima. */
+.tabla tbody tr.tabla__clave:hover .tabla__celda {
+  background: rgba(240, 184, 78, 0.1);
 }
 
 .tabla__celda--cta {

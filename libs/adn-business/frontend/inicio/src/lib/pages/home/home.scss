@@ -28,8 +28,9 @@
   );
 }
 
-/* Luz ambiente. Deliberadamente por debajo del 8%: un radial saturado
-   a pantalla completa se ve a videojuego en pantallas densas. */
+/* Luz ambiente. Deliberadamente por debajo del 8%: un lavado difuso a
+   pantalla completa tine la pantalla y se ve a videojuego en pantallas
+   densas. El color que da vida no va aqui: va en formas con borde. */
 .hero__luz {
   position: absolute;
   inset: 0;
@@ -43,12 +44,14 @@
   position: absolute;
   inset: 0;
   z-index: 2;
+  /* Los literales siguen a --void: si se quedan en el negro anterior
+     aparece una costura entre el hero y el diagnostico. */
   background: linear-gradient(
     to bottom,
-    rgba(8, 9, 11, 0.42) 0%,
-    rgba(8, 9, 11, 0) 22%,
-    rgba(8, 9, 11, 0.55) 58%,
-    rgba(8, 9, 11, 0.92) 84%,
+    rgba(11, 19, 29, 0.42) 0%,
+    rgba(11, 19, 29, 0) 22%,
+    rgba(11, 19, 29, 0.55) 58%,
+    rgba(11, 19, 29, 0.92) 84%,
     var(--void) 97%
   );
   pointer-events: none;
@@ -112,9 +115,13 @@
   color: var(--text-2);
 }
 
-/* La ultima linea recibe la luz: es donde va el color */
+/* La ultima linea recibe la luz. SIN ambar: teal y ambar son
+   complementarios y cualquier interpolacion entre ellos cruza por el
+   neutro —la palabra final salia verde oliva—. El duo termico funciona
+   por adyacencia, nunca por mezcla; el ambar del hero va abajo, en las
+   etiquetas de la franja de metadatos, que son piezas con borde. */
 .hero__linea--luz {
-  background: linear-gradient(96deg, var(--brand-light) 8%, var(--brand) 58%, var(--warm) 112%);
+  background: linear-gradient(96deg, var(--brand-light) 6%, var(--brand) 92%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -154,8 +161,11 @@
     border-right: 0;
   }
 
+  /* La etiqueta en ambar: es la promesa concreta —sin costo, 24 h— y
+     es donde entra el contrapunto calido en el hero. */
   dt {
     margin-bottom: 0.375rem;
+    color: var(--warm);
   }
 }
 
@@ -167,10 +177,27 @@
 }
 
 /* ---------------- Diagnostico ---------------- */
+/* Sin fondo propio: el color lo pone <body> y la trama la capa fija de
+   .malla. Pintar --void aqui la taparia. */
 .diag {
   position: relative;
-  background: var(--void);
   border-top: 1px solid var(--line-soft);
+}
+
+/* El hero es opaco y esta seccion no, asi que la trama aparecia de golpe
+   justo en la frontera. Esto la descubre a lo largo de 260px.
+   z-index -1: .diag no crea contexto de apilamiento (no tiene z-index
+   propio), asi que este pseudo compite con .malla en la raiz y gana por
+   orden de documento —va despues—, quedando sobre la trama y bajo el
+   texto. */
+.diag::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: -1;
+  height: 260px;
+  background: linear-gradient(to bottom, var(--void), transparent);
+  pointer-events: none;
 }
 
 .diag__shell {
@@ -187,7 +214,7 @@
 
 .diag__eyebrow {
   margin-bottom: 1.25rem;
-  color: var(--brand);
+  color: var(--warm);
 }
 
 .diag__entrada {
@@ -201,16 +228,15 @@
   gap: 2rem;
 }
 
-/* Las cifras son tarjetas de vidrio, no texto suelto */
+/* Las cifras son tarjetas de vidrio, no texto suelto.
+   Son EL resultado de la seccion, asi que se tinen de ambar: un
+   relleno del 5.5% no ensucia (1.09:1 contra el fondo) pero le da a
+   la tarjeta un color propio en vez del gris de antes. */
 .cifra {
   position: relative;
   padding: 1.75rem;
-  background: linear-gradient(
-    150deg,
-    rgba(255, 255, 255, 0.045),
-    rgba(255, 255, 255, 0.012) 55%
-  );
-  border: 1px solid var(--line);
+  background: linear-gradient(150deg, var(--warm-fill), rgba(240, 184, 78, 0.012) 55%);
+  border: 1px solid var(--warm-line);
   border-radius: var(--r-lg);
   box-shadow: var(--edge), var(--shadow-md);
   overflow: hidden;
@@ -227,12 +253,12 @@
   left: 12%;
   right: 12%;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(127, 212, 236, 0.55), transparent);
+  background: linear-gradient(90deg, transparent, rgba(240, 184, 78, 0.62), transparent);
 }
 
 .cifra:hover {
   transform: translateY(-3px);
-  border-color: var(--line-strong);
+  border-color: rgba(240, 184, 78, 0.42);
 }
 
 .cifra__valor {
@@ -241,7 +267,9 @@
   line-height: 0.92;
   letter-spacing: var(--tracking-display);
   font-variant-numeric: tabular-nums;
-  background: linear-gradient(170deg, var(--text) 34%, var(--brand) 128%);
+  /* Ambar de arriba abajo, no blanco que vira: la cifra es el
+     resultado y tiene que leerse como tal de un vistazo. */
+  background: linear-gradient(168deg, #f8d489 12%, var(--warm) 76%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;

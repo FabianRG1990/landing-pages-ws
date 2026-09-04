@@ -4,9 +4,8 @@
 
 .ejes {
   position: relative;
-  background:
-    radial-gradient(70% 55% at 22% 42%, rgba(92, 160, 180, 0.06), transparent 72%),
-    var(--void);
+  /* el radial viaja con la seccion; el --void sale para no tapar la trama */
+  background: radial-gradient(70% 55% at 22% 42%, rgba(92, 160, 180, 0.06), transparent 72%);
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
@@ -30,6 +29,7 @@
 
 .ejes__eyebrow {
   margin-bottom: 1.25rem;
+  color: var(--warm);
 }
 
 .ejes__entrada {
@@ -184,10 +184,12 @@
   max-width: 58ch;
 }
 
+/* Los entregables son el resultado del eje: ambar, como las cifras.
+   El azul se queda con el nodo, el trazo y el filo del eje activo. */
 .eje__entrega {
   margin-top: 1rem;
   padding-bottom: 1.5rem;
-  color: var(--text-3);
+  color: var(--warm);
 }
 
 /* ---------- Sin pin: se lee como documento ---------- */

@@ -20,7 +20,9 @@
   grid-template-columns: auto 1fr auto;
   align-items: stretch;
   height: var(--nav-h);
-  background: rgba(8, 9, 11, 0.72);
+  /* sigue a --void: si se queda en el negro anterior, la barra se ve
+     como una franja mas oscura sobre el hero azul */
+  background: rgba(11, 19, 29, 0.72);
   backdrop-filter: blur(16px) saturate(140%);
   border-bottom: 1px solid var(--line-soft);
 }

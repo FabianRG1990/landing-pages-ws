@@ -28,7 +28,9 @@
         </thead>
         <tbody>
           @for (f of p.filas; track f.etiqueta) {
-            <tr>
+            <!-- La bandera viene del dato, no de un nth-child: si manana
+                 se reordenan las filas, el destacado sigue a la suya. -->
+            <tr [class.tabla__clave]="f.destacar">
               <th scope="row" class="tabla__fila mono">{{ f.etiqueta }}</th>
               @for (v of f.valores; track $index) {
                 <td class="tabla__celda">{{ v }}</td>

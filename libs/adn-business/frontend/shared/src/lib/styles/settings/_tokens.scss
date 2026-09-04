@@ -1,34 +1,65 @@
 /* ============================================================
    ADN BUSINESS — Design tokens
-   Territorio oscuro con luz. La marca ya vive en oscuro; sobre este
-   fondo el azul #5CA0B4 da 6.78:1 y no hay que apagarlo.
+   Territorio oscuro con luz, en DUO TERMICO: el azul se queda con
+   la marca y la estructura, el ambar entra solo donde hay un
+   resultado. Estan a 140 grados en OKLCH: complementarios exactos.
+   ------------------------------------------------------------
+   El fondo es azul de verdad, no negro. El #08090b anterior median
+   0.005 de croma —gris puro— y de ahi salia la sensacion de apagado:
+   marca azul, discurso azul y el 94% de la superficie sin color.
    ------------------------------------------------------------
    Todos los pares estan medidos sobre --void y --surface.
    ============================================================ */
 
 :root {
-  /* --- Profundidad: cuatro planos, no un fondo plano --- */
-  --void: #08090b; /* el fondo del que emerge todo */
-  --surface: #101317; /* plano de tarjeta */
-  --surface-2: #171b21; /* plano elevado */
-  --surface-3: #1e232a; /* plano de maxima elevacion */
+  /* --- Profundidad: cuatro planos, no un fondo plano ---
+         Croma 0.024, el mismo tono que la marca. Subir de 0.005 a
+         0.024 no toca la legibilidad (el texto sigue en 17:1) y tine
+         el 100% de la pantalla: es el cambio mas barato del sistema. */
+  --void: #0b131d; /* el fondo del que emerge todo */
+  --surface: #121c28; /* plano de tarjeta      · 1.09 sobre void */
+  --surface-2: #18242f; /* plano elevado         · 1.18 */
+  --surface-3: #1f2c38; /* maxima elevacion      · 1.31 */
 
   /* --- Texto --- */
-  --text: #f2f5f7; /* 18.19:1 */
-  --text-2: #a8b2bc; /*  9.26:1 */
-  --text-3: #78838d; /*  5.15:1 — el minimo que se permite */
+  --text: #f2f5f7; /* 17.05:1 */
+  --text-2: #a8b2bc; /*  8.67:1 */
+  /* sube dos puntos de luz respecto al #78838d anterior: sobre el
+     fondo azul ese daba 4.83 y perdia el margen que tenia. */
+  --text-3: #7c8791; /*  5.09:1 — el minimo que se permite */
 
   /* --- Marca y luz --- */
-  --brand: #5ca0b4; /*  6.78:1 — el azul de ADN, sin retocar */
-  --brand-light: #7fd4ec; /* 11.89:1 — la luz */
+  --brand: #5ca0b4; /*  6.35:1 — el azul de ADN, sin retocar */
+  --brand-light: #7fd4ec; /* 11.14:1 — la luz */
   --brand-deep: #2c5c6b; /* el azul en sombra */
-  --warm: #e8b04b; /* 10.19:1 — el contraste calido */
-  --on-fill: #08090b; /* texto sobre relleno de marca */
 
-  /* --- Lineas y bordes: sobre oscuro, blanco translucido --- */
-  --line: rgba(255, 255, 255, 0.09);
-  --line-soft: rgba(255, 255, 255, 0.05);
-  --line-strong: rgba(255, 255, 255, 0.16);
+  /* --- El contrapunto calido: complementario del teal a 140 grados.
+         Solo aparece donde hay un RESULTADO —cifras, entregables,
+         garantias— y nunca en marca, botones, enlaces ni tabla. --- */
+  --warm: #f0b84e; /* 10.37:1 */
+  --warm-line: rgba(240, 184, 78, 0.24); /* filo de tarjeta de cifra */
+  --warm-fill: rgba(240, 184, 78, 0.055); /* relleno, apenas un tinte */
+
+  --on-fill: #071019; /* texto sobre relleno de marca */
+
+  /* --- La malla del fondo ---
+         Tres familias de rectas a 0, 60 y 120 grados: es la geometria
+         del isotipo y la que traza la red WebGL del hero, asi que la
+         textura sale de la marca y no de un catalogo de patrones.
+         Vive en una unica capa fija; ninguna seccion la repite. */
+  --malla-paso: 78px;
+  --malla-tinta: rgba(127, 212, 236, 0.05);
+  --malla-tinta-2: rgba(127, 212, 236, 0.045);
+
+  /* --- Lineas y bordes: sobre oscuro, blanco translucido ---
+         Al 5% un borde da 1.09:1 y sencillamente no llega al ojo:
+         la retícula, las tablas y los filos de tarjeta eran
+         estructura invisible. Estos valores no alcanzan el 3:1 de
+         WCAG 1.4.11 —eso es para bordes que informan— pero triplican
+         la percepcion de estructura sin ensuciar el fondo. */
+  --line: rgba(255, 255, 255, 0.14);
+  --line-soft: rgba(255, 255, 255, 0.08);
+  --line-strong: rgba(255, 255, 255, 0.3);
   /* borde interior que simula la refraccion del canto del vidrio */
   --edge: inset 0 1px 0 rgba(255, 255, 255, 0.08);
 
@@ -40,15 +71,15 @@
     transparent 70%
   );
   --glow-warm: radial-gradient(
-    45% 40% at 80% 20%,
-    rgba(232, 176, 75, 0.05),
-    transparent 70%
+    52% 46% at 80% 18%,
+    rgba(240, 184, 78, 0.06),
+    transparent 72%
   );
 
   /* --- Sombras tintadas con el fondo, nunca negro puro --- */
-  --shadow-sm: 0 1px 2px rgba(4, 6, 10, 0.4);
-  --shadow-md: 0 8px 24px -8px rgba(4, 6, 10, 0.7);
-  --shadow-lg: 0 24px 64px -24px rgba(4, 6, 10, 0.85);
+  --shadow-sm: 0 1px 2px rgba(3, 7, 13, 0.4);
+  --shadow-md: 0 8px 24px -8px rgba(3, 7, 13, 0.7);
+  --shadow-lg: 0 24px 64px -24px rgba(3, 7, 13, 0.85);
   --shadow-brand: 0 16px 48px -20px rgba(92, 160, 180, 0.45);
 
   /* --- Tipografia --- */
