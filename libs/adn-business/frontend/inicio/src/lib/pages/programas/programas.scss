@@ -1,0 +1,217 @@
+/* ============================================================
+   PROGRAMAS — tabla comparativa y servicios
+   ============================================================ */
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.prog {
+  position: relative;
+  background: var(--void);
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.prog__intro {
+  padding-block: clamp(4.5rem, 12vh, 8rem) clamp(2.5rem, 6vh, 4rem);
+}
+
+.prog__intro h2 {
+  margin-top: 1.25rem;
+  max-width: 20ch;
+}
+
+.prog__entrada {
+  margin-top: 1.5rem;
+  color: var(--text-2);
+}
+
+/* Contenedor que permite desplazar la tabla en pantallas estrechas
+   sin que la pagina entera se mueva en horizontal */
+.prog__marco {
+  overflow-x: auto;
+  padding: 0.5rem;
+  background: linear-gradient(
+    155deg,
+    rgba(255, 255, 255, 0.04),
+    rgba(255, 255, 255, 0.01) 60%
+  );
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  box-shadow: var(--edge), var(--shadow-lg);
+}
+
+.tabla {
+  width: 100%;
+  min-width: 780px;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.tabla__esquina {
+  width: 8.5rem;
+  padding: 0 1.25rem 1rem 0;
+  vertical-align: bottom;
+  font-weight: var(--w-emph);
+}
+
+.tabla__cab {
+  padding: 0 1.25rem 1rem;
+  vertical-align: bottom;
+  border-bottom: 1px solid var(--line-strong);
+  font-weight: var(--w-read);
+}
+
+.tabla__eje {
+  display: block;
+  margin-bottom: 0.375rem;
+  color: var(--brand);
+}
+
+.tabla__nombre {
+  display: block;
+  font-size: var(--fs-h3);
+  font-weight: var(--w-announce);
+  letter-spacing: -0.01em;
+}
+
+.tabla__fila {
+  padding: 1.5rem 1.25rem 1.5rem 0;
+  vertical-align: top;
+  color: var(--text-3);
+  font-weight: var(--w-emph);
+  border-bottom: 1px solid var(--line);
+}
+
+.tabla__celda {
+  padding: 1.5rem 1.25rem;
+  vertical-align: top;
+  font-size: var(--fs-small);
+  color: var(--text-2);
+  border-bottom: 1px solid var(--line-soft);
+  border-left: 1px solid var(--line-soft);
+  transition: background var(--dur-base) var(--ease-out);
+}
+
+.tabla tbody tr:hover .tabla__celda {
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.tabla__celda--cta {
+  padding-block: 1.125rem;
+}
+
+.prog__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-mono);
+  font-size: var(--fs-caption);
+  font-weight: var(--w-emph);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--brand-light);
+  border-bottom: 1px solid rgba(127, 212, 236, 0.3);
+  padding-bottom: 2px;
+  transition: border-color var(--dur-fast) var(--ease-out);
+
+  svg {
+    width: 13px;
+    transition: transform var(--dur-base) var(--ease-fluid);
+  }
+
+  &:hover {
+    border-bottom-color: var(--brand-light);
+
+    svg {
+      transform: translateX(3px);
+    }
+  }
+}
+
+/* ---------------- Servicios ---------------- */
+.serv {
+  padding-block: clamp(4.5rem, 12vh, 8rem);
+}
+
+.serv__intro h2 {
+  margin-top: 1.25rem;
+  max-width: 18ch;
+}
+
+.serv__cuerpo {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  gap: clamp(2.5rem, 6vw, 5rem);
+  margin-top: clamp(2.5rem, 6vh, 4rem);
+}
+
+.serv__item {
+  padding: 1.5rem 1.25rem;
+  border-top: 1px solid var(--line-soft);
+  border-radius: var(--r-md);
+  transition: background var(--dur-base) var(--ease-out);
+}
+
+.serv__item:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.serv__item:last-child {
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.serv__nombre {
+  font-size: var(--fs-h3);
+}
+
+.serv__detalle {
+  margin-top: 0.5rem;
+  color: var(--text-2);
+  max-width: 52ch;
+}
+
+/* La exportacion es un aparte: bloque de acento sobrio, sin tarjeta */
+.serv__export {
+  padding: 1.75rem;
+  background:
+    radial-gradient(120% 80% at 50% 0%, rgba(92, 160, 180, 0.1), transparent 68%),
+    linear-gradient(160deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.012) 62%);
+  border: 1px solid var(--line);
+  border-top-color: rgba(127, 212, 236, 0.4);
+  border-radius: var(--r-lg);
+  box-shadow: var(--edge), var(--shadow-md);
+}
+
+.serv__export-titulo {
+  font-size: var(--fs-h3);
+  max-width: 22ch;
+}
+
+.serv__export-lista {
+  margin-top: 1.25rem;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.serv__export-lista li {
+  padding-top: 0.75rem;
+  color: var(--text-2);
+  border-top: 1px solid var(--line-soft);
+  line-height: 1.5;
+  text-transform: none;
+  letter-spacing: var(--tracking-label);
+}
+
+@media (max-width: 900px) {
+  .serv__cuerpo {
+    grid-template-columns: 1fr;
+  }
+}

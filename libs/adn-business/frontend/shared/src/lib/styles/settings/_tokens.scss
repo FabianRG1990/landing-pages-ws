@@ -1,0 +1,90 @@
+/* ============================================================
+   ADN BUSINESS — Design tokens
+   Territorio oscuro con luz. La marca ya vive en oscuro; sobre este
+   fondo el azul #5CA0B4 da 6.78:1 y no hay que apagarlo.
+   ------------------------------------------------------------
+   Todos los pares estan medidos sobre --void y --surface.
+   ============================================================ */
+
+:root {
+  /* --- Profundidad: cuatro planos, no un fondo plano --- */
+  --void: #08090b; /* el fondo del que emerge todo */
+  --surface: #101317; /* plano de tarjeta */
+  --surface-2: #171b21; /* plano elevado */
+  --surface-3: #1e232a; /* plano de maxima elevacion */
+
+  /* --- Texto --- */
+  --text: #f2f5f7; /* 18.19:1 */
+  --text-2: #a8b2bc; /*  9.26:1 */
+  --text-3: #78838d; /*  5.15:1 — el minimo que se permite */
+
+  /* --- Marca y luz --- */
+  --brand: #5ca0b4; /*  6.78:1 — el azul de ADN, sin retocar */
+  --brand-light: #7fd4ec; /* 11.89:1 — la luz */
+  --brand-deep: #2c5c6b; /* el azul en sombra */
+  --warm: #e8b04b; /* 10.19:1 — el contraste calido */
+  --on-fill: #08090b; /* texto sobre relleno de marca */
+
+  /* --- Lineas y bordes: sobre oscuro, blanco translucido --- */
+  --line: rgba(255, 255, 255, 0.09);
+  --line-soft: rgba(255, 255, 255, 0.05);
+  --line-strong: rgba(255, 255, 255, 0.16);
+  /* borde interior que simula la refraccion del canto del vidrio */
+  --edge: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+
+  /* --- Luz ambiente: sutil por norma. Un radial saturado a pantalla
+         completa se ve a videojuego en pantallas de alta densidad. --- */
+  --glow-brand: radial-gradient(
+    60% 50% at 50% 0%,
+    rgba(92, 160, 180, 0.07),
+    transparent 70%
+  );
+  --glow-warm: radial-gradient(
+    45% 40% at 80% 20%,
+    rgba(232, 176, 75, 0.05),
+    transparent 70%
+  );
+
+  /* --- Sombras tintadas con el fondo, nunca negro puro --- */
+  --shadow-sm: 0 1px 2px rgba(4, 6, 10, 0.4);
+  --shadow-md: 0 8px 24px -8px rgba(4, 6, 10, 0.7);
+  --shadow-lg: 0 24px 64px -24px rgba(4, 6, 10, 0.85);
+  --shadow-brand: 0 16px 48px -20px rgba(92, 160, 180, 0.45);
+
+  /* --- Tipografia --- */
+  --font-sans: 'Geist', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'Geist Mono', ui-monospace, 'SF Mono', 'Cascadia Mono', monospace;
+
+  --fs-display: clamp(2.5rem, 1.2rem + 5.6vw, 6.5rem);
+  --fs-h2: clamp(2rem, 1.3rem + 2.9vw, 3.75rem);
+  --fs-h3: clamp(1.25rem, 1.08rem + 0.75vw, 1.625rem);
+  --fs-body: 1.0625rem;
+  --fs-small: 0.9375rem;
+  --fs-caption: 0.75rem;
+
+  --tracking-display: -0.035em;
+  --tracking-h2: -0.025em;
+  --tracking-caps: 0.09em;
+  --tracking-label: 0.02em;
+
+  --w-read: 400;
+  --w-emph: 500;
+  --w-announce: 600;
+
+  /* --- Layout --- */
+  --maxw: 1440px;
+  --gutter: clamp(1.25rem, 0.6rem + 2.6vw, 4rem);
+  --nav-h: 72px;
+  --measure: 62ch;
+  --r-sm: 6px;
+  --r-md: 12px;
+  --r-lg: 20px;
+
+  /* --- Movimiento --- */
+  --ease-fluid: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --dur-fast: 200ms;
+  --dur-base: 340ms;
+  --dur-slow: 700ms;
+}

@@ -15,6 +15,9 @@
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {
+      "@adn-business-ui-shared": ["./libs/adn-business/frontend/shared/src/index.ts"],
+      "@adn-business-ui-shared/*": ["./libs/adn-business/frontend/shared/src/lib/*"],
+      "@adn-business-ui-inicio": ["./libs/adn-business/frontend/inicio/src/index.ts"],
       "@acuario-ui-shared": ["./libs/acuario/frontend/shared/src/index.ts"],
       "@acuario-ui-shared/*": ["./libs/acuario/frontend/shared/src/lib/*"],
       "@acuario-ui-home": ["./libs/acuario/frontend/home/src/index.ts"],

@@ -1,0 +1,114 @@
+.skip {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 100;
+  padding: 0.75rem 1rem;
+  background: var(--text);
+  color: var(--void);
+
+  &:focus {
+    left: 0;
+  }
+}
+
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: stretch;
+  height: var(--nav-h);
+  background: rgba(8, 9, 11, 0.72);
+  backdrop-filter: blur(16px) saturate(140%);
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.nav__marca {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  padding-inline: var(--gutter);
+  border-right: 1px solid var(--line-soft);
+}
+
+/* 28px: a 24 el circuito interno del isotipo se cierra y pierde el dibujo.
+   La barra mide 72, asi que hay sitio de sobra. */
+.nav__logo {
+  width: 28px;
+  color: var(--brand-light);
+}
+
+.nav__nombre {
+  font-size: 0.9375rem;
+  font-weight: var(--w-announce);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+
+  em {
+    font-style: normal;
+    font-weight: var(--w-read);
+    color: var(--text-2);
+  }
+}
+
+.nav__links {
+  display: flex;
+  align-items: stretch;
+}
+
+.nav__link {
+  display: flex;
+  align-items: center;
+  padding-inline: clamp(0.75rem, 1.4vw, 1.5rem);
+  border-right: 1px solid var(--line-soft);
+  transition: background var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
+
+  &:first-child {
+    border-left: 1px solid var(--line-soft);
+  }
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.045);
+    color: var(--text);
+  }
+}
+
+.nav__cta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding-inline: var(--gutter);
+  color: var(--text);
+  border-left: 1px solid var(--line-soft);
+  transition: background var(--dur-fast) var(--ease-out);
+
+  svg {
+    width: 15px;
+    transition: transform var(--dur-base) var(--ease-fluid);
+  }
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.045);
+    color: var(--brand-light);
+
+    svg {
+      transform: translateX(3px);
+    }
+  }
+
+  &:active {
+    transform: translateY(1px);
+  }
+}
+
+@media (max-width: 880px) {
+  .nav {
+    grid-template-columns: 1fr auto;
+  }
+
+  .nav__links {
+    display: none;
+  }
+}

@@ -1,0 +1,83 @@
+<section id="programas" class="prog" aria-labelledby="prog-titulo">
+  <div class="shell">
+    <header class="prog__intro">
+      <p class="mono">{{ p.eyebrow }}</p>
+      <h2 id="prog-titulo">{{ p.titulo }}</h2>
+      <p class="prog__entrada measure">{{ p.entrada }}</p>
+    </header>
+
+    <!-- Tabla comparativa: la forma en que se presenta una oferta de
+         consultoria, no una fila de tarjetas -->
+    <div class="prog__marco">
+      <table class="tabla">
+        <caption class="sr-only">
+          Comparación de los tres programas de ADN Business
+        </caption>
+        <thead>
+          <tr>
+            <th scope="col" class="tabla__esquina">
+              <span class="mono">Programa</span>
+            </th>
+            @for (c of p.columnas; track c.clave) {
+              <th scope="col" class="tabla__cab">
+                <span class="mono tabla__eje">{{ c.eje }}</span>
+                <span class="tabla__nombre">{{ c.nombre }}</span>
+              </th>
+            }
+          </tr>
+        </thead>
+        <tbody>
+          @for (f of p.filas; track f.etiqueta) {
+            <tr>
+              <th scope="row" class="tabla__fila mono">{{ f.etiqueta }}</th>
+              @for (v of f.valores; track $index) {
+                <td class="tabla__celda">{{ v }}</td>
+              }
+            </tr>
+          }
+          <tr>
+            <th scope="row" class="tabla__fila mono">Empezar</th>
+            @for (c of p.columnas; track c.clave) {
+              <td class="tabla__celda tabla__celda--cta">
+                <a class="prog__cta" [routerLink]="['/programa', c.clave]">
+                  Ver {{ c.nombre }}
+                  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                    <path d="M3 8h10M9 4l4 4-4 4" />
+                  </svg>
+                </a>
+              </td>
+            }
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Servicios alrededor del nucleo -->
+  <div id="servicios" class="shell serv">
+    <header class="serv__intro">
+      <p class="mono">{{ s.eyebrow }}</p>
+      <h2>{{ s.titulo }}</h2>
+    </header>
+
+    <div class="serv__cuerpo">
+      <ul class="serv__lista">
+        @for (c of s.complementarios; track c.nombre) {
+          <li class="serv__item">
+            <h3 class="serv__nombre">{{ c.nombre }}</h3>
+            <p class="serv__detalle">{{ c.detalle }}</p>
+          </li>
+        }
+      </ul>
+
+      <aside class="serv__export">
+        <h3 class="serv__export-titulo">{{ s.exportacion.titulo }}</h3>
+        <ul class="serv__export-lista">
+          @for (i of s.exportacion.items; track i) {
+            <li class="mono mono--ink">{{ i }}</li>
+          }
+        </ul>
+      </aside>
+    </div>
+  </div>
+</section>

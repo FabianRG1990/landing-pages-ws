@@ -1,0 +1,81 @@
+/* ============================================================
+   FIRMA DE MARCA — el wordmark a sangre
+   ============================================================ */
+
+.marca {
+  position: relative;
+  padding-top: clamp(4rem, 11vh, 8rem);
+  background:
+    radial-gradient(60% 100% at 50% 100%, rgba(92, 160, 180, 0.07), transparent 72%),
+    var(--void);
+  overflow: hidden;
+}
+
+.marca__pie {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: clamp(2rem, 5vh, 3.5rem);
+}
+
+.marca__unidad {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+}
+
+.marca__isotipo {
+  width: 32px;
+  color: var(--brand);
+}
+
+.marca__lema {
+  color: var(--brand);
+}
+
+/* El wordmark llena el ancho: 12 caracteres a 14.2vw con el tracking
+   apretado dejan un margen optico de ~1.5vw a cada lado. */
+.marca__wordmark {
+  display: flex;
+  justify-content: center;
+  gap: 0.22em;
+  font-size: 14.2vw;
+  line-height: 0.78;
+  letter-spacing: -0.045em;
+  white-space: nowrap;
+  /* recorta la altura de linea sobrante por arriba y por abajo */
+  margin-block: -0.06em -0.02em;
+}
+
+.marca__adn {
+  font-weight: var(--w-announce);
+  background: linear-gradient(180deg, var(--text) 30%, rgba(242, 245, 247, 0.35) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.marca__business {
+  font-weight: var(--w-read);
+  background: linear-gradient(180deg, var(--brand) 20%, rgba(92, 160, 180, 0.16) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+@media (max-width: 720px) {
+  .marca__pie {
+    flex-direction: column;
+    gap: 0.375rem;
+  }
+
+  .marca__wordmark {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0;
+    padding-inline: var(--gutter);
+    font-size: 22vw;
+    line-height: 0.86;
+  }
+}
