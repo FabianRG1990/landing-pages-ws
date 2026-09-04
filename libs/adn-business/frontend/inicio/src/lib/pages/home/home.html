@@ -52,27 +52,34 @@
   </section>
 
   <!-- ============ DIAGNÓSTICO ============ -->
-  <section id="diagnostico" class="diag" aria-labelledby="diag-titulo">
+  <section #diagSeccion id="diagnostico" class="diag" aria-labelledby="diag-titulo">
     <div class="shell diag__shell">
       <div class="diag__texto">
         <div class="diag__pegado">
-          <p class="mono diag__eyebrow">{{ diag.eyebrow }}</p>
-          <h2 id="diag-titulo">{{ diag.titulo }}</h2>
-          <p class="diag__entrada measure">{{ diag.entrada }}</p>
+          <p #diagEyebrow class="mono diag__eyebrow">{{ diag.eyebrow }}</p>
+          <h2 #diagTitulo id="diag-titulo">{{ diag.titulo }}</h2>
+          <p #diagEntrada class="diag__entrada measure">{{ diag.entrada }}</p>
         </div>
       </div>
 
       <div class="diag__cifras">
         @for (c of diag.cifras; track c.titulo) {
-          <div class="cifra">
+          <div #cifra class="cifra">
+            <!-- El borde de la tarjeta vive aqui y no en `border`: es el
+                 trazo que se dibuja al entrar en la seccion. La geometria
+                 del <rect> la fija el componente, que es quien conoce el
+                 radio y el tamano reales. -->
+            <svg #cifraTrazo class="cifra__trazo" aria-hidden="true" focusable="false">
+              <rect fill="none" />
+            </svg>
             <p class="cifra__valor">
-              <span [appCountUp]="c.valor">{{ c.valor }}</span><span class="cifra__sufijo">{{ c.sufijo }}</span>
+              <span [appCountUp]="c.valor" [auto]="false">{{ c.valor }}</span><span class="cifra__sufijo">{{ c.sufijo }}</span>
             </p>
             <p class="cifra__titulo">{{ c.titulo }}</p>
             <p class="cifra__detalle">{{ c.detalle }}</p>
           </div>
         }
-        <p class="mono diag__fuente">{{ diag.fuente }}</p>
+        <p #diagFuente class="mono diag__fuente">{{ diag.fuente }}</p>
       </div>
     </div>
   </section>

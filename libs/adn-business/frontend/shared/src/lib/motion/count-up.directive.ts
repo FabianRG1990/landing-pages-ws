@@ -22,9 +22,21 @@ export class CountUpDirective {
   readonly appCountUp = input.required<number>();
   readonly duracion = input(1100);
 
+  /**
+   * Con `false` el conteo no se dispara solo: se queda en cero esperando
+   * a `arrancar()`. Sirve para encajarlo dentro de una secuencia mayor,
+   * donde el numero tiene que caer en un momento concreto y no cuando su
+   * propio observador lo decida.
+   */
+  readonly auto = input(true);
+
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly destroyRef = inject(DestroyRef);
   private readonly esNavegador = isPlatformBrowser(inject(PLATFORM_ID));
+
+  /** El elemento esta puesto a cero y el conteo puede correr. */
+  private armado = false;
+  private corrido = false;
 
   constructor() {
     afterNextRender(() => {
@@ -32,20 +44,29 @@ export class CountUpDirective {
       if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
       const el = this.host.nativeElement;
-      const destino = this.appCountUp();
       el.textContent = '0';
+      this.armado = true;
+
+      if (!this.auto()) return;
 
       const io = new IntersectionObserver(
         (entradas) => {
           if (!entradas[0].isIntersecting) return;
           io.disconnect();
-          this.animar(el, destino);
+          this.arrancar();
         },
         { threshold: 0.6 },
       );
       io.observe(el);
       this.destroyRef.onDestroy(() => io.disconnect());
     });
+  }
+
+  /** Arranca el conteo. Idempotente: la segunda llamada no hace nada. */
+  arrancar(): void {
+    if (!this.armado || this.corrido) return;
+    this.corrido = true;
+    this.animar(this.host.nativeElement, this.appCountUp());
   }
 
   private animar(el: HTMLElement, destino: number): void {

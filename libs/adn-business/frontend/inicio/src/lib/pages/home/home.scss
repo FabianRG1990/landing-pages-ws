@@ -216,6 +216,20 @@
   color: var(--warm);
 }
 
+/* El filete que precede a la etiqueta. Se dibuja solo al entrar y es lo
+   primero que se mueve: marca por donde empieza la lectura. */
+.diag__eyebrow::before {
+  content: '';
+  display: inline-block;
+  width: 28px;
+  height: 1px;
+  margin-right: 0.7rem;
+  vertical-align: middle;
+  background: var(--warm);
+  transform: scaleX(var(--regla, 1));
+  transform-origin: left center;
+}
+
 .diag__entrada {
   margin-top: 1.5rem;
   color: var(--text-2);
@@ -235,13 +249,36 @@
   position: relative;
   padding: 1.75rem;
   background: linear-gradient(150deg, var(--warm-fill), rgb(var(--warm-rgb) / 0.012) 55%);
-  border: 1px solid var(--warm-line);
+  /* Transparente a proposito: el borde visible lo pinta .cifra__trazo,
+     que es lo que se dibuja al entrar. Se conserva el 1px para que la
+     caja mida exactamente lo mismo que antes. */
+  border: 1px solid transparent;
   border-radius: var(--r-lg);
   box-shadow: var(--edge), var(--shadow-md);
   overflow: hidden;
-  transition:
-    transform var(--dur-base) var(--ease-fluid),
-    border-color var(--dur-base) var(--ease-out);
+  transition: transform var(--dur-base) var(--ease-fluid);
+}
+
+/* El contorno dibujable. Sin viewBox: la unidad de usuario es el pixel,
+   asi que el componente puede fijar x/y/ancho/alto/rx en px medidos. */
+.cifra__trazo {
+  position: absolute;
+  inset: -1px;
+  width: calc(100% + 2px);
+  height: calc(100% + 2px);
+  overflow: visible;
+  pointer-events: none;
+
+  rect {
+    fill: none;
+    /* El alfa sale de --trazo para que la linea pueda brillar mientras
+       se dibuja y apagarse al valor de reposo cuando cierra: al 24% el
+       trazo se pierde contra el canto blanco de --edge y el gesto no se
+       ve. */
+    stroke: rgb(var(--warm-rgb) / var(--trazo, 0.24));
+    stroke-width: 1;
+    transition: stroke var(--dur-base) var(--ease-out);
+  }
 }
 
 /* Filo de luz superior: el canto donde pega la luz */
@@ -253,11 +290,19 @@
   right: 12%;
   height: 1px;
   background: linear-gradient(90deg, transparent, rgb(var(--warm-rgb) / 0.62), transparent);
+  /* Se enciende al final, cuando el contorno ya cerro. Barrerlo a la vez
+     que se dibuja el trazo no funciona: los dos viven en el canto de
+     arriba y el filo, mas brillante y ancho, tapaba justo el tramo donde
+     la linea esta naciendo. */
+  opacity: var(--filo, 1);
 }
 
 .cifra:hover {
   transform: translateY(-3px);
-  border-color: rgb(var(--warm-rgb) / 0.42);
+}
+
+.cifra:hover {
+  --trazo: 0.42;
 }
 
 .cifra__valor {
@@ -299,6 +344,54 @@
 
 .diag__fuente {
   padding-top: 1rem;
+}
+
+/* ---------------- La entrada del diagnostico ----------------
+   `.diag--anima` la pone el componente, y solo en el navegador. El
+   estado apagado NO vive en el marcado a proposito: lo que se apaga
+   solo se apaga si hay alguien que lo vuelva a encender, asi que sin JS
+   —o con `prefers-reduced-motion`— la seccion se ve entera. Y como
+   empieza casi 1000px por debajo del pliegue, el instante en que se
+   apaga nunca cae delante de los ojos. */
+
+/* Registradas como numero: sin @property el navegador las trata como
+   cadena, no interpola, y el barrido saldria a saltos. */
+@property --filo {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 1;
+}
+
+@property --regla {
+  syntax: '<number>';
+  inherits: false;
+  initial-value: 1;
+}
+
+/* Hereda: se declara en .cifra y la lee el <rect> de dentro. */
+@property --trazo {
+  syntax: '<number>';
+  inherits: true;
+  initial-value: 0.24;
+}
+
+.diag--anima {
+  .diag__eyebrow {
+    --regla: 0;
+    opacity: 0;
+  }
+
+  h2,
+  .diag__entrada,
+  .diag__fuente {
+    opacity: 0;
+  }
+
+  .cifra {
+    --filo: 0;
+    --trazo: 0.78;
+    opacity: 0;
+  }
 }
 
 /* ---------------- Responsive ---------------- */
