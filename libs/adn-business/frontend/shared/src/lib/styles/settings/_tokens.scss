@@ -13,10 +13,18 @@
 
 :root {
   /* --- Profundidad: cuatro planos, no un fondo plano ---
-         Croma 0.024, el mismo tono que la marca. Subir de 0.005 a
-         0.024 no toca la legibilidad (el texto sigue en 17:1) y tine
-         el 100% de la pantalla: es el cambio mas barato del sistema. */
-  --void: #0b131d; /* el fondo del que emerge todo */
+         Croma 0.0197, el mismo tono que la marca. Lo que mataba el
+         fondo nunca fue que estuviera oscuro: el #08090b original tenia
+         casi esta misma luz (L 0.139 contra 0.148) pero croma 0.005
+         —gris puro—. Se puede bajar la luz cuanto haga falta mientras
+         el color aguante. Y bajarla sube todos los contrastes: el texto
+         pasa de 17.05 a 18.01:1.
+
+         El canal va suelto porque el fondo se repite a mano en la
+         vineta del hero y en la barra; sin --void-rgb, tocarlo aqui
+         deja una costura en la frontera del hero. */
+  --void-rgb: 6 11 19;
+  --void: #060b13; /* el fondo del que emerge todo */
   --surface: #121c28; /* plano de tarjeta      · 1.09 sobre void */
   --surface-2: #18242f; /* plano elevado         · 1.18 */
   --surface-3: #1f2c38; /* maxima elevacion      · 1.31 */
@@ -81,9 +89,13 @@
   );
 
   /* --- Sombras tintadas con el fondo, nunca negro puro --- */
-  --shadow-sm: 0 1px 2px rgba(3, 7, 13, 0.4);
-  --shadow-md: 0 8px 24px -8px rgba(3, 7, 13, 0.7);
-  --shadow-lg: 0 24px 64px -24px rgba(3, 7, 13, 0.85);
+  /* En negro y con un punto mas de opacidad. Sobre el fondo hondo, el
+     rgba(3,7,13) anterior se separaba del suelo un tercio de lo que se
+     separaba antes y las tarjetas perdian el relieve; ni el negro lo
+     devuelve entero, de ahi la subida de alfa. */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.45);
+  --shadow-md: 0 8px 24px -8px rgba(0, 0, 0, 0.78);
+  --shadow-lg: 0 24px 64px -24px rgba(0, 0, 0, 0.9);
   --shadow-brand: 0 16px 48px -20px rgba(92, 160, 180, 0.45);
 
   /* --- Tipografia --- */

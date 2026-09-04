@@ -107,8 +107,9 @@
   font-size: var(--fs-small);
   color: var(--text);
   /* un punto por debajo de --void para que el campo se lea como un
-     hueco en el vidrio, no como otra tarjeta */
-  background: rgba(5, 10, 17, 0.55);
+     hueco en el vidrio, no como otra tarjeta. Baja con el fondo: la
+     razon de luminancia contra --void se mantiene en 0.43. */
+  background: rgba(2, 5, 9, 0.55);
   border: 1px solid var(--line);
   border-radius: var(--r-sm);
   transition: border-color var(--dur-fast) var(--ease-out);
