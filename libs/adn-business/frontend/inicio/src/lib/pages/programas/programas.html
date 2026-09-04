@@ -99,6 +99,44 @@
           </table>
         </div>
       </div>
+
+      <!-- El mismo comparador para el telefono.
+
+           La tabla pide 796px de interior y en un movil hay 348: solo
+           entraba un programa, la columna de etiquetas se llevaba el 39%
+           del ancho para decir «MODULOS» y al deslizar las palabras se
+           partian por la mitad. Debajo de 900px cada columna se lee como
+           una tarjeta entera.
+
+           Las dos ramas salen del mismo dato —`tarjetas` se calcula de
+           `PROGRAMAS`—, asi que se duplica la plantilla y nunca el texto.
+           El CSS conmuta cual se muestra con `display`, que ademas retira
+           la otra del arbol de accesibilidad: un lector de pantalla no
+           lee la oferta dos veces. -->
+      <ul #lista class="prog__tarjetas">
+        @for (t of tarjetas; track t.clave) {
+          <li #ficha class="prog__tarjeta">
+            <p class="mono prog__tarjeta-eje">{{ t.eje }}</p>
+            <h3 class="prog__tarjeta-nombre">{{ t.nombre }}</h3>
+
+            <dl class="prog__campos">
+              @for (c of t.campos; track c.etiqueta) {
+                <div class="prog__campo" [class.prog__campo--clave]="c.destacar">
+                  <dt class="mono">{{ c.etiqueta }}</dt>
+                  <dd>{{ c.valor }}</dd>
+                </div>
+              }
+            </dl>
+
+            <a class="prog__cta" [routerLink]="['/programa', t.clave]">
+              Ver {{ t.nombre }}
+              <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+                <path d="M3 8h10M9 4l4 4-4 4" />
+              </svg>
+            </a>
+          </li>
+        }
+      </ul>
     </div>
   </div>
 

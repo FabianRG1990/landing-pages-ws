@@ -21,6 +21,21 @@ interface Tramo {
   d: number;
 }
 
+/** Una fila de la tabla, leida desde la columna a la que pertenece. */
+interface Campo {
+  etiqueta: string;
+  valor: string;
+  destacar: boolean;
+}
+
+/** Una columna de la tabla, vuelta del reves para el telefono. */
+interface Tarjeta {
+  clave: string;
+  nombre: string;
+  eje: string;
+  campos: Campo[];
+}
+
 /**
  * Los programas.
  *
@@ -52,6 +67,26 @@ export class ProgramasComponent {
   protected readonly s = SERVICIOS;
   protected readonly site = SITE;
 
+  /**
+   * La tabla girada: una tarjeta por programa, con sus filas dentro.
+   *
+   * En el telefono la tabla no cabe —780px de ancho minimo contra 348
+   * utiles—, asi que debajo de 900px cada columna se presenta como una
+   * tarjeta entera. Esta vista sale del MISMO `PROGRAMAS` que alimenta la
+   * tabla: se duplica la plantilla, nunca el texto, de modo que las dos
+   * ramas no pueden desincronizarse.
+   */
+  protected readonly tarjetas: Tarjeta[] = this.p.columnas.map((c, col) => ({
+    clave: c.clave,
+    nombre: c.nombre,
+    eje: c.eje,
+    campos: this.p.filas.map((f) => ({
+      etiqueta: f.etiqueta,
+      valor: f.valores[col],
+      destacar: f.destacar,
+    })),
+  }));
+
   /** De donde viene cada esquina. El orden es el del marcado: TL, TR, BR, BL. */
   protected readonly esquinas = [
     { dx: '-46px', dy: '-38px' },
@@ -65,6 +100,8 @@ export class ProgramasComponent {
   private readonly piel = viewChild.required<ElementRef<HTMLElement>>('piel');
   private readonly armazon = viewChild.required<ElementRef<SVGSVGElement>>('armazon');
   private readonly piezas = viewChildren<ElementRef<SVGPathElement>>('pieza');
+  private readonly lista = viewChild.required<ElementRef<HTMLElement>>('lista');
+  private readonly fichas = viewChildren<ElementRef<HTMLElement>>('ficha');
 
   private readonly destroyRef = inject(DestroyRef);
   private readonly esNavegador = isPlatformBrowser(inject(PLATFORM_ID));
@@ -104,6 +141,10 @@ export class ProgramasComponent {
   constructor() {
     afterNextRender(() => {
       if (!this.esNavegador) return;
+
+      // Las tarjetas del telefono tienen su propia entrada y no dependen
+      // del anclaje, asi que se arman antes del corte de abajo.
+      this.entradaFichas();
 
       const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
       const angosto = matchMedia('(max-width: 900px)').matches;
@@ -159,6 +200,43 @@ export class ProgramasComponent {
         this.marco().nativeElement.removeEventListener('focusin', soltar);
       });
     });
+  }
+
+  /**
+   * La entrada de las tarjetas del telefono.
+   *
+   * Cada una sube y aparece cuando cruza el borde de la pantalla, y deja
+   * de observarse en cuanto entra: al volver a subir se queda puesta, que
+   * es lo que espera quien relee. No toca el scroll —nada de anclar en un
+   * aparato donde eso se percibe como que la pagina se trabo— ni pelea
+   * con la barra que aparece y desaparece en Safari.
+   *
+   * El estado de partida lo pone esta clase y no el CSS a secas: sin
+   * JavaScript, o antes de que hidrate, las tarjetas ya estan a la vista.
+   * Con menos movimiento el CSS quita el desplazamiento y deja solo la
+   * aparicion.
+   */
+  private entradaFichas(): void {
+    const fichas = this.fichas().map((r) => r.nativeElement);
+    if (!fichas.length) return;
+
+    this.lista().nativeElement.classList.add('prog__tarjetas--anima');
+
+    const io = new IntersectionObserver(
+      (entradas) => {
+        for (const e of entradas) {
+          if (!e.isIntersecting) continue;
+          e.target.classList.add('prog__tarjeta--dentro');
+          io.unobserve(e.target);
+        }
+      },
+      // El margen negativo evita que dispare con la tarjeta apenas
+      // asomando por el canto inferior, que se lee como un parpadeo.
+      { threshold: 0.15, rootMargin: '0px 0px -10% 0px' },
+    );
+
+    for (const f of fichas) io.observe(f);
+    this.destroyRef.onDestroy(() => io.disconnect());
   }
 
   /**

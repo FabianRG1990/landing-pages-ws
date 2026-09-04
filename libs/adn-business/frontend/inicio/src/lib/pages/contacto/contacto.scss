@@ -162,10 +162,15 @@
   cursor: pointer;
 }
 
+/* La etiqueta envuelve al input, asi que el objetivo tactil real es la
+   linea entera —300x56— y WCAG 2.5.8 se cumplia ya. Lo que fallaba era
+   verla: 17px de casilla es un control que hay que buscar en el paso
+   donde se cierra una venta. Con `color-scheme: dark` en la raiz, ademas,
+   deja de pintarse en blanco de sistema. */
 .consent__linea input {
-  width: 17px;
-  height: 17px;
-  margin-top: 1px;
+  width: 22px;
+  height: 22px;
+  margin-top: -1px;
   accent-color: var(--brand);
 }
 

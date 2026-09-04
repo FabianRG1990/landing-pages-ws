@@ -12,6 +12,13 @@
    ============================================================ */
 
 :root {
+  /* Sin esto el navegador pinta los controles nativos —la casilla del
+     consentimiento, el desplegable al abrirse, las barras de scroll— con
+     su tema claro por defecto, y sobre este fondo la casilla sin marcar
+     sale como un cuadrado blanco de sistema pegado encima. El tema del
+     sitio es uno solo y oscuro, asi que se declara y no se negocia. */
+  color-scheme: dark;
+
   /* --- Profundidad: cuatro planos, no un fondo plano ---
          Croma 0.0197, el mismo tono que la marca. Lo que mataba el
          fondo nunca fue que estuviera oscuro: el #08090b original tenia

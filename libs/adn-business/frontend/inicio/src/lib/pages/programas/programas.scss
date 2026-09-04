@@ -346,6 +346,124 @@
   }
 }
 
+/* ---------------- El comparador en el telefono ----------------
+   La tabla se queda para el escritorio con su ensamblaje; aqui cada
+   columna es una tarjeta que se lee de arriba abajo, con el gesto normal
+   del pulgar y sin nada escondido detras de un deslizamiento lateral.
+   Ambas ramas conviven en el documento y `display` decide cual: la que
+   no toca sale tambien del arbol de accesibilidad. */
+.prog__tarjetas {
+  display: none;
+  /* A todo lo ancho, en una tableta de 768px la tarjeta queda estirada y
+     la linea de texto se pasa de largo. */
+  max-width: 34rem;
+  margin-inline: auto;
+}
+
+.prog__tarjeta {
+  padding: 1.5rem 1.25rem 1.375rem;
+  /* mismo vidrio que el marco de la tabla: es la misma pieza, girada */
+  background: linear-gradient(
+    155deg,
+    rgba(255, 255, 255, 0.04),
+    rgba(255, 255, 255, 0.01) 60%
+  );
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  box-shadow: var(--edge), var(--shadow-md);
+}
+
+.prog__tarjeta + .prog__tarjeta {
+  margin-top: 1.25rem;
+}
+
+.prog__tarjeta-eje {
+  color: var(--brand);
+}
+
+.prog__tarjeta-nombre {
+  margin-top: 0.375rem;
+  font-size: var(--fs-h3);
+  font-weight: var(--w-announce);
+  letter-spacing: -0.01em;
+}
+
+/* El ritmo lo lleva la regla superior de cada campo, no un hueco: sin
+   ella los pares etiqueta/valor se leen como un parrafo corrido. */
+.prog__campo {
+  margin-top: 1.25rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--line-soft);
+}
+
+.prog__campo dd {
+  /* el navegador sangra el `dd` 40px por su cuenta y el valor se iba a la
+     derecha de su propia etiqueta */
+  margin: 0.5rem 0 0;
+  font-size: var(--fs-small);
+  line-height: 1.55;
+  color: var(--text-2);
+}
+
+/* Entregables es lo que el cliente se lleva a casa, igual que en la
+   tabla y por la misma razon. El relleno crece hacia AFUERA con el margen
+   negativo, de modo que su etiqueta sigue alineada con las demas en vez
+   de quedarse un centimetro a la derecha. Y para adentro, no a sangre: si
+   manana el dato marcara la ultima fila, un tinte hasta el canto se
+   saldria por la esquina redondeada de la tarjeta. */
+.prog__campo--clave {
+  margin-inline: -1rem;
+  padding: 1.125rem 1rem;
+  border-top-color: transparent;
+  border-radius: var(--r-md);
+  background: var(--warm-fill);
+  box-shadow: inset 2px 0 0 var(--warm-line);
+}
+
+.prog__campo--clave dt {
+  color: var(--warm);
+}
+
+.prog__campo--clave dd {
+  color: var(--text);
+}
+
+.prog__tarjeta .prog__cta {
+  position: relative;
+  margin-top: 1.5rem;
+}
+
+/* El objetivo tactil se gana con una caja invisible alrededor, no
+   estirando el enlace: el subrayado tiene que quedarse pegado al texto.
+   40px de alto pasan a 64, y el ancho gana 16. */
+.prog__tarjeta .prog__cta::after {
+  content: '';
+  position: absolute;
+  inset: -12px -8px;
+}
+
+/* La entrada. La clase la pone el componente al hidratar, asi que sin
+   JavaScript —o antes de que llegue— las tarjetas ya estan a la vista. */
+.prog__tarjetas--anima .prog__tarjeta {
+  opacity: 0;
+  transform: translateY(14px);
+  transition:
+    opacity var(--dur-slow) var(--ease-out),
+    transform var(--dur-slow) var(--ease-out);
+}
+
+.prog__tarjetas--anima .prog__tarjeta--dentro {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .prog__tarjetas--anima .prog__tarjeta {
+    transform: none;
+    transition: opacity var(--dur-base) linear;
+  }
+}
+
 /* ---------------- Servicios ---------------- */
 .serv {
   padding-block: clamp(4.5rem, 12vh, 8rem);
@@ -420,7 +538,21 @@
   letter-spacing: var(--tracking-label);
 }
 
+/* Una sola frontera para toda la seccion. 900px no es un numero redondo
+   elegido a ojo: la tabla necesita 796px de interior y, con el margen del
+   shell, eso solo ocurre a partir de ~858px de ventana. Es ademas el
+   ancho por debajo del cual el componente ya renunciaba al anclaje, de
+   modo que la regla queda en una sola linea: debajo, tarjetas sin
+   ensamblaje; encima, tabla con el. */
 @media (max-width: 900px) {
+  .prog__caja {
+    display: none;
+  }
+
+  .prog__tarjetas {
+    display: block;
+  }
+
   .serv__cuerpo {
     grid-template-columns: 1fr;
   }
