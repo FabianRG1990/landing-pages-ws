@@ -248,27 +248,53 @@ export class ProgramasComponent {
   }
 
   /**
-   * Marca cada elemento la primera vez que cruza el borde de la pantalla
-   * y deja de observarlo. El estado de partida lo pone una clase que
-   * anade el componente, asi que sin JavaScript —o antes de que hidrate—
-   * el contenido ya esta a la vista.
+   * Revela cada elemento al entrar en pantalla y lo retira al salir, de
+   * modo que el gesto se puede ver tantas veces como se quiera. Esto es
+   * una demostracion de lo que sabemos hacer: si alguien no lo pillo la
+   * primera vez, tiene que poder subir y volver a verlo.
+   *
+   * Son DOS observadores y no uno, y esa es la parte que importa:
+   *
+   * - El de entrada lleva un margen inferior negativo para no dispararse
+   *   con la pieza apenas asomando por el canto, que se lee como un
+   *   parpadeo. Revela al 15%.
+   * - El de salida va contra la ventana REAL, sin margen, y solo retira
+   *   cuando la pieza ya no se ve en absoluto. Si compartiera el margen
+   *   del primero, la pieza se desharia dentro de esa franja del 10% que
+   *   todavia esta a la vista, y se veria «deshacerse» en pantalla.
+   *
+   * Entre el 15% de la entrada y el 0% de la salida queda una banda
+   * muerta: parar el scroll justo en el borde ya no hace que la pieza
+   * entre y salga con cada temblor.
+   *
+   * El estado de partida lo pone una clase que anade el componente, asi
+   * que sin JavaScript —o antes de que hidrate— el contenido ya esta a la
+   * vista.
    */
   private revelar(elementos: HTMLElement[], clase: string): void {
-    const io = new IntersectionObserver(
-      (entradas) => {
-        for (const e of entradas) {
-          if (!e.isIntersecting) continue;
-          e.target.classList.add(clase);
-          io.unobserve(e.target);
-        }
+    const entra = new IntersectionObserver(
+      (es) => {
+        for (const e of es) if (e.isIntersecting) e.target.classList.add(clase);
       },
-      // El margen negativo evita que dispare con la pieza apenas asomando
-      // por el canto inferior, que se lee como un parpadeo.
       { threshold: 0.15, rootMargin: '0px 0px -10% 0px' },
     );
 
-    for (const el of elementos) io.observe(el);
-    this.destroyRef.onDestroy(() => io.disconnect());
+    const sale = new IntersectionObserver(
+      (es) => {
+        for (const e of es) if (!e.isIntersecting) e.target.classList.remove(clase);
+      },
+      { threshold: 0 },
+    );
+
+    for (const el of elementos) {
+      entra.observe(el);
+      sale.observe(el);
+    }
+
+    this.destroyRef.onDestroy(() => {
+      entra.disconnect();
+      sale.disconnect();
+    });
   }
 
   /**

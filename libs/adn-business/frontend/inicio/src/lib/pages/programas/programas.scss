@@ -444,17 +444,23 @@
 
 /* La entrada. La clase la pone el componente al hidratar, asi que sin
    JavaScript —o antes de que llegue— las tarjetas ya estan a la vista. */
+/* Reversible, igual que servicios: la regla base es la salida y la
+   --dentro la entrada. Al subir la tarjeta se retira y al volver a bajar
+   entra de nuevo, que es lo que permite ver el gesto mas de una vez. */
 .prog__tarjetas--anima .prog__tarjeta {
   opacity: 0;
   transform: translateY(14px);
   transition:
-    opacity var(--dur-slow) var(--ease-out),
-    transform var(--dur-slow) var(--ease-out);
+    opacity 260ms var(--ease-out),
+    transform 400ms var(--ease-out);
 }
 
 .prog__tarjetas--anima .prog__tarjeta--dentro {
   opacity: 1;
   transform: none;
+  transition:
+    opacity var(--dur-slow) var(--ease-out),
+    transform var(--dur-slow) var(--ease-out);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -492,17 +498,30 @@
    cuando ya habia dejado de moverse y el viaje no se veia.
    100ms de escalon es el intervalo por debajo del cual el ojo lee las
    tres llegadas como simultaneas. */
+/* La entrada es reversible: al subir las piezas se van por donde
+   vinieron y al volver a bajar entran otra vez, las veces que haga falta.
+   El reparto sale de como funcionan las transiciones: la regla BASE
+   gobierna el viaje hacia el estado oculto —la salida— y la regla
+   --dentro el viaje hacia el visible —la entrada—. Por eso los retardos
+   viven solo en la segunda: entrada escalonada, salida a la vez.
+
+   La salida ademas es mas corta. Un retorno con los mismos 800ms y los
+   mismos 140/240/340 se siente como si la pagina se resistiera a dejarte
+   subir. */
 .serv--anima .serv__entra {
   opacity: 0;
   transform: translate(var(--viaje, 0), var(--sube, 0));
   transition:
-    opacity 300ms var(--ease-out) var(--retardo, 0ms),
-    transform 800ms var(--ease-llegada) var(--retardo, 0ms);
+    opacity 260ms var(--ease-out),
+    transform 400ms var(--ease-out);
 }
 
 .serv--anima .serv__entra--dentro {
   opacity: 1;
   transform: none;
+  transition:
+    opacity 300ms var(--ease-out) var(--retardo, 0ms),
+    transform 800ms var(--ease-llegada) var(--retardo, 0ms);
 }
 
 /* El encabezado abre la secuencia y solo sube: el titulo no viaja, para
@@ -547,13 +566,16 @@
   opacity: 0;
   transform: translateY(10px);
   transition:
-    opacity var(--dur-base) var(--ease-out) var(--retardo, 0ms),
-    transform var(--dur-base) var(--ease-out) var(--retardo, 0ms);
+    opacity 260ms var(--ease-out),
+    transform 260ms var(--ease-out);
 }
 
 .serv--anima .serv__entra--dentro .serv__export-lista li {
   opacity: 1;
   transform: none;
+  transition:
+    opacity var(--dur-base) var(--ease-out) var(--retardo, 0ms),
+    transform var(--dur-base) var(--ease-out) var(--retardo, 0ms);
 }
 
 .serv--anima .serv__export-lista li:nth-child(1) {
