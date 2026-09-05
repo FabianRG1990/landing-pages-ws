@@ -140,9 +140,17 @@
     </div>
   </div>
 
-  <!-- Servicios alrededor del nucleo -->
-  <div id="servicios" class="shell serv">
-    <header class="serv__intro">
+  <!-- Servicios alrededor del nucleo.
+
+       Aqui no hay anclaje: ya hay dos secciones que se apropian del
+       scroll —los ejes y el comparador— y esta viene justo detras de las
+       2.6 pantallas ancladas de la segunda. Lo unico que se anima es la
+       llegada: los tres renglones entran desde la izquierda en orden y la
+       tarjeta desde la derecha en paralelo con el primero. Cada pieza
+       marcada con #entra se revela cuando cruza el borde de la pantalla;
+       las distancias y el escalonado viven en el CSS. -->
+  <div #serv id="servicios" class="shell serv">
+    <header #entra class="serv__intro serv__entra">
       <p class="mono">{{ s.eyebrow }}</p>
       <h2>{{ s.titulo }}</h2>
     </header>
@@ -150,14 +158,17 @@
     <div class="serv__cuerpo">
       <ul class="serv__lista">
         @for (c of s.complementarios; track c.nombre) {
-          <li class="serv__item">
+          <li #entra class="serv__item serv__entra">
             <h3 class="serv__nombre">{{ c.nombre }}</h3>
             <p class="serv__detalle">{{ c.detalle }}</p>
           </li>
         }
       </ul>
 
-      <aside class="serv__export">
+      <!-- Las cinco lineas cuelgan del revelado de la tarjeta y no de un
+           observador propio: asi no pueden aparecer antes que el bloque
+           que las contiene. -->
+      <aside #entra class="serv__export serv__entra">
         <h3 class="serv__export-titulo">{{ s.exportacion.titulo }}</h3>
         <ul class="serv__export-lista">
           @for (i of s.exportacion.items; track i) {

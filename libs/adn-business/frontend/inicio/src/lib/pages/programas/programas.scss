@@ -467,6 +467,120 @@
 /* ---------------- Servicios ---------------- */
 .serv {
   padding-block: clamp(4.5rem, 12vh, 8rem);
+  /* Una pieza desplazada 44px sobre un margen de 20px en el telefono se
+     sale de la pantalla y aparece una barra horizontal. `clip` y no
+     `hidden` a proposito: `hidden` en un eje obliga al otro a `auto` —ya
+     nos costo un fallo en el marco de la tabla—, mientras que `clip`
+     convive con el `visible` vertical. Y como recorta al borde del shell,
+     que llega al canto de la ventana, las piezas emergen literalmente del
+     borde de la pantalla. El margen deja salir la sombra de la tarjeta. */
+  overflow-x: clip;
+  overflow-clip-margin: 1.5rem;
+
+  /* Curva de llegada: easeOutQuad. Con la --ease-fluid del sistema el
+     trayecto se consume en los primeros 150ms —medido: 59% del camino en
+     el 14% del tiempo— y para cuando la pieza es opaca ya casi no se
+     mueve, asi que se lee como un destello y no como algo que llega.
+     Esta reparte el recorrido y deja que se vea. */
+  --ease-llegada: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* ---- La llegada ----
+   La opacidad y el desplazamiento van desacoplados a proposito: la pieza
+   se hace solida en 300ms y sigue acomodandose otros 500. Con las dos
+   propiedades a la misma duracion, la pieza terminaba de aparecer justo
+   cuando ya habia dejado de moverse y el viaje no se veia.
+   100ms de escalon es el intervalo por debajo del cual el ojo lee las
+   tres llegadas como simultaneas. */
+.serv--anima .serv__entra {
+  opacity: 0;
+  transform: translate(var(--viaje, 0), var(--sube, 0));
+  transition:
+    opacity 300ms var(--ease-out) var(--retardo, 0ms),
+    transform 800ms var(--ease-llegada) var(--retardo, 0ms);
+}
+
+.serv--anima .serv__entra--dentro {
+  opacity: 1;
+  transform: none;
+}
+
+/* El encabezado abre la secuencia y solo sube: el titulo no viaja, para
+   que el movimiento lateral quede reservado al contenido que llega. */
+.serv--anima .serv__intro {
+  --sube: 16px;
+}
+
+.serv--anima .serv__item {
+  --viaje: -56px;
+}
+
+.serv--anima .serv__item:nth-child(1) {
+  --retardo: 140ms;
+}
+
+.serv--anima .serv__item:nth-child(2) {
+  --retardo: 240ms;
+}
+
+.serv--anima .serv__item:nth-child(3) {
+  --retardo: 340ms;
+}
+
+/* La tarjeta arranca CON el primer renglon, no detras: los dos lados se
+   entrelazan en lugar de turnarse. */
+.serv--anima .serv__export {
+  --viaje: 56px;
+  --retardo: 140ms;
+}
+
+/* Y sus lineas se escriben mientras la tarjeta todavia se esta
+   acomodando, que es lo que lleva la mirada al texto. Suben, no viajan:
+   el desplazamiento lateral ya lo puso el bloque que las contiene. */
+/* Las propiedades personalizadas heredan: sin este corte, una sexta linea
+   sin regla propia arrastraria el retardo de 140ms de la tarjeta. */
+.serv--anima .serv__export-lista {
+  --retardo: 0ms;
+}
+
+.serv--anima .serv__export-lista li {
+  opacity: 0;
+  transform: translateY(10px);
+  transition:
+    opacity var(--dur-base) var(--ease-out) var(--retardo, 0ms),
+    transform var(--dur-base) var(--ease-out) var(--retardo, 0ms);
+}
+
+.serv--anima .serv__entra--dentro .serv__export-lista li {
+  opacity: 1;
+  transform: none;
+}
+
+.serv--anima .serv__export-lista li:nth-child(1) {
+  --retardo: 320ms;
+}
+
+.serv--anima .serv__export-lista li:nth-child(2) {
+  --retardo: 380ms;
+}
+
+.serv--anima .serv__export-lista li:nth-child(3) {
+  --retardo: 440ms;
+}
+
+.serv--anima .serv__export-lista li:nth-child(4) {
+  --retardo: 500ms;
+}
+
+.serv--anima .serv__export-lista li:nth-child(5) {
+  --retardo: 560ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .serv--anima .serv__entra,
+  .serv--anima .serv__export-lista li {
+    transform: none;
+  }
 }
 
 .serv__intro h2 {

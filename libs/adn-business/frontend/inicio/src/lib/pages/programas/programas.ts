@@ -102,6 +102,8 @@ export class ProgramasComponent {
   private readonly piezas = viewChildren<ElementRef<SVGPathElement>>('pieza');
   private readonly lista = viewChild.required<ElementRef<HTMLElement>>('lista');
   private readonly fichas = viewChildren<ElementRef<HTMLElement>>('ficha');
+  private readonly serv = viewChild.required<ElementRef<HTMLElement>>('serv');
+  private readonly entrantes = viewChildren<ElementRef<HTMLElement>>('entra');
 
   private readonly destroyRef = inject(DestroyRef);
   private readonly esNavegador = isPlatformBrowser(inject(PLATFORM_ID));
@@ -142,9 +144,10 @@ export class ProgramasComponent {
     afterNextRender(() => {
       if (!this.esNavegador) return;
 
-      // Las tarjetas del telefono tienen su propia entrada y no dependen
-      // del anclaje, asi que se arman antes del corte de abajo.
+      // Las entradas al aparecer no dependen del anclaje, asi que se arman
+      // antes del corte de abajo: valen para el telefono y el escritorio.
       this.entradaFichas();
+      this.entradaServicios();
 
       const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
       const angosto = matchMedia('(max-width: 900px)').matches;
@@ -219,23 +222,52 @@ export class ProgramasComponent {
   private entradaFichas(): void {
     const fichas = this.fichas().map((r) => r.nativeElement);
     if (!fichas.length) return;
-
     this.lista().nativeElement.classList.add('prog__tarjetas--anima');
+    this.revelar(fichas, 'prog__tarjeta--dentro');
+  }
 
+  /**
+   * La entrada de servicios.
+   *
+   * Los tres renglones llegan desde la izquierda, uno tras otro, y la
+   * tarjeta de exportacion desde la derecha en paralelo con el primero:
+   * los dos lados se entrelazan en vez de ir uno detras del otro. El
+   * escalonado y las distancias los pone el CSS; aqui solo se dice cuando
+   * empieza cada pieza.
+   *
+   * Cada pieza se observa por separado y no el bloque entero. En
+   * escritorio las tres caben a la vez y el escalon lo dan los retardos;
+   * en el telefono llegan de una en una y cada una se anima cuando de
+   * verdad aparece, en lugar de dispararse todas fuera de pantalla.
+   */
+  private entradaServicios(): void {
+    const piezas = this.entrantes().map((r) => r.nativeElement);
+    if (!piezas.length) return;
+    this.serv().nativeElement.classList.add('serv--anima');
+    this.revelar(piezas, 'serv__entra--dentro');
+  }
+
+  /**
+   * Marca cada elemento la primera vez que cruza el borde de la pantalla
+   * y deja de observarlo. El estado de partida lo pone una clase que
+   * anade el componente, asi que sin JavaScript —o antes de que hidrate—
+   * el contenido ya esta a la vista.
+   */
+  private revelar(elementos: HTMLElement[], clase: string): void {
     const io = new IntersectionObserver(
       (entradas) => {
         for (const e of entradas) {
           if (!e.isIntersecting) continue;
-          e.target.classList.add('prog__tarjeta--dentro');
+          e.target.classList.add(clase);
           io.unobserve(e.target);
         }
       },
-      // El margen negativo evita que dispare con la tarjeta apenas
-      // asomando por el canto inferior, que se lee como un parpadeo.
+      // El margen negativo evita que dispare con la pieza apenas asomando
+      // por el canto inferior, que se lee como un parpadeo.
       { threshold: 0.15, rootMargin: '0px 0px -10% 0px' },
     );
 
-    for (const f of fichas) io.observe(f);
+    for (const el of elementos) io.observe(el);
     this.destroyRef.onDestroy(() => io.disconnect());
   }
 
