@@ -1,6 +1,7 @@
 .bol-book {
-  // 1500 y no 1200: es lo que necesita el escenario nuevo (1450) mas su
-  // padding lateral. Ver `--libro-w` justo debajo.
+  // 1500 y no 1200: el escenario pide 1305 mas su padding lateral. Sobra
+  // holgura a proposito -el tope real lo pone `--libro-w` justo debajo-, y
+  // bajarlo aqui estrecharia tambien la cabecera, que no es lo que se pide.
   max-width: 1500px;
 
   // ─── Tamano del libro en escritorio ──────────────────────────────────────
@@ -9,43 +10,48 @@
   // entera en vez de descuadrarse.
   //
   // Los tres terminos:
-  //   1450px  techo. Mas alla, el papel del video -860px nativos- se aplana de
+  //   1305px  techo. Mas alla, el papel del video -860px nativos- se aplana de
   //           forma visible. La pildora de navegacion NO es el limite: medida
   //           la tinta bajo ella en los cuadros criticos (20, 35, 108 y 117) y
   //           con el encuadre real de lectura, da 0 % a los tres tamanos.
   //   100%    no desbordar el contenedor entre 901px y 1500px de ancho.
-  //   194vh   el limite REAL no es el ancho sino el ALTO, y ahora lo que tiene
-  //           que caber es el GRUPO entero: cabecera mas libro. En flujo, el
-  //           grupo mide `cabecera + 0,63392·alto` -el factor sale de descontar
-  //           los dos margenes negativos del escenario-, o sea
+  //   174,6vh el limite REAL no es el ancho sino el ALTO, y lo que tiene que
+  //           caber es el GRUPO entero: cabecera mas libro. En flujo, el grupo
+  //           mide `cabecera + 0,63392·alto` -el factor sale de descontar los
+  //           dos margenes negativos del escenario-, o sea
   //           `cabecera + 0,51452·W`. Con la cabecera en ~120px y 32px de aire
-  //           arriba y abajo, despejar W da 194,4vh - 357px.
+  //           arriba y abajo, despejar W da 194,4vh - 357px: el tamano que
+  //           EXACTAMENTE llena la pantalla.
   //
-  //           Era 199vh - 278px cuando debajo del libro habia botones y el
-  //           titulo se dejaba salir de cuadro. Al meter la cabecera dentro del
-  //           anclaje el libro tiene que cederle sitio: en 1080p no cambia nada
-  //           -sigue topado en 1450- y solo encoge en pantallas mas bajas.
+  //   LOS DOS TERMINOS VAN AL 90 %, y por eso el segundo no es esa cifra sino
+  //   su 0,9 (174,6vh - 321,3px). El dueno del sitio pidio el libro un 10 % mas
+  //   pequeno, y aplicarlo solo al techo lo habria dejado sin efecto en los
+  //   portatiles bajos, donde manda la altura y el libro ya era menor que 1305.
+  //   Escalando los dos, el 10 % se cumple en cualquier monitor y la proporcion
+  //   entre cabecera y libro no cambia: lo que antes llenaba la pantalla justa
+  //   ahora deja ese 10 % de aire repartido por el centrado del anclaje.
+  //
+  //           La formula era 199vh - 278px cuando debajo del libro habia
+  //           botones y el titulo se dejaba salir de cuadro. Al meter la
+  //           cabecera dentro del anclaje el libro tuvo que cederle sitio.
   //
   // Dos concesiones, las dos deliberadas y medidas:
   //
   // 1. El titulo puede quedar fuera de cuadro mientras se lee. Con el escenario
   //    fijo de 1040px el libro abierto media 850x487 en TODO monitor, de 1366 a
-  //    2560 de ancho; con esto son 1185x679 en uno de 1080p.
+  //    2560 de ancho; con esto son 1066x611 en uno de 1080p.
   //
   // 2. La TAPA, al abrirse, vuela mucho mas alto que el libro en reposo: la
-  //    escena completa -de la tapa levantada a la base de los botones- pide
-  //    0,692·W + 43,5 px, o sea 1074 px a 1450. Una ventana de 1080p da 945,
-  //    asi que no hay posicion de scroll que evite cortar algo: o la tapa por
-  //    arriba o los botones por abajo. Los 1040px de antes estaban calibrados
-  //    justo para ese vuelo -la tapa se salia 8 px-; a 1450 se sale 188. Se
-  //    acepta a proposito: el corte dura ~0,4 s y solo al abrir, mientras que
-  //    el libro asentado -lo que se mira el resto del tiempo- gana un 39 %. En
-  //    un monitor QHD el vuelo cabe entero y no se corta nada.
+  //    escena completa pide 0,692·W + 43,5 px, o sea 946 px a 1305. Una ventana
+  //    de 1080p da 945, asi que a este tamano el vuelo cabe justo -a 1450 se
+  //    salia 188 px por arriba, y 53 despues de meter la cabecera dentro del
+  //    anclaje-. El 10 % que se recorta aqui se lo lleva casi entero ese
+  //    recorte: es el efecto secundario de encoger, no el motivo.
   //
-  //    Si algun dia se quiere recuperar el vuelo entero SIN encoger el libro,
-  //    el camino es que la escena se asiente al abrir (arrancar la apertura a
-  //    ~0,82 de escala y crecer hasta 1 con `.is-lifting`), no bajar el techo.
-  --libro-w: min(1450px, 100%, calc(194vh - 357px));
+  //    Si algun dia se quiere agrandar otra vez SIN perder el vuelo, el camino
+  //    es que la escena se asiente al abrir (arrancar la apertura a ~0,82 de
+  //    escala y crecer hasta 1 con `.is-lifting`), no subir el techo.
+  --libro-w: min(1305px, 100%, calc(174.6vh - 321.3px));
   // 120px (no los ~48px de antes): pegado a la grilla de categorias de arriba
   // (fotos grandes, con scrim oscuro) se leia como si fuera parte del mismo
   // bloque en vez de una seccion nueva -este aire extra marca el corte.
