@@ -305,7 +305,8 @@ export class RedHexComponent {
           const a = (Math.PI / 3) * i;
           const px = x + off + R * Math.cos(a);
           const py = y + R * Math.sin(a);
-          i ? ctx.lineTo(px, py) : ctx.moveTo(px, py);
+          if (i) ctx.lineTo(px, py);
+          else ctx.moveTo(px, py);
         }
         ctx.closePath();
         ctx.stroke();
