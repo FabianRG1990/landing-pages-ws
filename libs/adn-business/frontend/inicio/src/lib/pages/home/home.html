@@ -1,0 +1,98 @@
+<app-nav />
+
+<main id="main">
+  <!-- ============ HERO ============ -->
+  <section class="hero" aria-labelledby="hero-titulo">
+    <!-- La red de la marca, viva, detrás de todo -->
+    <div class="hero__lienzo">
+      <app-red-hex />
+    </div>
+    <div class="hero__luz" aria-hidden="true"></div>
+    <div class="hero__vineta" aria-hidden="true"></div>
+
+    <div class="hero__shell shell">
+      <p class="chip">
+        <span class="chip__punto" aria-hidden="true"></span>
+        {{ hero.eyebrow }}
+      </p>
+
+      <h1 id="hero-titulo" class="hero__titulo">
+        <span class="hero__linea">{{ hero.titulo1 }}</span>
+        <span class="hero__linea">{{ hero.titulo2 }}</span>
+        <span class="hero__linea hero__linea--luz">{{ hero.titulo3 }}</span>
+      </h1>
+
+      <p class="hero__entrada">{{ hero.entrada }}</p>
+
+      <div class="hero__acciones">
+        <a class="btn btn--solido" href="#contacto">
+          {{ hero.ctaPrimario }}
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+            <path d="M3 8h10M9 4l4 4-4 4" />
+          </svg>
+        </a>
+        <a class="btn btn--vidrio" href="#ejes">{{ hero.ctaSecundario }}</a>
+      </div>
+    </div>
+
+    <dl class="hero__meta">
+      @for (m of hero.meta; track m.k) {
+        <div class="hero__celda">
+          <dt class="mono">{{ m.k }}</dt>
+          <dd class="hero__valor">{{ m.v }}</dd>
+        </div>
+      }
+      <div class="hero__celda">
+        <dt class="mono">Contacto directo</dt>
+        <dd class="hero__valor">
+          <a class="enlace" [href]="site.whatsapp" target="_blank" rel="noopener">{{ site.telefono }}</a>
+        </dd>
+      </div>
+    </dl>
+  </section>
+
+  <!-- ============ DIAGNÓSTICO ============ -->
+  <section #diagSeccion id="diagnostico" class="diag" aria-labelledby="diag-titulo">
+    <div class="shell diag__shell">
+      <div class="diag__texto">
+        <div class="diag__pegado">
+          <p #diagEyebrow class="mono diag__eyebrow">{{ diag.eyebrow }}</p>
+          <h2 #diagTitulo id="diag-titulo">{{ diag.titulo }}</h2>
+          <p #diagEntrada class="diag__entrada measure">{{ diag.entrada }}</p>
+        </div>
+      </div>
+
+      <div class="diag__cifras">
+        @for (c of diag.cifras; track c.titulo) {
+          <div #cifra class="cifra">
+            <!-- El borde de la tarjeta vive aqui y no en `border`: es el
+                 trazo que se dibuja al entrar en la seccion. La geometria
+                 del <rect> la fija el componente, que es quien conoce el
+                 radio y el tamano reales. -->
+            <svg #cifraTrazo class="cifra__trazo" aria-hidden="true" focusable="false">
+              <rect fill="none" />
+            </svg>
+            <p class="cifra__valor">
+              <span [appCountUp]="c.valor" [auto]="false">{{ c.valor }}</span><span class="cifra__sufijo">{{ c.sufijo }}</span>
+            </p>
+            <p class="cifra__titulo">{{ c.titulo }}</p>
+            <p class="cifra__detalle">{{ c.detalle }}</p>
+          </div>
+        }
+        <p #diagFuente class="mono diag__fuente">{{ diag.fuente }}</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ LOS TRES EJES ============ -->
+  <app-ejes />
+
+  <!-- ============ FIRMA DE MARCA ============ -->
+  <app-marca />
+
+  <!-- ============ PROGRAMAS Y SERVICIOS ============ -->
+  <app-programas />
+</main>
+
+<!-- ============ CONTACTO Y PIE ============ -->
+<app-contacto />

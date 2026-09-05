@@ -1,0 +1,60 @@
+<section #seccion id="ejes" class="ejes" aria-labelledby="ejes-titulo">
+  <div class="shell ejes__shell">
+    <!-- Encabezado fijo: el argumento se queda mientras la estructura se levanta -->
+    <header class="ejes__intro">
+      <p class="mono ejes__eyebrow">{{ intro.eyebrow }}</p>
+      <h2 id="ejes-titulo">{{ intro.titulo }}</h2>
+      <p class="ejes__entrada measure">{{ intro.entrada }}</p>
+
+      <!-- El hexagono de la marca se dibuja con el scroll -->
+      <div class="ejes__marca" aria-hidden="true">
+        <svg viewBox="0 0 173 194" fill="none">
+          <!-- El isotipo, tramo a tramo -->
+          @for (t of trazos; track $index) {
+            <path class="ejes__fantasma" [attr.d]="t" />
+          }
+          <!-- Todos los tramos avanzan a la vez: con un solo dasharray sobre
+               el conjunto, el contorno exterior se come casi todo el recorrido
+               y el resto del logo aparece de golpe al final. -->
+          @for (t of trazos; track $index) {
+            <path #trazo class="ejes__trazo" [attr.d]="t" />
+          }
+          @for (n of nodos; track $index) {
+            <circle
+              class="ejes__nodo"
+              [class.ejes__nodo--vivo]="nodoVivo($index)"
+              [attr.cx]="n.cx"
+              [attr.cy]="n.cy"
+              [attr.r]="n.r"
+            />
+          }
+        </svg>
+      </div>
+    </header>
+
+    <!-- Los tres ejes: el activo se abre, los otros esperan en una línea -->
+    <ol class="ejes__lista">
+      @for (e of ejes; track e.clave; let i = $index) {
+        <li
+          class="eje"
+          [class.eje--activo]="activo() === i"
+          [class.eje--pasado]="activo() > i"
+        >
+          <div class="eje__cabecera">
+            <span class="mono eje__n">{{ e.n }}</span>
+            <h3 class="eje__titulo">{{ e.titulo }}</h3>
+            <span class="mono eje__programa">{{ e.programa }}</span>
+          </div>
+
+          <div class="eje__cuerpo">
+            <div class="eje__interior">
+              <p class="eje__frase">{{ e.frase }}</p>
+              <p class="eje__detalle">{{ e.detalle }}</p>
+              <p class="mono eje__entrega">{{ e.entrega }}</p>
+            </div>
+          </div>
+        </li>
+      }
+    </ol>
+  </div>
+</section>

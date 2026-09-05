@@ -1,0 +1,305 @@
+/* ============================================================
+   ADN BUSINESS — Base, tipografia y reticula tecnica
+   ============================================================ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background: var(--void);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: var(--fs-body);
+  font-weight: var(--w-read);
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-synthesis-weight: none;
+  overflow-x: hidden;
+}
+
+/* Nada de saltos de linea dentro de una palabra: el fallo del sitio actual */
+h1,
+h2,
+h3,
+h4,
+p,
+li,
+a,
+button {
+  overflow-wrap: normal;
+  word-break: normal;
+  hyphens: manual;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  margin: 0;
+  font-weight: var(--w-announce);
+  text-wrap: balance;
+}
+
+h1 {
+  font-size: var(--fs-display);
+  line-height: 1;
+  letter-spacing: var(--tracking-display);
+}
+
+h2 {
+  font-size: var(--fs-h2);
+  line-height: 1.08;
+  letter-spacing: var(--tracking-h2);
+}
+
+h3 {
+  font-size: var(--fs-h3);
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+p {
+  margin: 0;
+  text-wrap: pretty;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+ul,
+ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+img,
+svg,
+canvas {
+  display: block;
+  max-width: 100%;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+:focus-visible {
+  outline: 2px solid var(--brand-light);
+  outline-offset: 3px;
+}
+
+/* ---------- Utilidades de composicion ---------- */
+
+.shell {
+  width: 100%;
+  max-width: var(--maxw);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+.measure {
+  max-width: var(--measure);
+}
+
+/* Etiqueta monoespaciada: el metadato tecnico.
+   Versales SIEMPRE con tracking >= 0.06em. */
+.mono {
+  font-family: var(--font-mono);
+  font-size: var(--fs-caption);
+  font-weight: var(--w-emph);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--text-3);
+  font-variant-numeric: tabular-nums;
+}
+
+.mono--ink {
+  color: var(--text-2);
+}
+
+/* ---------- La reticula: el gesto grafico propio ----------
+   Regla graduada en los bordes y cruces de registro en las
+   esquinas. Todo con gradientes estaticos: cero coste de
+   repintado por fotograma (importante para WebKit). */
+
+.frame {
+  position: relative;
+  border-block: 1px solid var(--line);
+}
+
+/* ticks de 8px cada 16px, como una regla de dibujo */
+.frame::before,
+.frame::after {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  height: 6px;
+  background-image: repeating-linear-gradient(
+    to right,
+    var(--line) 0 1px,
+    transparent 1px 16px
+  );
+  pointer-events: none;
+}
+
+.frame::before {
+  top: 0;
+}
+
+.frame::after {
+  bottom: 0;
+  transform: scaleY(-1);
+}
+
+/* Cruz de registro */
+.tick {
+  position: absolute;
+  width: 11px;
+  height: 11px;
+  pointer-events: none;
+  color: var(--line-strong);
+}
+
+.tick::before,
+.tick::after {
+  content: '';
+  position: absolute;
+  background: currentColor;
+}
+
+.tick::before {
+  inset-inline: 0;
+  top: 50%;
+  height: 1px;
+}
+
+.tick::after {
+  inset-block: 0;
+  left: 50%;
+  width: 1px;
+}
+
+/* Trama de fondo del papel: cuadricula tenue de 64px */
+.grid-paper {
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.022) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.022) 1px, transparent 1px);
+  background-size: 64px 64px;
+}
+
+/* ---------- Botones y enlaces (globales) ----------
+   Viven aqui y no en un componente: Angular encapsula los estilos por
+   componente, y el formulario de contacto tambien los usa. */
+
+.btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.625rem;
+  height: 50px;
+  padding-inline: 1.375rem;
+  font-size: var(--fs-small);
+  font-weight: var(--w-emph);
+  letter-spacing: var(--tracking-label);
+  border-radius: var(--r-md);
+  overflow: hidden;
+  transition:
+    transform var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-base) var(--ease-out),
+    border-color var(--dur-base) var(--ease-out),
+    background var(--dur-base) var(--ease-out);
+
+  svg {
+    width: 15px;
+    flex-shrink: 0;
+    transition: transform var(--dur-base) var(--ease-fluid);
+  }
+
+  &:hover svg {
+    transform: translateX(3px);
+  }
+
+  &:active {
+    transform: translateY(1px);
+  }
+}
+
+/* El unico relleno de marca de la pantalla */
+.btn--solido {
+  color: var(--on-fill);
+  background: linear-gradient(180deg, var(--brand-light), var(--brand));
+  box-shadow: var(--shadow-brand), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+
+  &:hover {
+    box-shadow:
+      0 20px 56px -18px rgba(92, 160, 180, 0.6),
+      inset 0 1px 0 rgba(255, 255, 255, 0.45);
+  }
+}
+
+/* Vidrio: canto refractado, no un simple borde */
+.btn--vidrio {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--line);
+  backdrop-filter: blur(12px);
+  box-shadow: var(--edge);
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.07);
+    border-color: var(--line-strong);
+  }
+}
+
+.btn--linea {
+  color: var(--text);
+  border: 1px solid var(--line);
+
+  &:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: var(--line-strong);
+  }
+}
+
+.enlace {
+  color: var(--text);
+  border-bottom: 1px solid var(--line-strong);
+  transition: border-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
+
+  &:hover {
+    color: var(--brand-light);
+    border-bottom-color: var(--brand-light);
+  }
+}
+
+/* ---------- Movimiento reducido ---------- */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

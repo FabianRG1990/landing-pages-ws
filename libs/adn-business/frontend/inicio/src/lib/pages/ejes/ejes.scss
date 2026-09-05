@@ -1,0 +1,228 @@
+/* ============================================================
+   LOS TRES EJES — el scroll levanta la estructura
+   ============================================================ */
+
+.ejes {
+  position: relative;
+  /* el radial viaja con la seccion; el --void sale para no tapar la trama */
+  background: radial-gradient(70% 55% at 22% 42%, rgba(92, 160, 180, 0.06), transparent 72%);
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.ejes__shell {
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+  gap: clamp(2.5rem, 6vw, 6rem);
+  align-items: start;
+  padding-block: clamp(3rem, 9vh, 6rem);
+}
+
+/* ---------- Encabezado ---------- */
+.ejes__intro {
+  position: relative;
+}
+
+.ejes__eyebrow {
+  margin-bottom: 1.25rem;
+  color: var(--warm);
+}
+
+.ejes__entrada {
+  margin-top: 1.5rem;
+  color: var(--text-2);
+}
+
+/* ---------- El hexagono de la marca ---------- */
+.ejes__marca {
+  margin-top: clamp(1.5rem, 4vh, 2.75rem);
+  width: clamp(180px, 20vw, 260px);
+
+  svg {
+    width: 100%;
+    overflow: visible;
+  }
+}
+
+/* El viewBox del isotipo mide 173 de ancho, no 240: el mismo grosor se veria
+   un 39% mas gordo, asi que los trazos bajan en la misma proporcion. */
+.ejes__fantasma {
+  stroke: var(--line-soft);
+  stroke-width: 1.1;
+}
+
+.ejes__trazo {
+  stroke: var(--brand-light);
+  stroke-width: 1.25;
+  filter: drop-shadow(0 0 6px rgba(127, 212, 236, 0.55));
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.ejes__nodo {
+  fill: var(--surface);
+  stroke: var(--line);
+  stroke-width: 1.1;
+  transition:
+    fill var(--dur-base) var(--ease-out),
+    stroke var(--dur-base) var(--ease-out);
+}
+
+.ejes__nodo--vivo {
+  fill: var(--brand-light);
+  stroke: var(--brand-light);
+  filter: drop-shadow(0 0 8px rgba(127, 212, 236, 0.75));
+}
+
+/* ---------- La lista de ejes ---------- */
+.ejes__lista {
+  border-top: 1px solid var(--line);
+}
+
+.eje {
+  position: relative;
+  padding-inline: 1.25rem;
+  border-bottom: 1px solid var(--line-soft);
+  border-radius: var(--r-md);
+  transition:
+    opacity var(--dur-slow) var(--ease-out),
+    background var(--dur-slow) var(--ease-out);
+  opacity: 0.3;
+}
+
+/* Filo de luz en el eje activo: marca dónde está el foco */
+.eje::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  border-radius: 2px;
+  background: linear-gradient(180deg, var(--brand-light), transparent);
+  opacity: 0;
+  transition: opacity var(--dur-slow) var(--ease-out);
+}
+
+.eje--activo::after {
+  opacity: 1;
+}
+
+.eje--activo {
+  background: linear-gradient(
+    100deg,
+    rgba(255, 255, 255, 0.045),
+    rgba(255, 255, 255, 0.008) 62%
+  );
+}
+
+.eje--activo,
+.eje--pasado {
+  opacity: 1;
+}
+
+.eje--pasado {
+  opacity: 0.55;
+}
+
+.eje__cabecera {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: baseline;
+  gap: 1rem;
+  padding-block: 1.125rem;
+}
+
+.eje__n {
+  color: var(--text-3);
+}
+
+.eje--activo .eje__n {
+  color: var(--brand-light);
+}
+
+.eje__titulo {
+  font-size: clamp(1.5rem, 1.1rem + 1.4vw, 2.25rem);
+  letter-spacing: var(--tracking-h2);
+}
+
+.eje__programa {
+  color: var(--text-3);
+  text-align: right;
+}
+
+/* El cuerpo se abre solo en el eje activo: el scroll dosifica la lectura */
+.eje__cuerpo {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows var(--dur-slow) var(--ease-fluid);
+}
+
+.eje--activo .eje__cuerpo {
+  grid-template-rows: 1fr;
+}
+
+.eje__interior {
+  /* un unico hijo: con varios, grid-template-rows: 0fr solo colapsa
+     la primera fila y las implicitas se quedan con altura automatica */
+  overflow: hidden;
+}
+
+.eje__frase {
+  font-size: var(--fs-h3);
+  font-weight: var(--w-emph);
+  max-width: 46ch;
+}
+
+.eje__detalle {
+  margin-top: 0.75rem;
+  color: var(--text-2);
+  max-width: 58ch;
+}
+
+/* Los entregables son el resultado del eje: ambar, como las cifras.
+   El azul se queda con el nodo, el trazo y el filo del eje activo. */
+.eje__entrega {
+  margin-top: 1rem;
+  padding-bottom: 1.5rem;
+  color: var(--warm);
+}
+
+/* ---------- Sin pin: se lee como documento ---------- */
+@media (max-width: 900px) {
+  .ejes {
+    min-height: 0;
+  }
+
+  .ejes__shell {
+    grid-template-columns: 1fr;
+    padding-block: clamp(4rem, 10vh, 6rem);
+  }
+
+  .ejes__marca {
+    width: 150px;
+  }
+
+  .eje,
+  .eje--pasado {
+    opacity: 1;
+  }
+
+  .eje__cuerpo {
+    grid-template-rows: 1fr;
+  }
+
+  .eje__cabecera {
+    grid-template-columns: auto 1fr;
+    row-gap: 0.25rem;
+  }
+
+  .eje__programa {
+    grid-column: 2;
+    text-align: left;
+  }
+
+}

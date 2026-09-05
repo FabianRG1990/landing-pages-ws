@@ -3,255 +3,606 @@
     {
       "target": "acuario",
       "public": "dist/apps/acuario/browser",
-      "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
-      "rewrites": [{ "source": "**", "destination": "/index.html" }],
+      "ignore": [
+        "firebase.json",
+        "**/.*",
+        "**/node_modules/**"
+      ],
+      "rewrites": [
+        {
+          "source": "**",
+          "destination": "/index.html"
+        }
+      ],
       "headers": [
         {
           "source": "**/*.@(woff2|woff|ttf|otf)",
           "headers": [
-            { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" },
-            { "key": "Access-Control-Allow-Origin", "value": "*" }
+            {
+              "key": "Cache-Control",
+              "value": "public, max-age=31536000, immutable"
+            },
+            {
+              "key": "Access-Control-Allow-Origin",
+              "value": "*"
+            }
           ]
         },
         {
           "source": "**/*.@(jpg|jpeg|png|webp|svg|avif|ico)",
-          "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "public, max-age=31536000, immutable"
+            }
+          ]
         },
         {
           "source": "**/*.@(js|css)",
-          "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "public, max-age=31536000, immutable"
+            }
+          ]
         },
         {
           "source": "**/*.html",
-          "headers": [{ "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }]
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "public, max-age=0, must-revalidate"
+            }
+          ]
         }
       ]
     },
     {
       "target": "arias",
       "public": "dist/apps/arias/browser",
-      "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
-      "rewrites": [{ "source": "**", "destination": "/index.html" }],
+      "ignore": [
+        "firebase.json",
+        "**/.*",
+        "**/node_modules/**"
+      ],
+      "rewrites": [
+        {
+          "source": "**",
+          "destination": "/index.html"
+        }
+      ],
       "headers": [
         {
           "source": "**/*.@(woff2|woff|ttf|otf)",
           "headers": [
-            { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" },
-            { "key": "Access-Control-Allow-Origin", "value": "*" }
+            {
+              "key": "Cache-Control",
+              "value": "public, max-age=31536000, immutable"
+            },
+            {
+              "key": "Access-Control-Allow-Origin",
+              "value": "*"
+            }
           ]
         },
         {
           "source": "**/*.@(jpg|jpeg|png|webp|svg|avif|ico)",
-          "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "public, max-age=31536000, immutable"
+            }
+          ]
         },
         {
           "source": "**/*.@(js|css)",
-          "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "public, max-age=31536000, immutable"
+            }
+          ]
         },
         {
           "source": "**/*.html",
-          "headers": [{ "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }]
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "public, max-age=0, must-revalidate"
+            }
+          ]
         }
       ]
     },
     {
       "target": "vindas",
       "public": "dist/apps/vindas/browser",
-      "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
-      "rewrites": [{ "source": "**", "destination": "/index.html" }],
+      "ignore": [
+        "firebase.json",
+        "**/.*",
+        "**/node_modules/**"
+      ],
+      "rewrites": [
+        {
+          "source": "**",
+          "destination": "/index.html"
+        }
+      ],
       "headers": [
         {
           "source": "**/*.@(woff2|woff|ttf|otf)",
           "headers": [
-            { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" },
-            { "key": "Access-Control-Allow-Origin", "value": "*" }
+            {
+              "key": "Cache-Control",
+              "value": "public, max-age=31536000, immutable"
+            },
+            {
+              "key": "Access-Control-Allow-Origin",
+              "value": "*"
+            }
           ]
         },
         {
           "source": "**/*.@(jpg|jpeg|png|webp|svg|avif|ico)",
-          "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "public, max-age=31536000, immutable"
+            }
+          ]
         },
         {
           "source": "**/*.@(js|css)",
-          "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "public, max-age=31536000, immutable"
+            }
+          ]
         },
         {
           "source": "**/*.html",
-          "headers": [{ "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }]
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "public, max-age=0, must-revalidate"
+            }
+          ]
         }
       ]
     },
     {
       "target": "velox",
       "public": "dist/apps/velox/browser",
-      "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
-      "rewrites": [{ "source": "**", "destination": "/index.html" }],
+      "ignore": [
+        "firebase.json",
+        "**/.*",
+        "**/node_modules/**"
+      ],
+      "rewrites": [
+        {
+          "source": "**",
+          "destination": "/index.html"
+        }
+      ],
       "headers": [
         {
           "source": "**/*.@(woff2|woff|ttf|otf)",
           "headers": [
-            { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" },
-            { "key": "Access-Control-Allow-Origin", "value": "*" }
+            {
+              "key": "Cache-Control",
+              "value": "public, max-age=31536000, immutable"
+            },
+            {
+              "key": "Access-Control-Allow-Origin",
+              "value": "*"
+            }
           ]
         },
         {
           "source": "**/*.@(jpg|jpeg|png|webp|svg|avif|ico)",
-          "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "public, max-age=31536000, immutable"
+            }
+          ]
         },
         {
           "source": "**/*.@(mp4|webm|mov)",
-          "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "public, max-age=31536000, immutable"
+            }
+          ]
         },
         {
           "source": "**/*.@(js|css)",
-          "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "public, max-age=31536000, immutable"
+            }
+          ]
         },
         {
           "source": "**/*.html",
-          "headers": [{ "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }]
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "public, max-age=0, must-revalidate"
+            }
+          ]
         }
       ]
     },
     {
       "target": "interiorismo",
       "public": "dist/apps/interiorismo/browser",
-      "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
-      "rewrites": [{ "source": "**", "destination": "/index.html" }],
+      "ignore": [
+        "firebase.json",
+        "**/.*",
+        "**/node_modules/**"
+      ],
+      "rewrites": [
+        {
+          "source": "**",
+          "destination": "/index.html"
+        }
+      ],
       "headers": [
         {
           "source": "**/*.@(woff2|woff|ttf|otf)",
           "headers": [
-            { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" },
-            { "key": "Access-Control-Allow-Origin", "value": "*" }
+            {
+              "key": "Cache-Control",
+              "value": "public, max-age=31536000, immutable"
+            },
+            {
+              "key": "Access-Control-Allow-Origin",
+              "value": "*"
+            }
           ]
         },
         {
           "source": "**/*.@(jpg|jpeg|png|webp|svg|avif|ico)",
-          "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "public, max-age=31536000, immutable"
+            }
+          ]
         },
         {
           "source": "**/*.@(mp4|webm|mov)",
-          "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "public, max-age=31536000, immutable"
+            }
+          ]
         },
         {
           "source": "**/*.@(js|css)",
-          "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "public, max-age=31536000, immutable"
+            }
+          ]
         },
         {
           "source": "**/*.html",
-          "headers": [{ "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }]
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "public, max-age=0, must-revalidate"
+            }
+          ]
         }
       ]
     },
     {
       "target": "cafe-rosa",
       "public": "dist/apps/cafe-rosa/browser",
-      "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
-      "rewrites": [{ "source": "**", "destination": "/index.html" }],
+      "ignore": [
+        "firebase.json",
+        "**/.*",
+        "**/node_modules/**"
+      ],
+      "rewrites": [
+        {
+          "source": "**",
+          "destination": "/index.html"
+        }
+      ],
       "headers": [
         {
           "source": "**/*.@(woff2|woff|ttf|otf)",
           "headers": [
-            { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" },
-            { "key": "Access-Control-Allow-Origin", "value": "*" }
+            {
+              "key": "Cache-Control",
+              "value": "public, max-age=31536000, immutable"
+            },
+            {
+              "key": "Access-Control-Allow-Origin",
+              "value": "*"
+            }
           ]
         },
         {
           "source": "**/*.@(jpg|jpeg|png|webp|svg|avif|ico)",
-          "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "public, max-age=31536000, immutable"
+            }
+          ]
         },
         {
           "source": "**/*.@(js|css)",
-          "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "public, max-age=31536000, immutable"
+            }
+          ]
         },
         {
           "source": "**/*.html",
-          "headers": [{ "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }]
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "public, max-age=0, must-revalidate"
+            }
+          ]
         }
       ]
     },
     {
       "target": "aros-alex",
       "public": "dist/apps/aros-alex/browser",
-      "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
-      "rewrites": [{ "source": "**", "destination": "/index.html" }],
+      "ignore": [
+        "firebase.json",
+        "**/.*",
+        "**/node_modules/**"
+      ],
+      "rewrites": [
+        {
+          "source": "**",
+          "destination": "/index.html"
+        }
+      ],
       "headers": [
         {
           "source": "**/*.@(woff2|woff|ttf|otf)",
           "headers": [
-            { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" },
-            { "key": "Access-Control-Allow-Origin", "value": "*" }
+            {
+              "key": "Cache-Control",
+              "value": "public, max-age=31536000, immutable"
+            },
+            {
+              "key": "Access-Control-Allow-Origin",
+              "value": "*"
+            }
           ]
         },
         {
           "source": "**/*.@(jpg|jpeg|png|webp|svg|avif|ico)",
-          "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "public, max-age=31536000, immutable"
+            }
+          ]
         },
         {
           "source": "**/*.@(js|css)",
-          "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "public, max-age=31536000, immutable"
+            }
+          ]
         },
         {
           "source": "**/*.html",
-          "headers": [{ "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }]
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "public, max-age=0, must-revalidate"
+            }
+          ]
         }
       ]
     },
     {
       "target": "automotivo",
       "public": "dist/apps/automotivo/browser",
-      "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
-      "rewrites": [{ "source": "**", "destination": "/index.html" }],
+      "ignore": [
+        "firebase.json",
+        "**/.*",
+        "**/node_modules/**"
+      ],
+      "rewrites": [
+        {
+          "source": "**",
+          "destination": "/index.html"
+        }
+      ],
       "headers": [
         {
           "source": "**/*.@(woff2|woff|ttf|otf)",
           "headers": [
-            { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" },
-            { "key": "Access-Control-Allow-Origin", "value": "*" }
+            {
+              "key": "Cache-Control",
+              "value": "public, max-age=31536000, immutable"
+            },
+            {
+              "key": "Access-Control-Allow-Origin",
+              "value": "*"
+            }
           ]
         },
         {
           "source": "**/*.@(jpg|jpeg|png|webp|svg|avif|ico)",
-          "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "public, max-age=31536000, immutable"
+            }
+          ]
         },
         {
           "source": "**/*.@(js|css)",
-          "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "public, max-age=31536000, immutable"
+            }
+          ]
         },
         {
           "source": "**/*.html",
-          "headers": [{ "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }]
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "public, max-age=0, must-revalidate"
+            }
+          ]
         }
       ]
     },
     {
       "target": "bolleria",
       "public": "dist/apps/bolleria/browser",
-      "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
-      "rewrites": [{ "source": "**", "destination": "/index.html" }],
+      "ignore": [
+        "firebase.json",
+        "**/.*",
+        "**/node_modules/**"
+      ],
+      "rewrites": [
+        {
+          "source": "**",
+          "destination": "/index.html"
+        }
+      ],
       "headers": [
         {
           "source": "**/*.@(woff2|woff|ttf|otf)",
           "headers": [
-            { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" },
-            { "key": "Access-Control-Allow-Origin", "value": "*" }
+            {
+              "key": "Cache-Control",
+              "value": "public, max-age=31536000, immutable"
+            },
+            {
+              "key": "Access-Control-Allow-Origin",
+              "value": "*"
+            }
           ]
         },
         {
           "source": "**/*.@(jpg|jpeg|png|webp|svg|avif|ico)",
-          "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "public, max-age=31536000, immutable"
+            }
+          ]
         },
         {
           "source": "**/*.@(js|css)",
-          "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "public, max-age=31536000, immutable"
+            }
+          ]
         },
         {
           "source": "**/*.html",
-          "headers": [{ "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }]
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "public, max-age=0, must-revalidate"
+            }
+          ]
         },
         {
           "source": "/",
-          "headers": [{ "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }]
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "public, max-age=0, must-revalidate"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "target": "adn-business",
+      "public": "dist/apps/adn-business/browser",
+      "ignore": [
+        "firebase.json",
+        "**/.*",
+        "**/node_modules/**"
+      ],
+      "rewrites": [
+        {
+          "source": "**",
+          "destination": "/index.html"
+        }
+      ],
+      "headers": [
+        {
+          "source": "**/*.@(woff2|woff|ttf|otf)",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "public, max-age=31536000, immutable"
+            },
+            {
+              "key": "Access-Control-Allow-Origin",
+              "value": "*"
+            }
+          ]
+        },
+        {
+          "source": "**/*.@(jpg|jpeg|png|webp|svg|avif|ico)",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "public, max-age=31536000, immutable"
+            }
+          ]
+        },
+        {
+          "source": "**/*.@(js|css)",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "public, max-age=31536000, immutable"
+            }
+          ]
+        },
+        {
+          "source": "**/*.html",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "public, max-age=0, must-revalidate"
+            }
+          ]
+        },
+        {
+          "source": "/",
+          "headers": [
+            {
+              "key": "Cache-Control",
+              "value": "public, max-age=0, must-revalidate"
+            }
+          ]
         }
       ]
     }

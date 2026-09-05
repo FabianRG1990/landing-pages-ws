@@ -41,6 +41,10 @@ export default [
               onlyDependOnLibsWithTags: ['scope:velox', 'scope:shared'],
             },
             {
+              sourceTag: 'scope:adn-business',
+              onlyDependOnLibsWithTags: ['scope:adn-business', 'scope:shared'],
+            },
+            {
               sourceTag: 'scope:interiorismo',
               onlyDependOnLibsWithTags: [
                 'scope:interiorismo',
