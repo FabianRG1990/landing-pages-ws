@@ -1,5 +1,46 @@
 .bol-book {
-  max-width: 1200px;
+  // 1500 y no 1200: es lo que necesita el escenario nuevo (1450) mas su
+  // padding lateral. Ver `--libro-w` justo debajo.
+  max-width: 1500px;
+
+  // ─── Tamano del libro en escritorio ──────────────────────────────────────
+  // Un solo valor manda el ancho del escenario Y los dos margenes negativos
+  // que lo pegan al titulo y a los botones, para que la composicion escale
+  // entera en vez de descuadrarse.
+  //
+  // Los tres terminos:
+  //   1450px  techo. Mas alla, el papel del video -860px nativos- se aplana de
+  //           forma visible. La pildora de navegacion NO es el limite: medida
+  //           la tinta bajo ella en los cuadros criticos (20, 35, 108 y 117) y
+  //           con el encuadre real de lectura, da 0 % a los tres tamanos.
+  //   100%    no desbordar el contenedor entre 901px y 1500px de ancho.
+  //   199vh   el limite REAL no es el ancho sino el ALTO. Medido en navegador:
+  //           el bloque de lectura -del borde superior del libro a la base de
+  //           los botones- crece a razon de 0,5024·W + 43,5 px. Despejar W para
+  //           que ese bloque quepa en 100vh dejando ~48px de aire arriba y
+  //           abajo da 199,05vh - 277,7px. Asi el libro asentado es todo lo
+  //           grande que la ventana permite y nunca se sale.
+  //
+  // Dos concesiones, las dos deliberadas y medidas:
+  //
+  // 1. El titulo puede quedar fuera de cuadro mientras se lee. Con el escenario
+  //    fijo de 1040px el libro abierto media 850x487 en TODO monitor, de 1366 a
+  //    2560 de ancho; con esto son 1185x679 en uno de 1080p.
+  //
+  // 2. La TAPA, al abrirse, vuela mucho mas alto que el libro en reposo: la
+  //    escena completa -de la tapa levantada a la base de los botones- pide
+  //    0,692·W + 43,5 px, o sea 1074 px a 1450. Una ventana de 1080p da 945,
+  //    asi que no hay posicion de scroll que evite cortar algo: o la tapa por
+  //    arriba o los botones por abajo. Los 1040px de antes estaban calibrados
+  //    justo para ese vuelo -la tapa se salia 8 px-; a 1450 se sale 188. Se
+  //    acepta a proposito: el corte dura ~0,4 s y solo al abrir, mientras que
+  //    el libro asentado -lo que se mira el resto del tiempo- gana un 39 %. En
+  //    un monitor QHD el vuelo cabe entero y no se corta nada.
+  //
+  //    Si algun dia se quiere recuperar el vuelo entero SIN encoger el libro,
+  //    el camino es que la escena se asiente al abrir (arrancar la apertura a
+  //    ~0,82 de escala y crecer hasta 1 con `.is-lifting`), no bajar el techo.
+  --libro-w: min(1450px, 100%, calc(199vh - 278px));
   // 120px (no los ~48px de antes): pegado a la grilla de categorias de arriba
   // (fotos grandes, con scrim oscuro) se leia como si fuera parte del mismo
   // bloque en vez de una seccion nueva -este aire extra marca el corte.
@@ -62,14 +103,19 @@
 .bol-book__stage {
   position: relative;
   z-index: 2; // por encima del titulo (ver .bol-book__head): la tapa lo tapa a proposito al abrir
-  width: min(1040px, 100%);
+  width: var(--libro-w);
   // Negativo a proposito: dentro del cuadro fijo, el libro en reposo deja
   // ~223px de aire transparente arriba (medido en los 169 cuadros del video).
   // Este margen "acerca" el titulo al libro real, aceptando que durante el
   // instante en que la tapa se abre (sube hasta quedar a solo ~24px del techo
   // del cuadro) va a taparlo brevemente -ver .is-lifting para el efecto que
   // acompaña ese momento.
-  margin: -176px auto 0;
+  //
+  // El valor era -176px, calibrado contra el escenario FIJO de 1040x844. Ahora
+  // que el escenario escala, el margen escala con el: -176/1040 = -0,169231.
+  // A 1040px da exactamente -176px, o sea que el encuadre de hoy se conserva
+  // intacto y solo cambia de escala.
+  margin: calc(var(--libro-w) * -0.169231) auto 0;
   aspect-ratio: 860 / 698;
 
   // En telefono este bloque estaba encima de su propia cabecera.
@@ -244,7 +290,9 @@
   // escalado a pantalla). Este margen negativo "acerca" los botones a donde
   // realmente terminan los pixeles del libro, dejando ~29px de aire real de
   // sobra en el peor caso -> nunca se solapa con el libro.
-  margin-top: -100px;
+  // Igual que el margen del escenario: -100px era el aire bajo un libro de
+  // 844px de alto y ahora escala con el, -100/1040 = -0,096154.
+  margin-top: calc(var(--libro-w) * -0.096154);
   min-height: 46px;
 
   // Mismo problema que en `.bol-book__stage`: -100px es el aire que sobra bajo
@@ -399,14 +447,19 @@
 // Ver la nota larga en site-nav.component.scss.
 //
 // El libro es la pieza que peor lo llevaba, y por una razón medible: su alto
-// sale del ANCHO disponible -`width: min(1040px, 100%)` y luego la proporción
-// 860/698 del vídeo-, así que en una pantalla baja pide más alto del que hay:
+// salía del ANCHO disponible -un `width` fijo y luego la proporción 860/698 del
+// vídeo-, así que en una pantalla baja pedía más alto del que hay:
 //
 //   iPhone 15 acostado   852x393   el lienzo pedía 997x809   (2,1 pantallas)
 //   laptop de 14"       1280x720   el lienzo pedía 1040x844  (1,2 pantallas)
 //
 // La cura es invertir de quién depende: en estas pantallas manda la ALTURA y el
 // ancho lo deriva `aspect-ratio`. Así el libro entra entero siempre.
+//
+// En ESCRITORIO esto ya no hace falta como excepción: el término `199vh` de
+// `--libro-w` aplica esa misma inversión de forma continua a cualquier altura
+// de ventana, no solo por debajo de un escalón. Lo que sigue abajo es solo
+// para el teléfono acostado, donde la regla de móvil juega en contra.
 //
 // El margen negativo también se vuelve relativo. Los -176px de arriba son el
 // 20,9 % de un libro de 844, y ese porcentaje es lo que hay que conservar: es
@@ -432,16 +485,11 @@
   }
 }
 
-// Laptop pequeña. 118vh de ancho da 95,8vh de alto, o sea que el libro ocupa
-// siempre el mismo trozo de pantalla en vez de crecer con el ancho del monitor.
-// El 20,9 % de 95,8vh son exactamente 20vh, así que la proporción del margen se
-// conserva en todo el escalón sin depender del tamaño concreto.
+// Laptop pequeña. El tamaño del libro ya lo resuelve `--libro-w` (su término
+// `199vh` es continuo y cubre este caso), así que aquí solo queda recortar el
+// aire de debajo, que en una pantalla baja es lo único que sobra.
 @media (max-height: 760px) and (min-width: 901px) {
   .bol-book {
     padding-bottom: 56px;
-  }
-  .bol-book__stage {
-    width: min(1040px, 100%, 118vh);
-    margin: -20vh auto 0;
   }
 }
