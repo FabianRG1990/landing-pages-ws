@@ -1,71 +1,95 @@
 <section class="bol-book">
-  <div class="bol-book__head">
-    <div class="bol-book__eyebrow">Acerca de nosotros</div>
-    <h2 class="bol-book__title">Nuestra historia, <em>página a página</em></h2>
-    <p class="bol-book__hint">Abrí el libro y conocé cómo empezamos.</p>
-  </div>
+  <!-- El libro ya no tiene botones: se recorre con el scroll.
+       El scroll NO se intercepta en ningún momento —a diferencia del hero, que
+       sí tiene controlador de paradas—. Esta pista solo aporta RECORRIDO: el
+       componente lee en qué punto de ella está la ventana y deriva de ahí la
+       página, llamando a los mismos open()/next()/prev() de siempre.
 
-  <div class="bol-book__stage">
-    <canvas #canvas class="bol-book__canvas" [class.is-ready]="ready()" [class.is-lifting]="lifting()"></canvas>
-    @if (!coverOpen()) {
-      <button type="button" class="bol-book__cover-hit" [disabled]="busy() || !ready()" (click)="open()" aria-label="Abrir el libro"></button>
-    }
-    <!-- TODO se dibuja sobre el canvas -fotos, texto y los propios botones de
-         redes, que son tinta de la página de cierre (ver drawSocialButton)-.
-         Estos dos <a> son solo el área que se puede pulsar: van vacíos y sin
-         pintar nada, colocados justo encima del cajetín dibujado con las
-         medidas que da socialLinkStyle. El puntero encima marca el cajetín
-         repintando la hoja, porque un bitmap no responde al hover por sí solo. -->
-    @if (showSocialLinks()) {
-      <a
-        [href]="contact.instagram"
-        target="_blank"
-        rel="noopener"
-        class="bol-book__social-hit"
-        [ngStyle]="socialLinkStyle('instagram')"
-        aria-label="Seguinos en Instagram"
-        (mouseenter)="marcaSocial('instagram')"
-        (mouseleave)="marcaSocial(null)"
-        (focus)="marcaSocial('instagram')"
-        (blur)="marcaSocial(null)"
-      ></a>
-      <a
-        [href]="contact.facebook"
-        target="_blank"
-        rel="noopener"
-        class="bol-book__social-hit"
-        [ngStyle]="socialLinkStyle('facebook')"
-        aria-label="Seguinos en Facebook"
-        (mouseenter)="marcaSocial('facebook')"
-        (mouseleave)="marcaSocial(null)"
-        (focus)="marcaSocial('facebook')"
-        (blur)="marcaSocial(null)"
-      ></a>
-    }
-  </div>
+       Tres piezas, y las tres miden lo que dicen para que el componente no
+       tenga que repetir ninguna constante del SCSS:
+         · __pin      la escena anclada, una pantalla de alto;
+         · __recorrido  el scroll que se reparte entre las siete vueltas;
+         · __remate   la permanencia en la página de cierre, para que sus
+                      enlaces de redes no se escapen antes de poder pulsarlos. -->
+  <div class="bol-book__track" #track>
+    <div class="bol-book__pin">
+      <!-- La cabecera va DENTRO del anclaje, no encima: el segmento tiene que
+           verse entero -titulo y libro a la vez- desde el primer momento, y
+           quedarse asi mientras se pasan las paginas. El escenario la solapa
+           por capas a proposito (z-index 2 contra 1): al abrirse, la tapa sube
+           y la tapa un instante, que es el efecto de siempre. -->
+      <div class="bol-book__head">
+        <div class="bol-book__eyebrow">Acerca de nosotros</div>
+        <h2 class="bol-book__title">Nuestra historia, <em>página a página</em></h2>
+        <p class="bol-book__hint">Seguí bajando para recorrerlo.</p>
+      </div>
 
-  <div class="bol-book__controls">
-    @if (!coverOpen()) {
-      <button type="button" class="bol-book__open" [disabled]="busy() || !ready()" (click)="open()">
-        <span>Abrir el libro</span>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
-      </button>
-    } @else if (current() === last) {
-      <button type="button" class="bol-book__nav bol-book__nav--prev" [disabled]="busy()" (click)="prev()">
-        <svg width="10" height="16" viewBox="0 0 14 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M10 2 3 11l7 9" /></svg>
-        Anterior
-      </button>
-      <button type="button" class="bol-book__restart" [disabled]="busy()" (click)="restart()">Volver a la portada</button>
-    } @else {
-      <button type="button" class="bol-book__nav bol-book__nav--prev" [disabled]="busy() || current() === 1" (click)="prev()">
-        <svg width="10" height="16" viewBox="0 0 14 22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M10 2 3 11l7 9" /></svg>
-        Anterior
-      </button>
-      <div class="bol-book__counter">{{ pad(current()) }} / {{ pad(last) }}</div>
-      <button type="button" class="bol-book__nav bol-book__nav--next" [disabled]="busy()" (click)="next()">
-        Siguiente
-        <span class="bol-book__wheat" aria-hidden="true"></span>
-      </button>
-    }
+      <!-- Envoltorio del escenario. Existe por una razon concreta: el escenario
+           lleva margenes negativos arriba y abajo -se pega a la cabecera y se
+           come el aire transparente que el video deja bajo el libro- y sin un
+           contexto de formato propio esos margenes se colapsan hacia fuera y el
+           centrado del pin cuenta mal. Ver `.bol-book__escena` en el SCSS. -->
+      <div class="bol-book__escena">
+        <div
+          class="bol-book__stage"
+          tabindex="0"
+          role="group"
+          aria-roledescription="libro"
+          [attr.aria-label]="'Nuestra historia, página ' + estado() + ' de ' + last"
+          aria-describedby="bol-book-ayuda"
+          (keydown)="alTeclado($event)"
+        >
+          <canvas #canvas class="bol-book__canvas" [class.is-ready]="ready()" [class.is-lifting]="lifting()"></canvas>
+          <!-- TODO se dibuja sobre el canvas -fotos, texto y los propios botones de
+               redes, que son tinta de la página de cierre (ver drawSocialButton)-.
+               Estos dos <a> son solo el área que se puede pulsar: van vacíos y sin
+               pintar nada, colocados justo encima del cajetín dibujado con las
+               medidas que da socialLinkStyle. El puntero encima marca el cajetín
+               repintando la hoja, porque un bitmap no responde al hover por sí solo. -->
+          @if (showSocialLinks()) {
+            <a
+              [href]="contact.instagram"
+              target="_blank"
+              rel="noopener"
+              class="bol-book__social-hit"
+              [ngStyle]="socialLinkStyle('instagram')"
+              aria-label="Seguinos en Instagram"
+              (mouseenter)="marcaSocial('instagram')"
+              (mouseleave)="marcaSocial(null)"
+              (focus)="marcaSocial('instagram')"
+              (blur)="marcaSocial(null)"
+            ></a>
+            <a
+              [href]="contact.facebook"
+              target="_blank"
+              rel="noopener"
+              class="bol-book__social-hit"
+              [ngStyle]="socialLinkStyle('facebook')"
+              aria-label="Seguinos en Facebook"
+              (mouseenter)="marcaSocial('facebook')"
+              (mouseleave)="marcaSocial(null)"
+              (focus)="marcaSocial('facebook')"
+              (blur)="marcaSocial(null)"
+            ></a>
+          }
+        </div>
+      </div>
+
+      <!-- Sin nada a la vista: quitar los botones deja sin manejo a quien no
+           puede usar el scroll con precisión. Estos controles no se ven pero sí
+           se enfocan y los anuncia un lector de pantalla; no llaman a next()
+           directamente sino que MUEVEN EL SCROLL a la página pedida, para que
+           la posición de la ventana siga siendo la única fuente de verdad. -->
+      <p id="bol-book-ayuda" class="bol-book__sr">
+        Siete páginas. Se pasan bajando y subiendo con el scroll, o con las flechas del teclado.
+      </p>
+      <div class="bol-book__sr">
+        <button type="button" (click)="irAIndice(estado() - 1)" [disabled]="estado() <= 0">Página anterior</button>
+        <button type="button" (click)="irAIndice(estado() + 1)" [disabled]="estado() >= last">Página siguiente</button>
+      </div>
+    </div>
+
+    <div class="bol-book__recorrido" #recorrido></div>
+    <div class="bol-book__remate"></div>
   </div>
 </section>
