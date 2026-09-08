@@ -1,0 +1,4 @@
+Assets propios de la versión 2.
+
+El build lee primero apps/bolleria/public (compartida) y luego esta carpeta.
+Aquí van los cuadros y las imágenes del hero nuevo.

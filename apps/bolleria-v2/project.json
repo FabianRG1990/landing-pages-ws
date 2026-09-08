@@ -1,0 +1,126 @@
+{
+  "name": "bolleria-v2",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "prefix": "bol",
+  "sourceRoot": "apps/bolleria-v2/src",
+  "tags": [
+    "scope:bolleria-v2"
+  ],
+  "targets": {
+    "paridad": {
+      "executor": "nx:run-commands",
+      "cache": false,
+      "options": {
+        "command": "node tools/paridad-bolleria/verificar.mjs"
+      }
+    },
+    "build": {
+      "executor": "@angular/build:application",
+      "dependsOn": [
+        "^build",
+        "paridad"
+      ],
+      "outputs": [
+        "{options.outputPath}"
+      ],
+      "options": {
+        "outputPath": "dist/apps/bolleria-v2",
+        "browser": "apps/bolleria-v2/src/main.ts",
+        "index": "apps/bolleria-v2/src/index.html",
+        "tsConfig": "apps/bolleria-v2/tsconfig.app.json",
+        "polyfills": [
+          "zone.js"
+        ],
+        "inlineStyleLanguage": "scss",
+        "assets": [
+          {
+            "glob": "**/*",
+            "input": "apps/bolleria/public"
+          },
+          {
+            "glob": "**/*",
+            "input": "apps/bolleria-v2/public"
+          }
+        ],
+        "styles": [
+          "apps/bolleria-v2/src/styles.scss"
+        ],
+        "server": "apps/bolleria-v2/src/main.server.ts",
+        "outputMode": "static",
+        "allowedCommonJsDependencies": [
+          "@babel/runtime",
+          "core-js",
+          "raf",
+          "rgbcolor"
+        ]
+      },
+      "configurations": {
+        "production": {
+          "budgets": [
+            {
+              "type": "initial",
+              "maximumWarning": "1mb",
+              "maximumError": "1.5mb"
+            },
+            {
+              "type": "anyComponentStyle",
+              "maximumWarning": "18kb",
+              "maximumError": "24kb"
+            }
+          ],
+          "outputHashing": "all"
+        },
+        "development": {
+          "optimization": false,
+          "extractLicenses": false,
+          "sourceMap": true,
+          "assets": [
+            {
+              "glob": "**/*",
+              "input": "apps/bolleria/public"
+            },
+            {
+              "glob": "**/*",
+              "input": "apps/bolleria-v2/public"
+            },
+            {
+              "glob": "**/*",
+              "input": "tools/bolleria"
+            }
+          ]
+        }
+      },
+      "defaultConfiguration": "production"
+    },
+    "serve": {
+      "continuous": true,
+      "executor": "@angular/build:dev-server",
+      "options": {
+        "port": 4212
+      },
+      "configurations": {
+        "production": {
+          "buildTarget": "bolleria-v2:build:production"
+        },
+        "development": {
+          "buildTarget": "bolleria-v2:build:development"
+        }
+      },
+      "defaultConfiguration": "development"
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    },
+    "serve-static": {
+      "continuous": true,
+      "executor": "@nx/web:file-server",
+      "options": {
+        "buildTarget": "bolleria-v2:build",
+        "port": 4212,
+        "staticFilePath": "dist/apps/bolleria-v2/browser",
+        "spa": true
+      }
+    }
+  }
+}
