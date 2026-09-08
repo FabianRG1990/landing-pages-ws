@@ -63,6 +63,10 @@ export default [
               sourceTag: 'scope:bolleria',
               onlyDependOnLibsWithTags: ['scope:bolleria', 'scope:shared'],
             },
+            {
+              sourceTag: 'scope:bolleria-v2',
+              onlyDependOnLibsWithTags: ['scope:bolleria-v2', 'scope:shared'],
+            },
           ],
         },
       ],

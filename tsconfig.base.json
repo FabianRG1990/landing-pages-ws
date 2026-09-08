@@ -122,6 +122,19 @@
       "@bolleria-ui-menu": ["./libs/bolleria/frontend/menu/src/index.ts"],
       "@bolleria-ui-contacto": [
         "./libs/bolleria/frontend/contacto/src/index.ts"
+      ],
+      "@bolleria-v2-ui-shared": [
+        "./libs/bolleria-v2/frontend/shared/src/index.ts"
+      ],
+      "@bolleria-v2-ui-shared/*": [
+        "./libs/bolleria-v2/frontend/shared/src/lib/*"
+      ],
+      "@bolleria-v2-ui-inicio": [
+        "./libs/bolleria-v2/frontend/inicio/src/index.ts"
+      ],
+      "@bolleria-v2-ui-menu": ["./libs/bolleria-v2/frontend/menu/src/index.ts"],
+      "@bolleria-v2-ui-contacto": [
+        "./libs/bolleria-v2/frontend/contacto/src/index.ts"
       ]
     }
   },
