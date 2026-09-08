@@ -1,0 +1,632 @@
+// El logo sigue suelto sobre la página, sin tarjeta ni sombra de "componente
+// flotante" debajo — igual que en el hero. Pero los links + CTA ahora sí
+// viven dentro de un objeto real: una píldora con doble filo dorado
+// y espigas a los costados, el mismo vocabulario del sello de cera del CTA y
+// del punto "•B" del logo, no una tarjeta de vidrio genérica. La diferencia
+// con la versión anterior (rechazada por "desentonar") es material: esto no
+// es blur/glass de UI, es una moldura grabada — opaca, con borde metálico
+// doble y ornamento de espiga, como una medalla o un sello de repostería.
+//
+// Al hacer scroll no aparece una tarjeta nueva: la franja superior sigue con
+// el mismo lavado suave de antes detrás del logo suelto; la píldora de la
+// derecha es un objeto permanente, no algo que aparece con el scroll.
+.bol-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 900;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 26px clamp(20px, 4vw, 44px);
+  background: linear-gradient(
+    to bottom,
+    rgba(250, 246, 236, 0) 0%,
+    rgba(250, 246, 236, 0) 100%
+  );
+  transition:
+    padding 0.35s,
+    background 0.35s;
+
+  &--compact {
+    padding: 15px clamp(20px, 4vw, 44px);
+    background: linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--cream) 88%, transparent) 0%,
+      color-mix(in srgb, var(--cream) 61%, transparent) 34%,
+      color-mix(in srgb, var(--cream) 24%, transparent) 65%,
+      transparent 100%
+    );
+  }
+}
+
+.bol-nav__brand {
+  display: flex;
+  align-items: center;
+  line-height: 0;
+  filter: drop-shadow(0 2px 6px rgba(46, 42, 28, 0.2));
+}
+
+.bol-nav__logo {
+  height: 58px;
+  width: auto;
+  display: block;
+  transition: height 0.35s;
+
+  .bol-nav--compact & {
+    height: 46px;
+  }
+}
+
+// Píldora corta y flotante, no una barra de borde a borde: un objeto joya,
+// no un componente de app. El "doble filo" se logra con dos anillos de
+// box-shadow (hairline dorado + hueco color crema + hairline dorado exterior)
+// en vez de un `border` + `outline`, porque box-shadow sí sigue el
+// border-radius de una píldora sin artefactos en las esquinas.
+.bol-nav__links {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  padding: 10px 44px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #fffdf8 0%, #faf3e2 100%);
+  box-shadow:
+    0 0 0 1px rgba(168, 124, 42, 0.6),
+    0 0 0 3.5px rgba(255, 253, 248, 0.97),
+    0 0 0 4.5px rgba(168, 124, 42, 0.35),
+    0 10px 24px -8px rgba(46, 42, 28, 0.3);
+
+  // Recorte real de la imagen de referencia (no un ícono redibujado): los
+  // intentos vectoriales no llegaban a "idéntico", así que esto es el
+  // laurel exacto, recortado del PNG que pasó el usuario, con un
+  // desvanecido suave en el borde del recorte (no en el laurel) para que
+  // encaje sin costura sobre el crema de la píldora.
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: 34px;
+    height: 34px;
+    background: url('nav-laurel.png') center / contain no-repeat;
+  }
+
+  &::before {
+    left: 8px;
+    transform: translateY(-50%);
+  }
+
+  &::after {
+    right: 8px;
+    transform: translateY(-50%) scaleX(-1);
+  }
+}
+
+// Versalitas Cinzel, el mismo lenguaje de los "eyebrows" del sitio
+// ("FERMENTACIÓN", "DE NUESTRO HORNO") — antes el nav usaba Jost, una
+// tipografía de UI genérica que no tenía relación con el resto de la marca.
+// El separador entre links es la misma espiga del ornamento de la píldora,
+// en miniatura, no un punto ni una barra genérica.
+//
+// El trazo bajo el link activo/hover no es una línea recta: es un SVG de un
+// trazo de tinta con leve ondulación, el mismo vocabulario de línea fina que
+// dibuja las espigas y el listón del fondo — "se dibuja" con un scaleX en vez
+// de aparecer de golpe, como una pincelada.
+.bol-nav__link {
+  position: relative;
+  padding-bottom: 7px;
+  font: 600 14px 'Cinzel', serif;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #4a4433;
+
+  &:not(:first-child)::before {
+    content: '';
+    position: absolute;
+    left: -16px;
+    top: 1px;
+    width: 8px;
+    height: 12px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 22'%3E%3Cpath d='M7 1v20M7 5c-1.8.3-3 1.5-3.6 3 1.8.9 3 .3 3.6-1.2M7 5c1.8.3 3 1.5 3.6 3-1.8.9-3 .3-3.6-1.2M7 11c-1.8.3-3 1.5-3.6 3 1.8.9 3 .3 3.6-1.2M7 11c1.8.3 3 1.5 3.6 3-1.8.9-3 .3-3.6-1.2' stroke='%23C8912A' stroke-width='1.3' fill='none' stroke-linecap='round'/%3E%3C/svg%3E")
+      center / contain no-repeat;
+    opacity: 0.75;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 7px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 10'%3E%3Cpath d='M2 5 C 20 2, 35 8, 50 5 S 80 2, 98 5 S 112 7, 118 5' stroke='%23C8912A' stroke-width='1.8' fill='none' stroke-linecap='round'/%3E%3C/svg%3E")
+      center / 100% 100% no-repeat;
+    transform: scaleX(0);
+    transform-origin: left center;
+    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  &--active::after {
+    transform: scaleX(1);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    &:hover::after {
+      transform: scaleX(1);
+    }
+  }
+
+  &--active {
+    color: var(--acc, #c8912a);
+  }
+}
+
+// CTA con el mismo tratamiento "metal grabado" del logo (degradado dorado +
+// filo claro arriba), en vez del relleno plano de antes. El ícono es una
+// espiga mínima, no un glifo genérico — coherente con la ilustración del
+// fondo, no decorativo porque sí.
+.bol-nav__cta {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font: 700 14px 'Cinzel', serif;
+  letter-spacing: 0.17em;
+  text-transform: uppercase;
+  padding: 11px 28px;
+  border-radius: 999px;
+  background: linear-gradient(155deg, #f0c675 0%, var(--acc, #c8912a) 50%, #96651a 100%);
+  color: #fffaf0;
+  // Degradado con más contraste (highlight claro arriba-izq, sombra cálida
+  // marcada abajo-der) para leer como metal grabado, no un relleno plano.
+  box-shadow:
+    inset 0 1.5px 0 rgba(255, 255, 255, 0.55),
+    inset 0 -2px 3px rgba(103, 68, 15, 0.4),
+    0 6px 16px -4px rgba(90, 58, 15, 0.55);
+  transition:
+    box-shadow 0.3s,
+    transform 0.2s;
+
+  &-icon {
+    color: #fffaf0;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      box-shadow:
+        inset 0 1.5px 0 rgba(255, 255, 255, 0.6),
+        inset 0 -2px 3px rgba(103, 68, 15, 0.4),
+        0 8px 20px -4px rgba(90, 58, 15, 0.6);
+      transform: translateY(-1px);
+    }
+  }
+}
+
+// Contador de productos agregados. Tinta sobre crema, no dorado — el CTA ya
+// es dorado, un badge del mismo tono se perdería encima. El anillo color
+// crema es el mismo valor que el fondo de la píldora (.bol-nav__links) sobre
+// el que este badge se asoma en su esquina superior derecha.
+.bol-nav__cta-badge {
+  position: absolute;
+  top: -8px;
+  right: -9px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--cream);
+  font: 600 12px 'Jost', sans-serif;
+  font-variant-numeric: lining-nums tabular-nums;
+  box-shadow: 0 0 0 2px rgba(250, 246, 236, 0.95);
+}
+
+// Sin isla ni vidrio en mobile tampoco — mismo tratamiento "impreso sobre la
+// página" que el resto, solo el ícono con su halo crema.
+// El area de toque medida era 36x29: por debajo del minimo de 44x44 de las
+// Human Interface Guidelines de Apple y de los 48x48 de Material. Se agranda
+// con `padding` y se compensa con un `margin` negativo identico, asi que el
+// icono queda EXACTAMENTE donde estaba y lo unico que crece es la superficie
+// que responde al dedo (52x45).
+.bol-nav__hamburger {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 10px;
+  margin: -10px;
+  background: none;
+  border: none;
+  color: #2e2a1c;
+  cursor: pointer;
+  filter: drop-shadow(0 1px 2px rgba(250, 246, 236, 0.9)) drop-shadow(0 2px 8px rgba(250, 246, 236, 0.6));
+}
+
+@media (max-width: 768px) {
+  .bol-nav__links {
+    display: none;
+  }
+  .bol-nav__hamburger {
+    display: flex;
+  }
+}
+
+// ── Telefono, arriba del todo: la pildora del escritorio, en pequeno ──
+//
+// Antes el telefono solo tenia el hamburguesa, de modo que entrar en la
+// portada no ofrecia ningun camino visible al menu: habia que saber que ese
+// icono abre algo. Ahora la misma pildora del escritorio —los mismos links,
+// los mismos laureles, el mismo doble filo dorado— se muestra mientras el
+// hero esta arriba del todo, y cede el sitio al hamburguesa en cuanto la
+// pagina se mueve (la misma clase `--compact` que ya encoge el logo, para que
+// no haya dos estados de scroll que puedan desincronizarse).
+//
+// Los numeros salen de medir, no de tantear. A tamano de escritorio la
+// pildora ocupa 535 px y junto al logo solo quedan 170-262 px segun el
+// telefono: reducirla entera al 32-49 % dejaria la letra en 4,5-7 px. Lo que
+// si entra es esta version —letra de 12 px, laureles de 15 y logo de 44— que
+// mide 224 px y deja 21 px de aire en el telefono mas estrecho que la recibe.
+//
+// El corte en 360 px no es redondo por gusto: por debajo (el iPhone SE viejo,
+// 320) NADA entra —medido: la pildora toca el logo y se sale 6 px— asi que
+// ahi se queda el hamburguesa de siempre. De 360 en adelante entran todos:
+// Galaxy S8 360, SE3 y 12 mini 375, iPhone 12/13 390, iPhone 15 393, Pixel 7
+// 412 y Pro Max 430.
+//
+// El CTA "Pedir" se queda fuera: con el subiria a 285 px y dejaria sin barra
+// a los telefonos de 360-390. No se pierde nada con ello, porque hoy en
+// telefono el carrito tampoco se abre desde la portada — `openCart()` solo se
+// llama desde ese boton, que estaba oculto.
+@media (min-width: 360px) and (max-width: 768px) {
+  // Absoluto para que los dos puedan cruzarse con un fundido: si el
+  // hamburguesa siguiera en el flujo, aparecer y desaparecer moveria la
+  // pildora de sitio. `right` descuenta los 10 px de relleno tactil para que
+  // el icono quede EXACTAMENTE donde estaba.
+  .bol-nav__hamburger {
+    position: absolute;
+    top: 50%;
+    right: calc(clamp(20px, 4vw, 44px) - 10px);
+    margin: 0;
+    transform: translateY(-50%);
+    transition: opacity 0.28s;
+  }
+
+  // El ancho total esta topado: a 360 px, descontando el margen de pagina, el
+  // logo y la separacion minima, quedan 233 px para TODA la pildora. Dentro de
+  // ese presupuesto hay que repartir relleno, laureles, letra y huecos, y la
+  // primera version se lo comio casi entero en letra: la de 12 px dejaba los
+  // laureles a 1 px de las palabras —medido— y el laurel no trae margen
+  // transparente que disimule (su tinta ocupa 89 de sus 90 px), asi que ese
+  // 1 px era el hueco real y se veia apelmazado.
+  //
+  // Ahora la letra baja a 10 px y ese ancho liberado se va a los huecos: 5-6 px
+  // a cada lado de los laureles y un espaciado entre letras de 0,17em, que es
+  // lo que le devuelve el aire del escritorio (0,22em) en vez del 0,07em
+  // apretado de antes. La pildora mide practicamente lo mismo —229 px contra
+  // 224— pero repartido de otra forma.
+  .bol-nav__links {
+    display: flex;
+    gap: 12px;
+    // 24 a la izquierda y 22 a la derecha, y la diferencia NO es un descuido:
+    // el espaciado entre letras se suma tambien DESPUES de la ultima letra, asi
+    // que con relleno simetrico el bloque de texto queda opticamente corrido a
+    // la izquierda. Restar esos ~1,7 px a la derecha lo centra de verdad.
+    padding: 8px 22px 8px 24px;
+    transition: opacity 0.28s;
+
+    &::before {
+      left: 5px;
+      width: 13px;
+      height: 13px;
+    }
+    &::after {
+      right: 5px;
+      width: 13px;
+      height: 13px;
+    }
+  }
+
+  .bol-nav__link {
+    font-size: 10px;
+    letter-spacing: 0.17em;
+    // El area de toque medida era de 21 px de alto, la mitad de los 44 que
+    // piden las Human Interface Guidelines. Se agranda con relleno y se
+    // compensa con margen negativo identico, asi que la pildora NO crece: lo
+    // unico que crece es la superficie que responde al dedo. Los dos adornos
+    // van anclados al borde de la caja, asi que se recolocan con el mismo
+    // desplazamiento para quedarse donde estaban.
+    padding: 13px 0 18px;
+    margin: -13px 0 -13px;
+
+    // Centrada en el hueco VISIBLE entre dos palabras, que no es el hueco de
+    // las cajas: la palabra anterior acaba 1,7 px antes de su borde por ese
+    // mismo espaciado final. Sin esta correccion la espiga quedaba pegada a la
+    // palabra de la izquierda y suelta de la derecha.
+    // El hueco visible va de -13,7 px (donde acaba la tinta de la palabra
+    // anterior: 12 de separacion mas 1,7 de espaciado final) al borde de esta
+    // caja. Centrar una espiga de 5 px en ese hueco la deja en -13,7/2 - 5/2.
+    // Vertical: medida la banda de mayusculas, va de 2 a 11 px dentro de la
+    // linea (centro en 6,5). La espiga de 8 px centrada ahi arranca en 2,5, que
+    // sumado al relleno superior de 13 da estos 15,5. Con los 14 de antes
+    // quedaba 1,5 px alta.
+    &:not(:first-child)::before {
+      top: 15.5px;
+      left: -9.35px;
+      width: 5px;
+      height: 8px;
+    }
+    // El subrayado tambien abarcaba el espaciado final y sobresalia de la
+    // palabra por la derecha; se recorta exactamente esa cantidad.
+    &::after {
+      right: 0.17em;
+      bottom: 13px;
+    }
+  }
+
+  .bol-nav__cta {
+    display: none;
+  }
+
+  // 44 px en los DOS estados: si arriba midiera 44 y al bajar volviera a los
+  // 46 de escritorio, el logo creceria al hacer scroll, que es al reves de lo
+  // que hace en todas partes.
+  .bol-nav__logo,
+  .bol-nav--compact .bol-nav__logo {
+    height: 44px;
+  }
+
+  .bol-nav:not(.bol-nav--compact) .bol-nav__hamburger {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .bol-nav--compact .bol-nav__links {
+    opacity: 0;
+    pointer-events: none;
+  }
+}
+
+.bol-mobile-menu {
+  position: fixed;
+  inset: 0;
+  // La ventana en su tamaño GRANDE (`lvh`), no el `100%` que implica `inset: 0`.
+  // En un móvil con barra de herramientas dinámica —Firefox de Android, medido
+  // el 2026-08-31— al retraerse la barra queda a la vista más pantalla de la
+  // que mide el elemento fijo, y se veía la página por una franja abajo.
+  // `lvh` es la altura con el cromo del navegador retraído, o sea el peor caso.
+  min-height: 100lvh;
+  z-index: 1200;
+  background: linear-gradient(160deg, #5e6a34, #3a4220);
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  // 6px de gap + 6px de padding por lado en cada link = los mismos 18px de
+  // separacion visual entre palabras que antes, pero con cada link a 53px de
+  // alto en vez de 41 (minimo tactil de 44).
+  gap: 6px;
+  transition: clip-path 0.55s cubic-bezier(0.7, 0, 0.3, 1);
+  clip-path: circle(0% at calc(100% - 40px) 40px);
+  display: flex;
+
+  &--open {
+    clip-path: circle(150% at calc(100% - 40px) 40px);
+    // El panel no tiene desplazamiento propio ni debe tenerlo: son tres
+    // enlaces centrados. Sin esto, el dedo se encadenaba al documento y movía
+    // la página de detrás con el menú abierto. El bloqueo de verdad lo hace
+    // `scrollLocked` (ver bolleria.store.ts); esto lo resuelve además en el
+    // compositor, sin depender de que un `preventDefault` llegue a tiempo.
+    touch-action: none;
+    overscroll-behavior: contain;
+  }
+}
+
+// 42x40 medidos -> 56x54. `top`/`right` bajan en la misma cantidad que el
+// padding, de modo que la cruz se dibuja en el mismo sitio de siempre.
+.bol-mobile-menu__close {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  padding: 7px;
+  background: none;
+  border: none;
+  color: var(--cream);
+  cursor: pointer;
+}
+
+.bol-mobile-menu__mark {
+  width: 96px;
+  margin-bottom: 14px;
+  opacity: 0.95;
+}
+
+.bol-mobile-menu__link {
+  font: 500 34px 'Cormorant Garamond', serif;
+  color: var(--cream);
+  padding: 6px 16px;
+}
+
+.bol-mobile-menu__tag {
+  margin-top: 20px;
+  font: 600 12px 'Cinzel', serif;
+  letter-spacing: 0.3em;
+  color: #e0b84a;
+}
+
+// ─── Pantallas BAJAS: teléfono acostado y laptop pequeña ──────────────────────
+//
+// El sitio entero se corta por ANCHURA —veinte breakpoints, ni uno por altura—
+// y estos dos aparatos no se definen por ser estrechos sino por ser bajos:
+//
+//   iPhone 15 acostado   852x393   la barra medía 113px = 29 % de la pantalla
+//   laptop de 14"       1280x720   la barra medía 113px = 16 %
+//   referencia          1440x900   la barra mide  113px = 13 %   <- así se queda
+//
+// La barra no encogía nunca: 26px de aire arriba y abajo más un logo de 58px,
+// midiera lo que midiera la pantalla. Acostado eso se comía casi un tercio del
+// alto útil y el contenido pasaba por debajo. Aquí se reduce el aire y el logo,
+// que es lo único que la hace alta; la píldora, los enlaces y el CTA no se
+// tocan, así que la barra sigue siendo el mismo objeto, solo que más ceñido.
+@media (max-height: 500px) and (orientation: landscape) {
+  .bol-nav {
+    padding: 6px clamp(16px, 3vw, 44px);
+
+    &--compact {
+      padding: 4px clamp(16px, 3vw, 44px);
+    }
+  }
+
+  .bol-nav__logo {
+    height: 30px;
+
+    .bol-nav--compact & {
+      height: 26px;
+    }
+  }
+
+  // El boton de PEDIR se retira aqui, y con el se va el suelo que tenia la
+  // barra. Medido en el aparato real (Galaxy S22 Ultra acostado, 796x298): el
+  // boton media 41px y era la pieza mas alta de la pildora, asi que la barra no
+  // podia bajar de 73px -el 24,5 % de la pantalla- sin encogerlo por debajo del
+  // tamano en que se falla al tocarlo.
+  //
+  // Sin el, la pildora la miden los enlaces (26px) y la barra cae a ~50px, el
+  // 17 %. En una pantalla de 298 eso son 23 puntos de contenido recuperados.
+  // MENU sigue en la barra, que es a donde llevaba el boton.
+  .bol-nav__cta {
+    display: none;
+  }
+
+  // Encoger el relleno sin encoger la LETRA no sirve de nada: 14px de Cinzel
+  // con 0,22em de tracking mas 7px de subrayado miden 26px, y esos 26 son el
+  // suelo de la pildora hiciera lo que hiciera el padding. Baja parejo:
+  //
+  //   14px -> 11px   ·   0,22em -> 0,16em   ·   subrayado 7px -> 4px
+  //
+  // 0,22em sobre 11px separa tanto las letras que la palabra se lee como signos
+  // sueltos; a 0,16em conserva el aire de rotulo y ocupa menos.
+  .bol-nav__link {
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    padding-bottom: 4px;
+  }
+
+  // Las espigas van en absoluto, asi que no median la pildora -pero a 34px se
+  // saldrian de una de 31-.
+  // El relleno LATERAL y el hueco entre enlaces no dan ni un pixel de altura, y
+  // apretarlos rompio el texto: con 22px de relleno la espiga derecha -22px de
+  // ancho pegada al borde- se comia la ultima letra de CONTACTO, y con 14px de
+  // hueco el separador, que se dibuja en `left: -16px`, caia encima de la
+  // palabra anterior. Se recupera lo horizontal y se conserva lo que si baja la
+  // barra, que es la letra y el relleno vertical.
+  .bol-nav__links {
+    padding: 6px 32px;
+    gap: 22px;
+
+    &::before,
+    &::after {
+      width: 22px;
+      height: 22px;
+    }
+
+    &::before {
+      left: 6px;
+    }
+
+    &::after {
+      right: 6px;
+    }
+  }
+}
+
+// 760px y no 800: la referencia que hay que dejar intacta es un escritorio de
+// 900px de viewport, y entre 760 y 900 no debe pasar nada. Por debajo de 760
+// están las laptops de 14" reales -1366x768 deja ~625 de viewport; 1920x1080 al
+// 150 % deja ~577-.
+@media (max-height: 760px) and (min-width: 901px) {
+  .bol-nav {
+    padding: 15px clamp(20px, 4vw, 44px);
+
+    &--compact {
+      padding: 10px clamp(20px, 4vw, 44px);
+    }
+  }
+
+  .bol-nav__logo {
+    height: 46px;
+
+    .bol-nav--compact & {
+      height: 40px;
+    }
+  }
+}
+
+// ─── Acostado: el mismo hamburguesa que en vertical ───────────────────────────
+//
+// El cambio a hamburguesa se decide por ANCHURA (`max-width: 768px`), y un
+// telefono acostado mide 796: caia del lado del escritorio y mostraba la
+// pildora entera. Aqui se reproduce el mismo comportamiento que en vertical:
+// la pildora se ve mientras el hero esta arriba del todo -para que la portada
+// ofrezca un camino visible al menu- y cede el sitio al hamburguesa en cuanto
+// la pagina se mueve, con la misma clase `--compact` que ya encoge el logo.
+// Asi no hay un segundo estado de scroll que pueda desincronizarse.
+@media (max-height: 500px) and (orientation: landscape) {
+  // Absoluto para que los dos puedan cruzarse con un fundido: en el flujo,
+  // aparecer y desaparecer moveria la pildora de sitio. El `right` descuenta
+  // los 10px de relleno tactil del icono para que quede donde estaba.
+  .bol-nav__hamburger {
+    display: flex;
+    position: absolute;
+    top: 50%;
+    right: calc(clamp(16px, 3vw, 44px) - 10px);
+    margin: 0;
+    transform: translateY(-50%);
+    transition: opacity 0.28s;
+  }
+
+  .bol-nav__links {
+    transition: opacity 0.28s;
+  }
+
+  .bol-nav:not(.bol-nav--compact) .bol-nav__hamburger {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .bol-nav--compact .bol-nav__links {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  // El panel abierto esta dimensionado para una pantalla de pie: el sello de
+  // 96px mas tres enlaces de 34px mas la firma suman ~313px, y aqui hay 298.
+  // Se compacta a ~190 y queda aire arriba y abajo. El area tactil de cada
+  // enlace se conserva por encima de los 44px que piden las guias -22px de
+  // letra mas 22 de relleno-, que es lo unico que no se puede negociar.
+  .bol-mobile-menu {
+    gap: 2px;
+  }
+
+  .bol-mobile-menu__mark {
+    width: 48px;
+    margin-bottom: 6px;
+  }
+
+  .bol-mobile-menu__link {
+    font-size: 22px;
+    padding: 11px 16px;
+  }
+
+  .bol-mobile-menu__tag {
+    margin-top: 10px;
+    font-size: 10px;
+  }
+
+  .bol-mobile-menu__close {
+    top: 8px;
+    right: 10px;
+  }
+}

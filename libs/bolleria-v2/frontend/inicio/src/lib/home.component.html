@@ -1,0 +1,65 @@
+<!-- ESPECIALIDADES
+     Antes esto eran DOS secciones seguidas: una "intro" con su propio titular,
+     un parrafo y dos botones, y justo debajo un segundo titular "Nuestras
+     especialidades". Dos encabezados a cuatro centimetros compiten entre si y
+     el parrafo con los botones cortaba la lectura por la mitad; en pantallas
+     bajas ademas obligaba a dos scrolls para llegar a la primera tarjeta.
+     Ahora es UN solo bloque: el rotulo dice QUE seccion es y el titular dice
+     COMO se hace el pan, y las tarjetas cuelgan directamente de ahi. -->
+<div class="bol-cats">
+  <div class="bol-cats__intro">
+    <div data-rv class="bol-cats__eyebrow">Nuestras especialidades</div>
+    <h1 data-rv class="bol-cats__title">Fermentado con calma,<br /><em>horneado cada mañana</em></h1>
+  </div>
+  <div class="bol-cats__grid">
+    <a href="#" (click)="$event.preventDefault(); goCategory('pan-dulce')" data-rv class="bol-cats__card">
+      <div class="bol-cats__photo">
+        <img src="assets/cat-pan-dulce.webp" alt="Conchas y pan dulce artesanal recién horneado" loading="lazy" />
+      </div>
+      <div class="bol-cats__scrim"></div>
+      <div class="bol-cats__info">
+        <div class="bol-cats__name">Pan Dulce</div>
+        <div class="bol-cats__count">11 variedades</div>
+      </div>
+    </a>
+    <a href="#" (click)="$event.preventDefault(); goCategory('pan-salado')" data-rv class="bol-cats__card">
+      <div class="bol-cats__photo">
+        <img src="assets/cat-pan-salado.webp" alt="Pan salado con hierbas, queso y aceitunas" loading="lazy" />
+      </div>
+      <div class="bol-cats__scrim"></div>
+      <div class="bol-cats__info">
+        <div class="bol-cats__name">Pan Salado</div>
+        <div class="bol-cats__count">10 variedades</div>
+      </div>
+    </a>
+    <a href="#" (click)="$event.preventDefault(); goCategory('masa-madre')" data-rv class="bol-cats__card">
+      <div class="bol-cats__photo">
+        <img src="assets/cat-masa-madre.webp" alt="Pan de masa madre con corteza dorada, recién horneado" loading="lazy" />
+      </div>
+      <div class="bol-cats__scrim"></div>
+      <div class="bol-cats__info">
+        <div class="bol-cats__name">Masa Madre</div>
+        <div class="bol-cats__count">10 variedades</div>
+      </div>
+    </a>
+    <a href="#" (click)="$event.preventDefault(); goCategory('saltenas')" data-rv class="bol-cats__card">
+      <div class="bol-cats__photo">
+        <img src="assets/cat-saltenas.webp" alt="Salteñas horneadas, rellenas de carne y papa" loading="lazy" />
+      </div>
+      <div class="bol-cats__scrim"></div>
+      <div class="bol-cats__info">
+        <div class="bol-cats__name">Salteñas</div>
+        <div class="bol-cats__count">6 variedades</div>
+      </div>
+    </a>
+  </div>
+  <!-- Cierra la seccion en vez de competir con el titular: arriba, a la
+       derecha del h2, era un enlace en voladizo que en movil se envolvia a una
+       linea propia y quedaba huerfano. -->
+  <a href="#" (click)="$event.preventDefault(); goMenu()" data-rv class="bol-cats__all">Ver todo el menú →</a>
+</div>
+
+<!-- ACERCA DE NOSOTROS -->
+<bol-about-book />
+
+

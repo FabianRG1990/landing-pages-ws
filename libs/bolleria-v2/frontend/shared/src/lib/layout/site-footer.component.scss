@@ -1,0 +1,355 @@
+// Verde a pedido explícito del usuario, pero NO el oliva plano y apagado
+// que ya existía en el sitio como acento chico (var(--olive)) — reciclar
+// ese mismo tono habría sido volver literalmente a la primera versión que
+// no encajaba. Este es un verde bosque/esmeralda más profundo y saturado,
+// el mismo principio que el borgoña anterior (verde oscuro + dorado es
+// pareja clásica de lujo — piénsese en joyería o heráldica), con el dorado
+// siempre como acento, nunca como relleno.
+//
+// Distribución (sin cambios respecto al intento anterior, que sí resolvió
+// el problema): 4 columnas reales (marca / sobre nosotros / navegación /
+// contacto) separadas por divisores verticales, usando el ancho completo
+// del contenedor en vez de un bloque angosto flotando en espacio sobrante.
+.bol-footer {
+  position: relative;
+  margin-top: 34px;
+  background: linear-gradient(165deg, #2d5a3d 0%, #1c3d26 55%, #102217 100%);
+  color: #e3ead9;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      var(--acc, #c8912a) 20%,
+      #f0c675 50%,
+      var(--acc, #c8912a) 80%,
+      transparent
+    );
+  }
+}
+
+.bol-footer__inner {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 50px 40px 32px;
+  display: flex;
+  align-items: flex-start;
+  gap: 28px;
+
+  @media (max-width: 860px) {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 26px;
+    padding: 48px 32px 26px;
+  }
+}
+
+.bol-footer__col {
+  min-width: 0;
+
+  &--brand {
+    flex: 0 0 17%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 10px;
+    padding-top: 4px;
+  }
+
+  &--blurb {
+    flex: 1 1 34%;
+  }
+
+  &--nav {
+    flex: 0 0 15%;
+  }
+
+  &--contact {
+    flex: 0 0 22%;
+  }
+
+  @media (max-width: 860px) {
+    &--brand,
+    &--blurb,
+    &--nav,
+    &--contact {
+      flex: none;
+      width: 100%;
+    }
+  }
+}
+
+.bol-footer__seal {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at 34% 28%, #fffdf6 0%, #f7ead0 55%, #ecd7a8 100%);
+  box-shadow:
+    0 0 0 1px rgba(240, 198, 117, 0.6),
+    0 0 0 3px #21462c,
+    0 0 0 4px rgba(240, 198, 117, 0.32),
+    0 8px 18px -8px rgba(0, 0, 0, 0.55);
+}
+
+.bol-footer__seal-mark {
+  width: 37px;
+  opacity: 0.95;
+}
+
+.bol-footer__wordmark {
+  font: 500 19px 'Cormorant Garamond', serif;
+  color: #f3ecd8;
+
+  span {
+    display: block;
+    // Era el texto más pequeño del sitio junto con la placa del telón: 8px con
+    // 0,28em de tracking. Funciona como parte del logotipo, pero sigue siendo
+    // una palabra que alguien tiene que poder leer.
+    font: 600 11px 'Cinzel', serif;
+    letter-spacing: 0.26em;
+    text-transform: uppercase;
+    color: var(--acc, #c8912a);
+    margin-top: 4px;
+  }
+}
+
+.bol-footer__vseam {
+  flex: none;
+  align-self: stretch;
+  width: 1px;
+  background-image: repeating-linear-gradient(to bottom, rgba(240, 198, 117, 0.3) 0 3px, transparent 3px 8px);
+
+  @media (max-width: 860px) {
+    width: 60%;
+    height: 1px;
+    align-self: center;
+    background-image: repeating-linear-gradient(to right, rgba(240, 198, 117, 0.3) 0 3px, transparent 3px 8px);
+  }
+}
+
+.bol-footer__heading {
+  font: 600 13px 'Cinzel', serif;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--acc, #c8912a);
+  margin-bottom: 12px;
+}
+
+.bol-footer__blurb {
+  font: 400 16px/1.65 'Jost', sans-serif;
+  color: #cbbfa4;
+  margin: 0;
+}
+
+.bol-footer__tagline {
+  font: 400 italic 16px 'Cormorant Garamond', serif;
+  color: #f0c675;
+  margin: 10px 0 0;
+  line-height: 1.4;
+}
+
+.bol-footer__links,
+.bol-footer__contact {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.bol-footer__links a {
+  color: #e3ead9;
+  font: 400 15px 'Jost', sans-serif;
+  transition: color 0.25s;
+
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      color: #f0c675;
+    }
+  }
+
+  // 296x22 medidos: alto insuficiente para el dedo. Los 11px de padding por
+  // lado llevan cada enlace a 44px y se descuentan del `gap` de la columna
+  // (9px -> 0) para que la separacion visual entre renglones no cambie.
+  @media (max-width: 900px) {
+    padding: 11px 0;
+  }
+}
+
+.bol-footer__links {
+  @media (max-width: 900px) {
+    gap: 0;
+  }
+}
+
+
+// Acceso a WhatsApp, al pie de la columna de contacto.
+//
+// Es EL botón del sitio, el mismo de "Pedir" en la cabecera y de "Ir al menú"
+// en la portada: idéntico dorado grabado, idéntica tipografía en versalitas.
+// No se inventa un botón para el pie -por eso el primer intento, una píldora de
+// contorno con el texto partido en dos renglones, se veía traído de otra web-;
+// se reusa el que la casa ya tiene, que sobre este verde oscuro además brilla y
+// da a la columna el único punto de color cálido que necesita.
+.bol-footer__wa {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: 18px;
+  padding: 11px 20px;
+  // 166x40 medidos: es el boton de WhatsApp del pie, el segundo camino al
+  // pedido. 2px mas por arriba y por abajo lo dejan en los 44px del minimo
+  // tactil; en escritorio conserva su altura.
+  @media (max-width: 900px) {
+    padding: 13px 20px;
+  }
+  border-radius: 999px;
+  // El mismo degradado y el mismo relieve que .bol-nav__cta, copiados tal cual.
+  background: linear-gradient(155deg, #f0c675 0%, var(--acc, #c8912a) 50%, #96651a 100%);
+  color: #3d2b0d;
+  font: 600 13px 'Cinzel', serif;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  // En una línea siempre: la columna es estrecha y un botón con el rótulo
+  // partido en dos renglones se lee como un descuido.
+  white-space: nowrap;
+  box-shadow:
+    inset 0 1.5px 0 rgba(255, 255, 255, 0.55),
+    inset 0 -2px 3px rgba(103, 68, 15, 0.4),
+    0 8px 18px -8px rgba(0, 0, 0, 0.55);
+  transition:
+    box-shadow 0.3s,
+    transform 0.2s;
+
+  svg {
+    flex: none;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow:
+        inset 0 1.5px 0 rgba(255, 255, 255, 0.6),
+        inset 0 -2px 3px rgba(103, 68, 15, 0.4),
+        0 14px 26px -10px rgba(0, 0, 0, 0.6);
+    }
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+
+  &:focus-visible {
+    outline: 2px solid rgba(240, 198, 117, 0.9);
+    outline-offset: 3px;
+  }
+
+  // En móvil el pie se apila y se centra (ver .bol-footer__inner).
+  @media (max-width: 860px) {
+    align-self: center;
+  }
+}
+
+.bol-footer__contact {
+  font: 400 15px 'Jost', sans-serif;
+  color: #cbbfa4;
+  font-variant-numeric: lining-nums tabular-nums;
+}
+
+.bol-footer__bottom {
+  border-top: 1px solid rgba(240, 198, 117, 0.18);
+  padding: 16px 40px 22px;
+  font: 400 13px 'Jost', sans-serif;
+  color: #a08f79;
+  // Copyright a un lado y firma del estudio al otro. El ancho es el mismo de
+  // las cuatro columnas de arriba (ver .bol-footer__inner), para que ambos
+  // extremos caigan sobre la primera y la última columna y no floten sueltos.
+  max-width: 1120px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+
+  @media (max-width: 860px) {
+    flex-direction: column;
+    text-align: center;
+    gap: 12px;
+  }
+}
+
+// Firma del estudio que hizo el sitio.
+//
+// Va deliberadamente en voz baja -misma familia y cuerpo que el copyright, con
+// menos color- porque un crédito que compite con la marca del cliente está mal
+// puesto. Solo al pasar el puntero sube a primer plano.
+.bol-footer__by {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  // 313x22: la firma tambien se toca. Padding vertical compensado con margin
+  // para no separar el pie del borde inferior.
+  @media (max-width: 900px) {
+    padding: 11px 0;
+    margin: -11px 0;
+  }
+  // Al subir de 11 a 13px la firma dejó de caber en el ancho de un móvil y se
+  // partía por dentro, en cuatro renglones rotos. Ahora envuelve por sus piezas
+  // -cada una entera- en vez de romper las palabras.
+  flex-wrap: wrap;
+  gap: 7px;
+  color: #8a7c68;
+  transition: color 0.28s;
+
+  > span {
+    white-space: nowrap;
+  }
+
+  .bol-footer__by-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      color: #d9cdb6;
+
+      .bol-footer__by-mark {
+        opacity: 1;
+      }
+    }
+  }
+
+  &:focus-visible {
+    outline: 2px solid rgba(240, 198, 117, 0.7);
+    outline-offset: 4px;
+    border-radius: 4px;
+  }
+}
+
+.bol-footer__by-name {
+  // El nombre pesa un punto más que el "diseño y desarrollo por": es lo que
+  // se tiene que quedar en la memoria de la línea.
+  color: #b9ab93;
+  font-weight: 400;
+}
+
+.bol-footer__by-mark {
+  // El emblema es azul eléctrico sobre un pie verde y dorado: a plena
+  // intensidad se lee como un error de color. Atenuado convive, y al pasar el
+  // puntero recupera su color completo.
+  opacity: 0.9;
+  transition: opacity 0.28s;
+  flex: none;
+}

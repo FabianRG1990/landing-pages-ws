@@ -1,0 +1,598 @@
+// Cortina "hornito" — un horno se abre, el logo sale recién horneado y la
+// escena entera se desvanece; el siguiente segmento aparece donde se
+// desvaneció. Reemplaza el intento anterior de partículas de harina, que no
+// llegaba a verse premium por mucho que se afinara la densidad.
+.bol-curtain {
+  position: fixed;
+  inset: 0;
+  // La ventana en su tamaño GRANDE (`lvh`), no el `100%` que implica `inset: 0`.
+  // En un móvil con barra de herramientas dinámica —Firefox de Android, medido
+  // el 2026-08-31— al retraerse la barra queda a la vista más pantalla de la
+  // que mide el elemento fijo, y se veía la página por una franja abajo.
+  // `lvh` es la altura con el cromo del navegador retraído, o sea el peor caso.
+  min-height: 100lvh;
+  z-index: 1500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  opacity: 0;
+  clip-path: circle(0px at 50% 50%);
+}
+
+// Entrada tipo "iris" de cine: un círculo que se expande desde el centro en
+// vez de un cross-fade plano — la pantalla anterior queda visible en las
+// esquinas mientras el círculo crece, como un iris-in clásico. 150vmax
+// garantiza cobertura total sin importar el aspect ratio del viewport.
+.bol-curtain--in {
+  opacity: 1;
+  clip-path: circle(150vmax at 50% 50%);
+  transition: clip-path 0.75s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+// La salida NO cierra el iris (sería un espejo aburrido de la entrada):
+// se desvanece mientras la escena se aleja levemente (ver
+// `.bol-curtain--out .bol-curtain__scene`), como si la cámara se retirara.
+.bol-curtain--out {
+  opacity: 0;
+  transition: opacity 0.6s ease 0.05s;
+}
+
+// prefers-reduced-motion: cruce de opacidad breve, sin escena del horno.
+.bol-curtain--reduced {
+  opacity: 1;
+  transition: opacity 0.13s ease;
+}
+
+// El fondo real del sitio (harina + espiga de trigo + veta de lienzo — el
+// mismo asset que ya usa el hero), no un degradado abstracto: esto es lo que
+// le da presencia/detalle real que un gradiente no puede imitar.
+//
+// Va HORNEADO en el propio archivo, y el aspecto es exactamente el de antes.
+// Antes se conseguía en tiempo real con dos capas: la imagen del hero con
+// `filter: grayscale(1) brightness(0.42) contrast(1.18)` —oscurecida bastante
+// más que el hero real, porque aquí es de noche y el detalle debe notarse sin
+// competir con el horno— y encima un duotono oliva vía `mix-blend-mode: color`,
+// que toma matiz y saturación del tinte y conserva la luminosidad y la textura
+// de la imagen de abajo.
+//
+// Las dos son operaciones FIJAS sobre una imagen FIJA, y sin embargo el
+// navegador las recalculaba a pantalla completa en cada fotograma de la
+// animación. Chromium se lo come; WebKit no. Medido aislando la cortina en
+// WebKit, en ms por fotograma:
+//
+//   cortina completa            247      <- ~4 fotogramas para toda la animacion
+//   sin el filtro               185
+//   sin las 4 capas del fondo   121
+//   cortina vacia                63      <- el suelo de la pagina
+//
+// A 4 fotogramas, al fundido del logo (400 ms) le tocaba uno o dos: de ahi el
+// "el logo aparece, se desaparece y al final vuelve a aparecer" que se
+// reportaba SOLO en Safari. La imagen horneada quita 126 de esos 184 ms.
+//
+// Se generó haciendo que el navegador aplicara el CSS de arriba y leyendo los
+// píxeles (ver la nota del commit), no reimplementando el duotono a mano: por
+// eso es el mismo resultado y no uno parecido. Si algún día cambia
+// `hero-bg-*.webp`, hay que volver a hornear.
+//
+// La viñeta y el foco siguen siendo capas vivas: medidas, cuestan 0.
+.bol-curtain__backdrop-img {
+  position: absolute;
+  inset: 0;
+  background-image: url('/assets/curtain-bg-mobile.webp');
+  background-size: cover;
+  background-position: center;
+
+  @media (min-width: 900px) {
+    background-image: url('/assets/curtain-bg-desktop.webp');
+  }
+}
+
+// Viñeta: oscurece hacia los bordes/esquinas para que el foco caiga sobre el
+// horno (mismo criterio de claroscuro ya aprobado), ahora sobre la textura
+// real en vez de un degradado plano.
+.bol-curtain__backdrop-vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(farthest-corner at 50% 46%, rgba(0, 0, 0, 0) 0%, rgba(4, 5, 2, 0.55) 62%, rgba(2, 3, 1, 0.88) 100%);
+}
+
+// Foco cálido de verdad (no un tinte apenas perceptible): sobre el fondo casi
+// negro de arriba, esto es lo que lee como "horno encendido en la oscuridad"
+// — el horno queda como el único sujeto iluminado de la escena.
+.bol-curtain__backdrop-glow {
+  position: absolute;
+  left: 50%;
+  top: 48%;
+  width: 62vmin;
+  height: 62vmin;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(circle, rgba(250, 224, 170, 0.4) 0%, rgba(250, 224, 170, 0.14) 45%, rgba(250, 224, 170, 0) 70%);
+  filter: blur(3px);
+  pointer-events: none;
+}
+
+// ---------- Escena del horno ----------
+.bol-curtain__scene {
+  position: relative;
+  width: min(64vw, 260px);
+  height: min(74vw, 300px);
+  perspective: 900px;
+  transform: scale(0.86);
+  opacity: 0;
+  transition:
+    transform 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.35s ease;
+}
+.bol-curtain--in .bol-curtain__scene {
+  transform: scale(1);
+  opacity: 1;
+}
+
+// ---------- La misma escena, ya rendida (familia WebKit) ----------
+// Ver el comentario largo de `sprite` en curtain.component.ts: en WebKit la
+// escena de arriba cuesta la mitad de los fotogramas de toda la cortina, y el
+// coste está repartido entre sus ~30 elementos, así que no hay nada que limar.
+//
+// `curtain-oven.webp` es una tira horizontal de 19 cuadros de 520x600 que
+// rindió Chromium con ESTOS mismos estilos, buscando cada instante por CDP:
+// cubre los 738 ms de animación interna (la puerta gira 550 ms, el logo sube
+// con 220 ms de retraso, el vapor con 320) y a partir de ahí ya no se movía
+// nada — medido, del cuadro 19 en adelante la diferencia era de 1/255.
+//
+// La cuenta de `background-position`: con la imagen a 19 veces el ancho de la
+// caja, un porcentaje `p` desplaza `p x (19 - 1)` cajas, así que ir de 0 % a
+// 100 % en 18 escalones recorre los 19 cuadros, uno por escalón.
+.bol-curtain__sprite {
+  position: absolute;
+  inset: 0;
+  background-image: url('/assets/curtain-oven.webp');
+  background-repeat: no-repeat;
+  background-size: 1900% 100%;
+  background-position: 0% 0%;
+}
+.bol-curtain__sprite--open {
+  animation: bol-curtain-horno 0.738s steps(18) forwards;
+}
+@keyframes bol-curtain-horno {
+  from {
+    background-position: 0% 0%;
+  }
+  to {
+    background-position: 100% 0%;
+  }
+}
+// Sin animación no hay puerta que abrir: se muestra directamente el último
+// cuadro, coherente con lo que hace `reducedFade` (cruce de opacidad y ya).
+@media (prefers-reduced-motion: reduce) {
+  .bol-curtain__sprite--open {
+    animation: none;
+    background-position: 100% 0%;
+  }
+}
+// Acercamiento de cámara continuo y casi imperceptible momento a momento
+// mientras el horno está abierto (principio de "dolly" — dar sensación de
+// continuidad/narrativa entre pantallas) — la transición es deliberadamente
+// larga y lineal para que se lea como movimiento constante, no como un salto.
+.bol-curtain--open .bol-curtain__scene {
+  transform: scale(1.035);
+  transition: transform 1.5s linear;
+}
+// Salida: la escena se aleja levemente en vez de solo desvanecerse — sensación
+// de que la cámara se retira mientras la luz se apaga (ver `.bol-curtain--out`
+// arriba). Misma especificidad que la regla de `--in`/`--open`; al declararse
+// después en la hoja de estilos, esta gana durante 'out'.
+.bol-curtain--out .bol-curtain__scene {
+  transform: scale(1.09);
+  transition: transform 0.65s cubic-bezier(0.34, 0, 0.64, 1);
+}
+
+.bol-curtain__shadow {
+  position: absolute;
+  left: 50%;
+  bottom: 6px;
+  width: 210px;
+  height: 28px;
+  transform: translateX(-50%);
+  background: radial-gradient(ellipse at center, rgba(46, 42, 28, 0.28), rgba(46, 42, 28, 0));
+  filter: blur(2px);
+}
+.bol-curtain__shadow--contact {
+  width: 150px;
+  height: 12px;
+  bottom: 10px;
+  background: radial-gradient(ellipse at center, rgba(46, 42, 28, 0.42), rgba(46, 42, 28, 0));
+  filter: blur(1px);
+}
+
+.bol-curtain__leg {
+  position: absolute;
+  bottom: 16px;
+  width: 11px;
+  height: 24px;
+  background: linear-gradient(180deg, var(--olive), var(--oliveD));
+  border-radius: 4px 4px 3px 3px;
+  box-shadow:
+    inset -2px 0 3px rgba(0, 0, 0, 0.25),
+    inset 2px 0 2px rgba(255, 255, 255, 0.15);
+}
+.bol-curtain__leg::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -3px;
+  width: 13px;
+  height: 5px;
+  border-radius: 3px;
+  background: radial-gradient(circle at 35% 30%, #fbe7ba, var(--accd));
+  transform: translateX(-50%);
+  box-shadow: 0 1px 2px rgba(46, 42, 28, 0.4);
+}
+.bol-curtain__leg--l {
+  left: 44px;
+  transform: skewX(-5deg);
+}
+.bol-curtain__leg--r {
+  right: 44px;
+  transform: skewX(5deg);
+}
+
+.bol-curtain__oven {
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  top: 8px;
+  bottom: 36px;
+  background: linear-gradient(165deg, #fffdf8 0%, #fdf9ef 22%, var(--cream) 58%, #efe5cd 100%);
+  border: 3.5px solid var(--olive);
+  border-radius: 26px;
+  box-shadow:
+    inset 0 2px 0 rgba(255, 255, 255, 0.6),
+    inset 0 -12px 20px rgba(69, 78, 36, 0.14),
+    0 16px 28px -14px rgba(46, 42, 28, 0.48);
+}
+.bol-curtain__oven::before {
+  content: '';
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  top: 3px;
+  height: 30%;
+  border-radius: 50% / 100%;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0));
+  pointer-events: none;
+}
+.bol-curtain__trim {
+  position: absolute;
+  inset: 5px;
+  border: 1.25px solid rgba(200, 145, 42, 0.55);
+  border-radius: 22px;
+  pointer-events: none;
+}
+
+.bol-curtain__panel {
+  position: absolute;
+  left: 22px;
+  right: 22px;
+  top: 20px;
+  height: 34px;
+  border-radius: 10px;
+  background: rgba(69, 78, 36, 0.06);
+  border: 1.5px solid rgba(94, 106, 52, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 14px;
+}
+.bol-curtain__dials {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.bol-curtain__dial {
+  width: 17px;
+  height: 17px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 32% 28%, #fbe7ba, var(--acc) 50%, var(--accd) 88%);
+  border: 1px solid var(--accd);
+  box-shadow:
+    0 1px 2px rgba(46, 42, 28, 0.45),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.25);
+  position: relative;
+}
+.bol-curtain__dial::before {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  border: 1px solid rgba(94, 106, 52, 0.3);
+}
+.bol-curtain__dial::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 50%;
+  width: 1.5px;
+  height: 5.5px;
+  background: var(--ink);
+  transform: translateX(-50%);
+}
+.bol-curtain__dial--sm {
+  width: 12px;
+  height: 12px;
+}
+.bol-curtain__dial--sm::after {
+  height: 4px;
+}
+.bol-curtain__vents {
+  display: flex;
+  gap: 5px;
+}
+.bol-curtain__vent {
+  width: 8px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--oliveD);
+  opacity: 0.55;
+}
+.bol-curtain__led {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--acc);
+  box-shadow: 0 0 6px 2px rgba(200, 145, 42, 0.7);
+}
+
+.bol-curtain__handle {
+  position: absolute;
+  left: 34px;
+  right: 34px;
+  top: 66px;
+  height: 9px;
+  border-radius: 5px;
+  background: linear-gradient(180deg, #fbe7ba, var(--acc) 45%, var(--accd) 100%);
+  box-shadow:
+    0 2px 3px rgba(46, 42, 28, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  z-index: 5;
+}
+.bol-curtain__handle::before,
+.bol-curtain__handle::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fbe7ba, var(--accd));
+  transform: translateY(-50%);
+  box-shadow: 0 0 0 1px rgba(46, 42, 28, 0.25);
+}
+.bol-curtain__handle::before {
+  left: -3px;
+}
+.bol-curtain__handle::after {
+  right: -3px;
+}
+
+.bol-curtain__door-wrap {
+  position: absolute;
+  left: 22px;
+  right: 22px;
+  top: 82px;
+  bottom: 16px;
+  transform-style: preserve-3d;
+}
+
+.bol-curtain__door {
+  position: absolute;
+  inset: 0;
+  border-radius: 16px;
+  background: linear-gradient(155deg, #fdf9ef, #f1e8d4);
+  border: 3px solid var(--olive);
+  transform-origin: left center;
+  transition: transform 0.55s cubic-bezier(0.65, 0, 0.35, 1);
+  backface-visibility: hidden;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+.bol-curtain__door--open {
+  transform: rotateY(-108deg);
+  box-shadow: 2px 0 10px rgba(46, 42, 28, 0.35);
+}
+
+.bol-curtain__window {
+  position: absolute;
+  left: 50%;
+  top: 14px;
+  width: 68%;
+  height: 72%;
+  transform: translateX(-50%);
+  border-radius: 50% 50% 14px 14px / 62% 62% 14px 14px;
+  border: 3px solid var(--accd);
+  background: radial-gradient(circle at 50% 38%, #7c6a2e 0%, var(--oliveD) 72%, #2f3417 100%);
+  box-shadow: inset 0 0 14px rgba(0, 0, 0, 0.45);
+  overflow: hidden;
+}
+.bol-curtain__window::after {
+  content: '';
+  position: absolute;
+  inset: 5px;
+  border-radius: inherit;
+  border: 1px solid rgba(250, 246, 236, 0.25);
+}
+.bol-curtain__glass-shine {
+  position: absolute;
+  top: -20%;
+  left: -30%;
+  width: 55%;
+  height: 160%;
+  background: linear-gradient(100deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.32) 48%, rgba(255, 255, 255, 0) 100%);
+  transform: rotate(8deg);
+  pointer-events: none;
+}
+.bol-curtain__window-corner {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fbe7ba, var(--accd));
+  box-shadow: 0 0 0 1px rgba(46, 42, 28, 0.3);
+}
+.bol-curtain__window-corner--l {
+  left: 4px;
+  top: 4px;
+}
+.bol-curtain__window-corner--r {
+  right: 4px;
+  top: 4px;
+}
+
+.bol-curtain__rivet {
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #fdf1d6, var(--accd));
+  box-shadow:
+    0 0 0 1px rgba(46, 42, 28, 0.3),
+    inset 0 1px 1px rgba(255, 255, 255, 0.4);
+}
+.bol-curtain__rivet--tl {
+  left: 6px;
+  top: 6px;
+}
+.bol-curtain__rivet--tr {
+  right: 6px;
+  top: 6px;
+}
+.bol-curtain__rivet--bl {
+  left: 6px;
+  bottom: 6px;
+}
+.bol-curtain__rivet--br {
+  right: 6px;
+  bottom: 6px;
+}
+
+.bol-curtain__nameplate {
+  position: absolute;
+  left: 50%;
+  bottom: 9px;
+  transform: translateX(-50%);
+  padding: 1px 8px;
+  border-radius: 3px;
+  background: linear-gradient(180deg, #f2d495, var(--acc) 55%, var(--accd));
+  border: 1px solid rgba(46, 42, 28, 0.25);
+  font-family: var(--hf), Georgia, serif;
+  font-size: 8px;
+  letter-spacing: 0.12em;
+  color: var(--ink);
+  line-height: 1.4;
+}
+
+.bol-curtain__interior {
+  position: absolute;
+  inset: 0;
+  border-radius: 16px;
+  background: linear-gradient(180deg, #6a5322, var(--oliveD) 55%, #35390f);
+  border: 3px solid var(--oliveD);
+  overflow: hidden;
+}
+.bol-curtain__glow {
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  width: 140%;
+  height: 140%;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(circle, rgba(242, 212, 149, 0.85), rgba(200, 145, 42, 0.25) 45%, rgba(53, 57, 15, 0) 72%);
+}
+.bol-curtain__rack {
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  bottom: 30%;
+  height: 2px;
+  background: rgba(46, 42, 28, 0.45);
+}
+.bol-curtain__rack::before {
+  content: '';
+  position: absolute;
+  inset: -6px 0 -6px 0;
+  background-image: repeating-linear-gradient(
+    90deg,
+    rgba(46, 42, 28, 0.35) 0,
+    rgba(46, 42, 28, 0.35) 1.4px,
+    transparent 1.4px,
+    transparent 13%
+  );
+}
+.bol-curtain__mark-glow {
+  position: absolute;
+  left: 50%;
+  bottom: 26%;
+  width: 80%;
+  height: 55%;
+  transform: translateX(-50%);
+  background: radial-gradient(circle, rgba(255, 244, 214, 0.65), rgba(255, 244, 214, 0) 70%);
+  filter: blur(4px);
+}
+
+// El logo "sale" con un pequeño levantamiento + escala, retrasado (.22s)
+// para que se sienta revelado por la puerta, no simplemente presente desde
+// el inicio.
+.bol-curtain__mark {
+  position: absolute;
+  left: 50%;
+  bottom: 32%;
+  width: 62%;
+  transform: translate(-50%, 10px) scale(0.88);
+  opacity: 0;
+  filter: drop-shadow(0 6px 10px rgba(46, 42, 28, 0.4));
+  transition:
+    transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.22s,
+    opacity 0.4s ease 0.22s;
+}
+.bol-curtain__interior--reveal .bol-curtain__mark {
+  transform: translate(-50%, 0) scale(1);
+  opacity: 1;
+}
+
+.bol-curtain__steam {
+  position: absolute;
+  bottom: 34%;
+  width: 3px;
+  border-radius: 3px;
+  background: linear-gradient(180deg, rgba(250, 246, 236, 0), rgba(250, 246, 236, 0.8) 45%, rgba(250, 246, 236, 0));
+  filter: blur(2.5px);
+  opacity: 0;
+  transition: opacity 0.5s ease 0.32s;
+}
+.bol-curtain__steam--a {
+  left: 30%;
+  height: 42px;
+  transform: rotate(-6deg);
+  --steam-o: 0.8;
+}
+.bol-curtain__steam--b {
+  left: 46%;
+  height: 60px;
+  transform: rotate(3deg);
+}
+.bol-curtain__steam--c {
+  left: 60%;
+  height: 38px;
+  transform: rotate(-4deg);
+  --steam-o: 0.75;
+}
+.bol-curtain__steam--d {
+  left: 70%;
+  height: 28px;
+  width: 2.5px;
+  transform: rotate(7deg);
+  --steam-o: 0.6;
+}
+.bol-curtain__interior--reveal .bol-curtain__steam {
+  opacity: var(--steam-o, 1);
+}
+

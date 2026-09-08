@@ -1,0 +1,259 @@
+// ─── ESPECIALIDADES ──────────────────────────────────────────────────────────
+// Un solo bloque donde antes habia dos secciones con un titular cada una. Ver
+// la nota de home.component.html: el problema no era de tamanos, era que dos
+// encabezados seguidos se anulaban y en medio habia un parrafo y dos botones
+// que cortaban la lectura justo antes de las tarjetas.
+.bol-cats {
+  max-width: 1200px;
+  margin: 0 auto;
+  // 132 arriba, no los ~70-90 de separacion entre secciones: aqui no hay que
+  // separar dos bloques, hay que despejar el nav fijo (~76px en su estado
+  // --compact) mas aire real antes del rotulo. Lo heredamos de la intro que se
+  // fusiono; es el primer bloque de la pagina tras el hero.
+  padding: 132px 40px 30px;
+}
+.bol-cats__intro {
+  text-align: center;
+  // 54px hasta la primera tarjeta: el titular necesita respirar por debajo o
+  // la parrilla lo lee como pie de foto en vez de como encabezado.
+  margin-bottom: 54px;
+}
+.bol-cats__eyebrow {
+  font: 600 13px 'Cinzel', serif;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: var(--olive);
+}
+// 84px de tope contra los 72 de antes. El titular ya no comparte la seccion
+// con nada: es lo unico que hay entre el hero y las tarjetas, y a esa escala
+// funciona como una apertura de revista. Se puede subir porque las dos lineas
+// nuevas son cortas -"horneado cada manana" mide 8.4em- y a 84px ocupan 705 de
+// los 1120px disponibles.
+.bol-cats__title {
+  font: 500 clamp(34px, 6.4vw, 84px) / 1.02 var(--hf, 'Cormorant Garamond'), serif;
+  letter-spacing: -0.015em;
+  margin: 18px auto 0;
+  max-width: 900px;
+
+  em {
+    font-style: italic;
+    color: var(--acc, #c8912a);
+  }
+}
+// El enlace al menu completo CIERRA la seccion. Arriba, en voladizo a la
+// derecha del titulo, en movil se envolvia a una linea propia y quedaba
+// huerfano entre el titular y la primera tarjeta.
+.bol-cats__all {
+  display: block;
+  width: fit-content;
+  margin: 38px auto 0;
+  font: 500 14px 'Jost', sans-serif;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--acc, #c8912a);
+  // 44px de alto para el dedo sin que el texto crezca.
+  position: relative;
+  padding: 13px 6px;
+  transition: color 0.3s ease;
+
+  // El filete va en un ::after y no en un `border-bottom` del propio enlace:
+  // el borde se dibuja al final de la CAJA, o sea 13px por debajo del texto
+  // -el relleno del area tactil-, y se leia como un adorno suelto en vez de
+  // como un subrayado.
+  &::after {
+    content: '';
+    position: absolute;
+    left: 6px;
+    right: 6px;
+    bottom: 8px;
+    height: 1px;
+    background: currentcolor;
+    opacity: 0.35;
+    transition: opacity 0.3s ease;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      color: var(--accd, #a5761c);
+
+      &::after {
+        opacity: 1;
+      }
+    }
+  }
+}
+.bol-cats__grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 22px;
+
+  @media (max-width: 900px) {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+  }
+}
+// El hover no usa transform en la propia card: el sistema de reveal
+// (`app.ts`, revealScan) le fija un `style.transform = 'none'` inline a todo
+// elemento `[data-rv]` tras su animación de entrada, y ese inline gana
+// siempre sobre cualquier transform de :hover en el mismo elemento (bug
+// preexistente, no propio de esta card — afectaba igual al translateY del
+// diseño anterior). El zoom de foto sí funciona porque vive en un hijo sin
+// data-rv; la sombra + anillo dorado hacen el resto del trabajo de "elevar".
+.bol-cats__card {
+  position: relative;
+  display: block;
+  aspect-ratio: 4 / 5;
+  border-radius: 20px;
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.12),
+    0 14px 34px -18px rgba(46, 42, 28, 0.45);
+  transition: box-shadow 0.45s;
+
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      box-shadow:
+        inset 0 0 0 1.5px rgba(232, 193, 104, 0.65),
+        0 28px 52px -20px rgba(46, 42, 28, 0.55);
+
+      .bol-cats__photo img {
+        transform: scale(1.08);
+      }
+    }
+  }
+}
+.bol-cats__photo {
+  position: absolute;
+  inset: 0;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transform: scale(1.02);
+    transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+}
+// Scrim propio en vez de un filtro sobre la foto entera: asi cada foto
+// conserva su color real y solo se oscurece donde hace falta legibilidad,
+// en el tercio inferior donde va el texto.
+.bol-cats__scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(28, 22, 10, 0.88) 0%, rgba(28, 22, 10, 0.45) 32%, rgba(28, 22, 10, 0) 62%);
+}
+.bol-cats__info {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 20px 20px 18px;
+}
+.bol-cats__name {
+  font: 600 22px var(--hf, 'Cormorant Garamond'), serif;
+  color: var(--cream, #faf6ec);
+}
+.bol-cats__count {
+  margin-top: 4px;
+  font: 500 15px 'Jost', sans-serif;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #e3c988;
+  font-variant-numeric: lining-nums tabular-nums;
+  // Nunca en dos renglones: "11 VARIEDADES" partido deja el numero solo
+  // encima de la palabra y se lee como dos datos distintos.
+  white-space: nowrap;
+}
+
+// Telefono de pie. Con dos columnas la tarjeta mide 150px y el bloque de texto
+// tenia los tamanos del escritorio: "11 VARIEDADES" pedia 136px dentro de los
+// 110 que dejaba el relleno de 20px, asi que se partia. Se ajustan las tres
+// medidas juntas -relleno, nombre y contador- porque encogerlas por separado es
+// justo lo que descuadra la tarjeta.
+@media (max-width: 900px) {
+  .bol-cats__info {
+    padding: 14px 14px 13px;
+  }
+  .bol-cats__name {
+    font-size: 19px;
+  }
+  .bol-cats__count {
+    margin-top: 3px;
+    font-size: 12.5px;
+    letter-spacing: 0.08em;
+  }
+}
+
+// ─── Pantallas BAJAS ──────────────────────────────────────────────────────────
+// Ver la nota larga en site-nav.component.scss: el sitio se corta por anchura y
+// estos dos aparatos se definen por su ALTURA. Nada de esto entra en la
+// referencia de 900px de viewport.
+
+// Teléfono acostado: 852x393.
+//
+// El defecto medido era aritmético, no de gusto: con `aspect-ratio: 4/5` y dos
+// columnas, una tarjeta medía 372x464 en una pantalla de 393 de alto. No cabía
+// entera de ninguna manera, así que siempre se veía una y media cortada.
+//
+// Acostado sobra ancho y falta alto, que es justo lo contrario de lo que
+// asumía la regla de móvil. Volviendo a las cuatro columnas del escritorio y
+// girando la foto a apaisado, las cuatro categorías entran de un vistazo: es la
+// misma lectura que en la referencia. 3/2 es proporción fotográfica de toda la
+// vida y con 186px de ancho deja la tarjeta en 124 de alto.
+@media (max-height: 500px) and (orientation: landscape) {
+  .bol-cats {
+    // 74 = barra ceñida (56) + aire. El 132 de vertical despejaba una de 113.
+    padding: 74px 24px 12px;
+  }
+  .bol-cats__intro {
+    margin-bottom: 18px;
+  }
+  // Acostado el alto es el recurso escaso: 298px utiles en el aparato medido.
+  // El titular baja a un tercio de su tope para que el rotulo, las dos lineas y
+  // la fila de cuatro tarjetas entren en una sola pantalla.
+  .bol-cats__title {
+    font-size: clamp(24px, 3.4vw, 34px);
+    margin-top: 8px;
+  }
+  .bol-cats__all {
+    margin-top: 16px;
+    padding: 9px 6px;
+    font-size: 12px;
+  }
+  .bol-cats__grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+  }
+  .bol-cats__card {
+    aspect-ratio: 3 / 2;
+    border-radius: 14px;
+  }
+  // El bloque de texto ocupaba 75px de los 124 de la tarjeta nueva: más de la
+  // mitad de la foto tapada. Con estos tamaños baja a ~44.
+  .bol-cats__info {
+    padding: 10px 12px 9px;
+  }
+  .bol-cats__name {
+    font-size: 15px;
+  }
+  .bol-cats__count {
+    margin-top: 2px;
+    font-size: 10px;
+  }
+}
+
+// Laptop pequeña. Aquí no hay nada roto —todo entra— sino apretado, así que se
+// recorta solo el aire vertical y no se toca ni un tamaño de letra: el objetivo
+// es que quepa más contenido por pantalla, no rediseñar.
+@media (max-height: 760px) and (min-width: 901px) {
+  .bol-cats {
+    padding-top: 100px;
+  }
+  .bol-cats__intro {
+    margin-bottom: 34px;
+  }
+  .bol-cats__all {
+    margin-top: 26px;
+  }}

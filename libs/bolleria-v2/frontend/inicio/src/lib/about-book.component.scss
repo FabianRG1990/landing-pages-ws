@@ -1,0 +1,466 @@
+.bol-book {
+  // 1500 y no 1200: el escenario pide 1305 mas su padding lateral. Sobra
+  // holgura a proposito -el tope real lo pone `--libro-w` justo debajo-, y
+  // bajarlo aqui estrecharia tambien la cabecera, que no es lo que se pide.
+  max-width: 1500px;
+
+  // ─── Tamano del libro en escritorio ──────────────────────────────────────
+  // Un solo valor manda el ancho del escenario Y los dos margenes negativos
+  // que lo pegan al titulo y a los botones, para que la composicion escale
+  // entera en vez de descuadrarse.
+  //
+  // Los tres terminos:
+  //   1305px  techo. Mas alla, el papel del video -860px nativos- se aplana de
+  //           forma visible. La pildora de navegacion NO es el limite: medida
+  //           la tinta bajo ella en los cuadros criticos (20, 35, 108 y 117) y
+  //           con el encuadre real de lectura, da 0 % a los tres tamanos.
+  //   100%    no desbordar el contenedor entre 901px y 1500px de ancho.
+  //   174,6vh el limite REAL no es el ancho sino el ALTO, y lo que tiene que
+  //           caber es el GRUPO entero: cabecera mas libro. En flujo, el grupo
+  //           mide `cabecera + 0,63392·alto` -el factor sale de descontar los
+  //           dos margenes negativos del escenario-, o sea
+  //           `cabecera + 0,51452·W`. Con la cabecera en ~120px y 32px de aire
+  //           arriba y abajo, despejar W da 194,4vh - 357px: el tamano que
+  //           EXACTAMENTE llena la pantalla.
+  //
+  //   LOS DOS TERMINOS VAN AL 90 %, y por eso el segundo no es esa cifra sino
+  //   su 0,9 (174,6vh - 321,3px). El dueno del sitio pidio el libro un 10 % mas
+  //   pequeno, y aplicarlo solo al techo lo habria dejado sin efecto en los
+  //   portatiles bajos, donde manda la altura y el libro ya era menor que 1305.
+  //   Escalando los dos, el 10 % se cumple en cualquier monitor y la proporcion
+  //   entre cabecera y libro no cambia: lo que antes llenaba la pantalla justa
+  //   ahora deja ese 10 % de aire repartido por el centrado del anclaje.
+  //
+  //           La formula era 199vh - 278px cuando debajo del libro habia
+  //           botones y el titulo se dejaba salir de cuadro. Al meter la
+  //           cabecera dentro del anclaje el libro tuvo que cederle sitio.
+  //
+  // Dos concesiones, las dos deliberadas y medidas:
+  //
+  // 1. El titulo puede quedar fuera de cuadro mientras se lee. Con el escenario
+  //    fijo de 1040px el libro abierto media 850x487 en TODO monitor, de 1366 a
+  //    2560 de ancho; con esto son 1066x611 en uno de 1080p.
+  //
+  // 2. La TAPA, al abrirse, vuela mucho mas alto que el libro en reposo: la
+  //    escena completa pide 0,692·W + 43,5 px, o sea 946 px a 1305. Una ventana
+  //    de 1080p da 945, asi que a este tamano el vuelo cabe justo -a 1450 se
+  //    salia 188 px por arriba, y 53 despues de meter la cabecera dentro del
+  //    anclaje-. El 10 % que se recorta aqui se lo lleva casi entero ese
+  //    recorte: es el efecto secundario de encoger, no el motivo.
+  //
+  //    Si algun dia se quiere agrandar otra vez SIN perder el vuelo, el camino
+  //    es que la escena se asiente al abrir (arrancar la apertura a ~0,82 de
+  //    escala y crecer hasta 1 con `.is-lifting`), no subir el techo.
+  --libro-w: min(1305px, 100%, calc(174.6vh - 321.3px));
+  // 120px (no los ~48px de antes): pegado a la grilla de categorias de arriba
+  // (fotos grandes, con scrim oscuro) se leia como si fuera parte del mismo
+  // bloque en vez de una seccion nueva -este aire extra marca el corte.
+  margin: 120px auto 0;
+  // 90px abajo: el libro es ahora la ULTIMA seccion de la portada. Antes
+  // debajo iba el bloque "¿Con hambre? Armá tu pedido", que ponia ~150px de
+  // aire propio; al retirarlo el boton "Abrir el libro" quedaba a 40px del
+  // filete dorado del pie. Con 90 aqui mas los 34 de `.bol-footer` la
+  // separacion vuelve a los ~124px que el sitio usa entre secciones grandes.
+  padding: 0 24px 90px;
+  text-align: center;
+
+  // En movil el escenario se sale del ancho de la pantalla a proposito (117vw
+  // colocados en -11vw, ver `.bol-book__stage`): lo que sobra es aire
+  // transparente del video, pero cuenta igual para el ancho del documento y
+  // sin esto la pagina entera se desplazaria en horizontal.
+  //
+  // `clip` y no `hidden`: `hidden` convierte la seccion en un contenedor de
+  // scroll y arrastra `overflow-y` a `auto`, que recortaria la sombra del
+  // libro por arriba y por abajo. `clip` es el unico valor que se puede
+  // combinar con `overflow-y: visible`.
+  @media (max-width: 900px) {
+    // En movil manda el ancho de la pantalla y no la altura: el libro sale del
+    // contenedor a proposito (117vw colocados en -11vw) para aprovechar el aire
+    // transparente que el video deja a los lados. Ver la nota larga en
+    // `.bol-book__stage`.
+    --libro-w: 117vw;
+
+    overflow-x: clip;
+    overflow-y: visible;
+  }
+}
+
+// --- Cabecera -----------------------------------------------------------
+// El titulo y el hint quedan siempre visibles, incluso con el libro abierto.
+// Estan pegados al libro a proposito (ver .bol-book__stage): durante la
+// apertura, la tapa sube y los tapa un instante real -por eso el head va
+// detras en capas (z-index menor que el stage), a proposito, como efecto.
+.bol-book__head {
+  position: relative;
+  z-index: 1;
+}
+.bol-book__eyebrow {
+  font: 600 13px 'Cinzel', serif;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: var(--olive);
+}
+.bol-book__title {
+  font: 500 clamp(32px, 3.8vw, 46px) / 1.08 var(--hf, 'Cormorant Garamond'), serif;
+  margin: 10px 0 0;
+
+  em {
+    font-style: italic;
+    color: var(--acc, #c8912a);
+  }
+}
+.bol-book__hint {
+  font: 400 16px / 1.6 'Jost', sans-serif;
+  color: #6b6552;
+  margin: 8px auto 0;
+  max-width: 380px;
+}
+
+// --- Pista de scroll ---------------------------------------------------------
+//
+// El libro se quedo sin botones y lo mueve el scroll. Aqui NO hay secuestro de
+// ninguna clase -eso es cosa del hero y su controlador de paradas-: esto es solo
+// recorrido. El componente lee cuanto de la pista lleva recorrido la ventana y
+// deriva de ahi la pagina.
+//
+// Tres piezas, y las tres MIDEN lo que dicen para que el componente no repita
+// ninguna constante de este archivo:
+//
+//   __pin        la escena anclada. Una pantalla de alto, pegada arriba.
+//   __recorrido  el scroll que se reparte entre las siete vueltas (la tapa y
+//                las seis hojas). Es lo unico que el componente mide, y de ahi
+//                sale el ritmo entero.
+//   __remate     permanencia en la pagina de cierre. Sin el, el pin se suelta
+//                en el instante en que la ultima hoja termina de caer y los
+//                enlaces de Instagram y Facebook pasan de largo antes de que
+//                nadie pueda pulsarlos.
+.bol-book__track {
+  position: relative;
+}
+.bol-book__pin {
+  position: sticky;
+  top: 0;
+  // Centra en vertical el GRUPO entero: cabecera + libro. El segmento tiene que
+  // verse completo -titulo y libro a la vez, como en cualquier pagina normal- y
+  // quedarse asi mientras el scroll pasa las hojas.
+  //
+  // Columna y NO centrado en el eje transversal: `align-items` se queda en su
+  // valor por defecto a proposito. Los hijos son bloques a lo ancho y dentro de
+  // ellos el escenario se coloca con sus propios margenes -`auto` en escritorio,
+  // `-11vw - 24px` en movil-, que es como estaba calibrado. Con `align-items:
+  // center` el centrado del flex se comeria la mitad de ese margen negativo y
+  // descuadraria el encuadre de telefono.
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  // `svh` y no `vh`: en Android `100vh` es el viewport GRANDE -el de la barra
+  // retraida-, asi que centrar con el baja el libro y esconde una franja.
+  height: 100vh;
+  height: 100svh;
+}
+// El escenario lleva margenes negativos ARRIBA -para pegarse a la cabecera- y
+// ABAJO -para descontar el aire transparente que el video deja bajo el libro-.
+// Sin contexto de formato propio esos margenes se colapsarian hacia fuera y el
+// `justify-content` del pin contaria una altura que no es la que se ve.
+// `flow-root` lo abre sin tocar el flujo en bloque de dentro.
+.bol-book__escena {
+  display: flow-root;
+}
+
+.bol-book__recorrido {
+  // 25svh por vuelta, y este es EL numero del ritmo: pasar una hoja cuesta
+  // exactamente la altura de su hueco, ni mas ni menos. A 60svh eran 648 px en
+  // un monitor de 1080p -entre seis y diez muescas de rueda segun el equipo-, y
+  // el dueno del sitio lo reporto como "literalmente son diez clics antes de
+  // pasar la hoja". A 25svh son 270 px: unas tres muescas.
+  //
+  // Lo que se paga a cambio: la vuelta dura ~810 ms pase lo que pase, asi que un
+  // impulso fuerte de rueda encadena dos o tres y el libro va un instante por
+  // detras del scroll. Esta previsto -`conducir` acelera hasta 3x y relee el
+  // destino en cada paso-, pero es la razon por la que bajar bastante mas de
+  // aqui empezaria a leerse como un libro que persigue a la pagina.
+  height: calc(7 * 25svh);
+}
+.bol-book__remate {
+  height: 65svh;
+}
+
+// Controles que no se ven pero si se enfocan y si los anuncia un lector de
+// pantalla. Quitar los botones dejaba sin manejo a quien no puede usar el
+// scroll con precision; esto lo devuelve sin poner nada en pantalla.
+.bol-book__sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+// --- Escenario: canvas con la secuencia real del video (fondo removido) ---
+.bol-book__stage {
+  position: relative;
+  z-index: 2; // por encima del titulo (ver .bol-book__head): la tapa lo tapa a proposito al abrir
+  width: var(--libro-w);
+  aspect-ratio: 860 / 698;
+  // Alto del escenario. Se declara aparte porque el centrado de abajo lo
+  // necesita dentro de un `calc` y `aspect-ratio` no se puede leer desde ahi.
+  --libro-h: calc(var(--libro-w) * 0.811628);
+
+  // Los dos margenes salen del ALTO del escenario, no del ancho, para que la
+  // regla del telefono acostado -que fija `--libro-h` directamente- los herede
+  // sin recalcular nada.
+  //
+  // ARRIBA (-20,849 %): el escenario se pega a la cabecera. Dentro del cuadro de
+  // 860x698 el libro asentado empieza en `y 185`, o sea al 26,5 % de la altura;
+  // restando eso y dejando un aire de 5,655 % sale -20,849 %. A un escenario de
+  // 1040 da exactamente los -176px calibrados de siempre, asi que la relacion
+  // entre titulo y libro es la de antes, solo que a escala.
+  //
+  // ABAJO (-15,759 %): el libro acaba en `y 588` y del 588 al 698 solo hay aire
+  // transparente. Ese margen lo descuenta para que el centrado del pin cuente la
+  // altura que SE VE y no la de la caja; sin el, el grupo quedaria 15,8 % de la
+  // altura del libro demasiado alto.
+  margin: calc(var(--libro-h) * -0.20849) auto calc(var(--libro-h) * -0.15759);
+
+  // En telefono este bloque estaba encima de su propia cabecera.
+  //
+  // Los -176px son una medida ABSOLUTA calibrada contra un libro de 844px de
+  // alto (escritorio), donde valen el 21 % de su altura. En movil el libro
+  // mide 280px y esos mismos 176px son el 63 %: enterraban el titulo entero
+  // ("Nuestra historia, pagina a pagina" quedaba partido por el libro), tapaban
+  // el "Abri el libro y conoce como empezamos" y dejaban los botones de
+  // Anterior/Siguiente cruzados por encima de la ilustracion — medido: la
+  // cabecera ocupaba y=236..367 y el libro y=191..471.
+  //
+  // `-17vw` es la MISMA proporcion que en escritorio (~21 % de la altura del
+  // libro) expresada de forma relativa, asi que se comporta igual en un iPhone
+  // SE que en un Pro Max en vez de depender del tamano de pantalla.
+  //
+  // Los margenes laterales negativos cancelan el `padding: 0 24px` del
+  // contenedor SOLO para el libro: la cabecera conserva su margen de lectura y
+  // el libro pasa a ocupar el ancho completo de la pantalla, que es lo unico
+  // que se puede agrandar sin recortar el cuadro (ver nota abajo).
+  // El libro se leia pequeno: dentro del marco de 860x698 del video, el libro
+  // abierto solo ocupa `x 110..813`, o sea el 81,9 %. Con el lienzo a ancho
+  // completo de pantalla eso dejaba el libro en 337 px de 412 (medido en Pixel
+  // 7, iPhone SE y iPhone 15 Pro Max: los tres al 81,7 %) y el texto de la
+  // pagina en 13,2 px. El resto era aire transparente del video.
+  //
+  // Ampliar es recortar ese aire. El tope lo pone la ENVOLVENTE de los 169
+  // cuadros, no el libro en reposo: barridos uno a uno da `x 82..813`. Los 28
+  // px que sobran por la izquierda son el canto de la tapa mientras se abre
+  // -cuadros 30..49, tapa opaca de verdad: 2392 pixeles solidos en el 34-, y
+  // recortarlos se veria como un corte recto en el borde de la pantalla.
+  //
+  // De ahi 117vw: deja la envolvente entera dentro de la pantalla (el canto de
+  // la tapa asoma justo hasta 0,16vw del borde) y sube el libro a 396 px, un
+  // 17,5 % mas. El precio, aceptado a proposito, es que TODO el aire sobrante
+  // cae del lado izquierdo y el libro queda a ~1 px del borde derecho: el
+  // canto solo asoma por la izquierda, asi que centrar el libro exigiria
+  // igualar ese aire a la derecha y bajaria la ampliacion al 12 %.
+  //
+  // El texto no pierde nitidez: se dibuja en un panel de 700 px que hoy se
+  // reduce a 337 y pasa a 396, o sea que sigue habiendo reduccion. Lo unico
+  // que se amplia por encima de su tamano nativo es el papel del video, un
+  // 17 %.
+  //
+  // `sizeCanvas()` mide `parentElement.clientWidth`, asi que el lienzo sube de
+  // resolucion solo con esto -no hay nada que tocar en el componente-.
+  // El ancho de movil ya lo pone `--libro-w` en `.bol-book`, asi que aqui solo
+  // queda la posicion HORIZONTAL: los -24px cancelan el `padding: 0 24px` del
+  // contenedor y los -11vw son la posicion, medida desde el borde de la
+  // PANTALLA y no desde el contenedor. El margen superior lo sigue poniendo el
+  // centrado de arriba, que con `--libro-w: 117vw` se recalcula solo.
+  @media (max-width: 900px) {
+    margin-left: calc(-11vw - 24px);
+    margin-right: 0;
+  }
+}
+.bol-book__canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  filter: drop-shadow(0 22px 30px rgba(46, 37, 19, 0.22));
+
+  &.is-ready {
+    opacity: 1;
+  }
+
+  // Pulso de "elevacion" sincronizado con open(): dura lo mismo que la
+  // animacion de apertura (ver MS_PER_FRAME * distancia en el componente) y
+  // su pico coincide con el instante en que la tapa pasa mas cerca del
+  // titulo, para que se sienta como el libro levantandose hacia la camara en
+  // vez de una imagen plana tapando texto.
+  &.is-lifting {
+    animation: bol-book-lift 1.1s ease-in-out;
+  }
+
+  // En movil el pulso NO puede escalar, y esto no es un detalle: con el libro
+  // ampliado a 117vw (ver `.bol-book__stage`) el aire que queda es de 16 px a
+  // la izquierda y 1,3 a la derecha, y un `scale(1.035)` sobre un libro de 394
+  // px lo ensancha ~7 px por cada lado. Medido contra la caja REAL del lienzo
+  // -la que ya lleva la transformacion, no la del escenario, que fue mi primer
+  // error de medida-, durante la apertura el libro se salia hasta -5,4 px por
+  // la izquierda y 417,8 px en una pantalla de 412, en los cuatro telefonos
+  // probados.
+  //
+  // Devolver el escalado exigiria dejar ~7 px de aire a cada lado, o sea bajar
+  // la ampliacion del 17 % al 13 %. Se hace al reves: se quita lo que crece a
+  // lo ancho y se compensa con lo que no ocupa sitio -el desplazamiento sube
+  // de 8 a 12 px-. La sombra, que ya se hincha sola en el pico, se queda igual.
+  @media (max-width: 900px) {
+    --pulso-escala: 1;
+    --pulso-subida: -12px;
+  }
+}
+
+// El pico va parametrizado porque en movil NO puede escalar, y separar la
+// animacion en dos no funciona: Angular reescribe los nombres de `@keyframes`
+// por encapsulacion pero NO reescribe la referencia cuando la regla va dentro
+// de un `@media` -comprobado en el bundle: `animation:bol-book-lift-movil`
+// contra `@keyframes _ngcontent-%COMP%_bol-book-lift-movil`-, asi que el nombre
+// no casaba con nada y el pulso no corria. Con variables la animacion es UNA y
+// lo que cambia por pantalla son sus numeros. Ver `.bol-book__canvas`.
+@keyframes bol-book-lift {
+  0% {
+    transform: scale(1) translateY(0);
+    filter: drop-shadow(0 22px 30px rgba(46, 37, 19, 0.22));
+  }
+  40% {
+    transform: scale(var(--pulso-escala, 1.035)) translateY(var(--pulso-subida, -8px));
+    filter: drop-shadow(0 42px 48px rgba(46, 37, 19, 0.34));
+  }
+  100% {
+    transform: scale(1) translateY(0);
+    filter: drop-shadow(0 22px 30px rgba(46, 37, 19, 0.22));
+  }
+}
+
+// Únicos links reales sobre el canvas (redes sociales en la página de cierre):
+// todo lo demás (fotos, texto, los botones mismos) son píxeles dibujados en el
+// mismo canvas del video, nunca un elemento u motor de render aparte.
+//
+// Invisible a propósito: el botón ya está pintado en la hoja, con su perspectiva
+// y su luz. Esto es solo el área que se puede pulsar, y su posición Y SU TAMAÑO
+// los calcula socialLinkStyle midiendo sobre la hoja, para que sigan al botón
+// dibujado a cualquier tamaño de pantalla.
+.bol-book__social-hit {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+
+  // Esta capa NO pinta nada, ni siquiera al pasar el puntero: la respuesta al
+  // hover ocurre dentro del papel (el componente repinta la hoja con el cajetín
+  // marcado, ver marcaSocial). Se intentó primero con un resplandor de CSS acá
+  // y se veía lo que era: un rectángulo luminoso, sin la inclinación de la
+  // página, flotando sobre un botón que sí está inclinado.
+  //
+  // El foco sí lleva anillo propio: el navegador tiene que poder señalar dónde
+  // está el teclado, y el marcado de la tinta por sí solo no lo deja claro.
+  &:focus-visible {
+    outline: 2px solid var(--olive);
+    outline-offset: 4px;
+    border-radius: 999px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bol-book__canvas.is-lifting {
+    animation: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .bol-book {
+    margin-top: 36px;
+  }
+}
+
+// Red de seguridad para navegadores sin `overflow: clip` (Safari < 16): ahi la
+// declaracion de `.bol-book` se descarta entera y el sobrante del escenario haria
+// desplazable la pagina en horizontal. Se vuelve al encuadre de antes -libro a
+// ancho de pantalla, sin ampliar- que no se sale de ningun lado.
+@media (max-width: 900px) {
+  @supports not (overflow: clip) {
+    // `100%` se resuelve donde la variable se USA -en el `width` del escenario-,
+    // asi que sigue midiendo contra la caja de contenido de `.bol-book`, igual
+    // que cuando esto era un `width` propio.
+    .bol-book {
+      --libro-w: calc(100% + 48px);
+    }
+    .bol-book__stage {
+      margin-left: -24px;
+      margin-right: -24px;
+    }
+    // Con el libro de vuelta a 100vw vuelve a sobrar aire a los lados, asi que
+    // el pulso puede escalar como en escritorio.
+    .bol-book__canvas {
+      --pulso-escala: 1.035;
+      --pulso-subida: -8px;
+    }
+  }
+}
+
+// ─── Pantallas BAJAS ──────────────────────────────────────────────────────────
+// Ver la nota larga en site-nav.component.scss.
+//
+// El libro es la pieza que peor lo llevaba, y por una razón medible: su alto
+// salía del ANCHO disponible -un `width` fijo y luego la proporción 860/698 del
+// vídeo-, así que en una pantalla baja pedía más alto del que hay:
+//
+//   iPhone 15 acostado   852x393   el lienzo pedía 997x809   (2,1 pantallas)
+//   laptop de 14"       1280x720   el lienzo pedía 1040x844  (1,2 pantallas)
+//
+// La cura es invertir de quién depende: en estas pantallas manda la ALTURA y el
+// ancho lo deriva `aspect-ratio`. Así el libro entra entero siempre.
+//
+// En ESCRITORIO esto ya no hace falta como excepción: el término `199vh` de
+// `--libro-w` aplica esa misma inversión de forma continua a cualquier altura
+// de ventana, no solo por debajo de un escalón. Lo que sigue abajo es solo
+// para el teléfono acostado, donde la regla de móvil juega en contra.
+//
+// El margen negativo también se vuelve relativo. Los -176px de arriba son el
+// 20,9 % de un libro de 844, y ese porcentaje es lo que hay que conservar: es
+// el aire transparente que el vídeo deja encima del libro en reposo. Como el
+// alto pasa a ir en unidades de pantalla, el 20,9 % de ese alto también, y
+// entonces el título queda a la misma distancia del libro que en escritorio.
+
+// Teléfono acostado. La regla de móvil de más arriba está calibrada para un
+// teléfono DE PIE: 117vw y un margen izquierdo negativo para robarle ancho a
+// una pantalla estrecha. Acostado sobra ancho y falta alto, así que esa regla
+// juega justo en contra y hay que desactivarla entera.
+//   76lvh de alto -> 93,6lvh de ancho, que en 852x393 son 368x299. Cabe.
+//   20,9 % de 76lvh = 15,9lvh, de ahí el -16lvh.
+@media (max-height: 500px) and (orientation: landscape) {
+  .bol-book {
+    padding-bottom: 28px;
+  }
+  .bol-book__stage {
+    // Aqui el alto es el dato y el ancho lo deriva `aspect-ratio`. Los dos
+    // margenes negativos se recalculan solos porque van escritos en `--libro-h`;
+    // lo unico que hay que rehacer es el `auto` de los lados, que deshace el
+    // margen izquierdo de la regla de movil -calibrada para un telefono DE PIE-.
+    --libro-h: 76lvh;
+    width: auto;
+    height: var(--libro-h);
+    max-width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+// Laptop pequeña. El tamaño del libro ya lo resuelve `--libro-w` (su término
+// `199vh` es continuo y cubre este caso), así que aquí solo queda recortar el
+// aire de debajo, que en una pantalla baja es lo único que sobra.
+@media (max-height: 760px) and (min-width: 901px) {
+  .bol-book {
+    padding-bottom: 56px;
+  }
+}

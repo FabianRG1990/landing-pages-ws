@@ -1,0 +1,479 @@
+.bol-hero-wrap {
+  position: relative;
+  // 1556vh -> 700vh. El recorrido ya no se atraviesa a base de rueda libre:
+  // en escritorio un controlador de PARADAS (ver `CHECKPOINTS` en el .ts) hace
+  // que cada gesto sea un viaje animado de un momento narrativo al siguiente,
+  // así que el largo total ya no decide cuántos gestos cuesta el hero — solo
+  // decide el recorrido de los casos SIN paradas: táctil, `prefers-reduced-
+  // motion` y el arrastre del thumb de la scrollbar. Ahí es donde 1556vh
+  // (~168 clics de rueda en una pantalla de 1080px) era insostenible.
+  // El reparto interno vive en INTRO_VH / CAROUSEL_VH / PRE_CAROUSEL_GAP_VH /
+  // MASA_TEXT_VH; esta altura es el presupuesto que esos cuatro se reparten.
+  height: 700vh;
+
+  // Sin animación el canvas no se dibuja y solo corre la intro del DOM, que
+  // termina en INTRO_VH (100vh) junto con su fade; el resto sería wrap vacío.
+  @media (prefers-reduced-motion: reduce) {
+    height: 200vh;
+  }
+}
+
+.bol-hero-stage {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 5;
+  background: #faf6ec;
+}
+
+// Fondo artístico (espigas + listones + harina) detrás de todo el recorrido
+// del hero: el canvas de 233 frames y las fotos/ilustraciones del croissant
+// son recortes con fondo transparente, así que este fondo se ve consistente
+// durante todo el scroll, sin cortes al activarse el canvas.
+//
+// Es una <img> real (con <picture> para el swap responsive), no un
+// `background-image` de CSS: en un contenedor `position: sticky` de scroll
+// muy largo, `background-size: cover` tiene un bug de repintado en Chromium
+// (el layout queda correcto pero el pintado se corta a mitad de pantalla).
+// El elemento <img> usa otra ruta de render y no lo sufre.
+.bol-hero-bg {
+  position: absolute;
+  inset: 0;
+  display: block;
+
+  img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+  }
+}
+
+// Tres frases cortas, en el mismo tono itálico/reflexivo que el resto del
+// copy del hero, anidadas dentro de la curva del listón del fondo (lado
+// derecho) — persistentes durante todo el recorrido, igual que el fondo.
+.bol-hero-motto {
+  position: absolute;
+  right: 6%;
+  top: 20%;
+  bottom: 24%;
+  width: min(23vw, 260px);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: flex-end;
+  text-align: right;
+  pointer-events: none;
+
+  li {
+    font: italic 500 clamp(15px, 1.35vw, 19px) / 1.4 'Cormorant Garamond', serif;
+    letter-spacing: -0.006em;
+    color: color-mix(in srgb, var(--ink) 52%, transparent);
+  }
+
+  // En pantallas angostas estas frases no tienen columna propia: comparten el
+  // ancho con el croissant y con los rotulos centrados, y se cruzan encima de
+  // ellos. Medido en iPhone 15 y iPhone SE recorriendo el hero en 46 pasos:
+  // se solapan con `.bol-hero-caption` en 9 pasos, con `.bol-hero-hint` en 2 y
+  // con `.bol-hero-masa` en 1-5 — texto sobre texto, ilegible. No hay hueco
+  // donde reubicarlas sin quitarle aire al contenido principal, asi que en
+  // movil no se muestran; en escritorio siguen intactas.
+  @media (max-width: 899px) {
+    display: none;
+  }
+}
+
+.bol-hero-photobox {
+  position: relative;
+  // El lado lo publica el componente en `--bol-hero-box` (ver `heroBoxCss`), y
+  // es EL MISMO numero con el que el lienzo escala sus cuadros. Antes esta
+  // linea era una quinta copia de la formula y por eso el DOM y el lienzo
+  // encajaban por repeticion en vez de por construccion.
+  //
+  // Se lee de una variable en px y no se escribe aqui en `vh` a proposito:
+  // `vh` es el viewport GRANDE y el componente mide `innerHeight`, que es el
+  // actual. Con la barra de URL de un movil desplegada son dos numeros
+  // distintos, y el croissant del DOM y el del lienzo cambiarian de tamano al
+  // cruzar el empalme.
+  //
+  // El respaldo solo se usa en el instante anterior a que corra el componente
+  // -y detras del preloader-: por eso replica la formula en unidades de CSS,
+  // para que ni siquiera ese instante se vea con el tamano viejo.
+  width: var(--bol-hero-box, min(90vw, 720px, 90vh));
+  aspect-ratio: 1 / 1;
+
+  @media (max-height: 500px) and (orientation: landscape) {
+    width: var(--bol-hero-box, min(90vw, 720px, 62vh));
+  }
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform-origin: 50% 0%;
+}
+
+.bol-hero-img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  opacity: 0;
+
+  &--photo {
+    will-change: opacity;
+    z-index: 3;
+  }
+  &--illus {
+    will-change: opacity, transform;
+    z-index: 2;
+  }
+  &--logo {
+    will-change: opacity;
+    z-index: 4;
+  }
+}
+
+.bol-hero-introcap {
+  position: absolute;
+  top: 4%;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 5;
+  transform: rotate(-1deg);
+
+  // En telefono el rotulo caia ENCIMA del croissant. Medido en iPhone 15: el
+  // texto ocupaba 237..343 y la tinta del croissant empieza en 286, o sea 57 px
+  // montados sobre la masa. Y mientras tanto quedaban 212 px sin usar entre el
+  // navbar (acaba en 74) y el croissant.
+  //
+  // El 4% esta medido contra la caja del croissant, que en telefono es un
+  // cuadrado de 90vw: el rotulo nace dentro de ella. Restandole esta cantidad
+  // sale por arriba y se instala en esa franja libre.
+  //
+  // El desplazamiento va en PIXELES y no en porcentaje, y eso importa: el
+  // rotulo mide siempre lo mismo en telefono —la fuente esta topada en 28 px
+  // por el clamp— mientras que la caja si encoge con la pantalla, asi que un
+  // porcentaje se queda corto justo donde menos aire hay. Probado: con -17 %
+  // quedaban 27 px de aire a 430 px de ancho pero solo 7 a 360.
+  //
+  // En escritorio la caja es mucho mayor que el texto y no hay invasion, asi
+  // que ahi se queda el 4% de siempre.
+  @media (max-width: 899px) {
+    top: calc(4% - 88px);
+  }
+}
+
+.bol-hero-introcap__inner {
+  position: relative;
+  padding: 16px 28px;
+}
+
+// Resplandor crema detras del texto. Su unica razon de ser era que la frase se
+// leyera POR ENCIMA de la masa del croissant; sobre el fondo liso no aporta
+// nada y, contra la foto, es la mancha nublada que se veia. En telefono el
+// rotulo ya no pisa la imagen, asi que aqui sobra y se quita.
+.bol-hero-introcap__glow {
+  position: absolute;
+  inset: -14px;
+  background: radial-gradient(ellipse at center, rgba(250, 246, 236, 0.85) 0%, rgba(250, 246, 236, 0.42) 55%, transparent 78%);
+  filter: blur(3px);
+
+  @media (max-width: 899px) {
+    display: none;
+  }
+}
+
+.bol-hero-introcap__text {
+  position: relative;
+  font: italic 500 clamp(28px, 3.9vw, 46px) / 1.22 'Cormorant Garamond', serif;
+  letter-spacing: -0.008em;
+  color: #2e2a1c;
+
+  // En telefono la frase parte en dos renglones muy dispares —medidos, 294 px
+  // y 73— y el corto quedaba colgando a la izquierda, con aspecto de sobra.
+  // `balance` reparte las palabras entre los dos renglones: 188 y 179. Necesita
+  // que el elemento sea de bloque (es un `span`, y en linea la propiedad no
+  // hace nada), y el centrado es lo que coloca el renglon corto bajo el eje del
+  // largo. Donde el navegador no soporte `balance` queda el corte de siempre,
+  // pero ya centrado y no colgando.
+  @media (max-width: 899px) {
+    display: block;
+    text-align: center;
+    text-wrap: balance;
+  }
+}
+
+.bol-hero-masa {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  z-index: 1; // detrás del canvas (z-index 6): el pan queda siempre en primer plano
+  width: min(88vw, 640px);
+  transform: translateX(-50%);
+  text-align: center;
+  margin: 0;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  // La posición vertical (translateY) la controla JS cada frame para mantener
+  // centrada la palabra bajo el foco — por eso no hay flex/justify-content
+  // aquí, y por eso el ancho es angosto: fuerza el wrap natural en líneas
+  // cortas con letra grande, en vez de cortar el texto a mano en trozos chicos.
+}
+
+.bol-hero-masa__word {
+  display: inline-block;
+  // El espacio entre palabras NO puede ser un carácter final dentro del propio
+  // span: un inline-block forma su propia línea de layout, y el navegador
+  // colapsa a cero el espacio final de esa línea (aunque esté en el texto),
+  // pegando una palabra con la siguiente. Por eso el espacio va como margen.
+  margin-right: 0.28em;
+  font: italic 600 clamp(30px, 5vw, 58px) / 1.18 'Cormorant Garamond', serif;
+  color: #9a8f72;
+  opacity: 0;
+  will-change: opacity, filter, color;
+}
+
+.bol-hero-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  z-index: 6;
+  pointer-events: none;
+}
+
+// Scrim del caption: un fade lineal de 2-3 paradas se ve como un panel con
+// borde duro (el ojo percibe el tramo final, donde más cambia por pixel,
+// como un corte). El estándar para "texto sobre foto" (scrim de Material
+// Design, técnica de "easing gradients" de CSS-Tricks) usa muchas paradas
+// seguidas de una curva de easing en vez de una interpolación lineal, para
+// que el ojo no perciba ningún punto de quiebre. Paradas tomadas de esa
+// referencia (ease-out estándar), escaladas a un pico de 94% en vez de 97%
+// para un scrim más tenue.
+@mixin hero-caption-scrim($direction) {
+  background: linear-gradient(
+    $direction,
+    color-mix(in srgb, var(--cream) 94%, transparent) 0%,
+    color-mix(in srgb, var(--cream) 69.4%, transparent) 19%,
+    color-mix(in srgb, var(--cream) 50.8%, transparent) 34%,
+    color-mix(in srgb, var(--cream) 35.9%, transparent) 47%,
+    color-mix(in srgb, var(--cream) 26.1%, transparent) 56.5%,
+    color-mix(in srgb, var(--cream) 18.2%, transparent) 65%,
+    color-mix(in srgb, var(--cream) 11.8%, transparent) 73%,
+    color-mix(in srgb, var(--cream) 7.1%, transparent) 80.2%,
+    color-mix(in srgb, var(--cream) 3.9%, transparent) 86.1%,
+    color-mix(in srgb, var(--cream) 2%, transparent) 91%,
+    color-mix(in srgb, var(--cream) 0.8%, transparent) 95.2%,
+    color-mix(in srgb, var(--cream) 0.2%, transparent) 98.2%,
+    transparent 100%
+  );
+}
+
+.bol-hero-caption {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  // Mismo motivo que en `.bol-hero-hint`: la ultima linea del rotulo cae en la
+  // franja que la barra de URL tapa. Se sube exactamente el alto de esa barra.
+  padding: 104px 32px 68px;
+  padding-bottom: max(68px, calc(100vh - 100svh + 68px));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 9px;
+  z-index: 7;
+  opacity: 0;
+  pointer-events: none;
+  @include hero-caption-scrim(to top);
+
+  // Fermentación / Horneado: la foto ya deja aire arriba, así que el texto se
+  // ubica ahí en vez de abajo — mismo tratamiento tipográfico, espejado.
+  &--top {
+    top: 0;
+    bottom: auto;
+    padding: 128px 32px 32px;
+    @include hero-caption-scrim(to bottom);
+  }
+}
+
+.bol-hero-caption__eyebrow {
+  font: 600 11px 'Cinzel', serif;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--olive);
+
+  &:empty {
+    display: none;
+  }
+}
+
+.bol-hero-caption__text {
+  font: italic 500 clamp(30px, 4.4vw, 48px) / 1.26 'Cormorant Garamond', serif;
+  letter-spacing: -0.008em;
+  color: #2e2a1c;
+  max-width: 640px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.32em;
+}
+
+// `100vh` en moviles NO es el area visible: es el viewport GRANDE, el que
+// queda cuando la barra de URL esta oculta. Con la barra a la vista el
+// navegador recorta la parte inferior de ese 100vh, y ahi es justo donde vive
+// este rotulo. Medido en Pixel 7 (vh=839): el hint ocupa y=757..809, Chrome
+// Android corta en y=783 —lo parte por la mitad— y Safari iOS en y=735 —lo
+// oculta entero—. Es el rotulo que avisa de que la pagina continua: si no se
+// ve, nadie sabe que hay que bajar.
+//
+// `100vh - 100svh` es exactamente la altura de ese cromo del navegador, y es
+// una constante por dispositivo: no cambia durante el scroll, asi que no
+// provoca reflow ni temblor (que es lo que pasaria midiendo el escenario en
+// `dvh`). En escritorio ambas unidades valen lo mismo, la resta da 0 y el
+// `max()` deja los 30px de siempre: no cambia un pixel. En navegadores sin
+// `svh` el calc es invalido y tambien cae a los 30px originales.
+.bol-hero-hint {
+  position: absolute;
+  bottom: 30px;
+  bottom: max(30px, calc(100vh - 100svh + 30px));
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 9px;
+  pointer-events: none;
+
+  span {
+    // Era el texto más pequeño de toda la portada (10,5px) y encima con 0,28em
+    // de tracking: separar tanto las letras rompe la palabra en signos sueltos y
+    // se lee peor, no mejor. Sube a 13px con un tracking más corto, y el peso
+    // pasa a 600 porque este rótulo es una instrucción -si no se ve, la persona
+    // no sabe que hay que bajar.
+    font: 600 13px 'Jost', sans-serif;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    // El oliva a este tamaño se apagaba contra el fondo claro del hero; el
+    // dorado de acento es el color con el que el sitio señala lo accionable.
+    color: var(--acc, #c8912a);
+  }
+
+  svg {
+    animation: hbob 1.8s ease-in-out infinite;
+    width: 24px;
+    height: 24px;
+  }
+}
+
+
+// ─── Teléfono ACOSTADO: el escenario se mide sobre lo que se VE ───────────────
+//
+// Medido en el aparato real (Galaxy S22 Ultra, Chrome 152, Android 16, por USB):
+//
+//     innerHeight 298     100vh = 354     100svh = 298
+//
+// En Chrome de Android `100vh` es el viewport GRANDE, el de la barra de URL
+// retraída. El escenario mide 354 y su centro cae en 177, pero solo se ven 298:
+// TODO lo centrado queda 28px más abajo de donde debería, y los 56px de abajo
+// del escenario no se ven nunca. De ahí el choque que se reportó:
+//
+//     logo/croissant   y  85 .. 269
+//     hint             y 216 .. 268     -> "DESLIZÁ PARA DESCUBRIR" escrito
+//                                          encima de "BOLLERIA"
+//     rótulo           y 136 .. 364     -> 66px por debajo del borde
+//
+// El hint NO estaba mal puesto: se coloca a 30px del borde visible y su
+// compensación de barra de URL funciona. El desplazado era el escenario.
+//
+// Con `100svh` el escenario mide lo que se ve, su centro vuelve al centro real
+// y no hay franja perdida. Y entonces las compensaciones `100vh - 100svh` del
+// hint y del rótulo sobran: dentro de un escenario que ya es pequeño volverían
+// a subir el contenido 56px, que es el mismo error con el signo cambiado.
+//
+// En vertical y en escritorio no entra nada de esto.
+@media (max-height: 500px) and (orientation: landscape) {
+  .bol-hero-stage {
+    height: 100svh;
+
+    // `100svh` centra sobre lo que se ve, que es lo que hacia falta. Pero deja
+    // al descubierto la franja que la barra de URL ocupa: al retraerse, lo
+    // visible pasa de 298 a 354 y el escenario se queda en 298. Reportado: "el
+    // scroll hace que el background suba".
+    //
+    // Se pinta esa franja con una SOMBRA solida -desplazamiento vertical, cero
+    // difuminado- en vez de agrandar el escenario. Es a proposito: agrandarlo
+    // devolveria el centro a 177 y con el, el choque del logo con el hint. La
+    // sombra no ocupa layout, no la recorta el `overflow: hidden` del propio
+    // elemento -eso recorta hijos, no la caja de uno mismo- y donde no hay
+    // barra dinamica `100lvh - 100svh` vale 0 y no pinta nada.
+    box-shadow: 0 calc(100lvh - 100svh) 0 #faf6ec;
+  }
+
+  .bol-hero-hint {
+    bottom: 20px;
+    gap: 4px;
+  }
+
+  // 68px de aire inferior son el 23 % de una pantalla de 298: el rótulo se
+  // salía por abajo en casi todo el recorrido. Con el escenario ya medido sobre
+  // lo visible, basta con el aire que de verdad hace falta.
+  .bol-hero-caption {
+    padding: 40px 24px 24px;
+
+    &--top {
+      padding: 24px 24px 40px;
+    }
+  }
+}
+
+// ─── Acostado: el rótulo de la intro, como título ─────────────────────────────
+//
+// Regresión que introduje al achicar el cuadro del hero. El rótulo vive DENTRO
+// de `.bol-hero-photobox` (`left: 0; right: 0`), así que su ancho es el de esa
+// caja. Mientras la caja medía 720px no se notaba; al bajarla a 164 para que el
+// croissant cupiera acostado, el texto heredó 164px de ancho con una letra de
+// 31px y se apiló a una palabra por línea, encima de la foto:
+//
+//     Todo / empieza / antes del / primer / bocado.
+//
+// Se desancla del ancho de la caja —`left: 50%` + `max-content`— y se coloca en
+// la franja libre que hay entre la barra (acaba en 43) y la tinta del croissant.
+// El `top` es negativo porque se mide desde la caja, que empieza en 67.
+@media (max-height: 500px) and (orientation: landscape) {
+  .bol-hero-introcap {
+    top: -25px;
+    left: 50%;
+    right: auto;
+    width: max-content;
+    max-width: 88vw;
+    transform: translateX(-50%) rotate(-1deg);
+  }
+
+  .bol-hero-introcap__inner {
+    padding: 8px 20px;
+  }
+
+  // 31px es tamaño de portada, no de título sobre una franja de 24px. A 24px
+  // la frase entera cabe en UNA línea de ~420px sobre los 796 disponibles.
+  .bol-hero-introcap__text {
+    font-size: 24px;
+  }
+}

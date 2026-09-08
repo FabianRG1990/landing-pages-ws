@@ -1,0 +1,70 @@
+<div
+  class="bol-curtain"
+  [class.bol-curtain--in]="stage() === 'in' || stage() === 'open' || stage() === 'out'"
+  [class.bol-curtain--open]="stage() === 'open'"
+  [class.bol-curtain--out]="stage() === 'out'"
+  [class.bol-curtain--reduced]="reducedFade()"
+>
+  <div class="bol-curtain__backdrop-img"></div>
+  <div class="bol-curtain__backdrop-vignette"></div>
+  <div class="bol-curtain__backdrop-glow"></div>
+
+  <div class="bol-curtain__scene">
+    @if (sprite()) {
+      <!-- La misma escena, ya rendida: ver `sprite` en el componente. -->
+      <div class="bol-curtain__sprite" [class.bol-curtain__sprite--open]="stage() === 'open' || stage() === 'out'"></div>
+    } @else {
+    <div class="bol-curtain__shadow"></div>
+    <div class="bol-curtain__shadow bol-curtain__shadow--contact"></div>
+    <div class="bol-curtain__leg bol-curtain__leg--l"></div>
+    <div class="bol-curtain__leg bol-curtain__leg--r"></div>
+
+    <div class="bol-curtain__oven">
+      <div class="bol-curtain__trim"></div>
+
+      <div class="bol-curtain__panel">
+        <div class="bol-curtain__dials">
+          <div class="bol-curtain__dial"></div>
+          <div class="bol-curtain__dial bol-curtain__dial--sm"></div>
+        </div>
+        <div class="bol-curtain__vents">
+          <div class="bol-curtain__vent"></div>
+          <div class="bol-curtain__vent"></div>
+        </div>
+        <div class="bol-curtain__led"></div>
+      </div>
+
+      <div class="bol-curtain__handle"></div>
+
+      <div class="bol-curtain__door-wrap">
+        <div
+          class="bol-curtain__interior"
+          [class.bol-curtain__interior--reveal]="stage() === 'open' || stage() === 'out'"
+        >
+          <div class="bol-curtain__glow"></div>
+          <div class="bol-curtain__rack"></div>
+          <div class="bol-curtain__steam bol-curtain__steam--a"></div>
+          <div class="bol-curtain__steam bol-curtain__steam--b"></div>
+          <div class="bol-curtain__steam bol-curtain__steam--c"></div>
+          <div class="bol-curtain__steam bol-curtain__steam--d"></div>
+          <div class="bol-curtain__mark-glow"></div>
+          <img src="assets/mark.webp" alt="" class="bol-curtain__mark" />
+        </div>
+
+        <div class="bol-curtain__door" [class.bol-curtain__door--open]="stage() === 'open' || stage() === 'out'">
+          <div class="bol-curtain__window">
+            <div class="bol-curtain__glass-shine"></div>
+            <div class="bol-curtain__window-corner bol-curtain__window-corner--l"></div>
+            <div class="bol-curtain__window-corner bol-curtain__window-corner--r"></div>
+          </div>
+          <div class="bol-curtain__rivet bol-curtain__rivet--tl"></div>
+          <div class="bol-curtain__rivet bol-curtain__rivet--tr"></div>
+          <div class="bol-curtain__rivet bol-curtain__rivet--bl"></div>
+          <div class="bol-curtain__rivet bol-curtain__rivet--br"></div>
+          <div class="bol-curtain__nameplate">&middot; B &middot;</div>
+        </div>
+      </div>
+    </div>
+    }
+  </div>
+</div>

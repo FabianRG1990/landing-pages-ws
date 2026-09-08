@@ -1,0 +1,171 @@
+// La foto es un background-image con attachment:fixed: se ve fija en pantalla
+// durante TODO el tiempo que la sección atraviesa la ventana (desde que asoma
+// por abajo hasta que sale por arriba). Para que el texto (sticky, más abajo)
+// quede quieto ese mismo tramo casi completo, la sección necesita ser bastante
+// más alta que una pantalla — el margen de "quietud" de un sticky depende de
+// cuánto más grande sea su contenedor que el propio texto.
+// El velo oscuro va fusionado como otra capa de fondo, con el mismo
+// attachment:fixed que la foto: así queda anclado a la pantalla exactamente
+// igual que la imagen, y no cambia de tono a medida que se hace scroll (antes
+// era una capa aparte que cubría toda la sección, y por eso su gradiente se
+// iba revelando distinto según cuánto se hubiera scrolleado).
+// Las dos capas de fondo —el velo y la foto— se declaran una sola vez porque
+// Safari necesita repetirlas más abajo sobre otro elemento, y dos listas que
+// hay que mantener a la par es justo como se desincronizan.
+$entremes-capas: linear-gradient(to bottom, rgba(46, 42, 28, 0.1) 0%, rgba(46, 42, 28, 0.5) 100%),
+  url('/assets/entremes-mostrador.webp');
+
+.bol-entremes {
+  position: relative;
+  height: 122vh;
+  background-image: $entremes-capas;
+  background-size:
+    100% 100%,
+    cover;
+  background-position:
+    center,
+    center;
+  background-attachment:
+    fixed,
+    fixed;
+
+  @media (max-width: 900px), (prefers-reduced-motion: reduce) {
+    // background-attachment:fixed y sticky no rinden bien en móviles
+    // (Safari/Chrome iOS los ignoran o degradan el rendimiento): se cae a un
+    // bloque normal y corto, con el texto centrado adentro.
+    height: auto;
+    background-attachment: scroll, scroll;
+  }
+}
+
+// ── Safari: la foto brincaba al hacer scroll ──────────────────────────────────
+//
+// Reportado en Safari de macOS y SOLO ahí. La matriz encaja con la media query
+// de arriba: en el iPhone y en Android la regla de 900px ya cae a `scroll`, y
+// Chrome compone el fondo fijo en la GPU. Safari de escritorio es el único que
+// queda por encima de 900px siendo WebKit, y ahí `background-attachment: fixed`
+// no se puede componer: el fondo se repinta desde el hilo principal mientras el
+// scroll corre en otro, llega un fotograma tarde y da el brinco. Es un fallo
+// conocido de WebKit, no de esta página.
+//
+// La cura es no usar esa propiedad: una capa propia pegada con `sticky`, que
+// WebKit sí resuelve en el hilo del scroll. Va en un `::before` para no añadir
+// un nodo que los demás navegadores tendrían que ignorar.
+//
+// Se acota a Safari A PROPÓSITO. La entrada NO es la misma: hoy la foto está
+// clavada a la pantalla y la sección la destapa de abajo arriba; con la capa,
+// la foto sube con la página hasta engancharse. Limitándolo aquí, Chrome,
+// Firefox y Windows conservan exactamente la entrada de hoy y solo cambia donde
+// hoy está roto.
+//
+// Las dos condiciones son redundantes a propósito, y las dos están medidas en
+// Chromium, WebKit y Firefox: `-webkit-hyphens` solo lo reconoce WebKit, y
+// `-webkit-named-image` también. Si un día Chrome recuperara una, la otra sigue
+// dejándolo fuera; que la detección falle de más deja a ese Safari como está
+// hoy, que es el fallo barato.
+@supports (-webkit-hyphens: none) and (background: -webkit-named-image(i)) {
+  @media (min-width: 901px) and (prefers-reduced-motion: no-preference) {
+    .bol-entremes {
+      background-image: none;
+      // Sin esto la capa INVADE la sección siguiente: al sacarla del flujo con
+      // el margen negativo de abajo, su caja de contención queda degenerada y
+      // `sticky` no la suelta al terminar la sección; como además es un
+      // elemento posicionado, se pinta POR ENCIMA de las especialidades y las
+      // dos se superponen. Reportado y reproducido: las tarjetas de pan subían
+      // por delante de la foto, que seguía clavada.
+      //
+      // `clip` y NO `hidden`: `hidden` crea un contenedor de scroll y entonces
+      // `sticky` pasa a anclarse a él —que no se desplaza— en vez de a la
+      // ventana, y la capa dejaría de engancharse. `clip` recorta el pintado
+      // sin crear ese contenedor, que es exactamente lo que hace falta: la
+      // sección vuelve a ser una ventana sobre la foto, igual que lo era con
+      // `background-attachment: fixed`.
+      overflow: clip;
+
+      // `margin-bottom` negativo para que la capa no ocupe flujo: la sección
+      // sigue midiendo 122vh y el texto sticky conserva su recorrido intacto.
+      &::before {
+        content: '';
+        position: sticky;
+        top: 0;
+        display: block;
+        height: 100vh;
+        margin-bottom: -100vh;
+        background-image: $entremes-capas;
+        background-size:
+          100% 100%,
+          cover;
+        background-position:
+          center,
+          center;
+      }
+    }
+  }
+}
+
+// El texto queda "pegado" a la imagen durante el mismo tramo de scroll en el
+// que la imagen se ve fija: position:sticky, sin una línea de JavaScript, sin
+// transición ni fade — lo cubre el resto de la página de forma natural en
+// cuanto termina el recorrido, igual que a la propia imagen.
+//
+// El bloque en sí mide solo lo que ocupa el texto (no 100vh): el rango en el
+// que un elemento sticky puede quedar quieto depende de cuánto más alto sea
+// su contenedor (la sección, 200vh) que el propio elemento — cuanto más
+// chico el elemento, más tiempo se mantiene fijo, acercándose al recorrido
+// completo en el que la imagen de fondo también se ve fija. "top: 50vh" +
+// "translateY(-50%)" lo centran verticalmente en la pantalla (en unidades de
+// viewport, no del contenedor, que es lo que sticky necesita para anclarse a
+// la ventana y no a la sección).
+.bol-entremes__sticky {
+  position: sticky;
+  top: 50vh;
+  transform: translateY(-50%);
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  padding: 0 32px;
+  pointer-events: none;
+
+  @media (max-width: 900px), (prefers-reduced-motion: reduce) {
+    position: static;
+    transform: none;
+    padding: 96px 32px;
+  }
+}
+
+.bol-entremes__copy {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  max-width: 760px;
+  text-align: center;
+}
+
+.bol-entremes__line1 {
+  margin: 0;
+  font: italic 500 clamp(24px, 3.4vw, 42px) / 1.32 'Cormorant Garamond', serif;
+  color: var(--cream, #faf6ec);
+  text-shadow:
+    0 2px 6px rgba(0, 0, 0, 0.55),
+    0 12px 34px rgba(0, 0, 0, 0.45);
+}
+
+// Vuelve al dorado de marca (el crema se veía "correcto" pero soso). Lo que
+// realmente le faltaba contraste no era el matiz, era el refuerzo alrededor
+// de cada letra: un filo negro grueso (stroke, no solo shadow) más una
+// sombra dura y cercana, así el dorado se recorta contra cualquier tramo de
+// la foto (vidrio claro o pan oscuro) en vez de mezclarse con él.
+.bol-entremes__line2 {
+  margin: 0;
+  font: 700 16px 'Jost', sans-serif;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: #e8c168;
+  -webkit-text-stroke: 1px rgba(20, 15, 5, 0.85);
+  paint-order: stroke fill;
+  text-shadow:
+    0 1px 3px rgba(0, 0, 0, 0.9),
+    0 3px 10px rgba(0, 0, 0, 0.75),
+    0 12px 28px rgba(0, 0, 0, 0.5);
+}

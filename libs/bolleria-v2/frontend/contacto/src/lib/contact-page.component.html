@@ -1,0 +1,96 @@
+<section class="bol-contact">
+  <div class="bol-contact__head">
+    <div class="bol-contact__eyebrow">Pasá a saludar</div>
+    <h1>Contacto</h1>
+    <p>Escribinos, llamanos o pasá por la panadería. Contamos con servicio express.</p>
+  </div>
+
+  <div class="bol-contact__layout">
+    <div class="bol-contact__info">
+      <a [href]="waDirect" target="_blank" rel="noopener" class="bol-contact__card">
+        <span class="bol-contact__icon bol-contact__icon--wa">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="#25D366"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+        </span>
+        <div><div class="bol-contact__label">WhatsApp</div><div class="bol-contact__value">{{ contact.waDisplay }}</div></div>
+      </a>
+      <a [href]="telLink" class="bol-contact__card">
+        <span class="bol-contact__icon bol-contact__icon--acc">
+          <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="var(--acc,#C8912A)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5c0 9 6 15 15 15l1.5-3.5-4-1.5-1.5 2a11 11 0 0 1-5-5l2-1.5-1.5-4z"/></svg>
+        </span>
+        <div><div class="bol-contact__label">Teléfono</div><div class="bol-contact__value">{{ contact.telDisplay }}</div></div>
+      </a>
+      <a [href]="mailLink" class="bol-contact__card">
+        <span class="bol-contact__icon bol-contact__icon--acc">
+          <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="var(--acc,#C8912A)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3.5 6.5 12 13l8.5-6.5"/></svg>
+        </span>
+        <div><div class="bol-contact__label">Correo</div><div class="bol-contact__value">{{ contact.correo }}</div></div>
+      </a>
+      <div class="bol-contact__card bol-contact__card--static">
+        <span class="bol-contact__icon bol-contact__icon--olive">
+          <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="var(--olive)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8"/><path d="M12 7v5l3 2"/></svg>
+        </span>
+        <div>
+          <div class="bol-contact__label">Horario</div>
+          <!-- Dos renglones, no la versión de una línea: el pie de página y el
+               PDF resumen porque no les cabe más, pero acá es donde la persona
+               viene expresamente a saber a qué hora abre. -->
+          @for (tramo of contact.horarioDetalle; track tramo.dias) {
+            <div class="bol-contact__value bol-contact__value--horario">
+              <span>{{ tramo.dias }}</span><span>{{ tramo.horas }}</span>
+            </div>
+          }
+        </div>
+      </div>
+      <div class="bol-contact__social">
+        <a [href]="contact.instagram" target="_blank" rel="noopener" class="bol-contact__social-link">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="4" y="4" width="16" height="16" rx="5"/><circle cx="12" cy="12" r="3.4"/><circle cx="17" cy="7" r=".9" fill="currentColor"/></svg>Instagram
+        </a>
+        <a [href]="contact.facebook" target="_blank" rel="noopener" class="bol-contact__social-link">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M14 8.5V7c0-.8.2-1 1-1h1.5V3H14c-2.2 0-3.5 1.3-3.5 3.6v1.9H8V11h2.5v9H14v-9h2.2l.5-2.5z"/></svg>Facebook
+        </a>
+      </div>
+    </div>
+
+    <div class="bol-contact__form">
+      <h2>Escribinos un mensaje</h2>
+      <p>Te respondemos por correo o WhatsApp.</p>
+      <div class="bol-contact__fields">
+        <div>
+          <label>Nombre</label>
+          <input #nombre type="text" placeholder="Tu nombre" />
+        </div>
+        <div>
+          <label>Teléfono</label>
+          <input #tel type="tel" placeholder="Tu número" />
+        </div>
+        <div>
+          <label>Mensaje</label>
+          <textarea #msg rows="4" placeholder="¿En qué te ayudamos? Contanos tu pedido o consulta."></textarea>
+        </div>
+        <div class="bol-contact__form-actions">
+          <button type="button" (click)="sendWa(nombre.value, tel.value, msg.value)" class="bol-contact__send-wa">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
+            WhatsApp
+          </button>
+          <button type="button" (click)="sendMail(nombre.value, tel.value, msg.value)" class="bol-contact__send-mail">Enviar correo</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sigue siendo un <a> con su href de verdad: sin JavaScript, o si el
+       navegador bloquea el esquema `geo:`, el enlace lleva igualmente a la ficha
+       del negocio en Google Maps. El (click) solo interviene en Android, donde
+       puede ofrecer elegir app (ver comoLlegar). -->
+  <a [href]="contact.mapsUrl" target="_blank" rel="noopener" class="bol-contact__map" (click)="comoLlegar($event)">
+    <svg width="40" height="40" viewBox="0 0 24 24" fill="var(--acc,#C8912A)"><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5z"/></svg>
+    <!-- Mientras el negocio no pase la dirección exacta no se pinta ninguna:
+         la que había ("San José, Costa Rica") no coincidía con las coordenadas. -->
+    @if (contact.direccion) {
+      <div class="bol-contact__map-address">{{ contact.direccion }}</div>
+    } @else {
+      <div class="bol-contact__map-address">La Bollería Panadería</div>
+    }
+    <div class="bol-contact__map-cta">Cómo llegar →</div>
+  </a>
+</section>
