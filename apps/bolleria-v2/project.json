@@ -36,7 +36,8 @@
         "assets": [
           {
             "glob": "**/*",
-            "input": "apps/bolleria/public"
+            "input": "apps/bolleria/public",
+            "ignore": ["assets/hero-frames-*/**"]
           },
           {
             "glob": "**/*",
@@ -78,7 +79,8 @@
           "assets": [
             {
               "glob": "**/*",
-              "input": "apps/bolleria/public"
+              "input": "apps/bolleria/public",
+              "ignore": ["assets/hero-frames-*/**"]
             },
             {
               "glob": "**/*",

@@ -1,0 +1,53 @@
+<section class="bol-heroc">
+  <div class="bol-heroc__escena" aria-hidden="true">
+    <!-- La escena aprobada, entera. Se queda quieta: es la imagen y tiene que
+         leerse como tal. Lleva rellenado lo que el primer plano tapaba, para que
+         al moverse no descubra ningún hueco. -->
+    <img
+      class="bol-heroc__muro"
+      src="assets/hero-capas/ref-01-fondo.webp"
+      alt=""
+      decoding="async"
+      fetchpriority="high"
+    />
+    <!-- El logo pintado en la pared, en su propia capa. En vertical el recorte lo
+         deja justo debajo del titular y se leen dos textos encima del otro, así
+         que ahí se retira: la marca ya está en el nav. -->
+    <img class="bol-heroc__logo" src="assets/hero-capas/ref-01b-logo.webp" alt="" decoding="async" />
+    @for (c of capas; track c.src) {
+      <img
+        class="bol-heroc__capa"
+        [src]="c.src"
+        [style.--v]="c.vel"
+        [style.--dx]="c.dx"
+        [style.--dy]="c.dy"
+        [style.--esc]="c.esc"
+        alt=""
+        decoding="async"
+      />
+    }
+    <span class="bol-heroc__velo"></span>
+  </div>
+
+  <div class="bol-heroc__contenido">
+    <p class="bol-heroc__lugar">Grecia · Alajuela</p>
+    <h1 class="bol-heroc__titulo">Masa viva,<em>manos propias.</em></h1>
+    <p class="bol-heroc__bajada">
+      Pan de masa madre fermentado con tiempo y horneado cada mañana. Treinta y siete recetas
+      hechas a mano, una por una.
+    </p>
+    <div class="bol-heroc__acciones">
+      <a href="#" (click)="$event.preventDefault(); irAlMenu()" class="bol-heroc__cta">
+        Ver la carta
+      </a>
+      <a [href]="waDirect" target="_blank" rel="noopener" class="bol-heroc__cta bol-heroc__cta--sec">
+        Pedir por WhatsApp
+      </a>
+    </div>
+  </div>
+
+  <span class="bol-heroc__pista" aria-hidden="true">
+    <span>Seguí bajando</span>
+    <i></i>
+  </span>
+</section>

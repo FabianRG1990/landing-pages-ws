@@ -1,0 +1,389 @@
+:host {
+  display: block;
+  // Es el host, y no la sección de dentro, quien compite con el entremés en el
+  // flujo de la página: el z-index tiene que vivir aquí (ver la nota en
+  // `.bol-heroc`).
+  position: relative;
+  z-index: 2;
+  --p: 0;
+  // Posición del ratón, −1 … 1, ya amortiguada por el componente.
+  --mx: 0;
+  --my: 0;
+}
+
+.bol-heroc {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  height: 100svh;
+  min-height: 34rem;
+  overflow: hidden;
+  // El mismo crema del sitio: si una capa tardara en pintar, el hueco no canta.
+  background: #faf6ec;
+  isolation: isolate;
+  /**
+   * El entremés que viene después centra su texto con `top: 50vh` y
+   * `translateY(-50%)`: en su posición sin pegar, ese translate lo sube media
+   * altura por encima del borde de su propia sección. Con el hero de 700vh que
+   * había antes eso caía muy lejos y no se notaba; con un hero de una pantalla,
+   * su sección arranca justo en el borde inferior y la frase asomaba sobre la
+   * escena. El hero es opaco y ocupa la pantalla entera, así que le corresponde
+   * ir por encima de lo que todavía no le toca el turno. El z-index efectivo
+   * está en `:host`.
+   */
+}
+
+// ---------------------------------------------------------------- la escena
+
+.bol-heroc__escena {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+/**
+ * El fondo es la escena aprobada y va sin ampliar: cualquier escala extra la
+ * recorta más y deja de leerse como la imagen. No la necesita, porque el fondo no
+ * se mueve — quien se mueve es el primer plano, y el hueco que deja ya está
+ * rellenado dentro de esta misma capa.
+ *
+ * Sin escala, `cover` deja ver el 90 % del ancho (la imagen es 16:9 y el hero es
+ * más cuadrado). Con el `scale(1.22)` que había antes se quedaba en el 74 %, y de
+ * ahí venía que todo saliera enorme.
+ */
+.bol-heroc__muro,
+.bol-heroc__logo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 50%;
+  pointer-events: none;
+  user-select: none;
+  /**
+   * NO se mueven. Ninguno de los dos, nunca.
+   *
+   * El fondo está en el plano z = 0 de la cámara: es el suelo contra el que se
+   * mide todo lo demás. Si el fondo se desplazara, el ojo leería "la imagen
+   * entera se mueve" -una traslación- en lugar de "me estoy asomando" -
+   * profundidad-. Es la diferencia entre las dos cosas, y es la razón de que
+   * tampoco necesiten `will-change` ni escala de margen: al no moverse, muestran
+   * el 100 % del encuadre aprobado.
+   *
+   * El logo va aquí con el muro porque está PINTADO en la pared. Aunque quisiera
+   * darle vida propia, desplazarlo un solo píxel distinto del muro lo delataría
+   * como una calcomanía flotando.
+   */
+}
+
+/**
+ * El primer plano comparte encuadre exacto con el fondo -son recortes del mismo
+ * archivo-, así que se dimensiona igual. Sólo cambia el desplazamiento.
+ */
+.bol-heroc__capa {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 50%;
+  /**
+   * Proyección de la cámara. `--dx`/`--dy` y `--esc` los calcula el componente a
+   * partir de la profundidad de cada plano; aquí sólo se aplican.
+   *
+   * Los dos movimientos conviven en la misma expresión: el scroll aporta el
+   * término en porcentaje y la cámara el término en píxeles. Van en el mismo
+   * `transform` a la fuerza -dos declaraciones de `transform` en el mismo
+   * elemento no se suman, la segunda pisa a la primera-.
+   *
+   * El orden importa: la escala va DESPUÉS del desplazamiento, para que el
+   * desplazamiento se mida en píxeles de pantalla y no quede multiplicado por la
+   * escala del plano.
+   */
+  transform: translate3d(
+      calc(var(--mx) * var(--dx, 0px)),
+      calc(var(--p) * var(--v, 0) * 100% + var(--my) * var(--dy, 0px)),
+      0
+    )
+    scale(var(--esc, 1));
+  will-change: transform;
+  backface-visibility: hidden;
+  pointer-events: none;
+  user-select: none;
+}
+
+/**
+ * Velo de legibilidad. Sobre el muro el titular ya da 8,76:1, así que en
+ * escritorio es casi imperceptible; existe para cuando el recorte de las
+ * pantallas estrechas mete pan debajo del texto, donde el contraste cae a 3,65.
+ */
+.bol-heroc__velo {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    100deg,
+    rgba(250, 246, 236, 0.62) 0%,
+    rgba(250, 246, 236, 0.34) 26%,
+    rgba(250, 246, 236, 0) 52%
+  );
+  pointer-events: none;
+}
+
+// -------------------------------------------------------------- el contenido
+
+.bol-heroc__contenido {
+  position: relative;
+  z-index: 1;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 1.15rem;
+  padding: 0 clamp(1.5rem, 6vw, 7rem);
+  max-width: 42rem;
+  /**
+   * El texto flota por delante de la escena: se mueve con el primer plano, pero
+   * poco. Equivale a un plano en z ≈ 45, sólo que sin escalar -la tipografía no
+   * puede cambiar de tamaño-, que es la licencia que se toma aquí: no es un
+   * objeto de la escena, es una superposición, y el ojo no le exige coherencia
+   * física. Sí agradece que no quede clavado mientras lo de delante respira.
+   *
+   * Va en `translate` y no en `transform` porque sus hijos animan la entrada con
+   * `transform`: son propiedades distintas y se componen, así que ninguna pisa a
+   * la otra.
+   */
+  translate: calc(var(--mx) * -7px) calc(var(--my) * -5px);
+  will-change: translate;
+}
+
+.bol-heroc__lugar {
+  margin: 0;
+  font-family: 'Cinzel', serif;
+  font-weight: 600;
+  font-size: 0.72rem;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: #454e24;
+  opacity: 0;
+  animation: heroc-entra 0.9s cubic-bezier(0.2, 0.75, 0.2, 1) 0.15s forwards;
+}
+
+.bol-heroc__titulo {
+  margin: 0;
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-weight: 500;
+  font-size: clamp(2.75rem, 6.4vw, 5.4rem);
+  line-height: 0.98;
+  letter-spacing: -0.015em;
+  color: #2e2a1c;
+  opacity: 0;
+  animation: heroc-entra 1s cubic-bezier(0.2, 0.75, 0.2, 1) 0.28s forwards;
+
+  em {
+    display: block;
+    font-style: italic;
+    // Oliva oscuro y no el dorado de la marca: sobre este muro el dorado
+    // se queda en 1,70:1 y es ilegible. Este da 5,42:1.
+    color: #454e24;
+  }
+}
+
+.bol-heroc__bajada {
+  margin: 0;
+  max-width: 27rem;
+  font-family: 'Jost', system-ui, sans-serif;
+  font-weight: 400;
+  font-size: clamp(0.98rem, 1.15vw, 1.1rem);
+  line-height: 1.62;
+  color: rgba(46, 42, 28, 0.86);
+  opacity: 0;
+  animation: heroc-entra 1s cubic-bezier(0.2, 0.75, 0.2, 1) 0.42s forwards;
+}
+
+.bol-heroc__acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+  margin-top: 0.6rem;
+  opacity: 0;
+  animation: heroc-entra 1s cubic-bezier(0.2, 0.75, 0.2, 1) 0.56s forwards;
+}
+
+.bol-heroc__cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.82rem 1.6rem;
+  border-radius: 999px;
+  font-family: 'Jost', system-ui, sans-serif;
+  font-weight: 500;
+  font-size: 0.82rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-decoration: none;
+  // El dorado como fondo sólido, nunca como texto sobre el muro.
+  background: linear-gradient(180deg, #d5a03a 0%, #c8912a 55%, #a5761c 100%);
+  color: #2b2410;
+  border: 1px solid rgba(120, 86, 20, 0.5);
+  box-shadow: 0 6px 18px rgba(120, 86, 20, 0.22);
+  transition:
+    transform 0.25s cubic-bezier(0.2, 0.75, 0.2, 1),
+    box-shadow 0.25s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 24px rgba(120, 86, 20, 0.3);
+  }
+
+  &:focus-visible {
+    outline: 2px solid #454e24;
+    outline-offset: 3px;
+  }
+}
+
+.bol-heroc__cta--sec {
+  background: rgba(250, 246, 236, 0.72);
+  color: #454e24;
+  border: 1px solid rgba(69, 78, 36, 0.42);
+  box-shadow: none;
+
+  &:hover {
+    background: rgba(250, 246, 236, 0.92);
+    box-shadow: 0 6px 16px rgba(69, 78, 36, 0.14);
+  }
+}
+
+// ------------------------------------------------------------- pista de scroll
+
+.bol-heroc__pista {
+  position: absolute;
+  z-index: 1;
+  left: clamp(1.5rem, 6vw, 7rem);
+  bottom: 2.1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  font-family: 'Jost', system-ui, sans-serif;
+  font-size: 0.68rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: rgba(46, 42, 28, 0.6);
+  // Se retira al empezar a bajar: ya cumplió su función.
+  opacity: calc(1 - var(--p) * 3);
+  pointer-events: none;
+
+  i {
+    display: block;
+    width: 3.2rem;
+    height: 1px;
+    background: currentColor;
+    transform-origin: left center;
+    animation: heroc-pista 2.6s ease-in-out infinite;
+  }
+}
+
+@keyframes heroc-entra {
+  from {
+    opacity: 0;
+    transform: translateY(1.15rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes heroc-pista {
+  0%,
+  100% {
+    transform: scaleX(0.45);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+}
+
+// ------------------------------------------------------------------- estrecho
+
+@media (max-width: 720px) {
+  /**
+   * En vertical, una escena 16:9 se recorta mucho: se abre el encuadre hacia la
+   * derecha, donde está el pan. El fondo y el primer plano tienen que llevar
+   * SIEMPRE el mismo `object-position` o se desalinean entre sí.
+   *
+   * Esto es un apaño hasta que exista la versión vertical de la escena, que es
+   * la solución de verdad para el móvil.
+   */
+  .bol-heroc__muro,
+  .bol-heroc__logo,
+  .bol-heroc__capa {
+    object-position: 64% 50%;
+  }
+
+  // El titular manda: dos marcas superpuestas no se leen ni una ni otra.
+  .bol-heroc__logo {
+    display: none;
+  }
+
+  .bol-heroc__velo {
+    background: linear-gradient(
+      175deg,
+      rgba(250, 246, 236, 0.8) 0%,
+      rgba(250, 246, 236, 0.55) 34%,
+      rgba(250, 246, 236, 0.12) 62%,
+      rgba(250, 246, 236, 0) 100%
+    );
+  }
+
+  .bol-heroc__contenido {
+    justify-content: flex-start;
+    padding-top: 22vh;
+    gap: 0.9rem;
+  }
+
+  .bol-heroc__pista {
+    bottom: 1.4rem;
+  }
+}
+
+// ------------------------------------------------------------ menos movimiento
+
+@media (prefers-reduced-motion: reduce) {
+  .bol-heroc__muro,
+  .bol-heroc__logo,
+  .bol-heroc__capa {
+    // Sin movimiento no hace falta el margen, así que también se va la escala y
+    // el encuadre vuelve a ser el 100 %.
+    transform: none;
+    will-change: auto;
+  }
+
+  .bol-heroc__contenido {
+    translate: none;
+    will-change: auto;
+  }
+
+  .bol-heroc__lugar,
+  .bol-heroc__titulo,
+  .bol-heroc__bajada,
+  .bol-heroc__acciones {
+    opacity: 1;
+    animation: none;
+  }
+
+  .bol-heroc__pista {
+    opacity: 1;
+
+    i {
+      animation: none;
+    }
+  }
+
+  .bol-heroc__cta {
+    transition: none;
+  }
+}

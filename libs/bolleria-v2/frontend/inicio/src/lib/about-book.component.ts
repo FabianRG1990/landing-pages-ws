@@ -1219,7 +1219,9 @@ export class AboutBookComponent {
    * Lo que decidio el cambio no es una teoria, es un control dentro de esta
    * misma aplicacion: el hero carga 233 cuadros en el MISMO telefono y va
    * perfecto, y lo hace con <img>, concurrencia acotada y una lista de cuadros
-   * rotos (ver `loadHeroFrame` en hero-scroll.component.ts). La unica
+   * rotos (ver `loadHeroFrame` en el hero de la v1,
+   * libs/bolleria/frontend/inicio/src/lib/hero-scroll.component.ts; en esta
+   * version el hero ya no usa secuencia de cuadros). La unica
    * diferencia entre el que funciona y el que no era esta. Un redecode
    * ocasional es peor que ImageBitmap; un libro que no llega nunca es peor que
    * las dos cosas.
