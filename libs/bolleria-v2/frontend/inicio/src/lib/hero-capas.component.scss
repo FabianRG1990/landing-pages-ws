@@ -7,6 +7,27 @@
   z-index: 2;
   --p: 0;
   /**
+   * Alto del envoltorio: tres pantallas. Como el escenario ocupa una, el hero se
+   * queda clavado durante las DOS restantes, que es el recorrido de scroll real
+   * -1800 px medidos en una ventana de 900-. Es el único número que hay que
+   * tocar para alargarlo o acortarlo; el progreso se mide contra el alto real
+   * del elemento clavado, así que todo lo demás se ajusta solo.
+   *
+   * Queda anotado que la v1 se descartó por secuestrar el scroll durante 700vh
+   * con 233 cuadros. Esto es menos de la mitad de recorrido y son tres imágenes.
+   */
+  --pin: 300vh;
+  /**
+   * Valores en reposo: primer estado, primer texto. Los escribe el componente
+   * fotograma a fotograma, pero si el JavaScript no corre -SSR, «menos
+   * movimiento», un error- el hero se queda en un estado completo y correcto.
+   */
+  --o2: 0;
+  --o3: 0;
+  --t0: 1;
+  --t1: 0;
+  --t2: 0;
+  /**
    * Eje del bloque de texto, atado a la geometría de la foto.
    *
    * La escena es 1672x941 y va con `cover`, así que su escala en pantalla es la
@@ -27,16 +48,16 @@
   --eje: min(50%, max(21rem, var(--eje-foto)));
 }
 
+/**
+ * El envoltorio ya no es el escenario: sólo aporta la longitud del recorrido.
+ * Quien mide una pantalla y se queda clavado es `__fijo`.
+ */
 .bol-heroc {
   position: relative;
   width: 100%;
-  height: 100vh;
-  height: 100svh;
-  min-height: 34rem;
-  overflow: hidden;
+  height: var(--pin);
   // El mismo crema del sitio: si una capa tardara en pintar, el hueco no canta.
   background: #faf6ec;
-  isolation: isolate;
   /**
    * El entremés que viene después centra su texto con `top: 50vh` y
    * `translateY(-50%)`: en su posición sin pegar, ese translate lo sube media
@@ -47,6 +68,25 @@
    * ir por encima de lo que todavía no le toca el turno. El z-index efectivo
    * está en `:host`.
    */
+}
+
+/**
+ * El escenario. Mide una pantalla y se queda pegado mientras el envoltorio pasa
+ * por delante: eso es lo que da las tres paradas sin que nada se mueva.
+ *
+ * `100svh` y no `100vh`: en móvil la barra del navegador entra y sale, y con
+ * `vh` el escenario mediría más que lo visible y dejaría una franja. El
+ * componente mide el recorrido contra el alto REAL de este elemento, no contra
+ * `innerHeight`, por esa misma razón.
+ */
+.bol-heroc__fijo {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100svh;
+  min-height: 34rem;
+  overflow: hidden;
+  isolation: isolate;
 }
 
 // ---------------------------------------------------------------- la escena
@@ -86,6 +126,23 @@
    * en vertical el recorte lo deja justo detrás del titular y se leen dos textos
    * encima del otro. Separado se puede retirar sólo ahí.
    */
+}
+
+/**
+ * Los estados 2 y 3 del mostrador, encima del 1 y en el mismo encuadre exacto.
+ *
+ * Sólo cambia la opacidad, que el compositor resuelve sin repintar. Y fuera del
+ * mostrador los tres archivos son el MISMO píxel -diferencia máxima 0 por canal,
+ * medida-, así que en el 63 % de la pantalla el fundido es aritméticamente una
+ * operación nula. Por eso «sólo faltan los elementos» no es una impresión: es
+ * una propiedad del montaje, no algo que haya que disimular con la velocidad.
+ */
+.bol-heroc__muro--2 {
+  opacity: var(--o2);
+}
+
+.bol-heroc__muro--3 {
+  opacity: var(--o3);
 }
 
 /**
@@ -156,6 +213,64 @@
   max-width: 42rem;
 }
 
+/**
+ * Los tres relevos de texto, apilados en una sola celda.
+ *
+ * Con la rejilla el bloque mide siempre lo que el más alto de los tres, así que
+ * al cambiar de titular no se mueve ni el bloque ni los botones de debajo. Si
+ * fueran hermanos en el flujo, cada relevo cambiaría la altura y todo daría un
+ * salto justo en el momento en que el ojo está mirando.
+ */
+.bol-heroc__textos {
+  display: grid;
+  width: 100%;
+}
+
+.bol-heroc__texto {
+  grid-area: 1 / 1;
+  display: flex;
+  flex-direction: column;
+  // Los mismos huecos que tenía la columna cuando era plana.
+  gap: 1.15rem;
+  // Cada texto se centra dentro de la celda común, así que los tres comparten
+  // línea media aunque midan distinto.
+  justify-content: center;
+  align-items: flex-start;
+}
+
+// Sólo el primero entra animado al cargar: es el que se ve. Los otros dos los
+// gobierna el scroll, y una animación con `forwards` les fijaría la opacidad a 1
+// y ganaría a la del relevo.
+.bol-heroc__texto:not(:first-child) {
+  .bol-heroc__lugar,
+  .bol-heroc__titulo,
+  .bol-heroc__bajada {
+    opacity: 1;
+    animation: none;
+  }
+}
+
+.bol-heroc__texto:nth-child(1) {
+  opacity: var(--t0);
+}
+.bol-heroc__texto:nth-child(2) {
+  opacity: var(--t1);
+}
+.bol-heroc__texto:nth-child(3) {
+  opacity: var(--t2);
+}
+
+/**
+ * Los tres relevos ocupan el mismo sitio, así que arrastrar el ratón sobre el
+ * titular seleccionaría también los dos que no se ven y saldría un revoltijo.
+ * El texto del hero no es interactivo -los botones van fuera de la pila-, de
+ * modo que se le quita el ratón al bloque entero. El foco no se pierde: aquí
+ * dentro no hay nada enfocable.
+ */
+.bol-heroc__textos {
+  pointer-events: none;
+  user-select: none;
+}
 
 .bol-heroc__lugar {
   margin: 0;
@@ -304,8 +419,13 @@
   letter-spacing: 0.24em;
   text-transform: uppercase;
   color: rgba(46, 42, 28, 0.6);
-  // Se retira al empezar a bajar: ya cumplió su función.
-  opacity: calc(1 - var(--p) * 3);
+  /**
+   * Se retira al empezar a bajar: ya cumplió su función. El factor va atado a la
+   * longitud del recorrido -3 pantallas- para que siga desapareciendo en el
+   * primer tercio de la PRIMERA, como cuando el hero medía una sola. Con el 3 de
+   * antes tardaría una pantalla entera en irse.
+   */
+  opacity: calc(1 - var(--p) * 9);
   pointer-events: none;
 
   i {
@@ -379,6 +499,10 @@
     gap: 0.9rem;
   }
 
+  .bol-heroc__texto {
+    gap: 0.9rem;
+  }
+
   .bol-heroc__pista {
     bottom: 1.4rem;
   }
@@ -413,6 +537,12 @@
     // la izquierda: si la foto está tan recortada que su eje cae antes de las
     // 21rem, el bloque se queda donde estaba.
     margin-left: max(0px, calc(var(--eje) - 21rem));
+  }
+
+  // `align-items` no se hereda: la pila de relevos necesita su propia orden o
+  // los tres textos se quedarían en bandera dentro de un bloque centrado.
+  .bol-heroc__texto {
+    align-items: center;
   }
 
   .bol-heroc__lugar {
@@ -455,6 +585,28 @@
 // ------------------------------------------------------------ menos movimiento
 
 @media (prefers-reduced-motion: reduce) {
+  /**
+   * El hero no se clava y no se vacía: una pantalla, la escena llena y el primer
+   * titular. Los estados 2 y 3 se retiran del todo -no basta con dejarlos a
+   * opacidad 0- para no descargar y componer dos imágenes de pantalla completa
+   * que no se van a ver nunca.
+   */
+  .bol-heroc {
+    height: 100vh;
+    height: 100svh;
+  }
+
+  .bol-heroc__fijo {
+    position: static;
+    height: 100%;
+  }
+
+  .bol-heroc__muro--2,
+  .bol-heroc__muro--3,
+  .bol-heroc__texto:not(:first-child) {
+    display: none;
+  }
+
   .bol-heroc__capa {
     transform: none;
     will-change: auto;

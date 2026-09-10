@@ -1,44 +1,84 @@
+<!-- El envoltorio da la longitud del recorrido; el escenario se queda clavado
+     dentro. Ver la nota de `--pin` en el SCSS. -->
 <section class="bol-heroc">
-  <div class="bol-heroc__escena" aria-hidden="true">
-    <!-- La escena aprobada, entera. Se queda quieta: es la imagen y tiene que
-         leerse como tal. Lleva rellenado lo que el primer plano tapaba, para que
-         al moverse no descubra ningún hueco. -->
-    <img
-      class="bol-heroc__muro"
-      src="assets/hero-capas/hero-fondo.webp"
-      alt=""
-      decoding="async"
-      fetchpriority="high"
-    />
-    <!-- El logo pintado en la pared, en su propia capa. En vertical el recorte lo
-         deja justo debajo del titular y se leen dos textos encima del otro, así
-         que ahí se retira: la marca ya está en el nav. -->
-    <img class="bol-heroc__logo" src="assets/hero-capas/hero-logo.webp" alt="" decoding="async" />
-    @for (c of capas; track c.src) {
-      <img class="bol-heroc__capa" [src]="c.src" [style.--v]="c.vel" alt="" decoding="async" />
-    }
-    <span class="bol-heroc__velo"></span>
-  </div>
-
-  <div class="bol-heroc__contenido">
-    <p class="bol-heroc__lugar">Grecia · Alajuela</p>
-    <h1 class="bol-heroc__titulo">Cariño y ganas<em>de hacerlo bien.</em></h1>
-    <p class="bol-heroc__bajada">
-      Pan de masa madre fermentado con tiempo y horneado cada mañana. Treinta y siete recetas
-      hechas a mano, una por una.
-    </p>
-    <div class="bol-heroc__acciones">
-      <a href="#" (click)="$event.preventDefault(); irAlMenu()" class="bol-heroc__cta">
-        Ver la carta
-      </a>
-      <a [href]="waDirect" target="_blank" rel="noopener" class="bol-heroc__cta bol-heroc__cta--sec">
-        Pedir por WhatsApp
-      </a>
+  <div class="bol-heroc__fijo">
+    <div class="bol-heroc__escena" aria-hidden="true">
+      <!-- Los tres estados del mostrador. El primero va siempre debajo y opaco:
+           así nunca hay un hueco, pase lo que pase con los otros dos. Fuera del
+           mostrador los tres son el mismo píxel, de modo que el fundido sólo se
+           ve donde hay pan. -->
+      <img
+        class="bol-heroc__muro"
+        src="assets/hero-capas/hero-fondo-1.webp"
+        alt=""
+        decoding="async"
+        fetchpriority="high"
+      />
+      <img
+        class="bol-heroc__muro bol-heroc__muro--2"
+        src="assets/hero-capas/hero-fondo-2.webp"
+        alt=""
+        decoding="async"
+        fetchpriority="low"
+      />
+      <img
+        class="bol-heroc__muro bol-heroc__muro--3"
+        src="assets/hero-capas/hero-fondo-3.webp"
+        alt=""
+        decoding="async"
+        fetchpriority="low"
+      />
+      <!-- El logo pintado en la pared, en su propia capa y COMÚN a los tres
+           estados: entre el primer render y el tercero se corre 18 px, y en un
+           fundido eso se vería deslizarse. En vertical el recorte lo deja justo
+           debajo del titular y se leen dos textos encima del otro, así que ahí
+           se retira: la marca ya está en el nav. -->
+      <img class="bol-heroc__logo" src="assets/hero-capas/hero-logo.webp" alt="" decoding="async" />
+      @for (c of capas; track c.src) {
+        <img class="bol-heroc__capa" [src]="c.src" [style.--v]="c.vel" alt="" decoding="async" />
+      }
+      <span class="bol-heroc__velo"></span>
     </div>
-  </div>
 
-  <span class="bol-heroc__pista" aria-hidden="true">
-    <span>Seguí bajando</span>
-    <i></i>
-  </span>
+    <div class="bol-heroc__contenido">
+      <!-- Los tres relevos ocupan la MISMA celda de la rejilla: el bloque mide
+           siempre lo que el más alto y nada se mueve al cambiar de texto. -->
+      <div class="bol-heroc__textos">
+        @for (e of estados; track e.titulo; let i = $index) {
+          <!-- La opacidad la pone el SCSS por posición, no una atadura: así, sin
+               JavaScript -o con «menos movimiento»- el primero se ve y los otros
+               dos no, sin depender de que nadie escriba nada. -->
+          <div class="bol-heroc__texto">
+            <p class="bol-heroc__lugar">{{ e.lugar }}</p>
+            @if (i === 0) {
+              <h1 class="bol-heroc__titulo">{{ e.titulo }}<em>{{ e.enfasis }}</em></h1>
+            } @else {
+              <p class="bol-heroc__titulo">{{ e.titulo }}<em>{{ e.enfasis }}</em></p>
+            }
+            <p class="bol-heroc__bajada">{{ e.bajada }}</p>
+          </div>
+        }
+      </div>
+
+      <!-- Los botones no cambian: son la acción, no el discurso. -->
+      <div class="bol-heroc__acciones">
+        <a href="#" (click)="$event.preventDefault(); irAlMenu()" class="bol-heroc__cta">
+          Ver la carta
+        </a>
+        <a
+          [href]="waDirect"
+          target="_blank"
+          rel="noopener"
+          class="bol-heroc__cta bol-heroc__cta--sec"
+        >
+          Pedir por WhatsApp
+        </a>
+      </div>
+    </div>
+
+    <span class="bol-heroc__pista" aria-hidden="true">
+      <span>Seguí bajando</span>
+      <i></i>
+    </span>
+  </div>
 </section>

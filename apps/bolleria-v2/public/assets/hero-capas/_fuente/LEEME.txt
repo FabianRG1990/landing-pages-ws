@@ -1,0 +1,16 @@
+Hero de tres estados
+--------------------
+hero-fondo-1/2/3.webp salen de TRES renders de la misma escena con menos pan
+cada vez. Estan registrados entre si: dx 0, dy 0, y el muro difiere 1,5 sobre
+255. Los originales son:
+  hero.png
+  ChatGPT Image 10 sept 2026, 01_20_53 a.m..png
+  ChatGPT Image 10 sept 2026, 01_39_42 a.m..png
+
+Del logo hay que saber dos cosas:
+ - se desplaza 18 px y crece entre el primer render y el tercero, por eso va en
+   capa comun y se retira de los tres fondos;
+ - ref-01b-logo.webp NO es un logo recortado, es un parche rectangular del muro
+   que arrastra un trozo de hogaza y un canto del estante. hero-logo.webp lleva
+   esos 11.859 px recortados; si se vuelve a generar desde la fuente sin
+   recortarlos, en el estado 3 aparece una hogaza flotando en el aire.
