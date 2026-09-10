@@ -27,6 +27,13 @@
   --t0: 1;
   --t1: 0;
   --t2: 0;
+  // Y los botones: en reposo mandan los dos de siempre. `visibility` va como
+  // palabra porque un enlace transparente sigue siendo enfocable y sigue
+  // leyéndose en voz alta; escondido de verdad, no.
+  --a0: 1;
+  --a1: 0;
+  --va0: visible;
+  --va1: hidden;
   /**
    * Eje del bloque de texto, atado a la geometría de la foto.
    *
@@ -316,13 +323,38 @@
   animation: heroc-entra 1s cubic-bezier(0.2, 0.75, 0.2, 1) 0.42s forwards;
 }
 
+/**
+ * Los dos juegos de botones comparten celda, como los tres textos: el bloque
+ * reserva el alto del más alto -en móvil, el de las dos píldoras partidas en dos
+ * filas- y al relevarse no se mueve nada de lo que hay arriba ni abajo. La
+ * columna es `1fr` para que cada juego mida el ancho entero y decida por su
+ * cuenta si va en bandera o centrado.
+ */
 .bol-heroc__acciones {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.7rem;
+  display: grid;
+  grid-template-columns: 1fr;
   margin-top: 0.6rem;
   opacity: 0;
   animation: heroc-entra 1s cubic-bezier(0.2, 0.75, 0.2, 1) 0.56s forwards;
+}
+
+.bol-heroc__grupo {
+  grid-area: 1 / 1;
+  // Centrado en la celda común: el juego de un solo botón queda a la altura
+  // media del que lleva dos, no pegado al borde de arriba.
+  align-self: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+}
+
+.bol-heroc__grupo:nth-child(1) {
+  opacity: var(--a0);
+  visibility: var(--va0);
+}
+.bol-heroc__grupo:nth-child(2) {
+  opacity: var(--a1);
+  visibility: var(--va1);
 }
 
 /**
@@ -563,7 +595,7 @@
     text-wrap: balance;
   }
 
-  .bol-heroc__acciones {
+  .bol-heroc__grupo {
     justify-content: center;
   }
 
@@ -603,7 +635,8 @@
 
   .bol-heroc__muro--2,
   .bol-heroc__muro--3,
-  .bol-heroc__texto:not(:first-child) {
+  .bol-heroc__texto:not(:first-child),
+  .bol-heroc__grupo:not(:first-child) {
     display: none;
   }
 

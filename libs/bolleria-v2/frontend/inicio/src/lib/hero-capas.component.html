@@ -49,7 +49,12 @@
                JavaScript -o con «menos movimiento»- el primero se ve y los otros
                dos no, sin depender de que nadie escriba nada. -->
           <div class="bol-heroc__texto">
-            <p class="bol-heroc__lugar">{{ e.lugar }}</p>
+            <!-- El rótulo de sitio va sólo en el primero. Vacío no se pinta:
+                 un párrafo en blanco dejaría su hueco y el bloque de la
+                 segunda parada quedaría descolgado respecto al de la primera. -->
+            @if (e.lugar) {
+              <p class="bol-heroc__lugar">{{ e.lugar }}</p>
+            }
             @if (i === 0) {
               <h1 class="bol-heroc__titulo">{{ e.titulo }}<em>{{ e.enfasis }}</em></h1>
             } @else {
@@ -60,19 +65,29 @@
         }
       </div>
 
-      <!-- Los botones no cambian: son la acción, no el discurso. -->
+      <!-- Dos juegos de botones apilados en la misma celda, igual que los
+           textos: el bloque mide siempre lo que el más alto y nada salta al
+           relevarse. En la última parada la escena ya está vacía, así que las
+           dos píldoras dejan sitio a una sola que lleva a la carta. -->
       <div class="bol-heroc__acciones">
-        <a href="#" (click)="$event.preventDefault(); irAlMenu()" class="bol-heroc__cta">
-          Ver la carta
-        </a>
-        <a
-          [href]="waDirect"
-          target="_blank"
-          rel="noopener"
-          class="bol-heroc__cta bol-heroc__cta--sec"
-        >
-          Pedir por WhatsApp
-        </a>
+        <div class="bol-heroc__grupo">
+          <a href="#" (click)="$event.preventDefault(); irAlMenu()" class="bol-heroc__cta">
+            Ver la carta
+          </a>
+          <a
+            [href]="waDirect"
+            target="_blank"
+            rel="noopener"
+            class="bol-heroc__cta bol-heroc__cta--sec"
+          >
+            Pedir por WhatsApp
+          </a>
+        </div>
+        <div class="bol-heroc__grupo">
+          <a href="#" (click)="$event.preventDefault(); irAlMenu()" class="bol-heroc__cta">
+            Ver nuestro menú
+          </a>
+        </div>
       </div>
     </div>
 

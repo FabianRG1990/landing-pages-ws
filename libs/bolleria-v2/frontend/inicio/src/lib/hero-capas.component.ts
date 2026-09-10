@@ -81,6 +81,10 @@ export class HeroCapasComponent implements OnDestroy {
    * `h1`; los otros dos son copia adicional, no subsecciones, así que van en
    * párrafos. No se ocultan a los lectores de pantalla: son texto de verdad y
    * esconderlo sería peor que leerlo seguido.
+   *
+   * El rótulo de sitio sólo lo lleva el primero: es la ficha del negocio, no una
+   * etiqueta de cada frase, y repetirla tres veces la vacía de valor. Los otros
+   * dos lo dejan vacío y la plantilla no pinta el párrafo.
    */
   readonly estados = [
     {
@@ -92,20 +96,20 @@ export class HeroCapasComponent implements OnDestroy {
         'Treinta y siete recetas hechas a mano, una por una.',
     },
     {
-      lugar: 'Desde las cinco de la mañana',
-      titulo: 'El horno manda',
-      enfasis: 'y el tiempo también.',
+      lugar: '',
+      titulo: 'Hecho con amor,',
+      enfasis: 'cada mañana.',
       bajada:
-        'La masa madre lleva su fermentación de dieciocho horas. No se puede ' +
-        'correr, y por eso sabe a lo que sabe.',
+        'Sin prisa y sin atajos: la masa decide cuándo está lista, y nosotros ' +
+        'la esperamos.',
     },
     {
-      lugar: 'Todos los días',
-      titulo: 'Se hornea a diario',
-      enfasis: 'y a diario se acaba.',
+      lugar: '',
+      titulo: 'Vení por el tuyo',
+      enfasis: 'mientras queda.',
       bajada:
-        'Lo que sale del horno es lo que hay. Cuando se termina, se termina: ' +
-        'mañana volvemos a empezar.',
+        'Lo de hoy se hornea hoy. Mirá todo lo que sale del horno y apartá ' +
+        'lo tuyo.',
     },
   ];
 
@@ -144,6 +148,24 @@ export class HeroCapasComponent implements OnDestroy {
   private readonly TEXTO: readonly [number, number, number, number][] = [
     [-1, -1, 0.2, 0.3],
     [0.32, 0.42, 0.62, 0.72],
+    [0.74, 0.84, 2, 2],
+  ];
+  /**
+   * Los botones, con la misma forma de ventana que los textos. En la última
+   * parada las dos píldoras dejan sitio a una sola, «Ver nuestro menú»: la
+   * escena ya está vacía y lo único que queda por hacer es ir a la carta.
+   *
+   * Las ventanas son EXACTAMENTE las del texto: el juego de siempre se va con la
+   * misma rampa con la que se va la segunda frase (0,62-0,72) y el del menú
+   * entra con la misma con la que entra la tercera (0,74-0,84). Así el bloque
+   * entero -palabras y acción- cambia como un solo suceso; con ventanas propias,
+   * aunque fueran cercanas, se veían dos cosas ocurriendo cerca en vez de una, y
+   * quedaba un hueco extra sin nada en pantalla. Tampoco se solapan: dos juegos
+   * de píldoras a media opacidad, uno encima del otro, se ve como un error de
+   * pintado, no como una transición.
+   */
+  private readonly ACCION: readonly [number, number, number, number][] = [
+    [-1, -1, 0.62, 0.72],
     [0.74, 0.84, 2, 2],
   ];
 
@@ -221,6 +243,19 @@ export class HeroCapasComponent implements OnDestroy {
     this.TEXTO.forEach(([e0, e1, x0, x1], i) => {
       const o = HeroCapasComponent.suave(p, e0, e1) * (1 - HeroCapasComponent.suave(p, x0, x1));
       s.setProperty(`--t${i}`, o.toFixed(4));
+    });
+    /**
+     * Los botones llevan además `visibility`, que el texto no necesita: un
+     * enlace a opacidad 0 sigue siendo enfocable con el tabulador y sigue
+     * saliendo en el lector de pantalla. Con `visibility: hidden` desaparece de
+     * las dos cosas, y de paso deja de recibir el ratón. Va como palabra en una
+     * variable CSS -no como número- para que en reposo, sin JavaScript, el
+     * valor por omisión del SCSS ya deje escondido el juego que no toca.
+     */
+    this.ACCION.forEach(([e0, e1, x0, x1], i) => {
+      const o = HeroCapasComponent.suave(p, e0, e1) * (1 - HeroCapasComponent.suave(p, x0, x1));
+      s.setProperty(`--a${i}`, o.toFixed(4));
+      s.setProperty(`--va${i}`, o > 0.001 ? 'visible' : 'hidden');
     });
   }
 
