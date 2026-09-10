@@ -6,6 +6,25 @@
   position: relative;
   z-index: 2;
   --p: 0;
+  /**
+   * Eje del bloque de texto, atado a la geometría de la foto.
+   *
+   * La escena es 1672x941 y va con `cover`, así que su escala en pantalla es la
+   * mayor de las dos razones, y lo que sobra se recorta a partes iguales por los
+   * lados. Con eso se puede señalar un punto CONCRETO de la fotografía y saber
+   * dónde cae: el 27,1 % del ancho de la escena es el centro del paño de muro
+   * libre, entre la celosía de la izquierda y el ramo de la derecha. Un valor
+   * fijo en px no serviría, porque cuanto más estrecha es la ventana más recorta
+   * `cover` y más se acerca el bodegón.
+   *
+   * Los dos topes: nunca a la izquierda de 21rem -que es donde ya estaba, y está
+   * validado- ni más allá de la mitad de la pantalla, que es lo que deja el eje
+   * centrado en móvil.
+   */
+  --esc: max(calc(100vw / 1672), calc(100svh / 941));
+  --img-w: calc(var(--esc) * 1672);
+  --eje-foto: calc((100vw - var(--img-w)) / 2 + var(--img-w) * 0.271);
+  --eje: min(50%, max(21rem, var(--eje-foto)));
 }
 
 .bol-heroc {
@@ -111,6 +130,10 @@
 
 // -------------------------------------------------------------- el contenido
 
+/**
+ * Alineación por defecto, en bandera. El bloque se centra sólo donde cabe, al
+ * final del archivo: ver la nota del bloque «texto centrado».
+ */
 .bol-heroc__contenido {
   position: relative;
   z-index: 1;
@@ -121,8 +144,18 @@
   align-items: flex-start;
   gap: 1.15rem;
   padding: 0 clamp(1.5rem, 6vw, 7rem);
+  /**
+   * Sube el bloque 4vh sobre el centro. Se hace restando altura por abajo en vez
+   * de con un `translate`: así el bloque sigue siendo el que manda en el flujo
+   * -nada que recalcular, ninguna capa de composición nueva- y la pista de
+   * scroll, que va anclada al fondo del hero, se queda donde tiene que estar.
+   * El centro geométrico dejaba el titular por debajo del logo pintado; a esta
+   * altura los dos se leen en la misma banda de luz del muro.
+   */
+  padding-bottom: 8vh;
   max-width: 42rem;
 }
+
 
 .bol-heroc__lugar {
   margin: 0;
@@ -314,6 +347,69 @@
   .bol-heroc__pista {
     bottom: 1.4rem;
   }
+}
+
+// --------------------------------------------------------- texto centrado
+
+/**
+ * El bloque se centra en el hueco limpio del muro, no en la pantalla: su eje
+ * cae en 21rem desde la izquierda, a salvo del pan y del logo pintado.
+ *
+ * Sólo se aplica donde ese hueco existe. La escena es 16:9 y va con `cover`:
+ * cuanto más estrecha o más alta es la ventana, más recorta por los lados y más
+ * se acerca el bodegón al centro. Medido el contraste del texto sobre la escena
+ * real ancho por ancho, el centrado aguanta de 1100px en adelante -a 1440px el
+ * peor punto incluso mejora, de 4,61:1 a 5,95:1- y se rompe a partir de 1024px,
+ * donde la bajada cae de 4,97:1 a 1,32:1 porque el titular se sienta encima del
+ * pan. En ese tramo intermedio se queda en bandera, pegada al margen, que es
+ * donde queda muro. Por debajo de 720px vuelve a centrarse: ahí el bloque sube
+ * a la zona alta del muro y el velo cubre.
+ */
+@media (min-width: 1100px), (max-width: 720px) {
+  .bol-heroc__contenido {
+    align-items: center;
+    text-align: center;
+    // La columna se desplaza hasta apoyar su eje sobre el del muro. Nunca hacia
+    // la izquierda: si la foto está tan recortada que su eje cae antes de las
+    // 21rem, el bloque se queda donde estaba.
+    margin-left: max(0px, calc(var(--eje) - 21rem));
+  }
+
+  .bol-heroc__lugar {
+    // El espaciado entre letras deja un hueco DETRÁS de la última que no existe
+    // delante de la primera: la caja mide 0,26em de más y la tinta queda medio
+    // hueco a la izquierda del eje. Se compensa con la mitad; con el hueco
+    // entero se pasa de largo y desvía 1px al otro lado.
+    text-indent: 0.13em;
+  }
+
+  .bol-heroc__bajada {
+    // Más estrecha que en bandera: un párrafo centrado se lee peor cuanto más
+    // larga es la línea, porque el ojo pierde el punto de retorno.
+    max-width: 24rem;
+    // Reparte las palabras para que los renglones queden parejos en vez de
+    // dejar una última línea suelta, que es lo que hace cantar a un bloque
+    // centrado.
+    text-wrap: balance;
+  }
+
+  .bol-heroc__acciones {
+    justify-content: center;
+  }
+
+  .bol-heroc__cta {
+    // Misma compensación que el rótulo de lugar, dentro del botón.
+    padding-left: calc(1.6rem + 0.07em);
+  }
+
+  /**
+   * La pista de scroll NO se lleva al eje del texto, aunque compartir eje sea lo
+   * coherente. Medido el contraste sobre la escena real, bajo el eje cae a
+   * 1,08-2,73:1 con el 66-93 % de su superficie por debajo de 3:1, porque ahí
+   * abajo está la mesa; anclada al margen izquierdo se queda en 2,17-3,16:1 con
+   * el 0-35 %. La esquina inferior izquierda es el único sitio del hero donde a
+   * esa altura sigue habiendo muro, y por eso estaba puesta ahí.
+   */
 }
 
 // ------------------------------------------------------------ menos movimiento
