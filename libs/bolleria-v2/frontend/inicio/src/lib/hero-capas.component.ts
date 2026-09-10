@@ -28,7 +28,15 @@ import { BolleriaStore, waDirectLink } from '@bolleria-v2-ui-shared';
  * sobre el muro y deja halo-; con el fondo aislado, el borde del pan queda
  * nítido contra un fondo suave, que es lo que hace un objetivo real. Lo mismo
  * con el color: lo lejano pierde saturación y se enfría, lo cercano gana cuerpo.
- * Medido, la separación entre el pan y el muro pasa de 2,92x a 5,21x.
+ * Medido, la separación entre el pan y el muro pasa de 2,76x a 4,92x en color y
+ * de 3,86x a 4,85x en detalle.
+ *
+ * El desenfoque del fondo no se decide sólo por la máscara del bodegón: se
+ * multiplica además por lo poco nítido que ya está cada píxel. Un píxel con
+ * detalle propio no se desenfoca nunca, así que el borde de la máscara no puede
+ * partir un objeto en dos nitideces. Sin ese candado la máscara dejaba fuera el
+ * ramo de flores por la mitad, la balda de panes y la pizarra, y se veían
+ * desiguales.
  *
  * Se probó también mover las capas con el ratón, con un modelo de cámara real.
  * Funcionaba -el fondo clavado, el primer plano abriéndose- pero se descartó: la
