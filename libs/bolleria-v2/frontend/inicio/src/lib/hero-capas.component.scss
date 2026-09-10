@@ -6,9 +6,6 @@
   position: relative;
   z-index: 2;
   --p: 0;
-  // Posición del ratón, −1 … 1, ya amortiguada por el componente.
-  --mx: 0;
-  --my: 0;
 }
 
 .bol-heroc {
@@ -62,18 +59,13 @@
   pointer-events: none;
   user-select: none;
   /**
-   * NO se mueven. Ninguno de los dos, nunca.
+   * Quietos los dos, y sin `will-change`: al no moverse no necesitan capa de
+   * composición propia ni margen de escala, así que muestran el 100 % del
+   * encuadre aprobado.
    *
-   * El fondo está en el plano z = 0 de la cámara: es el suelo contra el que se
-   * mide todo lo demás. Si el fondo se desplazara, el ojo leería "la imagen
-   * entera se mueve" -una traslación- en lugar de "me estoy asomando" -
-   * profundidad-. Es la diferencia entre las dos cosas, y es la razón de que
-   * tampoco necesiten `will-change` ni escala de margen: al no moverse, muestran
-   * el 100 % del encuadre aprobado.
-   *
-   * El logo va aquí con el muro porque está PINTADO en la pared. Aunque quisiera
-   * darle vida propia, desplazarlo un solo píxel distinto del muro lo delataría
-   * como una calcomanía flotando.
+   * El logo va en su propia imagen y no horneado en el fondo por una sola razón:
+   * en vertical el recorte lo deja justo detrás del titular y se leen dos textos
+   * encima del otro. Separado se puede retirar sólo ahí.
    */
 }
 
@@ -89,24 +81,11 @@
   object-fit: cover;
   object-position: 50% 50%;
   /**
-   * Proyección de la cámara. `--dx`/`--dy` y `--esc` los calcula el componente a
-   * partir de la profundidad de cada plano; aquí sólo se aplican.
-   *
-   * Los dos movimientos conviven en la misma expresión: el scroll aporta el
-   * término en porcentaje y la cámara el término en píxeles. Van en el mismo
-   * `transform` a la fuerza -dos declaraciones de `transform` en el mismo
-   * elemento no se suman, la segunda pisa a la primera-.
-   *
-   * El orden importa: la escala va DESPUÉS del desplazamiento, para que el
-   * desplazamiento se mida en píxeles de pantalla y no quede multiplicado por la
-   * escala del plano.
+   * El scroll aporta el único movimiento que queda. La capa ya lleva horneado su
+   * desenfoque de primer plano, así que aquí no hay ningún filtro en tiempo real:
+   * sólo una traslación, que el compositor resuelve sin repintar.
    */
-  transform: translate3d(
-      calc(var(--mx) * var(--dx, 0px)),
-      calc(var(--p) * var(--v, 0) * 100% + var(--my) * var(--dy, 0px)),
-      0
-    )
-    scale(var(--esc, 1));
+  transform: translate3d(0, calc(var(--p) * var(--v, 0) * 100%), 0);
   will-change: transform;
   backface-visibility: hidden;
   pointer-events: none;
@@ -143,19 +122,6 @@
   gap: 1.15rem;
   padding: 0 clamp(1.5rem, 6vw, 7rem);
   max-width: 42rem;
-  /**
-   * El texto flota por delante de la escena: se mueve con el primer plano, pero
-   * poco. Equivale a un plano en z ≈ 45, sólo que sin escalar -la tipografía no
-   * puede cambiar de tamaño-, que es la licencia que se toma aquí: no es un
-   * objeto de la escena, es una superposición, y el ojo no le exige coherencia
-   * física. Sí agradece que no quede clavado mientras lo de delante respira.
-   *
-   * Va en `translate` y no en `transform` porque sus hijos animan la entrada con
-   * `transform`: son propiedades distintas y se componen, así que ninguna pisa a
-   * la otra.
-   */
-  translate: calc(var(--mx) * -7px) calc(var(--my) * -5px);
-  will-change: translate;
 }
 
 .bol-heroc__lugar {
@@ -353,17 +319,8 @@
 // ------------------------------------------------------------ menos movimiento
 
 @media (prefers-reduced-motion: reduce) {
-  .bol-heroc__muro,
-  .bol-heroc__logo,
   .bol-heroc__capa {
-    // Sin movimiento no hace falta el margen, así que también se va la escala y
-    // el encuadre vuelve a ser el 100 %.
     transform: none;
-    will-change: auto;
-  }
-
-  .bol-heroc__contenido {
-    translate: none;
     will-change: auto;
   }
 

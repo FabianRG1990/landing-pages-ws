@@ -41,7 +41,8 @@
           },
           {
             "glob": "**/*",
-            "input": "apps/bolleria-v2/public"
+            "input": "apps/bolleria-v2/public",
+            "ignore": ["assets/hero-capas/_fuente/**"]
           }
         ],
         "styles": [
@@ -84,7 +85,8 @@
             },
             {
               "glob": "**/*",
-              "input": "apps/bolleria-v2/public"
+              "input": "apps/bolleria-v2/public",
+              "ignore": ["assets/hero-capas/_fuente/**"]
             },
             {
               "glob": "**/*",

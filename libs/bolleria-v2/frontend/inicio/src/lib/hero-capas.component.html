@@ -5,7 +5,7 @@
          al moverse no descubra ningún hueco. -->
     <img
       class="bol-heroc__muro"
-      src="assets/hero-capas/ref-01-fondo.webp"
+      src="assets/hero-capas/hero-fondo.webp"
       alt=""
       decoding="async"
       fetchpriority="high"
@@ -13,18 +13,9 @@
     <!-- El logo pintado en la pared, en su propia capa. En vertical el recorte lo
          deja justo debajo del titular y se leen dos textos encima del otro, así
          que ahí se retira: la marca ya está en el nav. -->
-    <img class="bol-heroc__logo" src="assets/hero-capas/ref-01b-logo.webp" alt="" decoding="async" />
+    <img class="bol-heroc__logo" src="assets/hero-capas/hero-logo.webp" alt="" decoding="async" />
     @for (c of capas; track c.src) {
-      <img
-        class="bol-heroc__capa"
-        [src]="c.src"
-        [style.--v]="c.vel"
-        [style.--dx]="c.dx"
-        [style.--dy]="c.dy"
-        [style.--esc]="c.esc"
-        alt=""
-        decoding="async"
-      />
+      <img class="bol-heroc__capa" [src]="c.src" [style.--v]="c.vel" alt="" decoding="async" />
     }
     <span class="bol-heroc__velo"></span>
   </div>
