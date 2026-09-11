@@ -31,6 +31,9 @@
         ],
         "bolleria": [
           "bolleria"
+        ],
+        "bolleria-v2": [
+          "bolleria-cr"
         ]
       }
     }
