@@ -27,7 +27,9 @@
 .bol-curtain--in {
   opacity: 1;
   clip-path: circle(150vmax at 50% 50%);
-  transition: clip-path 0.75s cubic-bezier(0.16, 1, 0.3, 1);
+  // 260 ms: es lo que tarda en cubrir, y a los 280 la tienda canjea la pantalla.
+  // Ver el reparto completo en `play()`, en el componente.
+  transition: clip-path 0.26s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 // La salida NO cierra el iris (sería un espejo aburrido de la entrada):
@@ -35,7 +37,8 @@
 // `.bol-curtain--out .bol-curtain__scene`), como si la cámara se retirara.
 .bol-curtain--out {
   opacity: 0;
-  transition: opacity 0.6s ease 0.05s;
+  // Sin retraso: el desvanecido ocupa el último cuarto del ciclo y ya está.
+  transition: opacity 0.24s ease;
 }
 
 // prefers-reduced-motion: cruce de opacidad breve, sin escena del horno.
@@ -121,8 +124,8 @@
   transform: scale(0.86);
   opacity: 0;
   transition:
-    transform 0.6s cubic-bezier(0.16, 1, 0.3, 1),
-    opacity 0.35s ease;
+    transform 0.26s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.16s ease;
 }
 .bol-curtain--in .bol-curtain__scene {
   transform: scale(1);
@@ -151,8 +154,25 @@
   background-size: 1900% 100%;
   background-position: 0% 0%;
 }
+/**
+ * La puerta gira en 380 ms en vez de en los 738 originales, y con 180 ms de
+ * espera por delante.
+ *
+ * La cuenta que importa no son los milisegundos, son los FOTOGRAMAS: son 19
+ * cuadros y a 60 Hz en 380 ms se pintan 23, así que cada cuadro sale al menos
+ * una vez y la puerta se ve girar entera. Quedó claro por el camino contrario:
+ * con el ciclo en 500 ms el hueco eran ~190 ms y sólo se habrían pintado once
+ * fotogramas para diecinueve cuadros —la mitad se perdía y no se leía como una
+ * puerta, sino como un parpadeo—. La frontera no es el gusto, es un cuadro por
+ * refresco.
+ *
+ * El retraso de 180 ms deja ver el horno CERRADO antes de que la puerta se
+ * mueva. Sin él, el primer cuadro que se ve es el segundo o el tercero de la
+ * tira, la puerta ya entreabierta, y se lee como un hueco en el marco. Ver el
+ * reparto en `play()`.
+ */
 .bol-curtain__sprite--open {
-  animation: bol-curtain-horno 0.738s steps(18) forwards;
+  animation: bol-curtain-horno 0.38s steps(18) 0.18s forwards;
 }
 @keyframes bol-curtain-horno {
   from {
@@ -175,17 +195,19 @@
 // continuidad/narrativa entre pantallas) — la transición es deliberadamente
 // larga y lineal para que se lea como movimiento constante, no como un salto.
 .bol-curtain--open .bol-curtain__scene {
-  transform: scale(1.035);
-  transition: transform 1.5s linear;
+  transform: scale(1.03);
+  transition: transform 0.62s linear;
 }
 // Salida: la escena se aleja levemente en vez de solo desvanecerse — sensación
 // de que la cámara se retira mientras la luz se apaga (ver `.bol-curtain--out`
 // arriba). Misma especificidad que la regla de `--in`/`--open`; al declararse
 // después en la hoja de estilos, esta gana durante 'out'.
 .bol-curtain--out .bol-curtain__scene {
-  transform: scale(1.09);
-  transition: transform 0.65s cubic-bezier(0.34, 0, 0.64, 1);
+  transform: scale(1.07);
+  transition: transform 0.24s cubic-bezier(0.34, 0, 0.64, 1);
 }
+
+
 
 .bol-curtain__shadow {
   position: absolute;
@@ -391,13 +413,34 @@
   background: linear-gradient(155deg, #fdf9ef, #f1e8d4);
   border: 3px solid var(--olive);
   transform-origin: left center;
-  transition: transform 0.55s cubic-bezier(0.65, 0, 0.35, 1);
+  // 0,38s tras 0,18 de espera, lo mismo que la tira horneada: los dos caminos
+  // tienen que durar igual o la cortina se sentiría distinta según el navegador.
+  //
+  // La sombra viaja CON la puerta, y por eso está declarada aquí en dos trozos.
+  // Antes aparecía de golpe al ponerse `--open`, con la puerta todavía plana en
+  // su marco; mientras seguía siendo un elemento 2D quedaba oculta, pero en
+  // cuanto el navegador la saca a su propia capa -lo hace al empezar a
+  // interpolar el `transform`- se pintaba encima del cuerpo del horno y se veía
+  // como un hueco oscuro en el canto izquierdo. Medido en esa franja: 2382 px
+  // de resto contra la puerta cerrada; quitando la sombra, 834.
+  //
+  // Los dos estados llevan las MISMAS dos sombras -la luz de dentro y la
+  // proyectada- para que se puedan interpolar. Con una lista de un elemento
+  // frente a otra de dos, o con `inset` de por medio, el navegador no sabe
+  // mezclarlas y salta a mitad de camino.
+  transition:
+    transform 0.38s cubic-bezier(0.65, 0, 0.35, 1) 0.18s,
+    box-shadow 0.38s cubic-bezier(0.65, 0, 0.35, 1) 0.18s;
   backface-visibility: hidden;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    0 0 0 rgba(46, 42, 28, 0);
 }
 .bol-curtain__door--open {
   transform: rotateY(-108deg);
-  box-shadow: 2px 0 10px rgba(46, 42, 28, 0.35);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.5),
+    2px 0 10px rgba(46, 42, 28, 0.35);
 }
 
 .bol-curtain__window {
@@ -549,9 +592,11 @@
   transform: translate(-50%, 10px) scale(0.88);
   opacity: 0;
   filter: drop-shadow(0 6px 10px rgba(46, 42, 28, 0.4));
+  // El logo sube DESPUÉS de que la puerta haya abierto lo suficiente para
+  // dejarlo ver; el retraso se comprime en la misma proporción que la puerta.
   transition:
-    transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.22s,
-    opacity 0.4s ease 0.22s;
+    transform 0.24s cubic-bezier(0.34, 1.56, 0.64, 1) 0.38s,
+    opacity 0.22s ease 0.38s;
 }
 .bol-curtain__interior--reveal .bol-curtain__mark {
   transform: translate(-50%, 0) scale(1);
@@ -566,7 +611,7 @@
   background: linear-gradient(180deg, rgba(250, 246, 236, 0), rgba(250, 246, 236, 0.8) 45%, rgba(250, 246, 236, 0));
   filter: blur(2.5px);
   opacity: 0;
-  transition: opacity 0.5s ease 0.32s;
+  transition: opacity 0.24s ease 0.42s;
 }
 .bol-curtain__steam--a {
   left: 30%;
@@ -595,4 +640,3 @@
 .bol-curtain__interior--reveal .bol-curtain__steam {
   opacity: var(--steam-o, 1);
 }
-

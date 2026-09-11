@@ -119,8 +119,14 @@ export const BolleriaStore = signalStore(
         const reduced =
           typeof window !== 'undefined' &&
           (window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false);
-        const swapDelay = reduced ? 120 : 1000;
-        const resetDelay = reduced ? 420 : 2450;
+        /**
+         * Atados a la coreografía de `CurtainComponent`: el canje ocurre con la
+         * pantalla YA cubierta (el iris tarda 260 ms) y el reset justo después
+         * de que la cortina termine de desvanecerse, a los 900. Si se toca uno
+         * hay que tocar el otro: adelantar el canje deja ver el salto.
+         */
+        const swapDelay = reduced ? 120 : 280;
+        const resetDelay = reduced ? 420 : 910;
         patchState(store, { curtain: true, mobileOpen: false });
         setTimeout(() => {
           patchState(store, { screen, ...(cat ? { activeCat: cat } : {}) });

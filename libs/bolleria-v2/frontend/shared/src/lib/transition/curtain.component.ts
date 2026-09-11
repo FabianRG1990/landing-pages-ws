@@ -90,15 +90,36 @@ export class CurtainComponent {
       return;
     }
 
-    // 900ms de "in" (iris + entrada del horno, que se asientan ~750ms): ese
-    // margen es el respiro/anticipación antes de que la puerta empiece a
-    // girar, en vez de que todo se mueva a la vez.
+    /**
+     * El ciclo entero dura 900 ms. Era de 2400; se probó en 500 y quedó
+     * demasiado seco.
+     *
+     *     0 - 260 ms   el iris se cierra y cubre la pantalla
+     *     0 - 180      el horno se ve CERRADO
+     *     180 - 560    la puerta gira
+     *       280 ms     cambia la pantalla, ya tapada (lo hace `go()` en la
+     *                  tienda, con `swapDelay`; los dos números van atados)
+     *     380 - 660    el logo sube y sale el vapor
+     *     660 - 900    se desvanece y aparece la pantalla nueva
+     *
+     * La puerta NO arranca en el cero, y esos 180 ms de horno cerrado no son
+     * relleno: son lo único que hace que después se lea una puerta ABRIÉNDOSE y
+     * no una puerta que ya estaba entreabierta. Arrancándola en el cero, lo
+     * primero que se veía era la puerta girada unos grados, y en perspectiva eso
+     * despega su canto izquierdo del marco y abre un hueco —reportado—. Antes
+     * no pasaba porque había 900 ms de horno quieto por delante.
+     *
+     * Tampoco cabe sólo en el tramo cubierto (280-660): de ahí salió la versión
+     * sin animación que hubo un rato. Cabe a caballo de los dos.
+     *
+     * `open` marca el acercamiento de cámara, no la apertura.
+     */
     this.stage.set('in');
-    this.schedule(() => this.stage.set('open'), 900);
-    this.schedule(() => this.stage.set('out'), 1750);
+    this.schedule(() => this.stage.set('open'), 280);
+    this.schedule(() => this.stage.set('out'), 660);
     this.schedule(() => {
       this.stage.set('idle');
       this.playing = false;
-    }, 2400);
+    }, 900);
   }
 }

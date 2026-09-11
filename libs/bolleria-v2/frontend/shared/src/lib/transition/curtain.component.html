@@ -12,7 +12,7 @@
   <div class="bol-curtain__scene">
     @if (sprite()) {
       <!-- La misma escena, ya rendida: ver `sprite` en el componente. -->
-      <div class="bol-curtain__sprite" [class.bol-curtain__sprite--open]="stage() === 'open' || stage() === 'out'"></div>
+      <div class="bol-curtain__sprite" [class.bol-curtain__sprite--open]="stage() !== 'idle'"></div>
     } @else {
     <div class="bol-curtain__shadow"></div>
     <div class="bol-curtain__shadow bol-curtain__shadow--contact"></div>
@@ -39,7 +39,7 @@
       <div class="bol-curtain__door-wrap">
         <div
           class="bol-curtain__interior"
-          [class.bol-curtain__interior--reveal]="stage() === 'open' || stage() === 'out'"
+          [class.bol-curtain__interior--reveal]="stage() !== 'idle'"
         >
           <div class="bol-curtain__glow"></div>
           <div class="bol-curtain__rack"></div>
@@ -51,7 +51,7 @@
           <img src="assets/mark.webp" alt="" class="bol-curtain__mark" />
         </div>
 
-        <div class="bol-curtain__door" [class.bol-curtain__door--open]="stage() === 'open' || stage() === 'out'">
+        <div class="bol-curtain__door" [class.bol-curtain__door--open]="stage() !== 'idle'">
           <div class="bol-curtain__window">
             <div class="bol-curtain__glass-shine"></div>
             <div class="bol-curtain__window-corner bol-curtain__window-corner--l"></div>
