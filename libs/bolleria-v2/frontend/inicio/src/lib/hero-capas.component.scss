@@ -1,22 +1,43 @@
 :host {
   display: block;
+  /**
+   * `preventDefault` en `touchmove` NO basta: en cuanto el navegador entrega un
+   * desplazamiento al compositor ya no hay nada que cancelar. Con la clase
+   * puesta -la pone el componente mientras quede un paso hacia abajo- el dedo no
+   * puede arrastrar la página. `pinch-zoom` y no `none`: el zoom es una ayuda de
+   * accesibilidad y no se toca. En el último estado se abre para poder salir.
+   */
+  touch-action: pan-y pinch-zoom;
   // Es el host, y no la sección de dentro, quien compite con el entremés en el
   // flujo de la página: el z-index tiene que vivir aquí (ver la nota en
   // `.bol-heroc`).
   position: relative;
   z-index: 2;
-  --p: 0;
   /**
-   * Alto del envoltorio: tres pantallas. Como el escenario ocupa una, el hero se
-   * queda clavado durante las DOS restantes, que es el recorrido de scroll real
-   * -1800 px medidos en una ventana de 900-. Es el único número que hay que
-   * tocar para alargarlo o acortarlo; el progreso se mide contra el alto real
-   * del elemento clavado, así que todo lo demás se ajusta solo.
+   * El compás de un paso. Es el único número que hay que tocar para que la
+   * transición dure más o menos, y tiene un gemelo en el componente (`DUR`):
+   * quien decide cuándo se puede volver a dar un paso necesita saber cuánto dura
+   * el que está en curso.
    *
-   * Queda anotado que la v1 se descartó por secuestrar el scroll durante 700vh
-   * con 233 cuadros. Esto es menos de la mitad de recorrido y son tres imágenes.
+   * Las imágenes usan `--dur` entera. Las palabras y los botones usan
+   * `--dur-txt`, más corta, y el que ENTRA lleva además un retraso: si los dos
+   * titulares se cruzaran a media opacidad se leerían los dos a la vez.
    */
-  --pin: 300vh;
+  --dur: 400ms;
+  --dur-txt: 180ms;
+  --curva: cubic-bezier(0.4, 0, 0.2, 1);
+  // Ya no queda ningún paralaje: las capas del olivo van quietas.
+  /**
+   * Retrasos por pieza. Los escribe el componente: 220ms para la que entra, 0
+   * para la que sale. En reposo, sin JavaScript, todos a cero y no pasa nada
+   * porque tampoco hay nada que relevar.
+   */
+  --td0: 0ms;
+  --td1: 0ms;
+  --td2: 0ms;
+  --ta0: 0ms;
+  --ta1: 0ms;
+  --pista: 1;
   /**
    * Valores en reposo: primer estado, primer texto. Los escribe el componente
    * fotograma a fotograma, pero si el JavaScript no corre -SSR, «menos
@@ -55,14 +76,17 @@
   --eje: min(50%, max(21rem, var(--eje-foto)));
 }
 
+:host(.bol-manda) {
+  touch-action: pinch-zoom;
+}
+
 /**
- * El envoltorio ya no es el escenario: sólo aporta la longitud del recorrido.
- * Quien mide una pantalla y se queda clavado es `__fijo`.
+ * El hero mide una pantalla y ya está: no hay riel, no hay recorrido y no hay
+ * nada clavado. Los tres estados no se recorren, se saltan.
  */
 .bol-heroc {
   position: relative;
   width: 100%;
-  height: var(--pin);
   // El mismo crema del sitio: si una capa tardara en pintar, el hueco no canta.
   background: #faf6ec;
   /**
@@ -87,8 +111,7 @@
  * `innerHeight`, por esa misma razón.
  */
 .bol-heroc__fijo {
-  position: sticky;
-  top: 0;
+  position: relative;
   height: 100vh;
   height: 100svh;
   min-height: 34rem;
@@ -146,10 +169,12 @@
  */
 .bol-heroc__muro--2 {
   opacity: var(--o2);
+  transition: opacity var(--dur) var(--curva);
 }
 
 .bol-heroc__muro--3 {
   opacity: var(--o3);
+  transition: opacity var(--dur) var(--curva);
 }
 
 /**
@@ -164,13 +189,12 @@
   object-fit: cover;
   object-position: 50% 50%;
   /**
-   * El scroll aporta el único movimiento que queda. La capa ya lleva horneado su
-   * desenfoque de primer plano, así que aquí no hay ningún filtro en tiempo real:
-   * sólo una traslación, que el compositor resuelve sin repintar.
+   * Quietas y sin `will-change`. Llevaban una traslación atada al progreso del
+   * scroll; con la secuencia por pasos ese recorrido se repartía en dos saltos y
+   * se veía deslizar la capa sobre el muro. La nota larga está en `capas`, en el
+   * componente. Aquí ya no hay transformación, así que tampoco hay nada que
+   * promover a capa de compositor.
    */
-  transform: translate3d(0, calc(var(--p) * var(--v, 0) * 100%), 0);
-  will-change: transform;
-  backface-visibility: hidden;
   pointer-events: none;
   user-select: none;
 }
@@ -259,12 +283,15 @@
 
 .bol-heroc__texto:nth-child(1) {
   opacity: var(--t0);
+  transition: opacity var(--dur-txt) var(--curva) var(--td0);
 }
 .bol-heroc__texto:nth-child(2) {
   opacity: var(--t1);
+  transition: opacity var(--dur-txt) var(--curva) var(--td1);
 }
 .bol-heroc__texto:nth-child(3) {
   opacity: var(--t2);
+  transition: opacity var(--dur-txt) var(--curva) var(--td2);
 }
 
 /**
@@ -351,10 +378,12 @@
 .bol-heroc__grupo:nth-child(1) {
   opacity: var(--a0);
   visibility: var(--va0);
+  transition: opacity var(--dur-txt) var(--curva) var(--ta0);
 }
 .bol-heroc__grupo:nth-child(2) {
   opacity: var(--a1);
   visibility: var(--va1);
+  transition: opacity var(--dur-txt) var(--curva) var(--ta1);
 }
 
 /**
@@ -451,13 +480,9 @@
   letter-spacing: 0.24em;
   text-transform: uppercase;
   color: rgba(46, 42, 28, 0.6);
-  /**
-   * Se retira al empezar a bajar: ya cumplió su función. El factor va atado a la
-   * longitud del recorrido -3 pantallas- para que siga desapareciendo en el
-   * primer tercio de la PRIMERA, como cuando el hero medía una sola. Con el 3 de
-   * antes tardaría una pantalla entera en irse.
-   */
-  opacity: calc(1 - var(--p) * 9);
+  // Se retira en el último estado: ya no queda nada hacia lo que invitar.
+  opacity: var(--pista);
+  transition: opacity var(--dur) var(--curva);
   pointer-events: none;
 
   i {
@@ -640,9 +665,12 @@
     display: none;
   }
 
-  .bol-heroc__capa {
-    transform: none;
-    will-change: auto;
+  // Nada que animar: no hay pasos que dar.
+  .bol-heroc__muro,
+  .bol-heroc__texto,
+  .bol-heroc__grupo,
+  .bol-heroc__pista {
+    transition: none;
   }
 
   .bol-heroc__lugar,

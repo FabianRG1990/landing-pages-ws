@@ -1,5 +1,5 @@
-<!-- El envoltorio da la longitud del recorrido; el escenario se queda clavado
-     dentro. Ver la nota de `--pin` en el SCSS. -->
+<!-- Una pantalla y nada más: los tres estados no se recorren, se saltan. El
+     scroll solo dispara el paso; la transicion la cronometra el CSS. -->
 <section class="bol-heroc">
   <div class="bol-heroc__fijo">
     <div class="bol-heroc__escena" aria-hidden="true">
@@ -34,8 +34,9 @@
            debajo del titular y se leen dos textos encima del otro, así que ahí
            se retira: la marca ya está en el nav. -->
       <img class="bol-heroc__logo" src="assets/hero-capas/hero-logo.webp" alt="" decoding="async" />
+      <!-- El olivo del primer plano: parte de la imagen, no una animación. -->
       @for (c of capas; track c.src) {
-        <img class="bol-heroc__capa" [src]="c.src" [style.--v]="c.vel" alt="" decoding="async" />
+        <img class="bol-heroc__capa" [src]="c.src" alt="" decoding="async" />
       }
       <span class="bol-heroc__velo"></span>
     </div>
