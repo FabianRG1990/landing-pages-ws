@@ -122,11 +122,9 @@ export class HeroCapasComponent implements OnDestroy {
     },
     {
       lugar: '',
-      titulo: 'Vení por el tuyo',
-      enfasis: 'mientras queda.',
-      bajada:
-        'Lo de hoy se hornea hoy. Mirá todo lo que sale del horno y apartá ' +
-        'lo tuyo.',
+      titulo: 'No te quedes',
+      enfasis: 'sin el tuyo.',
+      bajada: 'Todo lo que sale del horno cada mañana está en la carta.',
     },
   ];
 
