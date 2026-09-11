@@ -184,6 +184,9 @@ export class HeroCapasComponent implements OnDestroy {
    *     `RUEDA_TERCA`: la cola de una inercia trae deltas de dos o tres píxeles y
    *     no llega, mientras que un scroll de verdad los trae de cincuenta.
    *
+   * Y al agotarse los pasos no se suelta en el acto, sino cuando el gesto calla:
+   * ver `RETENCION`. Es lo que hace que la última parada se pueda leer.
+   *
    * El dedo no necesita nada de esto: `touchstart` y `touchend` delimitan el
    * gesto solos, y se da un paso por gesto.
    *
@@ -195,6 +198,22 @@ export class HeroCapasComponent implements OnDestroy {
    */
   private static readonly SILENCIO = 120;
   private static readonly TECHO = 900;
+  /**
+   * Cuánto se retiene el scroll DESPUÉS del último paso, cuando ya no queda
+   * ninguno hacia esa dirección.
+   *
+   * Sin esto, el gesto que da el último paso se lleva la página con su propia
+   * cola: el paso se da con los primeros eventos y los treinta restantes ya no
+   * encuentran paso que dar, así que pasan al navegador. Medido: un barrido
+   * inercial normal dejaba la página 588 px más abajo y el último titular en
+   * y = -362, o sea fuera de la pantalla. El mensaje que cierra la secuencia era
+   * justo el que no se llegaba a leer.
+   *
+   * Se retiene mientras el gesto siga VIVO -sin `SILENCIO` de calma- y como
+   * mucho este tiempo, para que un scroll sostenido no quede encerrado: quien
+   * no para nunca sale igual, sólo que 1,8 s después.
+   */
+  private static readonly RETENCION = 1800;
   private static readonly RUEDA = 24;
   private static readonly RUEDA_TERCA = 120;
   private static readonly DEDO = 0.04;
@@ -247,8 +266,6 @@ export class HeroCapasComponent implements OnDestroy {
    * ser del navegador sin más trámite: nadie queda atrapado.
    */
   private mando(dir: number): boolean {
-    const n = this.paso + dir;
-    if (n < 0 || n > 2) return false;
     const c = this.host.nativeElement.getBoundingClientRect();
     /**
      * Que su borde de arriba esté en el borde de la ventana y que la cubra casi
@@ -258,7 +275,20 @@ export class HeroCapasComponent implements OnDestroy {
      * mando en un teléfono con la barra recogida, que es justo donde más falta
      * hace. La diferencia entre las dos medidas ronda el 11 %.
      */
-    return c.top >= -2 && c.bottom >= window.innerHeight * 0.8;
+    if (c.top < -2 || c.bottom < window.innerHeight * 0.8) return false;
+    const n = this.paso + dir;
+    if (n >= 0 && n <= 2) return true;
+    /**
+     * No queda paso hacia ahí, pero todavía no se suelta: si el gesto que acaba
+     * de dar el último paso sigue vivo, su cola se llevaría la página y la
+     * última parada no llegaría a leerse. Se aguanta hasta que el gesto calle,
+     * y como mucho `RETENCION`.
+     */
+    const ahora = performance.now();
+    return (
+      ahora - this.tPaso < HeroCapasComponent.RETENCION &&
+      ahora - this.tEvento < HeroCapasComponent.SILENCIO
+    );
   }
 
   /** Avanza o retrocede un paso y bloquea hasta que el gesto termine. */
