@@ -1,11 +1,11 @@
 // El logo sigue suelto sobre la página, sin tarjeta ni sombra de "componente
 // flotante" debajo — igual que en el hero. Pero los links + CTA ahora sí
-// viven dentro de un objeto real: una píldora con doble filo dorado
-// y espigas a los costados, el mismo vocabulario del sello de cera del CTA y
-// del punto "•B" del logo, no una tarjeta de vidrio genérica. La diferencia
-// con la versión anterior (rechazada por "desentonar") es material: esto no
-// es blur/glass de UI, es una moldura grabada — opaca, con borde metálico
-// doble y ornamento de espiga, como una medalla o un sello de repostería.
+// viven dentro de un objeto real: una píldora de papel tostado con espigas a
+// los costados, el mismo vocabulario del sello de cera del CTA y del punto
+// "•B" del logo, no una tarjeta de vidrio genérica. La diferencia con la
+// versión anterior (rechazada por "desentonar") es material: esto no es
+// blur/glass de UI, es una pieza impresa — opaca, con tono propio y ornamento
+// de espiga, como una medalla o un sello de repostería.
 //
 // Al hacer scroll no aparece una tarjeta nueva: la franja superior sigue con
 // el mismo lavado suave de antes detrás del logo suelto; la píldora de la
@@ -60,10 +60,24 @@
 }
 
 // Píldora corta y flotante, no una barra de borde a borde: un objeto joya,
-// no un componente de app. El "doble filo" se logra con dos anillos de
-// box-shadow (hairline dorado + hueco color crema + hairline dorado exterior)
-// en vez de un `border` + `outline`, porque box-shadow sí sigue el
-// border-radius de una píldora sin artefactos en las esquinas.
+// no un componente de app.
+//
+// Lo que la separa de la página es su TONO, no un filo. Antes eran tres
+// anillos de box-shadow apilados (hairline dorado + hueco crema + hairline
+// dorado) rodeando un relleno casi blanco, #fffdf8 → #faf3e2. Ese relleno da
+// 1,06:1 contra el fondo de la página (#faf6ec) —medido—, así que la píldora
+// no se sostenía sola: pasado el hero, lo único que seguía dibujándola era el
+// filo, y la barra se leía como texto suelto dentro de un marco. Con el
+// tostado sube a 1,18:1 y el objeto existe sin necesidad de contorno; el
+// texto se queda en 7,63:1, muy por encima del 4,5 de AA.
+//
+// Este tono es medio punto más claro que el otro candidato que se probó
+// (#ecdcb8 → #e0cb9d, 1,26:1). Se descartó porque a esa profundidad el relleno
+// entra en la familia del dorado y el botón PEDIR pierde separación contra su
+// propia píldora: el contraste con la página se gana quitándoselo al CTA.
+//
+// El degradado (claro arriba, hondo abajo) se conserva: es lo que la hace
+// leer como una pieza con luz encima en vez de un rectángulo pintado.
 .bol-nav__links {
   position: relative;
   display: flex;
@@ -71,18 +85,27 @@
   gap: 28px;
   padding: 10px 44px;
   border-radius: 999px;
-  background: linear-gradient(180deg, #fffdf8 0%, #faf3e2 100%);
-  box-shadow:
-    0 0 0 1px rgba(168, 124, 42, 0.6),
-    0 0 0 3.5px rgba(255, 253, 248, 0.97),
-    0 0 0 4.5px rgba(168, 124, 42, 0.35),
-    0 10px 24px -8px rgba(46, 42, 28, 0.3);
+  background: linear-gradient(180deg, #f1e3c4 0%, #e8d5ae 100%);
+  // Sombra de proyección, no contorno: sin ella la píldora deja de estar
+  // apoyada en la página. Sube de 0,30 a 0,34 porque el relleno ya no es casi
+  // blanco, y una sombra calibrada contra blanco se aguada sobre él.
+  box-shadow: 0 10px 26px -8px rgba(46, 42, 28, 0.34);
 
   // Recorte real de la imagen de referencia (no un ícono redibujado): los
-  // intentos vectoriales no llegaban a "idéntico", así que esto es el
-  // laurel exacto, recortado del PNG que pasó el usuario, con un
-  // desvanecido suave en el borde del recorte (no en el laurel) para que
-  // encaje sin costura sobre el crema de la píldora.
+  // intentos vectoriales no llegaban a "idéntico", así que esto es el laurel
+  // exacto, recortado del PNG que pasó el usuario.
+  //
+  // El PNG está MATEADO, y eso no es cosmético: la primera versión traía un
+  // disco crema opaco horneado dentro —2.494 de sus 8.010 px eran crema casi
+  // blanco a alfa 255— que pasaba inadvertido solo porque el relleno de la
+  // píldora era igual de blanco. Al tostarla aparecía un huevo pálido detrás
+  // de cada espiga. La tinta se separó del crema con una clave POR CANAL, no
+  // por luminancia: la tinta es dorada y su azul cae a 49 mientras su rojo se
+  // queda en 200, así que una clave de luminancia le asigna alfa 0,56 y al
+  // recomponer el azul se va 59 puntos. Con la clave por canal, recomponer el
+  // recorte sobre el crema original y compararlo con el PNG de partida da
+  // error medio 0,69 y máximo 10 sobre 255. O sea: el ornamento ya recibe el
+  // tono del papel sobre el que está, sea el que sea.
   &::before,
   &::after {
     content: '';
@@ -206,8 +229,10 @@
 
 // Contador de productos agregados. Tinta sobre crema, no dorado — el CTA ya
 // es dorado, un badge del mismo tono se perdería encima. El anillo color
-// crema es el mismo valor que el fondo de la píldora (.bol-nav__links) sobre
-// el que este badge se asoma en su esquina superior derecha.
+// claro es el mismo valor que el fondo de la píldora (.bol-nav__links) sobre
+// el que este badge se asoma en su esquina superior derecha: cae a un 20 % de
+// la altura de la píldora, así que el valor sale de interpolar su degradado
+// justo ahí. Con el crema de antes quedaba un aro blanco sobre el tostado.
 .bol-nav__cta-badge {
   position: absolute;
   top: -8px;
@@ -223,7 +248,7 @@
   color: var(--cream);
   font: 600 12px 'Jost', sans-serif;
   font-variant-numeric: lining-nums tabular-nums;
-  box-shadow: 0 0 0 2px rgba(250, 246, 236, 0.95);
+  box-shadow: 0 0 0 2px rgba(239, 224, 192, 0.95);
 }
 
 // Sin isla ni vidrio en mobile tampoco — mismo tratamiento "impreso sobre la
