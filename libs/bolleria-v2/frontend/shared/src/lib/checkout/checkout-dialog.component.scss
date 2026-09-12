@@ -150,39 +150,21 @@
   margin-top: 14px;
 }
 
+// El aspecto vive en `.bol-btn` (styles.scss). El diálogo es crema (#faf6ec),
+// así que va la variante oscura. Aquí queda lo propio: que ocupe la fila entera
+// y que su contenido se centre en ella.
 .bol-checkout-dialog__confirm {
   width: 100%;
   margin-top: 22px;
-  display: flex;
-  align-items: center;
   justify-content: center;
-  gap: 9px;
-  font: 600 14px 'Jost', sans-serif;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  padding: 15px;
-  border: none;
-  border-radius: 999px;
-  cursor: pointer;
-  background: linear-gradient(155deg, #f0c675 0%, var(--acc, #c8912a) 50%, #96651a 100%);
-  color: #fffaf0;
-  box-shadow:
-    inset 0 1.5px 0 rgba(255, 255, 255, 0.55),
-    inset 0 -2px 3px rgba(103, 68, 15, 0.4),
-    0 8px 18px -8px rgba(90, 58, 15, 0.5);
-  transition:
-    box-shadow 0.3s,
-    transform 0.2s;
-
-  @media (hover: hover) and (pointer: fine) {
-    &:hover {
-      transform: translateY(-2px);
-      box-shadow:
-        inset 0 1.5px 0 rgba(255, 255, 255, 0.6),
-        inset 0 -2px 3px rgba(103, 68, 15, 0.4),
-        0 12px 24px -8px rgba(90, 58, 15, 0.6);
-    }
-  }
+  // `.bol-btn` entra por la izquierda a 15px y por la derecha a 20: esos 5px de
+  // diferencia son el margen óptico del croissant. Este botón ya no lo lleva,
+  // así que el rótulo recupera el relleno simétrico y vuelve a estar centrado.
+  padding-left: 20px;
+  // El croissant (26px) era la pieza mas alta de dentro del boton, asi que al
+  // quitarlo la caja caia de 50px a 44 -medido-. Se fija la altura de la
+  // familia para que el boton no encoja por un cambio de icono.
+  min-height: 50px;
 }
 
 .bol-checkout-dialog__frame {

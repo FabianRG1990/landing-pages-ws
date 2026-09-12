@@ -74,7 +74,10 @@
 // Este tono es medio punto más claro que el otro candidato que se probó
 // (#ecdcb8 → #e0cb9d, 1,26:1). Se descartó porque a esa profundidad el relleno
 // entra en la familia del dorado y el botón PEDIR pierde separación contra su
-// propia píldora: el contraste con la página se gana quitándoselo al CTA.
+// propia píldora: el contraste con la página se gana quitándoselo al CTA. Ese
+// botón ya no vive en la barra, así que esto queda como registro de por qué el
+// tostado es este y no el otro; el tono se conserva porque es lo que sostiene
+// la píldora contra la página cuando pasa el hero.
 //
 // El degradado (claro arriba, hondo abajo) se conserva: es lo que la hace
 // leer como una pieza con luz encima en vez de un rectángulo pintado.
@@ -186,71 +189,6 @@
   }
 }
 
-// CTA con el mismo tratamiento "metal grabado" del logo (degradado dorado +
-// filo claro arriba), en vez del relleno plano de antes. El ícono es una
-// espiga mínima, no un glifo genérico — coherente con la ilustración del
-// fondo, no decorativo porque sí.
-.bol-nav__cta {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font: 700 14px 'Cinzel', serif;
-  letter-spacing: 0.17em;
-  text-transform: uppercase;
-  padding: 11px 28px;
-  border-radius: 999px;
-  background: linear-gradient(155deg, #f0c675 0%, var(--acc, #c8912a) 50%, #96651a 100%);
-  color: #fffaf0;
-  // Degradado con más contraste (highlight claro arriba-izq, sombra cálida
-  // marcada abajo-der) para leer como metal grabado, no un relleno plano.
-  box-shadow:
-    inset 0 1.5px 0 rgba(255, 255, 255, 0.55),
-    inset 0 -2px 3px rgba(103, 68, 15, 0.4),
-    0 6px 16px -4px rgba(90, 58, 15, 0.55);
-  transition:
-    box-shadow 0.3s,
-    transform 0.2s;
-
-  &-icon {
-    color: #fffaf0;
-  }
-
-  @media (hover: hover) and (pointer: fine) {
-    &:hover {
-      box-shadow:
-        inset 0 1.5px 0 rgba(255, 255, 255, 0.6),
-        inset 0 -2px 3px rgba(103, 68, 15, 0.4),
-        0 8px 20px -4px rgba(90, 58, 15, 0.6);
-      transform: translateY(-1px);
-    }
-  }
-}
-
-// Contador de productos agregados. Tinta sobre crema, no dorado — el CTA ya
-// es dorado, un badge del mismo tono se perdería encima. El anillo color
-// claro es el mismo valor que el fondo de la píldora (.bol-nav__links) sobre
-// el que este badge se asoma en su esquina superior derecha: cae a un 20 % de
-// la altura de la píldora, así que el valor sale de interpolar su degradado
-// justo ahí. Con el crema de antes quedaba un aro blanco sobre el tostado.
-.bol-nav__cta-badge {
-  position: absolute;
-  top: -8px;
-  right: -9px;
-  min-width: 18px;
-  height: 18px;
-  padding: 0 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 999px;
-  background: var(--ink);
-  color: var(--cream);
-  font: 600 12px 'Jost', sans-serif;
-  font-variant-numeric: lining-nums tabular-nums;
-  box-shadow: 0 0 0 2px rgba(239, 224, 192, 0.95);
-}
-
 // Sin isla ni vidrio en mobile tampoco — mismo tratamiento "impreso sobre la
 // página" que el resto, solo el ícono con su halo crema.
 // El area de toque medida era 36x29: por debajo del minimo de 44x44 de las
@@ -302,10 +240,6 @@
 // Galaxy S8 360, SE3 y 12 mini 375, iPhone 12/13 390, iPhone 15 393, Pixel 7
 // 412 y Pro Max 430.
 //
-// El CTA "Pedir" se queda fuera: con el subiria a 285 px y dejaria sin barra
-// a los telefonos de 360-390. No se pierde nada con ello, porque hoy en
-// telefono el carrito tampoco se abre desde la portada — `openCart()` solo se
-// llama desde ese boton, que estaba oculto.
 @media (min-width: 360px) and (max-width: 768px) {
   // Absoluto para que los dos puedan cruzarse con un fundido: si el
   // hamburguesa siguiera en el flujo, aparecer y desaparecer moveria la
@@ -390,10 +324,6 @@
       right: 0.17em;
       bottom: 13px;
     }
-  }
-
-  .bol-nav__cta {
-    display: none;
   }
 
   // 44 px en los DOS estados: si arriba midiera 44 y al bajar volviera a los
@@ -493,8 +423,8 @@
 // La barra no encogía nunca: 26px de aire arriba y abajo más un logo de 58px,
 // midiera lo que midiera la pantalla. Acostado eso se comía casi un tercio del
 // alto útil y el contenido pasaba por debajo. Aquí se reduce el aire y el logo,
-// que es lo único que la hace alta; la píldora, los enlaces y el CTA no se
-// tocan, así que la barra sigue siendo el mismo objeto, solo que más ceñido.
+// que es lo único que la hace alta; la píldora y los enlaces no se tocan, así
+// que la barra sigue siendo el mismo objeto, solo que más ceñido.
 @media (max-height: 500px) and (orientation: landscape) {
   .bol-nav {
     padding: 6px clamp(16px, 3vw, 44px);
@@ -510,19 +440,6 @@
     .bol-nav--compact & {
       height: 26px;
     }
-  }
-
-  // El boton de PEDIR se retira aqui, y con el se va el suelo que tenia la
-  // barra. Medido en el aparato real (Galaxy S22 Ultra acostado, 796x298): el
-  // boton media 41px y era la pieza mas alta de la pildora, asi que la barra no
-  // podia bajar de 73px -el 24,5 % de la pantalla- sin encogerlo por debajo del
-  // tamano en que se falla al tocarlo.
-  //
-  // Sin el, la pildora la miden los enlaces (26px) y la barra cae a ~50px, el
-  // 17 %. En una pantalla de 298 eso son 23 puntos de contenido recuperados.
-  // MENU sigue en la barra, que es a donde llevaba el boton.
-  .bol-nav__cta {
-    display: none;
   }
 
   // Encoger el relleno sin encoger la LETRA no sirve de nada: 14px de Cinzel

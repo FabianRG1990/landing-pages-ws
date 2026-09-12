@@ -49,8 +49,9 @@
         <div class="bol-checkout-dialog__error">{{ err }}</div>
       }
 
-      <button type="button" class="bol-checkout-dialog__confirm" (click)="confirm()">
-        Generar pedido · {{ cartTotalFmt() }}
+      <button type="button" class="bol-checkout-dialog__confirm bol-btn" (click)="confirm()">
+        <span>Generar pedido · {{ cartTotalFmt() }}</span>
+        <svg class="bol-btn__fl" width="19" height="12" viewBox="0 0 19 12" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 6h16M12.5 1.5 17 6l-4.5 4.5"/></svg>
       </button>
     }
 

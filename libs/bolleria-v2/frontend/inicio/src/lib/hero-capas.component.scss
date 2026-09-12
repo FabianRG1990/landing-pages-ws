@@ -386,84 +386,14 @@
   transition: opacity var(--dur-txt) var(--curva) var(--ta1);
 }
 
-/**
- * El botón de la casa, el mismo de `.bol-nav__cta`, `.bol-footer__wa`,
- * `.bol-menu__row-add` y el checkout del carrito: píldora sin filo, degradado a
- * 155° y tres sombras -filo claro arriba, sombra cálida abajo y la proyectada-
- * que lo hacen leer como metal grabado y no como un relleno. El hero era el
- * único sitio que se salía, con un degradado plano a 180°, un borde, una sola
- * sombra y Jost en vez de Cinzel.
- *
- * El rótulo va en el crema #fffaf0, que es el de la casa: lo usan el nav, el
- * botón de añadir del menú, el checkout, el carrito y el diálogo de pedido. El
- * único que rotula en marrón es el pie, porque allí el botón va sobre verde
- * oscuro.
- *
- * Queda anotado que sobre este degradado el crema mide 2,58:1, por debajo del
- * 4,5:1 de la AA -es el mismo valor que ya tiene el resto de la app-. Se
- * mantiene por coherencia, que es lo pedido; si algún día hay que subirlo, la
- * vía que no rompe nada es oscurecer el tramo medio del degradado, no cambiar
- * el color del rótulo en un solo sitio.
- */
+// El aspecto vive en `.bol-btn` (styles.scss); aquí solo queda que el rótulo
+// del botón se centre en su caja, que es lo único propio del hero.
 .bol-heroc__cta {
-  display: inline-flex;
-  align-items: center;
   justify-content: center;
-  padding: 0.95rem 1.9rem;
-  border-radius: 999px;
-  font: 700 0.875rem/1 'Cinzel', serif;
-  letter-spacing: 0.17em;
-  text-transform: uppercase;
-  text-decoration: none;
-  // Transparente y no `none`: el secundario sí lleva filo, y sin esto los dos
-  // botones no medirían lo mismo.
-  border: 1.5px solid transparent;
-  background: linear-gradient(155deg, #f0c675 0%, var(--acc, #c8912a) 50%, #96651a 100%);
-  color: #fffaf0;
-  box-shadow:
-    inset 0 1.5px 0 rgba(255, 255, 255, 0.55),
-    inset 0 -2px 3px rgba(103, 68, 15, 0.4),
-    0 6px 16px -4px rgba(90, 58, 15, 0.55);
-  transition:
-    box-shadow 0.3s,
-    transform 0.2s;
-
-  // Sólo con ratón: en táctil el `:hover` se queda pegado tras el toque.
-  @media (hover: hover) and (pointer: fine) {
-    &:hover {
-      box-shadow:
-        inset 0 1.5px 0 rgba(255, 255, 255, 0.6),
-        inset 0 -2px 3px rgba(103, 68, 15, 0.4),
-        0 8px 20px -4px rgba(90, 58, 15, 0.6);
-      transform: translateY(-1px);
-    }
-  }
-
-  &:focus-visible {
-    outline: 2px solid #454e24;
-    outline-offset: 3px;
-  }
 }
 
-/**
- * El secundario no tiene precedente en la app, así que se construye con el mismo
- * molde -misma píldora, mismo alto, misma Cinzel, mismo tracking- y sólo cambia
- * el relleno. Así los dos se leen como pareja y la jerarquía queda clara sin que
- * el segundo compita con el dorado del nav, que está justo encima.
- */
-.bol-heroc__cta--sec {
-  background: rgba(250, 246, 236, 0.82);
-  color: #454e24;
-  border-color: rgba(69, 78, 36, 0.42);
-  box-shadow: 0 3px 10px -5px rgba(46, 42, 28, 0.3);
-
-  @media (hover: hover) and (pointer: fine) {
-    &:hover {
-      background: rgba(250, 246, 236, 0.95);
-      box-shadow: 0 6px 16px -6px rgba(46, 42, 28, 0.38);
-    }
-  }
-}
+// El secundario es ahora `.bol-btn--claro`: la misma pieza en papel claro, no
+// un relleno translúcido distinto. No necesita nada propio.
 
 // ------------------------------------------------------------- pista de scroll
 
@@ -625,8 +555,10 @@
   }
 
   .bol-heroc__cta {
-    // Misma compensación que el rótulo de lugar, dentro del botón.
-    padding-left: calc(1.9rem + 0.085em);
+    // Misma compensación que el rótulo de lugar, dentro del botón. El valor de
+    // partida ya no es 1,9rem: `.bol-btn` entra por la izquierda a 15px, que es
+    // donde empieza el croissant.
+    padding-left: calc(15px + 0.085em);
   }
 
   /**

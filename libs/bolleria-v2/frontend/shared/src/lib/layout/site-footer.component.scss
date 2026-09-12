@@ -201,61 +201,17 @@
 // se reusa el que la casa ya tiene, que sobre este verde oscuro además brilla y
 // da a la columna el único punto de color cálido que necesita.
 .bol-footer__wa {
-  display: inline-flex;
-  align-items: center;
-  gap: 9px;
+  // El aspecto vive en `.bol-btn.bol-btn--claro.bol-btn--sm` (styles.scss). La
+  // variante CLARA y no la oscura: el pie es verde oscuro (#2d5a3d -> #102217) y
+  // un aceituna hondo se perdería en él. Sigue siendo el único punto cálido de
+  // la columna, que es lo que este botón tenía que hacer.
   margin-top: 18px;
-  padding: 11px 20px;
-  // 166x40 medidos: es el boton de WhatsApp del pie, el segundo camino al
-  // pedido. 2px mas por arriba y por abajo lo dejan en los 44px del minimo
-  // tactil; en escritorio conserva su altura.
+
+  // Minimo tactil: en pantallas pequenas gana unos pixeles por arriba y por
+  // abajo; en escritorio conserva la altura del molde.
   @media (max-width: 900px) {
-    padding: 13px 20px;
-  }
-  border-radius: 999px;
-  // El mismo degradado y el mismo relieve que .bol-nav__cta, copiados tal cual.
-  background: linear-gradient(155deg, #f0c675 0%, var(--acc, #c8912a) 50%, #96651a 100%);
-  color: #3d2b0d;
-  font: 600 13px 'Cinzel', serif;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  // En una línea siempre: la columna es estrecha y un botón con el rótulo
-  // partido en dos renglones se lee como un descuido.
-  white-space: nowrap;
-  box-shadow:
-    inset 0 1.5px 0 rgba(255, 255, 255, 0.55),
-    inset 0 -2px 3px rgba(103, 68, 15, 0.4),
-    0 8px 18px -8px rgba(0, 0, 0, 0.55);
-  transition:
-    box-shadow 0.3s,
-    transform 0.2s;
-
-  svg {
-    flex: none;
-  }
-
-  @media (hover: hover) and (pointer: fine) {
-    &:hover {
-      transform: translateY(-2px);
-      box-shadow:
-        inset 0 1.5px 0 rgba(255, 255, 255, 0.6),
-        inset 0 -2px 3px rgba(103, 68, 15, 0.4),
-        0 14px 26px -10px rgba(0, 0, 0, 0.6);
-    }
-  }
-
-  &:active {
-    transform: translateY(0);
-  }
-
-  &:focus-visible {
-    outline: 2px solid rgba(240, 198, 117, 0.9);
-    outline-offset: 3px;
-  }
-
-  // En móvil el pie se apila y se centra (ver .bol-footer__inner).
-  @media (max-width: 860px) {
-    align-self: center;
+    padding-top: 11px;
+    padding-bottom: 11px;
   }
 }
 

@@ -24,7 +24,6 @@ export class SiteNavComponent {
 
   readonly screen = this.store.screen;
   readonly mobileOpen = this.store.mobileOpen;
-  readonly cartCount = this.store.cartCount;
   readonly scrolled = signal(false);
 
   constructor() {
@@ -43,17 +42,6 @@ export class SiteNavComponent {
 
   goMenuCategory(cat: string): void {
     this.store.go('menu', cat);
-  }
-
-  /** "Pedir" ya no es solo un link al menú: si ya hay productos agregados, abre
-   * el pedido directamente (no tiene sentido mandar de vuelta al menú a alguien
-   * que ya viene a pagar); si está vacío, sigue llevando al menú como antes. */
-  onCtaClick(): void {
-    if (this.cartCount() > 0) {
-      this.store.openCart();
-    } else {
-      this.go('menu');
-    }
   }
 
   toggleMobile(): void {

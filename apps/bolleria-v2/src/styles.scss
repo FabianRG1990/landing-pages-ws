@@ -310,6 +310,259 @@ textarea {
   }
 }
 
+// ─── EL BOTÓN ────────────────────────────────────────────────────────────────
+//
+// Vive AQUÍ y no en cada componente a propósito. El dorado anterior estaba
+// copiado a mano en diez sitios —nav, hero, menú, carrito, checkout, pie— y
+// cualquier ajuste había que hacerlo diez veces. Los estilos de componente en
+// Angular están encapsulados, pero una clase global sí alcanza a los elementos
+// de dentro, así que el aspecto se define una vez y cada componente solo pone
+// la clase y su propia colocación.
+//
+// Lo que se fue, y por qué:
+//   · el degradado #f0c675→#c8912a→#96651a recorría 44,3 puntos de luminancia
+//     en 40 px de alto —el extremo claro era 3,8 veces más luminoso que el
+//     oscuro—; eso no es metal, es una cápsula de plástico;
+//   · el par de sombras interiores (filo blanco arriba al 55 %, sombra cálida
+//     abajo) es literalmente el bisel-y-relieve del botón brillante de 2008;
+//   · el rótulo crema sobre el oro medio daba 2,68:1, por debajo del 4,5 de AA
+//     —deuda ya anotada en hero-capas.component.scss—.
+//
+// El tono del aceituna sale de medir: se agruparon los píxeles del hero en
+// OKLab y sus siete grupos dominantes caen entre 52° y 86° —cremas, ámbares,
+// marrones: ni un tono frío—, así que el verde va empujado hacia el calor,
+// tono 118°.
+//
+// ── EL MARCO ES LA PIEZA, NO EL RELLENO ──
+//
+// La primera versión copió la estructura de la referencia -filete, ícono,
+// divisor, flecha- pero no su aspecto, y el motivo es medible: el filete iba a
+// un 62 % de opacidad y el resplandor apuntaba hacia AFUERA, contra una página
+// crema, donde no tiene nada que iluminar. Tres correcciones:
+//
+//   1. CANTO OSCURO POR FUERA DEL ORO. En la referencia el marco tiene oscuro
+//      por sus dos lados y por eso se recorta. Aquí la página es crema y oro
+//      sobre crema da 1,4:1: el borde de afuera se derretía. El `box-shadow` de
+//      extensión 1px es ese canto, y no ocupa sitio en la maqueta. Es
+//      exactamente cómo se lee un estampado en oro sobre papel claro.
+//   2. EL ORO ES UN DEGRADADO METÁLICO, no un color plano. Claro arriba, hondo
+//      abajo. Una línea de un solo color lee como borde de caja.
+//   3. LA LUZ VA HACIA ADENTRO (`inset`), sobre el relleno oscuro del propio
+//      botón, que es la única superficie oscura disponible. Así funciona sobre
+//      cualquier fondo, no solo sobre uno negro.
+//
+// El relleno vuelve a ser hondo a propósito: el peso lo lleva el marco, y el
+// oro necesita oscuro contra qué cortarse. Queda anotado, del intento de
+// aclararlo, que la profundidad no es gusto sino gamut —el croma máximo que
+// admite sRGB en tono 118, por nivel de luz—:
+//
+//   L 24 -> 5,7     L 36 -> 8,4     L 48 -> 11,2
+//   L 30 -> 7,0     L 42 -> 9,8     L 54 -> 12,6
+//
+// O sea que un aceituna muy oscuro NO puede ser intenso: a L 24 el techo es
+// 5,7 y este ya va en 5,7. Si algún día se quiere más color, hay que subir luz
+// y aceptar que el marco pierde contraste contra el relleno.
+//
+// El relleno y el marco van en dos propiedades personalizadas: cada estado
+// redefine esas dos líneas en vez de repetir el `background` de dos capas.
+.bol-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 13px;
+  padding: 11px 20px 11px 15px;
+  // Transparente: el marco se pinta como capa de fondo en `border-box`, que es
+  // la única vía —un `box-shadow` no admite degradado—.
+  border: 1.5px solid transparent;
+  border-radius: 13px;
+  --btn-relleno: linear-gradient(180deg, #1d2300 0%, #283000 100%);
+  --btn-marco: linear-gradient(180deg, #fbe7b0 0%, #e0bb6a 42%, #a87f31 100%);
+  background:
+    var(--btn-relleno) padding-box,
+    var(--btn-marco) border-box;
+  font: italic 500 20px/1 'EB Garamond', serif;
+  letter-spacing: 0.015em;
+  color: #f4eeda;
+  text-decoration: none;
+  cursor: pointer;
+  box-shadow:
+    // el canto que despega el oro del papel
+    0 0 0 1px rgba(34, 31, 16, 0.62),
+    // la luz, hacia adentro
+    inset 0 0 18px -3px rgba(250, 225, 160, 0.48),
+    0 14px 32px -20px rgba(24, 28, 12, 0.7);
+  transition:
+    background 0.3s,
+    box-shadow 0.3s;
+}
+
+// La ilustración del croissant va de MÁSCARA, no de imagen: así una sola pieza
+// se tiñe de oro en el botón oscuro y de oliva en el claro. Sale de
+// cr-illus-reg.webp, que es la única de las tres del proyecto que está
+// completa: la del logo viene achatada por arriba en el propio mark.webp —su
+// tinta llega a y=0— y la de layer-croissant va en diagonal.
+//
+// Se mide POR ANCHO. La ilustración es apaisada (256×204) y dimensionarla por
+// alto la deja diminuta al lado de la itálica.
+//
+// Solo lo llevan los DOS botones que llevan a la carta —"Ver la carta" y "Ver
+// nuestro menú"—. Puesto en todos dejaba de anunciar pan y pasaba a ser adorno;
+// los de WhatsApp llevan su glifo en esta misma casilla y el del checkout no
+// lleva ninguno, porque ahí ya no hay nada que anunciar.
+.bol-btn__ico {
+  flex: none;
+  width: 32px;
+  height: 26px;
+  background: #e9c77c;
+  -webkit-mask: url('/assets/croissant-marca.webp') center / contain no-repeat;
+  mask: url('/assets/croissant-marca.webp') center / contain no-repeat;
+  transition: background 0.3s;
+}
+
+.bol-btn__sep {
+  flex: none;
+  width: 1px;
+  height: 26px;
+  background: rgba(233, 199, 124, 0.34);
+  transition: background 0.3s;
+}
+
+// La itálica arrastra un hueco a su derecha; sin este -1px la flecha queda
+// ópticamente suelta aunque la separación sea la misma que a la izquierda.
+.bol-btn__fl {
+  flex: none;
+  margin-left: -1px;
+  display: block;
+  stroke: #e9c77c;
+  transition: transform 0.34s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+// El hover enciende el filete y desplaza la flecha. NO levanta la caja ni
+// engorda la sombra: ese es el gesto del botón con relieve, justo el que se
+// está quitando.
+@media (hover: hover) and (pointer: fine) {
+  .bol-btn:hover {
+    // El `color` se repite a propósito: hay un `a:hover` global unas líneas más
+    // arriba que tiñe todo enlace de #a5761c, y con la pseudo-clase gana a
+    // `.bol-btn`. Antes no se notaba porque los estilos de componente llevan el
+    // atributo de encapsulación y ganaban a los dos. Medido: el rótulo pasaba a
+    // rgb(165,118,28) al pasar el ratón.
+    color: #f4eeda;
+    // El marco sube a oro vivo y la luz de dentro crece: el botón se enciende,
+    // no se aclara.
+    --btn-relleno: linear-gradient(180deg, #283000 0%, #343d00 100%);
+    --btn-marco: linear-gradient(180deg, #fff0c8 0%, #f2d078 40%, #c1953d 100%);
+    box-shadow:
+      0 0 0 1px rgba(34, 31, 16, 0.72),
+      inset 0 0 22px -3px rgba(255, 235, 175, 0.6),
+      0 14px 32px -20px rgba(24, 28, 12, 0.7);
+  }
+  .bol-btn:hover .bol-btn__ico {
+    background: #f7dd9e;
+  }
+  .bol-btn:hover .bol-btn__sep {
+    background: rgba(247, 221, 158, 0.5);
+  }
+  .bol-btn:hover .bol-btn__fl {
+    transform: translateX(4px);
+  }
+}
+
+.bol-btn:active {
+  --btn-relleno: linear-gradient(180deg, #141900 0%, #1d2300 100%);
+}
+
+// Varios de estos botones no tenían foco visible; el teclado se quedaba sin
+// saber dónde estaba.
+.bol-btn:focus-visible {
+  outline: 2px solid #8a6316;
+  outline-offset: 3px;
+}
+
+// ── Secundario: la misma pieza en papel claro ────────────────────────────────
+// La luz sigue entrando por arriba, así que el filete claro va arriba y el
+// oscuro abajo, igual que en el oscuro.
+.bol-btn--claro {
+  --btn-relleno: linear-gradient(180deg, #f8f1e0 0%, #f2e7d0 100%);
+  // Oro hondo, no vivo: sobre un relleno claro el oro brillante desaparece. Y
+  // sin luz hacia adentro, que sobre crema no se vería; el canto se queda,
+  // apenas insinuado, porque es lo que despega el marco de la página.
+  --btn-marco: linear-gradient(180deg, #d4ab55 0%, #9a7527 45%, #74571a 100%);
+  color: #33301d;
+  box-shadow:
+    0 0 0 1px rgba(88, 66, 22, 0.16),
+    0 10px 26px -18px rgba(70, 52, 18, 0.5);
+
+  .bol-btn__ico {
+    background: #8c6a24;
+  }
+  .bol-btn__sep {
+    background: rgba(140, 106, 36, 0.34);
+  }
+  .bol-btn__fl {
+    stroke: #8c6a24;
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .bol-btn--claro:hover {
+    color: #33301d;   // mismo motivo que arriba: el `a:hover` global
+    --btn-relleno: linear-gradient(180deg, #fdf8ea 0%, #f6ecd8 100%);
+    --btn-marco: linear-gradient(180deg, #e6bd66 0%, #ab8330 45%, #7f611e 100%);
+    box-shadow:
+      0 0 0 1px rgba(88, 66, 22, 0.26),
+      0 10px 26px -18px rgba(70, 52, 18, 0.5);
+  }
+  .bol-btn--claro:hover .bol-btn__ico {
+    background: #7d5d1c;
+  }
+  .bol-btn--claro:hover .bol-btn__sep {
+    background: rgba(140, 106, 36, 0.5);
+  }
+}
+
+.bol-btn--claro:active {
+  --btn-relleno: linear-gradient(180deg, #f0e6cd 0%, #e9dcbd 100%);
+}
+
+// Los botones de WhatsApp conservan su glifo en lugar del croissant: el
+// croissant anuncia pan y estos abren una conversación. Ocupa la misma casilla
+// y se tiñe igual, así que la pieza sigue siendo la misma.
+.bol-btn__wa {
+  flex: none;
+  display: block;
+  fill: #e9c77c;
+  transition: fill 0.3s;
+}
+
+.bol-btn--claro .bol-btn__wa {
+  fill: #8c6a24;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .bol-btn:hover .bol-btn__wa {
+    fill: #f7dd9e;
+  }
+  .bol-btn--claro:hover .bol-btn__wa {
+    fill: #7d5d1c;
+  }
+}
+
+// ── Tamaño pequeño: la barra y la fila del menú ──────────────────────────────
+.bol-btn--sm {
+  gap: 10px;
+  padding: 8px 16px 8px 11px;
+  border-radius: 11px;
+  font-size: 18px;
+
+  .bol-btn__ico {
+    width: 27px;
+    height: 22px;
+  }
+  .bol-btn__sep {
+    height: 22px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   * {
     animation-duration: 0.001ms !important;
