@@ -1,16 +1,37 @@
 Hero de tres estados
 --------------------
-hero-fondo-1/2/3.webp salen de TRES renders de la misma escena con menos pan
-cada vez. Estan registrados entre si: dx 0, dy 0, y el muro difiere 1,5 sobre
-255. Los originales son:
-  hero.png
-  ChatGPT Image 10 sept 2026, 01_20_53 a.m..png
-  ChatGPT Image 10 sept 2026, 01_39_42 a.m..png
+Origen: Descargas/hero bolleria/1.png, 2.png y 3.png (1672x941), renders de la
+misma escena con mas pan cada vez, registrados entre si (dx 0, dy 0). Pero son
+renders independientes: pintan distinto hasta los panes que se repiten y la 3
+tiene la luz mas calida. Fundidos tal cual, el pan que se queda se transforma.
 
-Del logo hay que saber dos cosas:
- - se desplaza 18 px y crece entre el primer render y el tercero, por eso va en
-   capa comun y se retira de los tres fondos;
- - ref-01b-logo.webp NO es un logo recortado, es un parche rectangular del muro
-   que arrastra un trozo de hogaza y un canto del estante. hero-logo.webp lleva
-   esos 11.859 px recortados; si se vuelve a generar desde la fuente sin
-   recortarlos, en el estado 3 aparece una hogaza flotando en el aire.
+Por eso las paradas son un FOTOMONTAJE (Agarwala et al., "Interactive Digital
+Photomontage", 2004):
+
+ 1. La 3 es la maestra: la parada 3 es la imagen 3 intacta.
+ 2. La luz de la 1 y la 2 se iguala a la 3 con un campo de ganancia suave
+    (gauss sigma 45) medido solo donde las imagenes coinciden.
+ 3. Parada 2 = la 3 quitando el pan que no existe en la 2 (los tres panes de
+    detras del pastelero, el monton de la derecha, la hogaza del estante).
+    Parada 1 = la parada 2 quitando el pastelero con sus piezas. Lo revelado
+    sale de la 2 o de la 1 ya igualadas. Todo pan que persiste es el de la 3.
+ 4. Siluetas de lo que se quita y de lo que se conserva: GrabCut desde
+    poligonos marcados a mano. Costura exterior, contra muro y estante:
+    corte de grafo (OpenCV detail_GraphCutSeamFinder, COST_COLOR_GRAD). El tono
+    de lo revelado se ajusta con un desfase suave medido SOLO en esa costura
+    exterior, y el borde contra los panes conservados queda nitido.
+
+Archivos:
+ - hero-fondo-1.webp: la parada 1 entera.
+ - hero-fondo-2.webp y hero-fondo-3.webp: CAPAS TRANSPARENTES con solo lo que
+   cambia respecto a la parada anterior, con el borde suavizado hacia afuera
+   sobre pixeles identicos. Compuestas dan la parada exacta (diferencia 0) y
+   fuera de ellas el alfa es 0 exacto tras la compresion.
+ - hero-muro-movil.webp: tapa el logo pintado solo en telefono (<= 720 px).
+   No existe un muro sin logo: la luz se relleno desde alrededor del logo
+   (convolucion normalizada) y la textura del estuco se tomo, en pasa-altos,
+   del pano limpio x 400-660, y 24-174 de la parada 1.
+
+Conversion: cwebp 1.6.0, -q 88 -m 6 -sharp_yuv (-alpha_q 100 -alpha_filter best
+en las capas). NUNCA ffmpeg para escribir WebP: genera archivos corruptos sin
+avisar.

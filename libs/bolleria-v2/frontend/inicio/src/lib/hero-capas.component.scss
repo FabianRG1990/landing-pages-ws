@@ -26,7 +26,7 @@
   --dur: 400ms;
   --dur-txt: 180ms;
   --curva: cubic-bezier(0.4, 0, 0.2, 1);
-  // Ya no queda ningún paralaje: las capas del olivo van quietas.
+  // No queda ningún paralaje: en la escena sólo cambia el pan.
   /**
    * Retrasos por pieza. Los escribe el componente: 220ms para la que entra, 0
    * para la que sale. En reposo, sin JavaScript, todos a cero y no pasa nada
@@ -129,16 +129,14 @@
 
 /**
  * El fondo es la escena aprobada y va sin ampliar: cualquier escala extra la
- * recorta más y deja de leerse como la imagen. No la necesita, porque el fondo no
- * se mueve — quien se mueve es el primer plano, y el hueco que deja ya está
- * rellenado dentro de esta misma capa.
+ * recorta más y deja de leerse como la imagen. No la necesita, porque no se
+ * mueve nada.
  *
  * Sin escala, `cover` deja ver el 90 % del ancho (la imagen es 16:9 y el hero es
  * más cuadrado). Con el `scale(1.22)` que había antes se quedaba en el 74 %, y de
  * ahí venía que todo saliera enorme.
  */
-.bol-heroc__muro,
-.bol-heroc__logo {
+.bol-heroc__muro {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -148,24 +146,20 @@
   pointer-events: none;
   user-select: none;
   /**
-   * Quietos los dos, y sin `will-change`: al no moverse no necesitan capa de
-   * composición propia ni margen de escala, así que muestran el 100 % del
-   * encuadre aprobado.
-   *
-   * El logo va en su propia imagen y no horneado en el fondo por una sola razón:
-   * en vertical el recorte lo deja justo detrás del titular y se leen dos textos
-   * encima del otro. Separado se puede retirar sólo ahí.
+   * Quietos y sin `will-change`: al no moverse no necesitan capa de composición
+   * propia ni margen de escala, así que muestran el 100 % del encuadre aprobado.
    */
 }
 
 /**
  * Los estados 2 y 3 del mostrador, encima del 1 y en el mismo encuadre exacto.
  *
- * Sólo cambia la opacidad, que el compositor resuelve sin repintar. Y fuera del
- * mostrador los tres archivos son el MISMO píxel -diferencia máxima 0 por canal,
- * medida-, así que en el 63 % de la pantalla el fundido es aritméticamente una
- * operación nula. Por eso «sólo faltan los elementos» no es una impresión: es
- * una propiedad del montaje, no algo que haya que disimular con la velocidad.
+ * Sólo cambia la opacidad, que el compositor resuelve sin repintar. Y son capas
+ * transparentes con sólo lo que cambia -el 5 y el 8 % de la escena-: fuera
+ * de él su alfa es 0 exacto, medido tras la compresión, así que en el resto de
+ * la pantalla el fundido es aritméticamente una operación nula. Por eso «sólo
+ * aparece el pan» no es una impresión: es una propiedad del montaje, no algo
+ * que haya que disimular con la velocidad.
  */
 .bol-heroc__muro--2 {
   opacity: var(--o2);
@@ -178,25 +172,14 @@
 }
 
 /**
- * El primer plano comparte encuadre exacto con el fondo -son recortes del mismo
- * archivo-, así que se dimensiona igual. Sólo cambia el desplazamiento.
+ * El parche de muro que tapa el logo pintado. Aquí no lleva imagen: se declara
+ * sólo dentro de la media query de estrecho, así que en escritorio el navegador
+ * no la pide.
  */
-.bol-heroc__capa {
+.bol-heroc__parche {
   position: absolute;
   inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: 50% 50%;
-  /**
-   * Quietas y sin `will-change`. Llevaban una traslación atada al progreso del
-   * scroll; con la secuencia por pasos ese recorrido se repartía en dos saltos y
-   * se veía deslizar la capa sobre el muro. La nota larga está en `capas`, en el
-   * componente. Aquí ya no hay transformación, así que tampoco hay nada que
-   * promover a capa de compositor.
-   */
   pointer-events: none;
-  user-select: none;
 }
 
 /**
@@ -453,21 +436,22 @@
 @media (max-width: 720px) {
   /**
    * En vertical, una escena 16:9 se recorta mucho: se abre el encuadre hacia la
-   * derecha, donde está el pan. El fondo y el primer plano tienen que llevar
-   * SIEMPRE el mismo `object-position` o se desalinean entre sí.
+   * derecha, donde está el pan. Las capas y el parche tienen que llevar SIEMPRE
+   * el mismo encuadre o se desalinean entre sí.
    *
    * Esto es un apaño hasta que exista la versión vertical de la escena, que es
    * la solución de verdad para el móvil.
    */
-  .bol-heroc__muro,
-  .bol-heroc__logo,
-  .bol-heroc__capa {
+  .bol-heroc__muro {
     object-position: 64% 50%;
   }
 
-  // El titular manda: dos marcas superpuestas no se leen ni una ni otra.
-  .bol-heroc__logo {
-    display: none;
+  // El titular manda: dos marcas superpuestas no se leen ni una ni otra. El
+  // parche tapa el logo pintado con el mismo encuadre que la escena: `cover` y
+  // `background-position` reparten el sobrante igual que `object-fit` y
+  // `object-position`.
+  .bol-heroc__parche {
+    background: url('/assets/hero-capas/hero-muro-movil.webp') 64% 50% / cover no-repeat;
   }
 
   .bol-heroc__velo {
@@ -575,10 +559,10 @@
 
 @media (prefers-reduced-motion: reduce) {
   /**
-   * El hero no se clava y no se vacía: una pantalla, la escena llena y el primer
-   * titular. Los estados 2 y 3 se retiran del todo -no basta con dejarlos a
-   * opacidad 0- para no descargar y componer dos imágenes de pantalla completa
-   * que no se van a ver nunca.
+   * El hero no se clava y no se llena: una pantalla, la primera parada y el
+   * primer titular. Los estados 2 y 3 se retiran del todo -no basta con dejarlos
+   * a opacidad 0- para no componer dos capas de pantalla completa que no se van
+   * a ver nunca.
    */
   .bol-heroc {
     height: 100vh;

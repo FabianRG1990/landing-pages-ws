@@ -10,8 +10,8 @@ import { isPlatformBrowser } from '@angular/common';
 import { BolleriaStore, waDirectLink } from '@bolleria-v2-ui-shared';
 
 /**
- * Hero de la v2: la escena de obrador en capas, que además se VACÍA paso a paso
- * mientras cambian las palabras.
+ * Hero de la v2: la escena de obrador, que además se LLENA paso a paso mientras
+ * cambian las palabras.
  *
  * Sustituye a `HeroScrollComponent`, que capturaba el scroll durante 700vh para
  * reproducir 233 cuadros (90,4 MB de descarga antes de enseñar nada). Aquí el
@@ -32,33 +32,31 @@ import { BolleriaStore, waDirectLink } from '@bolleria-v2-ui-shared';
  * v1- no puede morder; y no existen estados intermedios, así que quedarse a
  * mitad de un segmento es imposible en vez de improbable.
  *
- * ── Por qué el mostrador puede vaciarse sin que se note el corte
+ * ── Por qué el mostrador puede llenarse sin que se note el corte
  *
- * Los tres estados son tres renders de la MISMA escena con menos pan cada vez.
- * Medido: el desplazamiento que mejor los hace coincidir es dx 0, dy 0 en los
- * tres pares, y el muro difiere 1,5 sobre 255. Sobre esa base, las imágenes se
- * hornearon forzando que fuera del mostrador los estados 2 y 3 sean el MISMO
- * píxel que el 1 -diferencia máxima 0 por canal, verificada-. Ahí el fundido es
- * una operación nula por construcción: no se puede ver. Lo único que cambia en
- * pantalla es el pan.
+ * Las tres paradas NO son tres renders sueltos. Los renders originales pintaban
+ * distinto hasta los panes que se repiten -la pieza de frutos rojos, la hogaza,
+ * el brillo del croissant- y la luz de la 3 era más cálida, así que al cambiar
+ * de parada el pan que se quedaba se transformaba. Se rehicieron como
+ * fotomontaje: la 3 es la maestra y cada parada anterior es la 3 quitándole el
+ * pan que todavía no existe. Lo que queda revelado detrás -muro, estante, mesa-
+ * sale del render correspondiente con la luz igualada a la 3; cada pan que
+ * persiste es el de la 3, el mismo píxel en todas las paradas donde aparece.
  *
- * ── Por qué el logo va aparte
+ * Por eso el estado 1 es la escena entera y los estados 2 y 3 son CAPAS
+ * TRANSPARENTES con sólo lo que cambia. Fuera de eso la capa tiene alfa 0
+ * exacto, medido tras la compresión WebP, y compuestas dan la parada al píxel
+ * -diferencia máxima 0-: ahí el fundido no se disimula, sencillamente no existe.
+ * El procedimiento está en `assets/hero-capas/_fuente/LEEME.txt`.
  *
- * Entre el primer render y el tercero el logotipo se corre 18 px y crece. En un
- * fundido eso se vería deslizarse, y es la marca. Así que el logo, la rama y el
- * olivo se pintan como capas comunes, idénticas en los tres estados, y de los
- * fondos se retiran. (Al hacerlo salió que la capa del logo no era un logo
- * recortado sino un parche del muro que arrastraba un trozo de hogaza; con el
- * pan debajo era inocuo, pero en el estado 3 se quedaba flotando. Va recortada.)
+ * ── Por qué en el teléfono hay un parche de muro
  *
- * ── De qué sirven las capas, aparte del vaciado
- *
- * La profundidad no se simula moviendo cosas, se construye tratando cada plano
- * por separado y horneando el resultado. Sobre la imagen plana esto es imposible
- * -un desenfoque del fondo hace sangrar el pan sobre el muro y deja halo-; con
- * el fondo aislado, el borde del pan queda nítido contra un fondo suave, que es
- * lo que hace un objetivo real. Medido, la separación entre el pan y el muro
- * pasa de 2,76x a 4,92x en color y de 3,86x a 4,85x en detalle.
+ * El logo viene pintado en la escena. En vertical el recorte lo deja justo
+ * detrás del titular y se leen dos textos encima del otro. No existe una
+ * versión del muro sin logo, así que se construyó un parche: la luz del muro
+ * rellenada desde alrededor del logo y la textura del estuco tomada de un paño
+ * limpio de la misma pared. Se declara sólo por debajo de 720 px, como fondo CSS
+ * dentro de la media query, y en escritorio ni siquiera se descarga.
  *
  * ── Rendimiento, medido con GPU real
  *
@@ -78,7 +76,8 @@ import { BolleriaStore, waDirectLink } from '@bolleria-v2-ui-shared';
  * Funcionaba -el fondo clavado, el primer plano abriéndose- pero se descartó: la
  * profundidad tenía que estar en la imagen, no en el movimiento. El paralaje de
  * scroll del olivo, que sí quedaba, se retiró al pasar a la secuencia por pasos:
- * ver la nota de `capas`. Ahora no se mueve nada que no sea el pan.
+ * repartido en dos saltos de 400 ms se veía como una capa suelta deslizándose
+ * sobre el muro. Ahora no se mueve nada que no sea el pan.
  */
 @Component({
   selector: 'bol-hero-capas',
@@ -126,27 +125,6 @@ export class HeroCapasComponent implements OnDestroy {
       enfasis: 'sin el tuyo.',
       bajada: 'Todo lo que sale del horno cada mañana está en la carta.',
     },
-  ];
-
-  /**
-   * El olivo del primer plano. Llevan horneado un desenfoque mayor que el del
-   * fondo: están más cerca que el plano de foco, y ese desenfoque de primer
-   * plano es la firma de la fotografía de producto cara.
-   *
-   * QUIETAS. Tuvieron un paralaje atado al progreso del scroll, que tenía
-   * sentido mientras el scroll dibujaba: la capa avanzaba un 2,8 % y un -4,5 %
-   * del alto a lo largo del recorrido y eso daba profundidad al bajar. Con la
-   * secuencia por pasos el scroll ya no dibuja, así que ese mismo recorrido se
-   * repartía en dos saltos de 400 ms y se veía como una capa suelta deslizándose
-   * -reportado sobre la franja izquierda, que es donde el borde de la capa cae
-   * sobre muro liso y el movimiento canta-. Medido: quitándolas, el primer paso
-   * cambia CERO píxeles en los 320 px de la izquierda; con ellas, 6392.
-   *
-   * La profundidad ya está en la imagen, que era el criterio desde el principio.
-   */
-  readonly capas = [
-    { src: 'assets/hero-capas/hero-rama.webp' },
-    { src: 'assets/hero-capas/hero-hojas.webp' },
   ];
 
   /**
@@ -232,8 +210,8 @@ export class HeroCapasComponent implements OnDestroy {
   constructor() {
     if (!this.isBrowser) return;
     const reducido = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
-    // Sin movimiento no hay secuencia ni captura: una pantalla, la escena llena y
-    // el primer titular, y el scroll es del navegador de principio a fin.
+    // Sin movimiento no hay secuencia ni captura: una pantalla, la primera
+    // parada y el primer titular, y el scroll es del navegador de principio a fin.
     if (reducido) return;
     // `passive: false` en los dos que hay que poder cancelar para que la página
     // no se mueva mientras el hero manda.

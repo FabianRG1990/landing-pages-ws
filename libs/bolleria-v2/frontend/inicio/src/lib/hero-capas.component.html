@@ -3,10 +3,10 @@
 <section class="bol-heroc">
   <div class="bol-heroc__fijo">
     <div class="bol-heroc__escena" aria-hidden="true">
-      <!-- Los tres estados del mostrador. El primero va siempre debajo y opaco:
-           así nunca hay un hueco, pase lo que pase con los otros dos. Fuera del
-           mostrador los tres son el mismo píxel, de modo que el fundido sólo se
-           ve donde hay pan. -->
+      <!-- Los tres estados del mostrador. El primero es la escena entera y va
+           siempre debajo y opaco: así nunca hay un hueco. El 2 y el 3 son capas
+           transparentes con sólo el pan que aparece, de modo que el fundido
+           sólo se ve donde hay pan. -->
       <img
         class="bol-heroc__muro"
         src="assets/hero-capas/hero-fondo-1.webp"
@@ -28,16 +28,11 @@
         decoding="async"
         fetchpriority="low"
       />
-      <!-- El logo pintado en la pared, en su propia capa y COMÚN a los tres
-           estados: entre el primer render y el tercero se corre 18 px, y en un
-           fundido eso se vería deslizarse. En vertical el recorte lo deja justo
-           debajo del titular y se leen dos textos encima del otro, así que ahí
-           se retira: la marca ya está en el nav. -->
-      <img class="bol-heroc__logo" src="assets/hero-capas/hero-logo.webp" alt="" decoding="async" />
-      <!-- El olivo del primer plano: parte de la imagen, no una animación. -->
-      @for (c of capas; track c.src) {
-        <img class="bol-heroc__capa" [src]="c.src" alt="" decoding="async" />
-      }
+      <!-- El logo va pintado en la escena. En vertical el recorte lo deja justo
+           detrás del titular y se leen dos textos encima del otro, así que en
+           el teléfono lo tapa este parche de muro. En escritorio no se pinta ni
+           se descarga: la imagen sólo existe dentro de la media query. -->
+      <span class="bol-heroc__parche"></span>
       <span class="bol-heroc__velo"></span>
     </div>
 
@@ -68,8 +63,8 @@
 
       <!-- Dos juegos de botones apilados en la misma celda, igual que los
            textos: el bloque mide siempre lo que el más alto y nada salta al
-           relevarse. En la última parada la escena ya está vacía, así que las
-           dos píldoras dejan sitio a una sola que lleva a la carta. -->
+           relevarse. En la última parada el mostrador ya está lleno, y las dos
+           píldoras dejan sitio a una sola que lleva a la carta. -->
       <div class="bol-heroc__acciones">
         <div class="bol-heroc__grupo">
           <a href="#" (click)="$event.preventDefault(); irAlMenu()" class="bol-heroc__cta bol-btn">
