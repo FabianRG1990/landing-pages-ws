@@ -1,3 +1,69 @@
+// ─── El lienzo: la foto del mostrador ────────────────────────────────────────
+//
+// La pantalla entera va sobre la foto del local, de borde a borde y hasta el
+// pie. Encima, las tarjetas y el formulario son OPACOS: un vidrio esmerilado
+// se lee peor sobre una foto con tanto detalle (lámparas, vitrinas, ventanas),
+// y un desenfoque a pantalla completa es justo lo que hunde a Safari.
+//
+// La foto queda QUIETA (`scroll`, no `fixed`): el fondo fijo es el que daba
+// brincos en Safari de escritorio.
+//
+// El velo es un marrón cálido y no un negro: oscurece sin apagar la luz de las
+// lámparas. Es más denso arriba, donde el titular va directamente sobre el
+// techo claro, y cierra casi opaco abajo para posarse sobre el verde del pie.
+$velo: #1b130c;
+$fondo: $velo;
+$foto: url('/assets/entremes-mostrador.webp');
+
+:host {
+  display: block;
+  position: relative;
+  background-color: $fondo;
+  background-image:
+    linear-gradient(
+      to bottom,
+      rgba($velo, 0.8) 0%,
+      rgba($velo, 0.64) 32%,
+      rgba($velo, 0.6) 70%,
+      rgba($velo, 0.88) 100%
+    ),
+    $foto;
+  background-size:
+    100% 100%,
+    cover;
+  background-position:
+    center,
+    50% 40%;
+  background-repeat: no-repeat;
+
+  // El pie tiene 34px de margen propio; entre el lienzo y el pie esa franja
+  // dejaba ver el papel del `body`. Este margen negativo lo anula (los dos
+  // márgenes colapsan en cero) y el pie arranca justo donde acaba la foto.
+  margin-bottom: -34px;
+
+  // En vertical la sección mide ~1.800px: estirar la foto a ese alto la
+  // ampliaba al doble y se veía borrosa. Aquí ocupa una pantalla, con su
+  // resolución, y se funde en el mismo marrón del lienzo antes de terminar,
+  // así que el resto continúa sin corte.
+  @media (max-width: 860px) {
+    --alto-foto: min(100svh, 900px);
+    background-image:
+      linear-gradient(
+        to bottom,
+        rgba($velo, 0.78) 0,
+        rgba($velo, 0.66) calc(var(--alto-foto) * 0.5),
+        $fondo var(--alto-foto)
+      ),
+      $foto;
+    background-size:
+      100% 100%,
+      auto var(--alto-foto);
+    background-position:
+      center top,
+      50% 0;
+  }
+}
+
 .bol-contact {
   max-width: 1120px;
   margin: 0 auto;
@@ -14,23 +80,34 @@
   }
 }
 
+// Las superficies que van sobre la foto. Crema claro y no el crema del sitio:
+// los campos del formulario ya son #faf6ec y sobre ese mismo tono se perderían.
+$superficie: #fffcf5;
+$borde: 1px solid rgba(240, 198, 117, 0.28);
+$sombra: 0 22px 48px -26px rgba(0, 0, 0, 0.7);
+
+// ─── Encabezado, directamente sobre la foto ──────────────────────────────────
 .bol-contact__head {
   text-align: center;
   margin-bottom: 44px;
+  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.45);
 
+  // El oliva de marca se hunde sobre la foto oscurecida: el rótulo pasa al
+  // dorado claro, el mismo del pie.
   .bol-contact__eyebrow {
     font: 600 13px 'Cinzel', serif;
     letter-spacing: 0.34em;
     text-transform: uppercase;
-    color: var(--olive);
+    color: #f0c675;
   }
   h1 {
     font: 500 clamp(46px, 6vw, 76px) / 1 var(--hf, 'Cormorant Garamond'), serif;
     margin: 14px 0 0;
+    color: var(--cream, #faf6ec);
   }
   p {
     font: 400 16px / 1.65 'Jost', sans-serif;
-    color: #6b6552;
+    color: rgba(250, 246, 236, 0.9);
     margin: 12px auto 0;
     max-width: 440px;
   }
@@ -57,11 +134,12 @@
   display: flex;
   gap: 16px;
   align-items: center;
-  background: #fff;
-  border: 1px solid rgba(46, 42, 28, 0.08);
+  background: $superficie;
+  border: $borde;
   border-radius: 16px;
   padding: 18px 20px;
   color: inherit;
+  box-shadow: $sombra;
 
   &--static {
     cursor: default;
@@ -69,7 +147,7 @@
 
   @media (hover: hover) and (pointer: fine) {
     &:not(&--static):hover {
-      border-color: var(--olive);
+      border-color: var(--acc, #c8912a);
     }
   }
 }
@@ -144,13 +222,14 @@
   align-items: center;
   justify-content: center;
   gap: 9px;
-  background: #fff;
-  border: 1px solid rgba(46, 42, 28, 0.08);
+  background: $superficie;
+  border: $borde;
   border-radius: 14px;
   padding: 13px;
   color: var(--ink);
   font: 500 14px 'Jost', sans-serif;
   letter-spacing: 0.06em;
+  box-shadow: $sombra;
 
   @media (hover: hover) and (pointer: fine) {
     &:hover {
@@ -161,11 +240,11 @@
 }
 
 .bol-contact__form {
-  background: #fff;
-  border: 1px solid rgba(46, 42, 28, 0.08);
+  background: $superficie;
+  border: $borde;
   border-radius: 22px;
   padding: 30px 30px 28px;
-  box-shadow: 0 24px 60px -34px rgba(46, 42, 28, 0.4);
+  box-shadow: 0 30px 70px -30px rgba(0, 0, 0, 0.75);
 
   h2 {
     font: 500 28px var(--hf, 'Cormorant Garamond'), serif;
@@ -246,19 +325,18 @@
   }
 }
 
+// La tarjeta del mapa es una superficie más, igual que las otras: la cuadrícula
+// de papel milimetrado que tenía se leía como un plano pegado encima de la foto.
 .bol-contact__map {
-  display: block;
   margin-top: 20px;
   border-radius: 22px;
   overflow: hidden;
   position: relative;
-  height: 220px;
-  background: linear-gradient(135deg, #e9e2cd, #d9cfa9);
+  height: 180px;
+  background: $superficie;
+  border: $borde;
+  box-shadow: $sombra;
   color: inherit;
-  background-image:
-    linear-gradient(rgba(94, 106, 52, 0.12) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(94, 106, 52, 0.12) 1px, transparent 1px);
-  background-size: 32px 32px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -268,7 +346,7 @@
 
   @media (hover: hover) and (pointer: fine) {
     &:hover {
-      filter: brightness(1.02);
+      border-color: var(--acc, #c8912a);
     }
   }
 }

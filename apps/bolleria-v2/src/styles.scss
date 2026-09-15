@@ -26,8 +26,7 @@ html {
 // footer, otras páginas) queda visualmente consistente con el hero en vez de
 // cortar a un cream liso.
 // `fixed` solo desde 900px: en iOS Safari los fondos fixed en body se
-// ignoran o degradan el rendimiento (mismo motivo documentado en
-// entremes.component.scss), así que en mobile se deja `scroll` normal.
+// ignoran o degradan el rendimiento, así que en mobile se deja `scroll` normal.
 body {
   margin: 0;
   background-color: #faf6ec;
