@@ -1,6 +1,6 @@
 // Público API de `@bolleria-v2-ui-shared`.
 // Núcleo de dominio (modelos, store), datos (menú, contacto), WhatsApp/mailto,
-// y el "chrome" del sitio (navbar, footer, preloader, cortina, carrito).
+// y el "chrome" del sitio (navbar, footer, preloader, cortina).
 
 // core
 export * from './lib/core/models';
@@ -17,5 +17,3 @@ export { PreloaderComponent } from './lib/preloader/preloader.component';
 export { CurtainComponent } from './lib/transition/curtain.component';
 export { SiteNavComponent } from './lib/layout/site-nav.component';
 export { SiteFooterComponent } from './lib/layout/site-footer.component';
-export { CartDrawerComponent } from './lib/cart/cart-drawer.component';
-export { CheckoutDialogComponent } from './lib/checkout/checkout-dialog.component';

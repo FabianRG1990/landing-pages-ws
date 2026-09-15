@@ -8,9 +8,8 @@
    * accesibilidad y no se toca. En el último estado se abre para poder salir.
    */
   touch-action: pan-y pinch-zoom;
-  // Es el host, y no la sección de dentro, quien compite con el entremés en el
-  // flujo de la página: el z-index tiene que vivir aquí (ver la nota en
-  // `.bol-heroc`).
+  // Es el host, y no la sección de dentro, quien compite con lo que venga
+  // después en el flujo de la página: el z-index tiene que vivir aquí.
   position: relative;
   z-index: 2;
   /**
@@ -87,17 +86,11 @@
 .bol-heroc {
   position: relative;
   width: 100%;
-  // El mismo crema del sitio: si una capa tardara en pintar, el hueco no canta.
-  background: #faf6ec;
   /**
-   * El entremés que viene después centra su texto con `top: 50vh` y
-   * `translateY(-50%)`: en su posición sin pegar, ese translate lo sube media
-   * altura por encima del borde de su propia sección. Con el hero de 700vh que
-   * había antes eso caía muy lejos y no se notaba; con un hero de una pantalla,
-   * su sección arranca justo en el borde inferior y la frase asomaba sobre la
-   * escena. El hero es opaco y ocupa la pantalla entera, así que le corresponde
-   * ir por encima de lo que todavía no le toca el turno. El z-index efectivo
-   * está en `:host`.
+   * Sin fondo propio A PROPÓSITO. La escena se funde por abajo (ver
+   * `.bol-heroc__escena`) y lo que tiene que asomar en ese fundido es el papel
+   * del `body`, el mismo sobre el que sigue la página. Un crema liso aquí
+   * volvería a dibujar el corte que el fundido quita.
    */
 }
 
@@ -121,10 +114,29 @@
 
 // ---------------------------------------------------------------- la escena
 
+/**
+ * El borde inferior se funde con el papel de la página. Sin esto el hero
+ * terminaba en línea recta -la mesa contra el papel- justo donde empieza el
+ * libro.
+ *
+ * La máscara va en la ESCENA y no en la sección: así solo se desvanece la foto,
+ * y la pista de scroll y los botones, que viven fuera de ella, conservan su
+ * opacidad entera. Los tramos no son lineales: una rampa recta marca dónde
+ * empieza y se lee como una banda.
+ */
 .bol-heroc__escena {
   position: absolute;
   inset: 0;
   z-index: 0;
+  $fundido: linear-gradient(
+    to bottom,
+    #000 84%,
+    rgba(0, 0, 0, 0.72) 90%,
+    rgba(0, 0, 0, 0.3) 95.5%,
+    transparent 100%
+  );
+  -webkit-mask-image: $fundido;
+  mask-image: $fundido;
 }
 
 /**

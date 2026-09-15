@@ -40,10 +40,6 @@ export class SiteNavComponent {
     this.store.go(screen);
   }
 
-  goMenuCategory(cat: string): void {
-    this.store.go('menu', cat);
-  }
-
   toggleMobile(): void {
     this.store.toggleMobileMenu();
   }

@@ -1,11 +1,30 @@
-import { MenuCategory, MenuItem } from '../core/models';
+import { MenuCategory } from '../core/models';
 
 // Transcripción fiel de las categorías y precios (en colones) del artefacto original.
-// El 3er elemento opcional de cada tupla son los sabores a elegir antes de
-// agregar al pedido — solo lo llevan los productos donde el nombre lista
-// alternativas reales (separadas con "o"), no ingredientes de una misma
-// receta (separados con "y").
+// El 3er elemento opcional de cada tupla son los sabores del producto — solo lo
+// llevan los productos donde el nombre lista alternativas reales (separadas con
+// "o"), no ingredientes de una misma receta (separados con "y").
+//
+// Masa Madre va primero: es el producto principal de la casa y el más caro del
+// catálogo, y la carta se lee en este orden.
 const RAW_CATS: { key: string; label: string; tag: string; items: [string, number, string[]?][] }[] = [
+  {
+    key: 'masa-madre',
+    label: 'Masa Madre',
+    tag: '#A5761C',
+    items: [
+      ['Masa madre ajo parmesano y perejil', 3500],
+      ['Masa madre tomate y aceitunas', 3500],
+      ['Masa madre tomate y albahaca', 3500],
+      ['Masa madre queso amarillo y jalapeño', 3500],
+      ['Masa madre con chispas de chocolate', 3500],
+      ['Masa madre con arándanos', 3500],
+      ['Masa madre sencillo', 3500],
+      ['Multigrano (1kg)', 5000],
+      ['Multigrano integral', 5000],
+      ['Multigrano integral con miel y manzana verde', 5000],
+    ],
+  },
   {
     key: 'pan-dulce',
     label: 'Pan Dulce',
@@ -46,23 +65,6 @@ const RAW_CATS: { key: string; label: string; tag: string; items: [string, numbe
     ],
   },
   {
-    key: 'masa-madre',
-    label: 'Masa Madre',
-    tag: '#A5761C',
-    items: [
-      ['Masa madre ajo parmesano y perejil', 3500],
-      ['Masa madre tomate y aceitunas', 3500],
-      ['Masa madre tomate y albahaca', 3500],
-      ['Masa madre queso amarillo y jalapeño', 3500],
-      ['Masa madre con chispas de chocolate', 3500],
-      ['Masa madre con arándanos', 3500],
-      ['Masa madre sencillo', 3500],
-      ['Multigrano (1kg)', 5000],
-      ['Multigrano integral', 5000],
-      ['Multigrano integral con miel y manzana verde', 5000],
-    ],
-  },
-  {
     key: 'saltenas',
     label: 'Salteñas',
     tag: '#7a5c2e',
@@ -77,44 +79,19 @@ const RAW_CATS: { key: string; label: string; tag: string; items: [string, numbe
   },
 ];
 
-export const MENU_BY_ID: Record<string, MenuItem> = {};
-
 export const MENU_CATEGORIES: MenuCategory[] = RAW_CATS.map((c) => ({
   key: c.key,
   label: c.label,
   tag: c.tag,
-  items: c.items.map(([name, price, options], i) => {
-    const item: MenuItem = {
-      id: `${c.key}-${i}`,
-      name,
-      price,
-      cat: c.label,
-      tag: c.tag,
-      ...(options ? { options } : {}),
-    };
-    MENU_BY_ID[item.id] = item;
-    return item;
-  }),
+  items: c.items.map(([name, price, options], i) => ({
+    id: `${c.key}-${i}`,
+    name,
+    price,
+    cat: c.label,
+    tag: c.tag,
+    ...(options ? { options } : {}),
+  })),
 }));
-
-// Favoritos de la casa mostrados en "inicio" — mismos 3 ids que el original.
-export const FAVORITE_IDS = ['pan-dulce-2', 'pan-dulce-6', 'saltenas-2'];
-
-// El carrito guarda un sabor elegido como una línea propia dentro del mismo
-// Record<string, number> (mismo id de producto + sabor, unidos con "::") en
-// vez de cambiar la forma del carrito — así `incCart`/`decCart`/`clearCart`
-// siguen funcionando igual, sin saber que existen sabores.
-const CART_KEY_SEP = '::';
-
-export function cartKey(id: string, option?: string): string {
-  return option ? `${id}${CART_KEY_SEP}${option}` : id;
-}
-
-export function parseCartKey(key: string): { item: MenuItem; option?: string } {
-  const sepIndex = key.indexOf(CART_KEY_SEP);
-  if (sepIndex === -1) return { item: MENU_BY_ID[key] };
-  return { item: MENU_BY_ID[key.slice(0, sepIndex)], option: key.slice(sepIndex + CART_KEY_SEP.length) };
-}
 
 export function formatColones(n: number): string {
   return '₡' + n.toLocaleString('de-DE');
