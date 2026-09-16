@@ -10,7 +10,87 @@
 // Al hacer scroll no aparece una tarjeta nueva: la franja superior sigue con
 // el mismo lavado suave de antes detrás del logo suelto; la píldora de la
 // derecha es un objeto permanente, no algo que aparece con el scroll.
+
+// ─── Tono según el fondo ──────────────────────────────────────────────────────
+//
+// Cada sección declara con `data-nav-tono` qué barra le va y la barra lo copia
+// en su `data-tono` (ver site-nav.component.ts). Son tres y no dos porque lo
+// decide el diseño, no la luminosidad: el hero es claro y aun así lleva la
+// píldora tostada, que es la que funciona sobre la foto.
+//
+//   foto     hero            píldora tostada     · ícono oscuro · lavado crema
+//   papel    libro, menú     píldora casi blanca · ícono oscuro · lavado crema
+//   oscuro   contacto, pie   píldora tostada     · ícono crema  · lavado oscuro
+//
+// Sobre el papel (#faedda, medido) la tostada se fundía con el fondo y se leía
+// como un borrón. Se probaron una espresso (12:1 contra el papel, descartada
+// por agresiva) y una carta de doce tonos cálidos; el usuario eligió la casi
+// blanca, la que llevaba la píldora antes de la tostada. No se separa del papel
+// por contraste (1,09:1) sino por ser más clara que él y por su sombra.
+//
+// Los colores van registrados con @property para que el cambio sea un fundido:
+// un degradado no se interpola, pero los colores registrados que lo forman sí.
+// Donde @property no existe el cambio es seco y el resultado final, el mismo.
+@property --nav-pildora-a {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #f1e3c4;
+}
+@property --nav-pildora-b {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #e8d5ae;
+}
+@property --nav-texto {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #4a4433;
+}
+@property --nav-activo {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #c8912a;
+}
+@property --nav-sombra {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: rgba(46, 42, 28, 0.34);
+}
+@property --nav-icono {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #2e2a1c;
+}
+@property --nav-halo {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #faf6ec;
+}
+@property --nav-lavado {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #faf6ec;
+}
+@property --nav-trazo {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #c8912a;
+}
+
 .bol-nav {
+  // Tono `foto`, el de siempre. Se repiten aquí los valores iniciales porque
+  // un navegador sin @property ignora esos bloques enteros.
+  --nav-pildora-a: #f1e3c4;
+  --nav-pildora-b: #e8d5ae;
+  --nav-texto: #4a4433;
+  --nav-activo: var(--acc, #c8912a);
+  --nav-sombra: rgba(46, 42, 28, 0.34);
+  --nav-icono: #2e2a1c;
+  --nav-halo: #faf6ec;
+  --nav-lavado: var(--cream, #faf6ec);
+  // Subrayado del enlace y espigas separadoras.
+  --nav-trazo: var(--acc, #c8912a);
+
   position: fixed;
   top: 0;
   left: 0;
@@ -27,15 +107,49 @@
   );
   transition:
     padding 0.35s,
-    background 0.35s;
+    background 0.35s,
+    --nav-pildora-a 0.35s,
+    --nav-pildora-b 0.35s,
+    --nav-texto 0.35s,
+    --nav-activo 0.35s,
+    --nav-sombra 0.35s,
+    --nav-icono 0.35s,
+    --nav-halo 0.35s,
+    --nav-lavado 0.35s,
+    --nav-trazo 0.35s;
+
+  // Libro y menú: píldora casi blanca, número 2 de la carta de tonos.
+  //
+  // El texto se queda igual (9,15:1). El dorado de siempre sobre este blanco
+  // daba 2,63:1 en la palabra activa, así que activo y trazos bajan a un dorado
+  // más hondo del mismo tono, oscurecido hasta cumplir los 4,5:1 de AA (4,52:1).
+  // La sombra es algo más ligera que la de la tostada: sobre un blanco, 0,34 se
+  // veía sucia.
+  &[data-tono='papel'] {
+    --nav-pildora-a: #fffdf8;
+    --nav-pildora-b: #faf3e2;
+    --nav-activo: #946b1f;
+    --nav-trazo: #946b1f;
+    --nav-sombra: rgba(46, 42, 28, 0.3);
+  }
+
+  // Contacto y pie: la píldora tostada ya contrasta sola. Lo que cambia es lo
+  // que va suelto sobre el fondo —el ícono del teléfono y el lavado de detrás
+  // del logo—, que con los colores de papel desaparecían o pintaban una franja
+  // crema sobre la foto oscura. El marrón es el del velo del contacto.
+  &[data-tono='oscuro'] {
+    --nav-icono: #f1e3c4;
+    --nav-halo: #1b130c;
+    --nav-lavado: #1b130c;
+  }
 
   &--compact {
     padding: 15px clamp(20px, 4vw, 44px);
     background: linear-gradient(
       to bottom,
-      color-mix(in srgb, var(--cream) 88%, transparent) 0%,
-      color-mix(in srgb, var(--cream) 61%, transparent) 34%,
-      color-mix(in srgb, var(--cream) 24%, transparent) 65%,
+      color-mix(in srgb, var(--nav-lavado) 88%, transparent) 0%,
+      color-mix(in srgb, var(--nav-lavado) 61%, transparent) 34%,
+      color-mix(in srgb, var(--nav-lavado) 24%, transparent) 65%,
       transparent 100%
     );
   }
@@ -88,11 +202,11 @@
   gap: 28px;
   padding: 10px 44px;
   border-radius: 999px;
-  background: linear-gradient(180deg, #f1e3c4 0%, #e8d5ae 100%);
+  background: linear-gradient(180deg, var(--nav-pildora-a) 0%, var(--nav-pildora-b) 100%);
   // Sombra de proyección, no contorno: sin ella la píldora deja de estar
   // apoyada en la página. Sube de 0,30 a 0,34 porque el relleno ya no es casi
   // blanco, y una sombra calibrada contra blanco se aguada sobre él.
-  box-shadow: 0 10px 26px -8px rgba(46, 42, 28, 0.34);
+  box-shadow: 0 10px 26px -8px var(--nav-sombra);
 
   // Recorte real de la imagen de referencia (no un ícono redibujado): los
   // intentos vectoriales no llegaban a "idéntico", así que esto es el laurel
@@ -146,7 +260,7 @@
   font: 600 14px 'Cinzel', serif;
   letter-spacing: 0.22em;
   text-transform: uppercase;
-  color: #4a4433;
+  color: var(--nav-texto);
 
   &:not(:first-child)::before {
     content: '';
@@ -155,8 +269,12 @@
     top: 1px;
     width: 8px;
     height: 12px;
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 22'%3E%3Cpath d='M7 1v20M7 5c-1.8.3-3 1.5-3.6 3 1.8.9 3 .3 3.6-1.2M7 5c1.8.3 3 1.5 3.6 3-1.8.9-3 .3-3.6-1.2M7 11c-1.8.3-3 1.5-3.6 3 1.8.9 3 .3 3.6-1.2M7 11c1.8.3 3 1.5 3.6 3-1.8.9-3 .3-3.6-1.2' stroke='%23C8912A' stroke-width='1.3' fill='none' stroke-linecap='round'/%3E%3C/svg%3E")
-      center / contain no-repeat;
+    // Máscara pintada con `--nav-trazo` y no la imagen con el color dentro: así
+    // el trazo cambia con el tono de la barra y se funde con el resto.
+    $espiga: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 22'%3E%3Cpath d='M7 1v20M7 5c-1.8.3-3 1.5-3.6 3 1.8.9 3 .3 3.6-1.2M7 5c1.8.3 3 1.5 3.6 3-1.8.9-3 .3-3.6-1.2M7 11c-1.8.3-3 1.5-3.6 3 1.8.9 3 .3 3.6-1.2M7 11c1.8.3 3 1.5 3.6 3-1.8.9-3 .3-3.6-1.2' stroke='%23C8912A' stroke-width='1.3' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background: var(--nav-trazo);
+    -webkit-mask: $espiga center / contain no-repeat;
+    mask: $espiga center / contain no-repeat;
     opacity: 0.75;
   }
 
@@ -167,8 +285,10 @@
     right: 0;
     bottom: 0;
     height: 7px;
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 10'%3E%3Cpath d='M2 5 C 20 2, 35 8, 50 5 S 80 2, 98 5 S 112 7, 118 5' stroke='%23C8912A' stroke-width='1.8' fill='none' stroke-linecap='round'/%3E%3C/svg%3E")
-      center / 100% 100% no-repeat;
+    $trazo: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 10'%3E%3Cpath d='M2 5 C 20 2, 35 8, 50 5 S 80 2, 98 5 S 112 7, 118 5' stroke='%23C8912A' stroke-width='1.8' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background: var(--nav-trazo);
+    -webkit-mask: $trazo center / 100% 100% no-repeat;
+    mask: $trazo center / 100% 100% no-repeat;
     transform: scaleX(0);
     transform-origin: left center;
     transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
@@ -185,7 +305,7 @@
   }
 
   &--active {
-    color: var(--acc, #c8912a);
+    color: var(--nav-activo);
   }
 }
 
@@ -204,9 +324,12 @@
   margin: -10px;
   background: none;
   border: none;
-  color: #2e2a1c;
+  color: var(--nav-icono);
   cursor: pointer;
-  filter: drop-shadow(0 1px 2px rgba(250, 246, 236, 0.9)) drop-shadow(0 2px 8px rgba(250, 246, 236, 0.6));
+  // El halo es del color del FONDO, no del ícono: es lo que lo despega de lo que
+  // pase por debajo, incluidas las tarjetas crema del contacto en el teléfono.
+  filter: drop-shadow(0 1px 2px color-mix(in srgb, var(--nav-halo) 90%, transparent))
+    drop-shadow(0 2px 8px color-mix(in srgb, var(--nav-halo) 60%, transparent));
 }
 
 @media (max-width: 768px) {
