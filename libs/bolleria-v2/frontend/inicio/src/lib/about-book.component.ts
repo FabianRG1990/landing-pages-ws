@@ -1054,11 +1054,16 @@ interface StoryContent {
 // `wrapLine`. Las ocho paginas llevan foto; la 8 es ademas la de cierre y suma
 // los botones de ubicacion y mensaje (ver SOCIAL_POS).
 //
-// Cada pagina tiene SU archivo, `historia-N.webp`. Las 5, 6 y 7 son hoy
-// PROVISIONALES -las reales estan en las redes del negocio: las manos amasando,
-// la fachada de 2026 y el interior nuevo- y cambiarlas es reemplazar el archivo
-// sin tocar este codigo. La 3 ya es la real: la esquina de 2023 con el rotulo
-// verde, 704x892 -la entrego el dueno asi; basta para el panel de 700 de ancho-.
+// Cada pagina tiene SU archivo, `historia-N.webp`, y cambiar una foto es
+// reemplazar el archivo sin tocar este codigo. Las ocho las eligio el dueno: la
+// 2 es el interior con la barra de madera, la 3 la esquina de 2023 -704x892, la
+// entrego asi; basta para el panel de 700 de ancho-, la 4 la hogaza sostenida
+// con las dos manos, la 5 el pan recien salido de la olla -apaisada, 1536x1024:
+// el recorte "cover" se queda con el centro, que es el pan-, la 6 la fachada
+// nueva con el rotulo dorado, la 7 el obrador armando croissants y la 8 la
+// panadera con la torre de rebanadas. Esa llega apaisada, 1594x987, y va
+// RECORTADA de antemano a 790x987 desde x=402: centrada, el "cover" cortaba las
+// gafas por la izquierda, y a la cara se le da prioridad sobre el borde del pan.
 //
 // En la 8 cada dato va en su propio renglon y los "·" del texto original pasan
 // a ser esos saltos: repartida de corrido, la frase dejaba un punto colgando al
