@@ -5,6 +5,60 @@ import { WarpGL } from './about-book-warp-gl';
 
 const FRAME_COUNT = 169;
 const FRAMES_DIR = 'assets/about-book-frames';
+
+/**
+ * Cuadros al DOBLE (1720x1396) para los tramos en los que el libro esta quieto
+ * o se mueve despacio, ampliados con Real-ESRGAN x4plus. Los de 860x698 en un
+ * escritorio de 1920 se estiran x2 y en una pantalla retina x3,8: la tapa, el
+ * papel y los grabados se leian borrosos justo donde el visitante mira.
+ *
+ * Solo esos tramos, y no la tanda entera. Medido en escritorio con GPU real,
+ * recorriendo el libro dos veces:
+ *
+ *   tanda actual                       0 fotogramas >25 ms   1,4 GB
+ *   169 HD como <img>              ~290 de ~1000             1,4 GB
+ *   169 HD como ImageBitmap           2 a 52                 3,0 GB
+ *
+ * Como <img> el navegador vuelve a decodificar cada cuadro grande al dibujarlo;
+ * ya decodificados la vuelta va fluida pero cuesta 1,6 GB. En movimiento rapido
+ * la diferencia de nitidez no se ve, asi que ahi siguen los cuadros de siempre.
+ *
+ * Con solo los dos reposos (1 y GIRO_LO) el relevo se veia: al arrancar a
+ * abrir, al cerrar -que recorre 80..56 casi quieto- y al empezar la vuelta, el
+ * libro pasaba de nitido a borroso de golpe. Por eso el HD cubre los TRAMOS
+ * lentos, y el corte cae donde el movimiento ya lo disimula. Aun asi, en los
+ * ultimos cuadros de cada tramo el detalle HD va mezclado por pasos con el
+ * original (85 %, 65 %... ~0 %), para que la nitidez baje en varios fotogramas
+ * y no en uno. Que tramos son -hoy 1-17, 44-110 y 125-139- lo dice
+ * `recortes.json`, no este codigo: se ajustan regenerando los assets.
+ *
+ * Para que el relevo tampoco cambie de COLOR, cada cuadro HD lleva la baja
+ * frecuencia del original (la IA solo aporta detalle). Y para que no cueste lo
+ * que la tanda entera, cada cuadro va recortado al contorno del libro:
+ * `recortes.json` guarda `[x, y, ancho, alto]` en px de la tanda HD.
+ *
+ * El rotulo de la tapa ("PANADERIA" y "Recetario Artesanal") en los cuadros
+ * HD no es de la IA -que con 6-8 px de letra inventaba trazos- sino tipografia
+ * real (Jost 500 y Playball) en la perspectiva de la tapa, cuadro a cuadro.
+ *
+ * Solo en escritorio: en un telefono el lienzo no llega a `HD_MIN_CANVAS_W` y
+ * el cuadro normal ya le sobra.
+ */
+const FRAMES_DIR_HD = 'assets/about-book-frames-hd';
+/** Ancho real del lienzo (px con dpr) a partir del cual el cuadro normal se estira mas de x1,5. */
+const HD_MIN_CANVAS_W = 1290;
+/** Tamano de la tanda HD, al que se refieren los recortes. */
+const HD_W = 1720;
+const HD_H = 1396;
+
+/**
+ * Tamano LOGICO del video. Toda la calibracion -malla, poses, cuadrilateros,
+ * asentamientos- esta en estos pixeles, asi que la escala sale de aqui y no del
+ * tamano del archivo: el cuadro HD trae el doble de pixeles pero
+ * se dibuja en el mismo sitio.
+ */
+const VIDEO_W = 860;
+const VIDEO_H = 698;
 const LAST = 8; // 1..7 = historias con foto+texto, 8 = cierre (foto + horario, ubicacion y mensaje)
 
 /**
@@ -1049,8 +1103,11 @@ interface StoryContent {
   photo: string | null;
   lines: string[];
 }
-// La historia en OCHO segmentos, con los textos tal cual los entrego el dueno
-// del sitio (version final del 2026-09-16), mayusculas incluidas: ver
+// La historia en OCHO segmentos. Del 1 al 7 es la version ampliada del
+// 2026-09-17: la frase que el dueno del sitio entrego para cada pagina,
+// desarrollada en unas 20 palabras. Medido en el libro real, con ~27 la hoja
+// quedaba llena y el primer renglon de la 1 y la 4 tocaba el adorno de la
+// esquina; con ~20 son 4-5 renglones y respira. Mayusculas incluidas: ver
 // `wrapLine`. Las ocho paginas llevan foto; la 8 es ademas la de cierre y suma
 // los botones de ubicacion y mensaje (ver SOCIAL_POS).
 //
@@ -1071,13 +1128,34 @@ interface StoryContent {
 // y "Express 6040-9549", porque `wrapLine` solo corta en espacios normales.
 const NBSP = ' ';
 const STORIES: StoryContent[] = [
-  { photo: 'assets/historia-1.webp', lines: ['Esta es nuestra historia.'] },
-  { photo: 'assets/historia-2.webp', lines: ['La disciplina del deporte + la tradición de una familia panadera.'] },
-  { photo: 'assets/historia-3.webp', lines: ['Marzo 2023. Una esquina en Grecia y un sueño de pareja.'] },
-  { photo: 'assets/historia-4.webp', lines: ['Desde el inicio quisimos algo diferente: pan artesanal de masa madre.'] },
-  { photo: 'assets/historia-5.webp', lines: ['Horneamos todos los días.'] },
-  { photo: 'assets/historia-6.webp', lines: ['Nueva casa, nueva imagen, el mismo pan.'] },
-  { photo: 'assets/historia-7.webp', lines: ['Agradecida de estar cansada por construir la vida que un día soñamos.'] },
+  {
+    photo: 'assets/historia-1.webp',
+    lines: ['Esta es nuestra historia: la de una panadería nacida de dos pasiones y de una convicción, que el buen pan merece tiempo.'],
+  },
+  {
+    photo: 'assets/historia-2.webp',
+    lines: ['La disciplina del deporte y la tradición de una familia panadera. De ahí vienen la constancia y el oficio de cada hogaza.'],
+  },
+  {
+    photo: 'assets/historia-3.webp',
+    lines: ['Marzo de 2023. Una esquina en Grecia y un sueño de pareja que empezó a tomar forma, pan a pan.'],
+  },
+  {
+    photo: 'assets/historia-4.webp',
+    lines: ['Desde el inicio quisimos algo diferente: pan artesanal de masa madre, con fermentación natural y sin atajos.'],
+  },
+  {
+    photo: 'assets/historia-5.webp',
+    lines: ['Horneamos todos los días, para que cada pieza llegue a su mesa con la frescura y el aroma del obrador.'],
+  },
+  {
+    photo: 'assets/historia-6.webp',
+    lines: ['Nueva casa, nueva imagen, el mismo pan. Crecimos sin cambiar lo esencial: la receta, las manos y el cuidado.'],
+  },
+  {
+    photo: 'assets/historia-7.webp',
+    lines: ['«Agradecida de estar cansada por construir la vida que un día soñamos.» Cada jornada larga vale la pena.'],
+  },
   {
     photo: 'assets/historia-8.webp',
     lines: ['Todos los días', `100${NBSP}m este del Palí, Grecia`, `Express${NBSP}6040-9549`],
@@ -1258,6 +1336,65 @@ export class AboutBookComponent {
    * las dos cosas.
    */
   private frames: HTMLImageElement[] = [];
+  /** Cuadros HD recortados, por indice en `frames`. Vacio fuera de escritorio o si no cargan. */
+  private framesHd = new Map<number, { bmp: ImageBitmap; x: number; y: number; w: number; h: number }>();
+
+  /**
+   * Se decide UNA vez, al arrancar: `sizeCanvas` todavia no corrio, asi que se
+   * mide la caja del escenario con el mismo tope de dpr. Si luego se redimensiona
+   * la ventana se sigue con lo cargado.
+   */
+  private quiereHd(): boolean {
+    const box = this.canvasRef()?.nativeElement.parentElement;
+    const w = (box?.clientWidth ?? 0) * Math.min(window.devicePixelRatio || 1, 2);
+    const escritorio = window.matchMedia?.('(pointer: fine)').matches ?? false;
+    return escritorio && w > HD_MIN_CANVAS_W;
+  }
+
+  /**
+   * Un fallo deja ese cuadro en su version normal: nunca rechaza. Con la
+   * concurrencia acotada por el mismo motivo que `loadFramesAcotado`.
+   */
+  private async loadFramesHd(): Promise<void> {
+    if (!this.quiereHd()) return;
+    let recortes: Record<string, [number, number, number, number]>;
+    try {
+      const res = await fetch(`${FRAMES_DIR_HD}/recortes.json`);
+      if (!res.ok) return;
+      recortes = await res.json();
+    } catch {
+      return;
+    }
+    const pendientes = Object.entries(recortes);
+    let siguiente = 0;
+    const obrero = async (): Promise<void> => {
+      while (siguiente < pendientes.length) {
+        const [n, [x, y, w, h]] = pendientes[siguiente++];
+        try {
+          const res = await fetch(`${FRAMES_DIR_HD}/frame_${n.padStart(4, '0')}.webp`);
+          if (!res.ok) continue;
+          const bmp = await createImageBitmap(await res.blob());
+          this.framesHd.set(Number(n) - 1, { bmp, x, y, w, h });
+        } catch {
+          // sin HD, ese cuadro se pinta con el normal
+        }
+      }
+    };
+    await Promise.all(Array.from({ length: 6 }, () => obrero()));
+  }
+
+  /** Pinta el cuadro `i` en el rectangulo del video: el HD recortado si existe, si no el normal. */
+  private dibujaCuadro(ctx: CanvasRenderingContext2D, i: number, ox: number, oy: number, dw: number, dh: number): void {
+    const hd = this.framesHd.get(i);
+    if (hd) {
+      const kx = dw / HD_W;
+      const ky = dh / HD_H;
+      ctx.drawImage(hd.bmp, ox + hd.x * kx, oy + hd.y * ky, hd.w * kx, hd.h * ky);
+      return;
+    }
+    const img = this.frames[i];
+    if (img) ctx.drawImage(img, ox, oy, dw, dh);
+  }
   // Fotos crudas, tal como se descargan (a color completo, sin procesar).
   private rawPhotos: (ImageBitmap | null)[] = [];
   // Panel final por foto: solo la foto, con recorte "cover" que llena el
@@ -1438,6 +1575,7 @@ export class AboutBookComponent {
   private async boot(): Promise<void> {
     await Promise.all([
       this.loadFramesAcotado(),
+      this.loadFramesHd(),
       ...STORIES.map((s, i) => this.loadPhoto(i, s.photo)),
       this.loadWheatIcon(),
       this.loadLogo(),
@@ -1921,22 +2059,40 @@ export class AboutBookComponent {
    * Reparte una linea en renglones que quepan en `measure`. `lower` la pasa a
    * minuscula tipografica, como en la referencia del libro: no cambia el
    * contenido de la historia, solo como se imprime en la pagina.
+   *
+   * Los renglones salen PAREJOS, no llenados al maximo: con los textos de ~20
+   * palabras el reparto voraz dejaba una palabra suelta en el ultimo renglon
+   * ("sin atajos.", "cuidado.", "pena."). Se busca el ancho mas estrecho que
+   * da el MISMO numero de renglones -lo que hace `text-wrap: balance` en CSS-,
+   * asi que el alto del bloque, y con el su centrado calibrado, no cambian.
    */
   private wrapLine(ctx: CanvasRenderingContext2D, line: string, measure: number, lower: boolean): string[] {
     const words = (lower ? line.toLowerCase() : line).split(' ');
-    const rows: string[] = [];
-    let current = '';
-    for (const word of words) {
-      const test = current ? `${current} ${word}` : word;
-      if (ctx.measureText(test).width > measure && current) {
-        rows.push(current);
-        current = word;
-      } else {
-        current = test;
+    const reparte = (ancho: number): string[] => {
+      const rows: string[] = [];
+      let current = '';
+      for (const word of words) {
+        const test = current ? `${current} ${word}` : word;
+        if (ctx.measureText(test).width > ancho && current) {
+          rows.push(current);
+          current = word;
+        } else {
+          current = test;
+        }
       }
+      if (current) rows.push(current);
+      return rows;
+    };
+    const voraz = reparte(measure);
+    if (voraz.length < 2) return voraz;
+    let lo = Math.max(...words.map((w) => ctx.measureText(w).width));
+    let hi = measure;
+    for (let i = 0; i < 16; i++) {
+      const mid = (lo + hi) / 2;
+      if (reparte(mid).length <= voraz.length) hi = mid;
+      else lo = mid;
     }
-    if (current) rows.push(current);
-    return rows;
+    return reparte(hi);
   }
 
   /** Divisor decorativo bajo el texto: mismo trazo de trigo dorado que el resto del sitio (ver GOLD/WHEAT_ICON_URL), no un adorno inventado aparte. */
@@ -2139,23 +2295,24 @@ export class AboutBookComponent {
     alpha: number,
   ): void {
     if (alpha <= 0) return;
-    const a = this.frames[AboutBookComponent.frameIdx(frame)];
-    if (!a) return;
+    const ia = AboutBookComponent.frameIdx(frame);
+    if (!this.frames[ia] && !this.framesHd.has(ia)) return;
     const k = frame - Math.floor(frame);
-    const b = k > 0.002 ? this.frames[AboutBookComponent.frameIdx(frame + 1)] : null;
+    const siguiente = AboutBookComponent.frameIdx(frame + 1);
+    const ib = k > 0.002 && (this.frames[siguiente] || this.framesHd.has(siguiente)) ? siguiente : ia;
     ctx.save();
-    if (!b || b === a) {
+    if (ib === ia) {
       ctx.globalAlpha = alpha;
-      ctx.drawImage(a, ox, oy, dw, dh);
+      this.dibujaCuadro(ctx, ia, ox, oy, dw, dh);
     } else {
       const q = alpha * k;
       const p = q >= 1 ? 0 : (alpha * (1 - k)) / (1 - q);
       if (p > 0) {
         ctx.globalAlpha = p;
-        ctx.drawImage(a, ox, oy, dw, dh);
+        this.dibujaCuadro(ctx, ia, ox, oy, dw, dh);
       }
       ctx.globalAlpha = q;
-      ctx.drawImage(b, ox, oy, dw, dh);
+      this.dibujaCuadro(ctx, ib, ox, oy, dw, dh);
     }
     ctx.restore();
   }
@@ -2194,9 +2351,9 @@ export class AboutBookComponent {
     if (!ctx || !c || !bmp) return;
     this.lastDrawn = frame;
     ctx.clearRect(0, 0, c.width, c.height);
-    const scale = Math.min(c.width / bmp.naturalWidth, c.height / bmp.naturalHeight);
-    const dw = bmp.naturalWidth * scale;
-    const dh = bmp.naturalHeight * scale;
+    const scale = Math.min(c.width / VIDEO_W, c.height / VIDEO_H);
+    const dw = VIDEO_W * scale;
+    const dh = VIDEO_H * scale;
     const ox = (c.width - dw) / 2;
     const oy = (c.height - dh) / 2;
     this.pintaCuadro(ctx, frame, ox, oy, dw, dh, 1);
@@ -4457,9 +4614,9 @@ export class AboutBookComponent {
     if (!c) return { display: 'none' };
     const bmp = this.frames[Math.round(PAGE_REST) - 1];
     if (!bmp) return { display: 'none' };
-    const scale = Math.min(c.width / bmp.naturalWidth, c.height / bmp.naturalHeight);
-    const ox = (c.width - bmp.naturalWidth * scale) / 2;
-    const oy = (c.height - bmp.naturalHeight * scale) / 2;
+    const scale = Math.min(c.width / VIDEO_W, c.height / VIDEO_H);
+    const ox = (c.width - VIDEO_W * scale) / 2;
+    const oy = (c.height - VIDEO_H * scale) / 2;
     const pos = SOCIAL_POS[kind];
     // Va por la MISMA superficie por la que se dibuja el panel -la hoja en
     // reposo con SHEET_TEXT_UV-, no por CONTENT_RIGHT_QUAD, que es otra zona
