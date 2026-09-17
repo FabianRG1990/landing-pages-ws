@@ -8,21 +8,17 @@
        Tres piezas, y las tres miden lo que dicen para que el componente no
        tenga que repetir ninguna constante del SCSS:
          · __pin      la escena anclada, una pantalla de alto;
-         · __recorrido  el scroll que se reparte entre las siete vueltas;
+         · __recorrido  el scroll que se reparte entre las ocho vueltas;
          · __remate   la permanencia en la página de cierre, para que sus
-                      enlaces de redes no se escapen antes de poder pulsarlos. -->
+                      botones de ubicación y mensaje no se escapen antes de poder pulsarlos. -->
   <div class="bol-book__track" #track>
     <div class="bol-book__pin">
-      <!-- La cabecera va DENTRO del anclaje, no encima: el segmento tiene que
-           verse entero -titulo y libro a la vez- desde el primer momento, y
-           quedarse asi mientras se pasan las paginas. El escenario la solapa
-           por capas a proposito (z-index 2 contra 1): al abrirse, la tapa sube
-           y la tapa un instante, que es el efecto de siempre. -->
-      <div class="bol-book__head">
-        <div class="bol-book__eyebrow">Acerca de nosotros</div>
-        <h2 class="bol-book__title">Nuestra historia, <em>página a página</em></h2>
-        <p class="bol-book__hint">Seguí bajando para recorrerlo.</p>
-      </div>
+      <!-- La cabecera ya no se ve: el libro se queda solo en pantalla y ocupa
+           el sitio que ocupaban el rotulo, el titulo y la linea de ayuda. El
+           titulo SIGUE AQUI, invisible pero leido por buscadores y lectores de
+           pantalla: sin el, esta seccion se quedaria sin nombre y el documento
+           sin su encabezado de nivel 2. -->
+      <h2 class="bol-book__sr">Nuestra historia, página a página</h2>
 
       <!-- Envoltorio del escenario. Existe por una razon concreta: el escenario
            lleva margenes negativos arriba y abajo -se pega a la cabecera y se
@@ -41,34 +37,34 @@
         >
           <canvas #canvas class="bol-book__canvas" [class.is-ready]="ready()" [class.is-lifting]="lifting()"></canvas>
           <!-- TODO se dibuja sobre el canvas -fotos, texto y los propios botones de
-               redes, que son tinta de la página de cierre (ver drawSocialButton)-.
+               ubicación y mensaje, que son tinta de la página de cierre (ver drawSocialButton)-.
                Estos dos <a> son solo el área que se puede pulsar: van vacíos y sin
                pintar nada, colocados justo encima del cajetín dibujado con las
                medidas que da socialLinkStyle. El puntero encima marca el cajetín
                repintando la hoja, porque un bitmap no responde al hover por sí solo. -->
           @if (showSocialLinks()) {
             <a
-              [href]="contact.instagram"
+              [href]="contact.mapsUrl"
               target="_blank"
               rel="noopener"
               class="bol-book__social-hit"
-              [ngStyle]="socialLinkStyle('instagram')"
-              aria-label="Seguinos en Instagram"
-              (mouseenter)="marcaSocial('instagram')"
+              [ngStyle]="socialLinkStyle('ubicacion')"
+              aria-label="Ver la ubicación en Google Maps"
+              (mouseenter)="marcaSocial('ubicacion')"
               (mouseleave)="marcaSocial(null)"
-              (focus)="marcaSocial('instagram')"
+              (focus)="marcaSocial('ubicacion')"
               (blur)="marcaSocial(null)"
             ></a>
             <a
-              [href]="contact.facebook"
+              [href]="mensajeUrl"
               target="_blank"
               rel="noopener"
               class="bol-book__social-hit"
-              [ngStyle]="socialLinkStyle('facebook')"
-              aria-label="Seguinos en Facebook"
-              (mouseenter)="marcaSocial('facebook')"
+              [ngStyle]="socialLinkStyle('mensaje')"
+              aria-label="Enviar un mensaje por WhatsApp"
+              (mouseenter)="marcaSocial('mensaje')"
               (mouseleave)="marcaSocial(null)"
-              (focus)="marcaSocial('facebook')"
+              (focus)="marcaSocial('mensaje')"
               (blur)="marcaSocial(null)"
             ></a>
           }
@@ -81,7 +77,7 @@
            directamente sino que MUEVEN EL SCROLL a la página pedida, para que
            la posición de la ventana siga siendo la única fuente de verdad. -->
       <p id="bol-book-ayuda" class="bol-book__sr">
-        Siete páginas. Se pasan bajando y subiendo con el scroll, o con las flechas del teclado.
+        Ocho páginas. Se pasan bajando y subiendo con el scroll, o con las flechas del teclado.
       </p>
       <div class="bol-book__sr">
         <button type="button" (click)="irAIndice(estado() - 1)" [disabled]="estado() <= 0">Página anterior</button>

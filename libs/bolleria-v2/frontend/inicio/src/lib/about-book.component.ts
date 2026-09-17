@@ -1,11 +1,11 @@
 import { ChangeDetectionStrategy, Component, ElementRef, NgZone, PLATFORM_ID, computed, inject, signal, viewChild } from '@angular/core';
 import { NgStyle, isPlatformBrowser } from '@angular/common';
-import { CONTACT } from '@bolleria-v2-ui-shared';
+import { CONTACT, waDirectLink } from '@bolleria-v2-ui-shared';
 import { WarpGL } from './about-book-warp-gl';
 
 const FRAME_COUNT = 169;
 const FRAMES_DIR = 'assets/about-book-frames';
-const LAST = 7; // 1..6 = historias con foto+texto, 7 = cierre (redes sociales)
+const LAST = 8; // 1..7 = historias con foto+texto, 8 = cierre (foto + horario, ubicacion y mensaje)
 
 /**
  * Histeresis alrededor de la FRONTERA entre dos huecos, en fracciones de pagina.
@@ -728,11 +728,19 @@ const STORY_DIVIDER_H = 34;
 // byte mas): 4.5% mas de alto-de-x, o sea que se VE mas grande sin ocupar mas
 // sitio, y su renglon mas ancho mide 549px contra los 552 de hoy, asi que la
 // calibracion a mano de cada pagina -u, v, giro- no se toca.
-const STORY_FAMILY = '"EB Garamond", "Cormorant Garamond", serif';
-// Peso 500: es el mas alto que 'EB Garamond' tiene descargado. Pedir 600 lo
-// sintetizaria el navegador -falso negrita-, que sale emborronado y seria
-// contraproducente justo para lo que se busca aqui, que es legibilidad.
-const STORY_WEIGHT = 500;
+//
+// 2026-09-16: el dueno del sitio pidio la letra de la TAPA del libro, la
+// manuscrita de "Recetario Artesanal". Es un dibujo del video, no una fuente
+// del sitio, asi que se comparo el rotulo recortado del cuadro 1 contra veinte
+// manuscritas de Google Fonts escribiendo la misma frase, y de ellas el dueno
+// eligio 'Playball'. 'EB Garamond' se queda detras como reemplazo mientras carga.
+const STORY_FAMILY = '"Playball", "EB Garamond", serif';
+// Recta: 'Playball' ya es inclinada de por si y no trae cursiva, asi que
+// pedirle `italic` haria que el navegador la ladeara otra vez -falsa cursiva-.
+const STORY_STYLE = 'normal';
+// Peso 400: es el UNICO que tiene 'Playball'. Pedir mas lo sintetizaria
+// el navegador -falsa negrita-, que sale emborronado.
+const STORY_WEIGHT = 400;
 // La tinta, mas oscura que el #4a3d2a de antes. El texto va con `multiply`
 // sobre el papel, asi que el contraste que se ve es el del producto: lo que se
 // gana aqui es lo que se lee en las zonas sombreadas de la hoja.
@@ -755,7 +763,13 @@ const STORY_INK = '#33291a';
 // de 'EB Garamond' habria que descargarlo aparte (index.html trae 400 y 500), y
 // el contorno NO altera el avance, asi que el reparto en renglones de las siete
 // paginas -calibrado a mano- se queda exactamente igual.
-const STORY_STROKE = 0.9;
+// Con la manuscrita el contorno SOBRA: ya trae el cuerpo que a la Garamond le
+// faltaba, y con los 0.9 de encima el texto salia visiblemente mas grueso que
+// el rotulo de la tapa al que tiene que parecerse. Se deja la
+// constante -y el `strokeText`- por si se vuelve a una cara de trazo fino.
+// Con 0 el contorno no se dibuja: el canvas IGNORA `lineWidth = 0` y se queda
+// con el grosor de 1 por defecto, que engordaria el texto en vez de aligerarlo.
+const STORY_STROKE = 0;
 // Centro del texto dentro del panel, contra la DECORACION IMPRESA en la pagina
 // y no contra el borde del papel ni a ojo. Los cuatro dibujos de esquina estan
 // en (u,v) de pagina en 0.133/0.185, 0.885/0.096, 0.039/0.882 y 0.924/0.910: su
@@ -823,31 +837,26 @@ const TEXTO_BASE: AjusteTexto = {
  * haria que la 1 y la 3 -que ya estan en su limite- rocen los dibujos de las
  * esquinas.
  *
- * La 4 es la excepcion, por lo de siempre: es la unica historia con DOS
- * parrafos y su bloque es el mas alto del libro. Con el cuerpo comun no le
- * cabria, asi que se queda en 45/469.
+ * Con la historia en ocho segmentos ya NO hay excepcion de cuerpo: la 4 lo
+ * era por ser la unica con dos parrafos, y su texto nuevo es una frase corta.
+ * Las 1 a 6 conservan el `u`, `v` y giro que el calibrador dio a esa hoja; la
+ * 7 es nueva y arranca en el centro medio de las seis.
  *
- * En la 7 -la de cierre- `v` NO coloca el bloque: ahi la altura sale de la
- * franja que queda libre por encima de los enlaces de redes, que son <a> reales
- * del DOM y no se pueden mover (ver `renderTextPanel` y SOCIAL_POS). Su `v`
- * solo marca el eje del giro, y por eso vale 0.3484 y no algo cercano al medio.
+ * En la 8 -la de cierre- `v` NO coloca el bloque: ahi la altura sale de la
+ * franja que queda libre por encima de los botones, que son <a> reales del DOM
+ * y no se pueden mover (ver `renderTextPanel` y SOCIAL_POS). Su `v` solo marca
+ * el eje del giro, y por eso vale 0.3484 y no algo cercano al medio.
  */
 const TEXTO_COMUN = { font: 55, measure: 575, divider: 39 } as const;
 const TEXTO_POR_PAGINA: Readonly<Record<number, Partial<AjusteTexto>>> = {
   1: { ...TEXTO_COMUN, u: 0.5027, v: 0.4638, giro: -0.42 },
   2: { ...TEXTO_COMUN, u: 0.5107, v: 0.4695, giro: 0.97 },
   3: { ...TEXTO_COMUN, u: 0.4969, v: 0.5229, giro: -0.31 },
-  // La medida sube de 469 a 472 al cambiar a 'EB Garamond' (ver STORY_FAMILY),
-  // y no es un retoque estetico: con 469 el segundo parrafo se partia en CINCO
-  // renglones en vez de cuatro -"tanto nos gustan, como los" se salia por 2px- y
-  // el bloque, que ya es el mas alto del libro, crecia una linea entera. Con 472
-  // vuelve el reparto de siempre, 6+4. El renglon mas ancho pasa de 465 a 471px:
-  // tres pixeles por lado, y sigue 80px por debajo del renglon mas ancho del
-  // libro, asi que no se acerca a los dibujos de las esquinas.
-  4: { font: 45, measure: 472, divider: 32, u: 0.5114, v: 0.5306, giro: -0.34 },
+  4: { ...TEXTO_COMUN, u: 0.5114, v: 0.5306, giro: -0.34 },
   5: { ...TEXTO_COMUN, u: 0.5008, v: 0.5163, giro: -0.24 },
   6: { ...TEXTO_COMUN, u: 0.4839, v: 0.4716, giro: -0.3 },
-  7: { ...TEXTO_COMUN, u: 0.5246, v: 0.3484, giro: -0.75 },
+  7: { ...TEXTO_COMUN, u: 0.5011, v: 0.4958, giro: -0.11 },
+  8: { ...TEXTO_COMUN, u: 0.5246, v: 0.3484, giro: -0.75 },
 };
 
 const ajusteTexto = (page: number): AjusteTexto => ({ ...TEXTO_BASE, ...(TEXTO_POR_PAGINA[page] ?? {}) });
@@ -860,8 +869,12 @@ const ajusteTexto = (page: number): AjusteTexto => ({ ...TEXTO_BASE, ...(TEXTO_P
 // por el papel. Es la misma razon por la que los textos van con `multiply` (ver
 // el paso 3 de drawContent), y ademas es lo que deja que el grano y el
 // degradado de la pagina se vean A TRAVES del trazo.
+//
+// Hoy NINGUNA pagina lo lleva: en la historia de ocho segmentos la de cierre
+// tambien tiene foto. Se conserva el mecanismo -y no se descarga la marca- por
+// si el cierre vuelve a ser un colofon; basta con darle aqui un numero de pagina.
 const LOGO_URL = 'assets/logo-clean.webp';
-const LOGO_PAGE = LAST;
+const LOGO_PAGE: number | null = null;
 const LOGO_LINE = 'Recetario Artesanal';
 // Fraccion del ancho del panel que ocupa la marca. En un colofon el sello va
 // suelto, con aire alrededor: llenar la caja lo convierte en una etiqueta.
@@ -1036,26 +1049,34 @@ interface StoryContent {
   photo: string | null;
   lines: string[];
 }
-// Las 6 historias (foto + texto) confirmadas + la pagina de cierre (sin foto,
-// frase + redes). El orden de archivo (about-1..6) coincide con el orden
-// narrativo confirmado con el dueño del negocio.
+// La historia en OCHO segmentos, con los textos tal cual los entrego el dueno
+// del sitio (version final del 2026-09-16), mayusculas incluidas: ver
+// `wrapLine`. Las ocho paginas llevan foto; la 8 es ademas la de cierre y suma
+// los botones de ubicacion y mensaje (ver SOCIAL_POS).
+//
+// Cada pagina tiene SU archivo, `historia-N.webp`. Las 5, 6 y 7 son hoy
+// PROVISIONALES -las reales estan en las redes del negocio: las manos amasando,
+// la fachada de 2026 y el interior nuevo- y cambiarlas es reemplazar el archivo
+// sin tocar este codigo. La 3 ya es la real: la esquina de 2023 con el rotulo
+// verde, 704x892 -la entrego el dueno asi; basta para el panel de 700 de ancho-.
+//
+// En la 8 cada dato va en su propio renglon y los "·" del texto original pasan
+// a ser esos saltos: repartida de corrido, la frase dejaba un punto colgando al
+// final de cada renglon. Los espacios de NO separacion mantienen juntos "100 m"
+// y "Express 6040-9549", porque `wrapLine` solo corta en espacios normales.
+const NBSP = ' ';
 const STORIES: StoryContent[] = [
-  { photo: 'assets/about-1.webp', lines: ['Hola, pasa! Vamos a contarte un poco de nosotros.'] },
-  { photo: 'assets/about-2.webp', lines: ['Somos una panadería artesanal y estamos ubicados en Grecia.'] },
+  { photo: 'assets/historia-1.webp', lines: ['Esta es nuestra historia.'] },
+  { photo: 'assets/historia-2.webp', lines: ['La disciplina del deporte + la tradición de una familia panadera.'] },
+  { photo: 'assets/historia-3.webp', lines: ['Marzo 2023. Una esquina en Grecia y un sueño de pareja.'] },
+  { photo: 'assets/historia-4.webp', lines: ['Desde el inicio quisimos algo diferente: pan artesanal de masa madre.'] },
+  { photo: 'assets/historia-5.webp', lines: ['Horneamos todos los días.'] },
+  { photo: 'assets/historia-6.webp', lines: ['Nueva casa, nueva imagen, el mismo pan.'] },
+  { photo: 'assets/historia-7.webp', lines: ['Agradecida de estar cansada por construir la vida que un día soñamos.'] },
   {
-    photo: 'assets/about-3.webp',
-    lines: ['Nuestro espacio es el resultado de dos historias que se encontraron: la disciplina del deporte y la tradición de una familia panadera.'],
+    photo: 'assets/historia-8.webp',
+    lines: ['Todos los días', `100${NBSP}m este del Palí, Grecia`, `Express${NBSP}6040-9549`],
   },
-  {
-    photo: 'assets/about-4.webp',
-    lines: [
-      'Desde el inicio quisimos hacer algo diferente: apostar por productos artesanales y saludables, como el pan de masa madre.',
-      'Y ofrecer también esos pequeños gusticos que tanto nos gustan, como los croissants y la repostería.',
-    ],
-  },
-  { photo: 'assets/about-5.webp', lines: ['Trabajamos todos los días por hornear mejor, crear mejor contenido y atenderles cada vez más bonito.'] },
-  { photo: 'assets/about-6.webp', lines: ['Te esperamos de lunes a domingo, con pan recién horneado y un cafécito caliente.'] },
-  { photo: null, lines: ['Esta historia se sigue horneando todos los días.', 'Acompañanos para verla crecer.'] },
 ];
 // Tamaño de lienzo fuente para los paneles de texto/foto (proporcion generica
 // de pagina; el warp de 4 puntos absorbe la perspectiva real al dibujar).
@@ -1068,7 +1089,7 @@ const PANEL_H = 820;
 // La separacion (0.13) sale de las medidas de abajo: con los 0.11 de cuando
 // esto eran dos palabras sueltas, dos pildoras de 68 de alto quedaban a 22
 // unidades de panel -unos 9px en pantalla-, tocandose casi. Con 0.13 respiran.
-const SOCIAL_POS = { instagram: { u: PAGE_CENTER_U, v: 0.62 }, facebook: { u: PAGE_CENTER_U, v: 0.75 } };
+const SOCIAL_POS = { ubicacion: { u: PAGE_CENTER_U, v: 0.62 }, mensaje: { u: PAGE_CENTER_U, v: 0.75 } };
 
 /**
  * El boton de red, en unidades del panel (700x820). No hay medidas en pixeles
@@ -1078,10 +1099,12 @@ const SOCIAL_POS = { instagram: { u: PAGE_CENTER_U, v: 0.62 }, facebook: { u: PA
  * encima -que es justo lo que fallaba con el boton hecho de HTML.
  *
  * El ancho es holgadamente menor que la columna de texto (575) para que el
- * boton no compita con la frase de cierre que tiene encima.
+ * boton no compita con la frase de cierre que tiene encima. Sube de 304 a 350
+ * por "ENVIAR MENSAJE": glifo y rotulo miden 275 y con 304 quedaban 14 de aire
+ * por lado; con 350 quedan 37, el mismo que tenia "INSTAGRAM".
  */
 const SOCIAL_BTN = {
-  w: 304,
+  w: 350,
   h: 60,
   r: 30,
   /** Lado del glifo y aire entre glifo y palabra. */
@@ -1098,31 +1121,33 @@ const SOCIAL_BTN = {
  * 42x8px, que con el dedo es casi imposible de acertar. El area crece la mitad
  * de su alto, que es lo que cabe en el aire entre los dos cajetines (106.6
  * unidades de panel entre centros, 90 de area: quedan 16.6 sin tocarse). No
- * puede crecer mas sin que el area de Facebook empiece a robarle pulsaciones a
- * la de Instagram.
+ * puede crecer mas sin que el area de un boton empiece a robarle pulsaciones al
+ * otro.
  */
 const SOCIAL_HIT_ALTO = 1.5;
 
 /**
- * Los glifos oficiales de cada red, tomados de Phosphor Icons -el paquete
- * @ng-icons ya instalado en el workspace-, no redibujados a mano. Vienen en un
- * lienzo de 256x256; `drawSocialGlyph` los escala.
+ * Los glifos de cada boton, tomados de Phosphor Icons -el paquete @ng-icons ya
+ * instalado en el workspace-, no redibujados a mano: `MapPin` para la ubicacion
+ * y `WhatsappLogo` para el mensaje, que es a donde lleva. Vienen en un lienzo
+ * de 256x256; `drawSocialGlyph` los escala.
  *
  * Se usa la variante de CONTORNO y no la maciza. Medido en pantalla, el glifo
- * macizo a este tamano -unos 10px reales- se empastaba: la camara de Instagram
- * quedaba en un cuadrado dorado y la f de Facebook en un disco, porque sus
- * huecos caen por debajo del pixel. El contorno ademas comparte grosor de linea
- * con el filete del cajetin, que es lo que hace que los dos se lean como una
- * sola pieza impresa.
+ * macizo a este tamano -unos 10px reales- se empastaba: sus huecos caen por
+ * debajo del pixel. El contorno ademas comparte grosor de linea con el filete
+ * del cajetin, que es lo que hace que los dos se lean como una sola pieza
+ * impresa.
  */
-type SocialKind = 'instagram' | 'facebook';
+type SocialKind = 'ubicacion' | 'mensaje';
 
 const SOCIAL_GLYPH: Readonly<Record<SocialKind, string>> = {
-  instagram:
-    'M128,80a48,48,0,1,0,48,48A48.05,48.05,0,0,0,128,80Zm0,80a32,32,0,1,1,32-32A32,32,0,0,1,128,160ZM176,24H80A56.06,56.06,0,0,0,24,80v96a56.06,56.06,0,0,0,56,56h96a56.06,56.06,0,0,0,56-56V80A56.06,56.06,0,0,0,176,24Zm40,152a40,40,0,0,1-40,40H80a40,40,0,0,1-40-40V80A40,40,0,0,1,80,40h96a40,40,0,0,1,40,40ZM192,76a12,12,0,1,1-12-12A12,12,0,0,1,192,76Z',
-  facebook:
-    'M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm8,191.63V152h24a8,8,0,0,0,0-16H136V112a16,16,0,0,1,16-16h16a8,8,0,0,0,0-16H152a32,32,0,0,0-32,32v24H96a8,8,0,0,0,0,16h24v63.63a88,88,0,1,1,16,0Z',
+  ubicacion:
+    'M128,64a40,40,0,1,0,40,40A40,40,0,0,0,128,64Zm0,64a24,24,0,1,1,24-24A24,24,0,0,1,128,128Zm0-112a88.1,88.1,0,0,0-88,88c0,31.4,14.51,64.68,42,96.25a254.19,254.19,0,0,0,41.45,38.3,8,8,0,0,0,9.18,0A254.19,254.19,0,0,0,174,200.25c27.45-31.57,42-64.85,42-96.25A88.1,88.1,0,0,0,128,16Zm0,206c-16.53-13-72-60.75-72-118a72,72,0,0,1,144,0C200,161.23,144.53,209,128,222Z',
+  mensaje:
+    'M187.58,144.84l-32-16a8,8,0,0,0-8,.5l-14.69,9.8a40.55,40.55,0,0,1-16-16l9.8-14.69a8,8,0,0,0,.5-8l-16-32A8,8,0,0,0,104,64a40,40,0,0,0-40,40,88.1,88.1,0,0,0,88,88,40,40,0,0,0,40-40A8,8,0,0,0,187.58,144.84ZM152,176a72.08,72.08,0,0,1-72-72A24,24,0,0,1,99.29,80.46l11.48,23L101,118a8,8,0,0,0-.73,7.51,56.47,56.47,0,0,0,30.15,30.15A8,8,0,0,0,138,155l14.61-9.74,23,11.48A24,24,0,0,1,152,176ZM128,24A104,104,0,0,0,36.18,176.88L24.83,210.93a16,16,0,0,0,20.24,20.24l34.05-11.35A104,104,0,1,0,128,24Zm0,192a87.87,87.87,0,0,1-44.06-11.81,8,8,0,0,0-6.54-.67L40,216,52.47,178.6a8,8,0,0,0-.66-6.54A88,88,0,1,1,128,216Z',
 };
+/** El rotulo impreso en cada cajetin, en versalitas. */
+const SOCIAL_LABEL: Readonly<Record<SocialKind, string>> = { ubicacion: 'UBICACIÓN', mensaje: 'ENVIAR MENSAJE' };
 
 /**
  * Álbum "Acerca de nosotros": un único render, el mismo canvas/video de
@@ -1159,6 +1184,7 @@ export class AboutBookComponent {
 
   readonly last = LAST;
   readonly contact = CONTACT;
+  readonly mensajeUrl = waDirectLink();
   readonly ready = signal(false);
   readonly coverOpen = signal(false);
   readonly busy = signal(false);
@@ -1335,7 +1361,7 @@ export class AboutBookComponent {
   private asentBuf: Record<'left' | 'right', [number, number][] | null> = { left: null, right: null };
   private textPanels: HTMLCanvasElement[] = [];
   /** La pagina de cierre repintada con uno u otro boton marcado. Ver `marcaSocial`. */
-  private socialPanels: Record<'instagram' | 'facebook', HTMLCanvasElement | null> = { instagram: null, facebook: null };
+  private socialPanels: Record<SocialKind, HTMLCanvasElement | null> = { ubicacion: null, mensaje: null };
   private ctx: CanvasRenderingContext2D | null = null;
   private dpr = 1;
   private raf = 0;
@@ -1420,8 +1446,8 @@ export class AboutBookComponent {
     // estampado- y se cambian enteros al pasar el puntero (ver marcaSocial).
     const cierre = STORIES[LAST - 1];
     this.socialPanels = {
-      instagram: this.renderTextPanel(cierre, true, LAST, 'instagram'),
-      facebook: this.renderTextPanel(cierre, true, LAST, 'facebook'),
+      ubicacion: this.renderTextPanel(cierre, true, LAST, 'ubicacion'),
+      mensaje: this.renderTextPanel(cierre, true, LAST, 'mensaje'),
     };
     // Despues de `prepareFonts`: el panel se compone UNA sola vez, asi que una
     // familia que no este lista en este instante se queda de reemplazo para
@@ -1444,8 +1470,7 @@ export class AboutBookComponent {
       // los paneles se dibujan UNA vez al cargar, asi que una familia que no
       // este lista en ese instante se queda con la de reemplazo para siempre.
       await Promise.all([
-        document.fonts.load(`${STORY_WEIGHT} ${STORY_FONT}px "EB Garamond"`),
-        document.fonts.load(`italic ${STORY_WEIGHT} ${STORY_FONT}px "EB Garamond"`),
+        document.fonts.load(`${STORY_WEIGHT} ${STORY_FONT}px "Playball"`),
         // 'Cormorant Garamond' sigue haciendo falta: es la cursiva del colofon
         // -el sello del final- y ademas el reemplazo de 'EB Garamond'.
         document.fonts.load(`italic 500 ${STORY_FONT}px "Cormorant Garamond"`),
@@ -1510,6 +1535,8 @@ export class AboutBookComponent {
   }
 
   private async loadLogo(): Promise<void> {
+    // Sin pagina que la lleve no se descarga (ver LOGO_PAGE).
+    if (LOGO_PAGE === null) return;
     try {
       const res = await fetch(LOGO_URL);
       this.logoArt = await createImageBitmap(await res.blob());
@@ -1823,7 +1850,7 @@ export class AboutBookComponent {
       // horizontalmente hasta que quepa. Con la frase de cierre eso ya la
       // dejaba al 70% de su ancho -letras estrechadas, distintas del resto del
       // libro- y al subir el cuerpo habria bajado al 59%.
-      ctx.font = `italic ${STORY_WEIGHT} ${Math.round(t.font * 0.95)}px ${STORY_FAMILY}`;
+      ctx.font = `${STORY_STYLE} ${STORY_WEIGHT} ${Math.round(t.font * 0.95)}px ${STORY_FAMILY}`;
       const rows = story.lines.flatMap((line) => this.wrapLine(ctx, line, t.measure, false));
       const step = t.font * 0.95 * t.line;
       // El bloque se centra en la franja que queda por encima de los enlaces de
@@ -1833,13 +1860,13 @@ export class AboutBookComponent {
       // ella y los enlaces: con el cuerpo nuevo la frase ocupa 3 renglones, no
       // 2, y centrada en el panel entero quedaba muy alta.
       const zoneLo = PANEL_H * 0.2;
-      const zoneHi = PANEL_H * (SOCIAL_POS.instagram.v - 0.09);
+      const zoneHi = PANEL_H * (SOCIAL_POS.ubicacion.v - 0.09);
       let y = zoneLo + (zoneHi - zoneLo - rows.length * step) / 2 + t.font * 0.95 * 0.8;
       ctx.save();
       giraLienzo();
       for (const row of rows) {
         ctx.fillText(row, cx, y);
-        ctx.strokeText(row, cx, y);
+        if (STORY_STROKE > 0) ctx.strokeText(row, cx, y);
         y += step;
       }
       ctx.restore();
@@ -1847,16 +1874,18 @@ export class AboutBookComponent {
       // pagina, no algo apoyado encima, y tienen que inclinarse con ella.
       ctx.save();
       giraLienzo();
-      this.drawSocialButton(ctx, SOCIAL_POS.instagram, 'instagram', marcado === 'instagram');
-      this.drawSocialButton(ctx, SOCIAL_POS.facebook, 'facebook', marcado === 'facebook');
+      this.drawSocialButton(ctx, SOCIAL_POS.ubicacion, 'ubicacion', marcado === 'ubicacion');
+      this.drawSocialButton(ctx, SOCIAL_POS.mensaje, 'mensaje', marcado === 'mensaje');
       ctx.restore();
       return c;
     }
 
-    ctx.font = `${STORY_WEIGHT} ${t.font}px ${STORY_FAMILY}`;
+    ctx.font = `${STORY_STYLE} ${STORY_WEIGHT} ${t.font}px ${STORY_FAMILY}`;
     // Se reparte en renglones primero, sin dibujar todavia: asi se conoce el
     // alto real del bloque completo -espiga incluida- y se centra de verdad.
-    const paragraphs = story.lines.map((line) => this.wrapLine(ctx, line, t.measure, true));
+    // Sin pasar a minuscula: los textos llevan nombres propios y fechas -Grecia,
+    // Palí, Marzo 2023- y en minuscula se leian como faltas de ortografia.
+    const paragraphs = story.lines.map((line) => this.wrapLine(ctx, line, t.measure, false));
 
     const rowH = t.font * t.line;
     const paraGap = t.font * t.para;
@@ -1873,7 +1902,7 @@ export class AboutBookComponent {
     for (let i = 0; i < paragraphs.length; i++) {
       for (const row of paragraphs[i]) {
         ctx.fillText(row, cx, y);
-        ctx.strokeText(row, cx, y);
+        if (STORY_STROKE > 0) ctx.strokeText(row, cx, y);
         y += rowH;
       }
       if (i < paragraphs.length - 1) y += paraGap;
@@ -1983,7 +2012,7 @@ export class AboutBookComponent {
 
     // Glifo y palabra se centran COMO GRUPO: centrar cada uno por su lado
     // dejaria el conjunto descolgado a un lado del cajetin.
-    const label = kind === 'instagram' ? 'INSTAGRAM' : 'FACEBOOK';
+    const label = SOCIAL_LABEL[kind];
     ctx.font = `600 ${font}px Cinzel, serif`;
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
@@ -4457,7 +4486,7 @@ export class AboutBookComponent {
     // El area clickeable se MIDE sobre la hoja, no se fija en pixeles: el libro
     // escala con la pantalla y una caja fija dejaria de cubrir el boton pintado
     // -en movil llegaba a ser mas grande que el, tanto que las dos cajas se
-    // solapaban y la de Facebook robaba clics a la de Instagram.
+    // solapaban y la de abajo robaba clics a la de arriba.
     const mu = SOCIAL_BTN.w / PANEL_W / 2;
     const mv = (SOCIAL_BTN.h * SOCIAL_HIT_ALTO) / PANEL_H / 2;
     const izq = enPantalla(pos.u - mu, pos.v);

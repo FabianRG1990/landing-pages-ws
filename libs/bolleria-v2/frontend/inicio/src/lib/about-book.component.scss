@@ -1,8 +1,9 @@
 .bol-book {
-  // 1500 y no 1200: el escenario pide 1305 mas su padding lateral. Sobra
-  // holgura a proposito -el tope real lo pone `--libro-w` justo debajo-, y
-  // bajarlo aqui estrecharia tambien la cabecera, que no es lo que se pide.
-  max-width: 1500px;
+  // 1900 y no los 1500 de antes: con la cabecera fuera, esta caja ya solo
+  // contiene al libro, y a 1500 era ELLA la que lo frenaba -en una pantalla de
+  // 1920 el escenario se quedaba en 1452 aunque por altura cupieran 1728-. El
+  // tope de verdad lo pone `--libro-w` justo debajo.
+  max-width: 1900px;
 
   // ─── Tamano del libro en escritorio ──────────────────────────────────────
   // Un solo valor manda el ancho del escenario Y los dos margenes negativos
@@ -51,7 +52,26 @@
   //    Si algun dia se quiere agrandar otra vez SIN perder el vuelo, el camino
   //    es que la escena se asiente al abrir (arrancar la apertura a ~0,82 de
   //    escala y crecer hasta 1 con `.is-lifting`), no subir el techo.
-  --libro-w: min(1305px, 100%, calc(174.6vh - 321.3px));
+  // SIN CABECERA (ver .bol-book__head, retirada): lo unico que tiene que caber
+  // en la pantalla es el libro, asi que el termino de altura se despeja solo
+  // para el. En flujo el escenario ocupa `0,51452·W` -su alto por 0,63392, que
+  // es lo que queda tras los dos margenes negativos-, y dejando 32px de aire
+  // arriba y abajo: W = (100vh - 64px) / 0,51452 = 194,36vh - 124px.
+  //
+  // Tambien se retira el 0,9 que llevaba la formula anterior: era el 10 % que
+  // el dueno del sitio pidio encoger cuando el titulo competia con el libro por
+  // el mismo alto. Ahora pide lo contrario -el libro solo y lo mas grande
+  // posible-, asi que ese factor ya no tiene sentido.
+  //
+  // El techo SUBE de 1305 a 1750px. El 1305 venia de dar por hecho que pasar de
+  // x1.52 sobre los 860px nativos de los cuadros se veria blando, pero eso vale
+  // para el PAPEL, no para lo que se lee: el texto de las historias no es parte
+  // del cuadro, se redibuja en su propio panel en cada fotograma y se deforma
+  // sobre la hoja, asi que conserva su nitidez al tamano que sea. Comparados al
+  // 100 % los cuatro tamanos (1305, 1450, 1600 y 1728 = x1.52 a x2.01), la letra
+  // se ve igual de firme en todos y solo el papel pierde algo de filo. A x2.03
+  // -que es donde queda este techo- el papel aguanta.
+  --libro-w: min(1750px, 100%, calc(194.36vh - 124px));
   // 120px (no los ~48px de antes): pegado a la grilla de categorias de arriba
   // (fotos grandes, con scrim oscuro) se leia como si fuera parte del mismo
   // bloque en vez de una seccion nueva -este aire extra marca el corte.
@@ -86,35 +106,11 @@
 }
 
 // --- Cabecera -----------------------------------------------------------
-// El titulo y el hint quedan siempre visibles, incluso con el libro abierto.
-// Estan pegados al libro a proposito (ver .bol-book__stage): durante la
-// apertura, la tapa sube y los tapa un instante real -por eso el head va
-// detras en capas (z-index menor que el stage), a proposito, como efecto.
-.bol-book__head {
-  position: relative;
-  z-index: 1;
-}
-.bol-book__eyebrow {
-  font: 600 13px 'Cinzel', serif;
-  letter-spacing: 0.34em;
-  text-transform: uppercase;
-  color: var(--olive);
-}
-.bol-book__title {
-  font: 500 clamp(32px, 3.8vw, 46px) / 1.08 var(--hf, 'Cormorant Garamond'), serif;
-  margin: 10px 0 0;
-
-  em {
-    font-style: italic;
-    color: var(--acc, #c8912a);
-  }
-}
-.bol-book__hint {
-  font: 400 16px / 1.6 'Jost', sans-serif;
-  color: #6b6552;
-  margin: 8px auto 0;
-  max-width: 380px;
-}
+// Ya no hay. El rotulo "Acerca de nosotros", el titulo y la linea "Segui
+// bajando" se retiraron a peticion del dueno del sitio para que el libro se
+// quede solo en pantalla y ocupe ese sitio. El titulo sigue en el HTML con la
+// clase `.bol-book__sr` -invisible, pero presente para buscadores y lectores de
+// pantalla-, asi que la seccion conserva su encabezado.
 
 // --- Pista de scroll ---------------------------------------------------------
 //
@@ -127,12 +123,12 @@
 // ninguna constante de este archivo:
 //
 //   __pin        la escena anclada. Una pantalla de alto, pegada arriba.
-//   __recorrido  el scroll que se reparte entre las siete vueltas (la tapa y
-//                las seis hojas). Es lo unico que el componente mide, y de ahi
+//   __recorrido  el scroll que se reparte entre las ocho vueltas (la tapa y
+//                las siete hojas). Es lo unico que el componente mide, y de ahi
 //                sale el ritmo entero.
 //   __remate     permanencia en la pagina de cierre. Sin el, el pin se suelta
 //                en el instante en que la ultima hoja termina de caer y los
-//                enlaces de Instagram y Facebook pasan de largo antes de que
+//                botones de ubicacion y mensaje pasan de largo antes de que
 //                nadie pueda pulsarlos.
 .bol-book__track {
   position: relative;
@@ -179,7 +175,7 @@
   // detras del scroll. Esta previsto -`conducir` acelera hasta 3x y relee el
   // destino en cada paso-, pero es la razon por la que bajar bastante mas de
   // aqui empezaria a leerse como un libro que persigue a la pagina.
-  height: calc(7 * 25svh);
+  height: calc(8 * 25svh);
 }
 .bol-book__remate {
   height: 65svh;

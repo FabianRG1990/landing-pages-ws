@@ -14,13 +14,13 @@ export const CONTACT = {
   // volver a separarse.
   telDisplay: '+506 6040 9549',
   correo: 'labolleria.crb@gmail.com',
+  // Horario corregido por el dueño del sitio el 2026-09-16: todos los días de
+  // 7:00 a.m. a 7:00 p.m. Sustituye al confirmado el 2026-08-30, que cerraba el
+  // domingo a las 6:00 p.m.
   /** Una sola línea, para donde no cabe más: pie de página y pie del PDF. */
-  horario: 'Lun – Sáb 7:00 a.m. – 7:00 p.m. · Dom hasta 6:00 p.m.',
+  horario: 'Lun – Dom 7:00 a.m. – 7:00 p.m.',
   /** El horario como lo anuncia el negocio, para la página de Contacto. */
-  horarioDetalle: [
-    { dias: 'Lunes a sábado', horas: '7:00 a.m. – 7:00 p.m.' },
-    { dias: 'Domingo', horas: '7:00 a.m. – 6:00 p.m.' },
-  ],
+  horarioDetalle: [{ dias: 'Lunes a domingo', horas: '7:00 a.m. – 7:00 p.m.' }],
   // PENDIENTE: falta el texto de la dirección (provincia, cantón, distrito y
   // señas). Va vacía a propósito y la página no la pinta mientras lo esté: el
   // valor anterior decía "San José, Costa Rica" y las coordenadas de abajo caen
