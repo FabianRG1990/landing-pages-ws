@@ -119,7 +119,7 @@
 // recorrido. El componente lee cuanto de la pista lleva recorrido la ventana y
 // deriva de ahi la pagina.
 //
-// Tres piezas, y las tres MIDEN lo que dicen para que el componente no repita
+// Cinco piezas, y las que el componente lee MIDEN lo que dicen para que el componente no repita
 // ninguna constante de este archivo:
 //
 //   __pin        la escena anclada. Una pantalla de alto, pegada arriba.
@@ -130,6 +130,11 @@
 //                en el instante en que la ultima hoja termina de caer y los
 //                botones de ubicacion y mensaje pasan de largo antes de que
 //                nadie pueda pulsarlos.
+//   __cierre     seguir bajando tras la ultima pagina cierra la tapa: el libro
+//                vuelve a la portada antes del footer y el recorrido se lee como
+//                un ciclo terminado.
+//   __portada    permanencia con el libro cerrado, para que el cierre se vea
+//                completo antes de que el pin se suelte.
 .bol-book__track {
   position: relative;
 }
@@ -179,6 +184,16 @@
 }
 .bol-book__remate {
   height: 65svh;
+}
+// Lo mismo que una vuelta del recorrido: cerrar cuesta lo que pasar una hoja,
+// con la misma histeresis (ver `progresoPista` y PISTA_BANDA).
+.bol-book__cierre {
+  height: 25svh;
+}
+// Algo menos que el remate: aqui no hay nada que pulsar, solo dejar que la
+// tapa termine de bajar y el libro cerrado se asiente antes del footer.
+.bol-book__portada {
+  height: 50svh;
 }
 
 // Controles que no se ven pero si se enfocan y si los anuncia un lector de

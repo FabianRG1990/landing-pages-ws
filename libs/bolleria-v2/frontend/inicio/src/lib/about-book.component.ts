@@ -60,6 +60,14 @@ const HD_H = 1396;
 const VIDEO_W = 860;
 const VIDEO_H = 698;
 const LAST = 8; // 1..7 = historias con foto+texto, 8 = cierre (foto + horario, ubicacion y mensaje)
+/**
+ * Estado de la pista con el libro CERRADO DESPUES de la ultima pagina: seguir
+ * bajando tras la 8 baja la tapa y deja el libro otra vez en la portada antes
+ * del footer, como un ciclo terminado. Es la misma tapa que el estado 0 -el
+ * mismo `cerrar()`-, y lo que los distingue es la pagina que queda debajo: 1 o
+ * LAST. Por eso subir desde aqui reabre en la 8 y no en la 1.
+ */
+const CERRADO_FINAL = LAST + 1;
 
 /**
  * Histeresis alrededor de la FRONTERA entre dos huecos, en fracciones de pagina.
@@ -1264,6 +1272,8 @@ export class AboutBookComponent {
   // consultarlas antes de que la vista exista y `required` lanzaria.
   private readonly trackRef = viewChild<ElementRef<HTMLElement>>('track');
   private readonly recorridoRef = viewChild<ElementRef<HTMLElement>>('recorrido');
+  private readonly remateRef = viewChild<ElementRef<HTMLElement>>('remate');
+  private readonly cierreRef = viewChild<ElementRef<HTMLElement>>('cierre');
 
   readonly last = LAST;
   readonly contact = CONTACT;
@@ -1273,10 +1283,21 @@ export class AboutBookComponent {
   readonly busy = signal(false);
   readonly current = signal(1);
   /**
-   * La pagina como INDICE unico: 0 = tapa cerrada, 1..LAST = paginas abiertas.
-   * Es lo que se compara contra el progreso de la pista de scroll.
+   * La pagina como INDICE unico: 0 = tapa cerrada al principio, 1..LAST =
+   * paginas abiertas, CERRADO_FINAL = tapa cerrada tras la ultima. Es lo que se
+   * compara contra el progreso de la pista de scroll.
    */
-  readonly estado = computed(() => (this.coverOpen() ? this.current() : 0));
+  readonly estado = computed(() =>
+    this.coverOpen() ? this.current() : this.current() === LAST ? CERRADO_FINAL : 0,
+  );
+  /** Lo que anuncia un lector de pantalla del estado del libro. */
+  readonly etiqueta = computed(() => {
+    const e = this.estado();
+    if (e === 0) return 'Nuestra historia, portada';
+    if (e === CERRADO_FINAL) return 'Nuestra historia, libro cerrado';
+    return `Nuestra historia, página ${e} de ${LAST}`;
+  });
+  readonly cerradoFinal = CERRADO_FINAL;
   // El titulo esta pegado al libro a proposito (ver SCSS) y la tapa lo tapa un
   // instante real durante la apertura -este signal dispara el pulso de
   // "elevacion" (escala + sombra) sincronizado con ese momento exacto, para
@@ -4296,18 +4317,31 @@ export class AboutBookComponent {
     });
   }
 
-  /** Progreso dentro de la pista, de 0 a LAST. `null` si aun no se puede medir. */
+  /**
+   * Progreso dentro de la pista, de 0 a CERRADO_FINAL. `null` si aun no se
+   * puede medir.
+   *
+   * Tras el recorrido de las vueltas, el remate se queda en LAST -permanencia
+   * para pulsar los botones- y el tramo de cierre sube de LAST a CERRADO_FINAL
+   * con la misma escala que una vuelta, asi que cerrar cuesta lo mismo que pasar
+   * una hoja y hereda la misma histeresis en `leerPista`.
+   */
   private progresoPista(): number | null {
     const pista = this.trackRef()?.nativeElement;
     const recorrido = this.recorridoRef()?.nativeElement;
-    if (!pista || !recorrido) return null;
-    // El tramo util lo MIDE su propio elemento en vez de recalcularlo con las
+    const remate = this.remateRef()?.nativeElement;
+    const cierre = this.cierreRef()?.nativeElement;
+    if (!pista || !recorrido || !remate || !cierre) return null;
+    // Los tramos los MIDEN sus propios elementos en vez de recalcularlos con las
     // constantes del SCSS. Asi el ritmo de la pista vive en un solo sitio y no
     // hay dos numeros que se puedan desincronizar al retocarlo.
     const util = recorrido.offsetHeight;
-    if (util <= 0) return null;
+    if (util <= 0 || cierre.offsetHeight <= 0) return null;
     const recorridoYa = -pista.getBoundingClientRect().top;
-    return Math.min(LAST, Math.max(0, (recorridoYa / util) * LAST));
+    if (recorridoYa <= util) return Math.max(0, (recorridoYa / util) * LAST);
+    const trasRemate = recorridoYa - util - remate.offsetHeight;
+    if (trasRemate <= 0) return LAST;
+    return LAST + Math.min(1, trasRemate / cierre.offsetHeight);
   }
 
   /**
@@ -4322,7 +4356,7 @@ export class AboutBookComponent {
     const previo = this.objetivo;
     const hueco = Math.round(bruto);
     if (forzar || Math.abs(bruto - hueco) < 0.5 - PISTA_BANDA) {
-      this.objetivo = Math.min(LAST, Math.max(0, hueco));
+      this.objetivo = Math.min(CERRADO_FINAL, Math.max(0, hueco));
     }
     if (this.objetivo === previo) return;
     // open()/next()/prev() escriben signals, asi que tienen que correr DENTRO de
@@ -4366,8 +4400,8 @@ export class AboutBookComponent {
         const desde = this.estado();
         const pendientes = Math.abs(this.objetivo - desde);
         this.msPorCuadro = MS_PER_FRAME / Math.min(3, pendientes);
-        if (this.objetivo > desde) await (desde === 0 ? this.open() : this.next());
-        else await (desde === 1 ? this.cerrar() : this.prev());
+        if (this.objetivo > desde) await (desde === 0 ? this.open() : desde === LAST ? this.cerrar() : this.next());
+        else await (desde === 1 ? this.cerrar() : desde === CERRADO_FINAL ? this.open() : this.prev());
         // Si el paso no movio nada -algun guard lo rechazo- no insistir: seria
         // un bucle infinito con la CPU al maximo.
         if (this.estado() === desde) break;
@@ -4388,9 +4422,17 @@ export class AboutBookComponent {
   irAIndice(indice: number): void {
     const pista = this.trackRef()?.nativeElement;
     const recorrido = this.recorridoRef()?.nativeElement;
-    if (!pista || !recorrido) return;
-    const destino = Math.min(LAST, Math.max(0, indice));
-    const y = window.scrollY + pista.getBoundingClientRect().top + (recorrido.offsetHeight * destino) / LAST;
+    const remate = this.remateRef()?.nativeElement;
+    const cierre = this.cierreRef()?.nativeElement;
+    if (!pista || !recorrido || !remate || !cierre) return;
+    const destino = Math.min(CERRADO_FINAL, Math.max(0, indice));
+    // CERRADO_FINAL no vive en el recorrido: esta al final del tramo de cierre,
+    // pasado el remate (ver `progresoPista`).
+    const tramo =
+      destino === CERRADO_FINAL
+        ? recorrido.offsetHeight + remate.offsetHeight + cierre.offsetHeight
+        : (recorrido.offsetHeight * destino) / LAST;
+    const y = window.scrollY + pista.getBoundingClientRect().top + tramo;
     window.scrollTo({ top: y, behavior: this.reduced() ? 'auto' : 'smooth' });
   }
 
@@ -4408,7 +4450,10 @@ export class AboutBookComponent {
     this.lifting.set(true);
     await this.playChain([PAGE_REST]);
     this.lifting.set(false);
-    this.current.set(1);
+    // Abre en la pagina que quedo bajo la tapa: la 1 desde la portada del
+    // principio, la LAST desde CERRADO_FINAL. `current` ya la trae -`cerrar()`
+    // no la toca-, y durante la cadena el contenido que asoma es esa misma.
+    if (this.current() !== LAST) this.current.set(1);
     this.coverOpen.set(true);
     // La apertura termina en PAGE_REST -su cuadro calibrado, dentro del que el
     // libro deja de rebotar- pero el libro se QUEDA en GIRO_LO, que es de donde
@@ -4441,9 +4486,20 @@ export class AboutBookComponent {
    * la ultima pagina y saltaba las seis de en medio. Con el scroll el recorrido
    * se deshace de una en una, asi que aqui solo se llega desde la 1 y el guard
    * lo exige. La cadena es la misma: del cuadro vivo a PAGE_REST y de ahi al 1.
+   *
+   * Y desde la LAST: es el paso LAST -> CERRADO_FINAL, seguir bajando tras la
+   * ultima pagina. La tapa baja exactamente igual y el contenido que se
+   * desvanece bajo ella es el de la LAST, por las mismas rampas que la 1. La
+   * pagina NO se reinicia: `current` se queda en la que se cerro, que es lo que
+   * decide si el libro esta en 0 o en CERRADO_FINAL (ver `estado`) y en que
+   * pagina reabre `open()`.
    */
   async cerrar(): Promise<void> {
-    if (this.busy() || !this.coverOpen() || this.current() !== 1) return;
+    if (this.busy() || !this.coverOpen() || (this.current() !== 1 && this.current() !== LAST)) return;
+    // Los <a> de la pagina de cierre desaparecen al empezar (`showSocialLinks`
+    // mira `busy`) y un `mouseleave` que ya no llega dejaria su cajetin marcado
+    // pintado en la hoja mientras se cierra.
+    this.marcaSocial(null);
     this.busy.set(true);
     // GUARDIA DE POSE, y no es decorativa: la cadena de abajo baja del cuadro
     // VIVO hasta PAGE_REST, y si el libro estuviera en GIRO_HI ese recorrido
@@ -4460,7 +4516,6 @@ export class AboutBookComponent {
     await this.dissolveTo(GIRO_LO, SNAP_FADE_MS);
     await this.playChain([PAGE_REST, 1]);
     this.coverOpen.set(false);
-    this.current.set(1);
     this.busy.set(false);
   }
 

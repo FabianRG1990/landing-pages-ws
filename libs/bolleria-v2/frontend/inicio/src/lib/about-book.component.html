@@ -5,12 +5,14 @@
        componente lee en qué punto de ella está la ventana y deriva de ahí la
        página, llamando a los mismos open()/next()/prev() de siempre.
 
-       Tres piezas, y las tres miden lo que dicen para que el componente no
+       Cinco piezas, y las que se leen miden lo que dicen para que el componente no
        tenga que repetir ninguna constante del SCSS:
          · __pin      la escena anclada, una pantalla de alto;
          · __recorrido  el scroll que se reparte entre las ocho vueltas;
          · __remate   la permanencia en la página de cierre, para que sus
-                      botones de ubicación y mensaje no se escapen antes de poder pulsarlos. -->
+                      botones de ubicación y mensaje no se escapen antes de poder pulsarlos;
+         · __cierre   seguir bajando cierra la tapa sobre la última página;
+         · __portada  el libro cerrado se queda un momento antes del footer. -->
   <div class="bol-book__track" #track>
     <div class="bol-book__pin">
       <!-- La cabecera ya no se ve: el libro se queda solo en pantalla y ocupa
@@ -31,7 +33,7 @@
           tabindex="0"
           role="group"
           aria-roledescription="libro"
-          [attr.aria-label]="'Nuestra historia, página ' + estado() + ' de ' + last"
+          [attr.aria-label]="etiqueta()"
           aria-describedby="bol-book-ayuda"
           (keydown)="alTeclado($event)"
         >
@@ -81,11 +83,13 @@
       </p>
       <div class="bol-book__sr">
         <button type="button" (click)="irAIndice(estado() - 1)" [disabled]="estado() <= 0">Página anterior</button>
-        <button type="button" (click)="irAIndice(estado() + 1)" [disabled]="estado() >= last">Página siguiente</button>
+        <button type="button" (click)="irAIndice(estado() + 1)" [disabled]="estado() >= cerradoFinal">Página siguiente</button>
       </div>
     </div>
 
     <div class="bol-book__recorrido" #recorrido></div>
-    <div class="bol-book__remate"></div>
+    <div class="bol-book__remate" #remate></div>
+    <div class="bol-book__cierre" #cierre></div>
+    <div class="bol-book__portada"></div>
   </div>
 </section>
