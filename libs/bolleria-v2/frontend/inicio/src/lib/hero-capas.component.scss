@@ -466,19 +466,57 @@
     background: url('/assets/hero-capas/hero-muro-movil.webp') 64% 50% / cover no-repeat;
   }
 
+  /**
+   * BANDA, no velo de arriba abajo. El velo empezaba opaco en el borde superior
+   * y se apagaba hacia el 62 %: lavaba el 71 % de la pantalla -el arco del muro,
+   * la rama de olivo, las flores- y el dueño del sitio lo reportó como que
+   * difuminaba la foto.
+   *
+   * Aquí solo cubre la franja del texto (del 22 % al 42 %, que es donde caen el
+   * rótulo, el titular y la bajada), y entra y sale con rampas largas para que
+   * no se lea como una banda con bordes.
+   *
+   * Medido en 390x844, contraste en el PEOR punto del fondo -el percentil 5 de
+   * luminancia bajo cada bloque, que es la flor oscura bajo la bajada-:
+   *
+   *                       lavado   aclarado   bajada   titular
+   *   velo de antes        71 %      26,0      6,20     8,52
+   *   esta banda           49 %      17,0      6,93     7,82
+   *   solo acortarlo       43 %      16,4      3,92 <- por debajo del 4,5 de AA
+   *
+   * O sea: mucho menos lavado con MAS contraste. Acortar el velo sin mover
+   * dónde cubre NO vale, aunque sea lo primero que uno prueba.
+   *
+   * El punto que fija la opacidad no es la bajada sino el rótulo "GRECIA ·
+   * ALAJUELA": es el texto más pequeño y cae justo donde entra la banda. A 0,45
+   * se quedaba en 4,23 en una pantalla de 720 -por debajo del 4,5 de AA-, y por
+   * eso la meseta es 0,5 y empieza 86px por encima del texto.
+   *
+   * Y la banda va en LAS MISMAS UNIDADES que el texto, no en porcentajes de
+   * pantalla. El bloque arranca en `$texto-top` y mide ~205px fijos, asi que en
+   * una pantalla corta ocupa una fraccion mayor: con la banda en porcentajes, en
+   * un 360x640 la bajada caia por debajo y su contraste se hundia a 2,89.
+   */
+  $texto-top: 22vh; // el mismo que `padding-top` de `.bol-heroc__contenido`
+  $texto-alto: 205px; // del rotulo a la ultima linea de la bajada, medido
+
   .bol-heroc__velo {
     background: linear-gradient(
       175deg,
-      rgba(250, 246, 236, 0.8) 0%,
-      rgba(250, 246, 236, 0.55) 34%,
-      rgba(250, 246, 236, 0.12) 62%,
-      rgba(250, 246, 236, 0) 100%
+      rgba(250, 246, 236, 0) 0,
+      rgba(250, 246, 236, 0.16) calc(#{$texto-top} - 130px),
+      rgba(250, 246, 236, 0.5) calc(#{$texto-top} - 86px),
+      rgba(250, 246, 236, 0.5) calc(#{$texto-top} + #{$texto-alto} + 14px),
+      rgba(250, 246, 236, 0.12) calc(#{$texto-top} + #{$texto-alto} + 80px),
+      rgba(250, 246, 236, 0) calc(#{$texto-top} + #{$texto-alto} + 140px)
     );
   }
 
   .bol-heroc__contenido {
     justify-content: flex-start;
-    padding-top: 22vh;
+    // El velo de arriba se ancla a este mismo valor (`$texto-top`): si cambia,
+    // la banda tiene que seguirlo o dejara de cubrir el texto.
+    padding-top: $texto-top;
     gap: 0.9rem;
   }
 
