@@ -14,7 +14,11 @@ import { ScreenId } from '../core/models';
 export class SiteFooterComponent {
   private readonly store = inject(BolleriaStore);
   readonly contact = CONTACT;
-  /** El pie sale en TODAS las pantallas: este es el acceso a WhatsApp que no depende de en cuál esté la persona. */
+  /**
+   * Acceso a WhatsApp del pie. El pie ya NO sale en la portada -ahí cierra
+   * `<bol-despedida />`-, así que este es el acceso de Menú y Contacto; en la
+   * portada el suyo son los botones que dibuja la última página del libro.
+   */
   readonly waDirect = waDirectLink();
 
   go(screen: ScreenId): void {

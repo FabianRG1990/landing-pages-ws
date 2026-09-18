@@ -19,4 +19,8 @@
   }
 </main>
 
-<bol-site-footer />
+<!-- El pie NO sale en la portada: ahí el cierre es `<bol-despedida />`, dentro de
+     `<bol-home />`. En Menú y Contacto se conserva entero. -->
+@if (store.screen() !== 'inicio') {
+  <bol-site-footer />
+}

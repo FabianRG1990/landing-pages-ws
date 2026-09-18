@@ -1,0 +1,181 @@
+// Cierre de la portada, en el sitio que ocupaba el pie de página.
+//
+// NO lleva fondo propio. El pie es un bloque verde oscuro que corta contra el
+// crema del sitio, y ahí ese corte está justificado porque es el final del
+// documento. Aquí no: esto es una despedida que respira sobre el mismo papel
+// del libro que tiene justo encima, y cualquier caja de color habría dejado
+// una costura horizontal a media pantalla.
+.bol-despedida {
+  // 34px es lo que separaba el pie del libro (`.bol-footer { margin-top }`).
+  // Sumado a los 90px de padding inferior de `.bol-book`, da los ~124px que el
+  // sitio usa entre secciones grandes. Se conserva el número para que el aire
+  // bajo el libro no cambie por este reemplazo.
+  margin-top: 34px;
+  padding: 0 24px 72px;
+  text-align: center;
+}
+
+.bol-despedida__inner {
+  max-width: 660px;
+  margin: 0 auto;
+}
+
+// El mismo rótulo que encabeza Menú y Contacto (`.bol-menu__eyebrow`):
+// Cinzel 600 a 13px, versalitas, 0,34em de tracking y `--olive`. Se reusa tal
+// cual y no se inventa un dorado: `--acc` (#c8912a) sobre el crema del fondo
+// da 3,0:1 y no pasa AA a este cuerpo; el oliva da 5,4:1. El dorado se queda
+// para el ornamento, que es decorativo y no tiene que leerse.
+.bol-despedida__rotulo {
+  font: 600 13px 'Cinzel', serif;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: var(--olive, #5e6a34);
+  margin: 0;
+}
+
+// Espiga centrada entre dos trazos que se desvanecen: el mismo motivo que
+// separa los enlaces de la barra, en grande. Una regla recta habría sido la
+// única línea dura del sitio.
+.bol-despedida__filete {
+  display: block;
+  width: 220px;
+  height: 14px;
+  margin: 22px auto 24px;
+  background:
+    linear-gradient(90deg, transparent, rgba(200, 145, 42, 0.45) 45%, transparent 47%),
+    linear-gradient(90deg, transparent 53%, rgba(200, 145, 42, 0.45) 55%, transparent);
+  background-repeat: no-repeat;
+  background-size: 100% 1px;
+  background-position: center;
+  position: relative;
+
+  &::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 0;
+    transform: translateX(-50%);
+    width: 10px;
+    height: 14px;
+    $espiga: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 14 22'%3E%3Cpath d='M7 1v20M7 5c-1.8.3-3 1.5-3.6 3 1.8.9 3 .3 3.6-1.2M7 5c1.8.3 3 1.5 3.6 3-1.8.9-3 .3-3.6-1.2M7 11c-1.8.3-3 1.5-3.6 3 1.8.9 3 .3 3.6-1.2M7 11c1.8.3 3 1.5 3.6 3-1.8.9-3 .3-3.6-1.2' stroke='%23C8912A' stroke-width='1.3' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background: var(--acc, #c8912a);
+    -webkit-mask: $espiga center / contain no-repeat;
+    mask: $espiga center / contain no-repeat;
+    opacity: 0.75;
+  }
+}
+
+// El versículo es la voz de este bloque: Cormorant itálica, el mismo cuerpo
+// grande que el sitio da a sus frases de cierre (`.bol-footer__tagline` usa
+// esta familia en itálica, aquí en el tamaño que le corresponde a un titular).
+.bol-despedida__versiculo {
+  margin: 0;
+
+  p {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-weight: 400;
+    // No baja de 26px ni pasa de 40: por debajo deja de ser la voz del bloque,
+    // por encima empieza a competir con la tapa del libro que tiene justo arriba.
+    font-size: clamp(26px, 3.6vw, 40px);
+    line-height: 1.32;
+    color: var(--ink, #2e2a1c);
+    margin: 0;
+    // El renglón se corta donde la frase respira, no donde termina el ancho.
+    text-wrap: balance;
+  }
+
+  cite {
+    display: block;
+    margin-top: 18px;
+    font: 400 12px 'Jost', sans-serif;
+    font-style: normal;
+    letter-spacing: 0.26em;
+    text-transform: uppercase;
+    color: #6b6552;
+  }
+}
+
+// © y firma del estudio: el contenido que solo existía en el pie. Va en voz
+// baja y separado por aire, no por un filete más — el bloque ya tiene el suyo
+// y dos reglas en la misma pantalla lo convertirían en un pie disfrazado.
+.bol-despedida__legal {
+  margin-top: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px 22px;
+  font: 400 13px 'Jost', sans-serif;
+  // 5,4:1 sobre el crema: es texto secundario, pero es texto.
+  color: #6b6552;
+}
+
+// La firma NO baja de tono respecto al ©: medido en el navegador, el #857d67
+// que llevaba antes daba 3,80:1 sobre el crema a 13px y no pasa AA (pide 4,5).
+// El pie puede permitírselo porque ahí el fondo es verde oscuro; sobre papel
+// claro, no. Se distingue del © por ser un enlace que responde al puntero, no
+// por ser más pálido.
+.bol-despedida__by {
+  color: #6b6552;
+  transition: color 0.28s;
+
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      color: var(--ink, #2e2a1c);
+    }
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--acc, #c8912a);
+    outline-offset: 4px;
+    border-radius: 4px;
+  }
+
+  // Mínimo táctil. Los 11px que usa `.bol-footer__by` no bastan aquí: medido
+  // en un 390x844 daban 41px de alto, no 44 (el renglón mide 19). Con 13 por
+  // lado sale 45. El padding se compensa con margen negativo para no separar
+  // el bloque del borde inferior.
+  @media (max-width: 900px) {
+    padding: 13px 0;
+    margin: -13px 0;
+  }
+}
+
+// En móvil el bloque ocupa la pantalla de cierre entera.
+//
+// No es un capricho: el pin del libro mide 100vh y su escenario va centrado
+// dentro, así que bajo el dibujo quedan ~370px de papel muerto (medidos: 371 en
+// un 390x844, y 38 en escritorio, donde el libro es mucho más alto). Ese hueco
+// ya existía con el pie -se midió la versión anterior y da el mismo número-,
+// pero el pie medía 957px en móvil y lo empujaba fuera de cuadro. Este bloque
+// mide 335, así que sin esto el vacío se ve entero y el mensaje queda flotando.
+//
+// `svh` y no `vh`: en Android `100vh` es el viewport GRANDE, con la barra del
+// navegador retraída, y centrar con él baja el contenido y esconde una franja.
+@media (max-width: 900px) {
+  .bol-despedida {
+    min-height: 100svh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 600px) {
+  .bol-despedida {
+    padding-bottom: 56px;
+  }
+
+  .bol-despedida__filete {
+    width: 170px;
+  }
+
+  .bol-despedida__legal {
+    margin-top: 44px;
+    // En un teléfono los dos textos no caben en un renglón: van uno bajo otro
+    // en vez de partirse por dentro.
+    flex-direction: column;
+    gap: 14px;
+  }
+}
