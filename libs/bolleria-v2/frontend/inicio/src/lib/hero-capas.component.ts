@@ -101,29 +101,29 @@ export class HeroCapasComponent implements OnDestroy {
    * El rótulo de sitio sólo lo lleva el primero: es la ficha del negocio, no una
    * etiqueta de cada frase, y repetirla tres veces la vacía de valor. Los otros
    * dos lo dejan vacío y la plantilla no pinta el párrafo.
+   *
+   * Ya NO hay `bajada`. El párrafo explicativo bajo el titular se retiró a
+   * petición del dueño del sitio: la escena ya cuenta de qué va el negocio y el
+   * texto chico competía con ella. Además iba centrado mientras el titular va en
+   * bandera, y en el teléfono caía sobre las flores del bodegón, donde apenas se
+   * leía. Lo que decía no se pierde: la carta y la historia del libro lo cuentan
+   * entero más abajo.
    */
   readonly estados = [
     {
       lugar: 'Grecia · Alajuela',
       titulo: 'Cariño y ganas',
       enfasis: 'de hacerlo bien.',
-      bajada:
-        'Pan de masa madre fermentado con tiempo y horneado cada mañana. ' +
-        'Treinta y siete recetas hechas a mano, una por una.',
     },
     {
       lugar: '',
       titulo: 'Hecho con amor,',
       enfasis: 'cada mañana.',
-      bajada:
-        'Sin prisa y sin atajos: la masa decide cuándo está lista, y nosotros ' +
-        'la esperamos.',
     },
     {
       lugar: '',
       titulo: 'No te quedes',
       enfasis: 'sin el tuyo.',
-      bajada: 'Todo lo que sale del horno cada mañana está en la carta.',
     },
   ];
 

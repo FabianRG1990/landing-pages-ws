@@ -269,8 +269,7 @@
 // y ganaría a la del relevo.
 .bol-heroc__texto:not(:first-child) {
   .bol-heroc__lugar,
-  .bol-heroc__titulo,
-  .bol-heroc__bajada {
+  .bol-heroc__titulo {
     opacity: 1;
     animation: none;
   }
@@ -313,13 +312,32 @@
   animation: heroc-entra 0.9s cubic-bezier(0.2, 0.75, 0.2, 1) 0.15s forwards;
 }
 
+// Playfair Display en itálica, elegida por el dueño del sitio sobre Cormorant y
+// EB Garamond. Es una transicional del XVIII: el salto entre el trazo grueso y
+// el fino es el más marcado de las tres y los remates son rectos y afilados, de
+// donde le viene el aire editorial.
+//
+// Va ENTERA en itálica, las dos líneas. Antes la primera era romana y sólo el
+// énfasis cursivo; el encargo era que el titular fuese más italic, no que
+// conservara el contraste entre renglones. Ese contraste no se pierde: lo
+// sostiene el color, que sigue separando la frase en dos.
+//
+// Tres ajustes que la letra pide y Cormorant no pedía:
+//   · Cuerpo MENOR (5,1rem de techo, no 5,4). Playfair tiene la x-height alta
+//     y ocupa más a igualdad de cuerpo; al tamaño anterior el renglón se salía
+//     de la columna en la parada larga.
+//   · `line-height` de 1.12 y no 0.98. Sus ascendentes y descendentes son más
+//     largas y a 0,98 la «g» de «ganas» chocaba con la línea de abajo.
+//   · Tracking casi neutro. El -0,015em de antes compensaba la holgura de
+//     Cormorant; aquí aprieta unos remates que ya son afilados.
 .bol-heroc__titulo {
   margin: 0;
-  font-family: 'Cormorant Garamond', Georgia, serif;
-  font-weight: 500;
-  font-size: clamp(2.75rem, 6.4vw, 5.4rem);
-  line-height: 0.98;
-  letter-spacing: -0.015em;
+  font-family: 'Playfair Display', Georgia, serif;
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(2.55rem, 5.9vw, 5.1rem);
+  line-height: 1.12;
+  letter-spacing: -0.005em;
   color: #2e2a1c;
   opacity: 0;
   animation: heroc-entra 1s cubic-bezier(0.2, 0.75, 0.2, 1) 0.28s forwards;
@@ -333,18 +351,6 @@
   }
 }
 
-.bol-heroc__bajada {
-  margin: 0;
-  max-width: 27rem;
-  font-family: 'Jost', system-ui, sans-serif;
-  font-weight: 400;
-  font-size: clamp(0.98rem, 1.15vw, 1.1rem);
-  line-height: 1.62;
-  color: rgba(46, 42, 28, 0.86);
-  opacity: 0;
-  animation: heroc-entra 1s cubic-bezier(0.2, 0.75, 0.2, 1) 0.42s forwards;
-}
-
 /**
  * Los dos juegos de botones comparten celda, como los tres textos: el bloque
  * reserva el alto del más alto -en móvil, el de las dos píldoras partidas en dos
@@ -355,7 +361,18 @@
 .bol-heroc__acciones {
   display: grid;
   grid-template-columns: 1fr;
-  margin-top: 0.6rem;
+  // El aire bajo el titular ESCALA con el titular, no es un número fijo.
+  //
+  // Los 0,6rem de antes sumaban 28px con el `gap` del contenedor, y eso bastaba
+  // cuando entre el titular y los botones iba el párrafo: el que separaba de
+  // verdad era él. Sin el párrafo, 28px bajo un titular de 81px dejan los
+  // botones colgando de la última línea.
+  //
+  // El término en `vw` hace que el hueco crezca con el cuerpo de la letra, que
+  // también es `vw`: da ~32px de separación total en un teléfono y ~48px en
+  // escritorio, en torno a 0,55em del titular en ambos extremos, que es el
+  // ritmo editorial habitual entre un titular y lo que le sigue.
+  margin-top: clamp(1.1rem, 2.1vw, 2.2rem);
   opacity: 0;
   animation: heroc-entra 1s cubic-bezier(0.2, 0.75, 0.2, 1) 0.56s forwards;
 }
@@ -498,7 +515,14 @@
    * un 360x640 la bajada caia por debajo y su contraste se hundia a 2,89.
    */
   $texto-top: 22vh; // el mismo que `padding-top` de `.bol-heroc__contenido`
-  $texto-alto: 205px; // del rotulo a la ultima linea de la bajada, medido
+  // Del rotulo a la ultima linea del TITULAR, medido en 390x844 y en 360x640
+  // (da 121 en las dos: el titular no depende del ancho en este tramo).
+  //
+  // Eran 205px cuando debajo del titular iba el parrafo. Al retirarlo, dejar el
+  // 205 no era inofensivo: la banda seguia cubriendo 84px de foto por debajo de
+  // donde acaba el texto, que es justo la zona de los croissants. Lavado por
+  // lavado, esos 84px no protegian nada.
+  $texto-alto: 121px;
 
   .bol-heroc__velo {
     background: linear-gradient(
@@ -574,16 +598,6 @@
     text-indent: 0.13em;
   }
 
-  .bol-heroc__bajada {
-    // Más estrecha que en bandera: un párrafo centrado se lee peor cuanto más
-    // larga es la línea, porque el ojo pierde el punto de retorno.
-    max-width: 24rem;
-    // Reparte las palabras para que los renglones queden parejos en vez de
-    // dejar una última línea suelta, que es lo que hace cantar a un bloque
-    // centrado.
-    text-wrap: balance;
-  }
-
   .bol-heroc__grupo {
     justify-content: center;
   }
@@ -641,7 +655,6 @@
 
   .bol-heroc__lugar,
   .bol-heroc__titulo,
-  .bol-heroc__bajada,
   .bol-heroc__acciones {
     opacity: 1;
     animation: none;
