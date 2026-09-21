@@ -1,0 +1,121 @@
+// El libro de 2026: a sangre, ocupando la ventana entera.
+//
+// La diferencia de fondo con `about-book.component.scss` es el encuadre. Aquel
+// libro flota con aire alrededor y su tamano se despeja de la altura de la
+// ventana; este llena el cuadro de 1920x1080 y se sale por los cuatro bordes,
+// asi que la escena ES la ventana y no hay ancho que calcular: el lienzo se
+// estira al 100 % y el encuadre lo resuelve el componente con un "cover".
+.bol-libro {
+  // Sin `padding` lateral: cualquier margen aqui deja ver el borde del lienzo y
+  // el libro dejaria de ir a sangre.
+  padding: 0;
+  margin: 0;
+
+  // El lienzo mide exactamente la ventana, asi que nada se sale en horizontal;
+  // `clip` esta igualmente por si un navegador redondea el ancho hacia arriba.
+  // No puede ser `hidden`: eso convertiria la seccion en un contenedor de
+  // scroll y arrastraria `overflow-y` a `auto`.
+  overflow-x: clip;
+  overflow-y: visible;
+}
+
+.bol-libro__pista {
+  position: relative;
+}
+
+.bol-libro__pin {
+  position: sticky;
+  top: 0;
+  // `svh` y no `vh`: en Android `100vh` es el viewport GRANDE -el de la barra
+  // retraida-, asi que con el la escena baja y esconde una franja.
+  height: 100vh;
+  height: 100svh;
+}
+
+.bol-libro__escena {
+  position: relative;
+  width: 100%;
+  height: 100%;
+
+  // El foco tiene que verse: es una pieza enfocable que se maneja con el
+  // teclado, y sin anillo no hay forma de saber donde esta.
+  &:focus-visible {
+    outline: 2px solid var(--olive);
+    outline-offset: -4px;
+  }
+}
+
+.bol-libro__lienzo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 0.45s ease;
+
+  &.esta-listo {
+    opacity: 1;
+  }
+}
+
+// ─── La pista ────────────────────────────────────────────────────────────────
+// 25svh por vuelta, y este es EL numero del ritmo: pasar una hoja cuesta
+// exactamente la altura de su hueco. Es el mismo valor que el libro anterior,
+// donde se ajusto a base de uso -a 60svh eran "literalmente diez clics antes de
+// pasar la hoja"- y no hay motivo para que el libro nuevo se sienta distinto.
+//
+// Ocho vueltas: abrir la tapa y las siete hojas que separan las ocho paginas.
+.bol-libro__recorrido {
+  height: calc(8 * 25svh);
+}
+
+// Permanencia en la pagina de cierre. Sin el, el anclaje se suelta en el
+// instante en que la ultima hoja termina de caer y los botones de ubicacion y
+// mensaje pasan de largo antes de que nadie pueda pulsarlos.
+.bol-libro__remate {
+  height: 65svh;
+}
+
+// Bajar la tapa cuesta lo mismo que pasar una hoja, con la misma histeresis.
+// Este tramo es mas largo de recorrer en cuadros que una vuelta (140 contra 52),
+// asi que la tapa baja mas despacio por el mismo scroll: es deliberado, es el
+// final del recorrido y el libro se aleja mientras se cierra.
+.bol-libro__cierre {
+  height: 25svh;
+}
+
+// Algo menos que el remate: aqui no hay nada que pulsar, solo dejar que la
+// contraportada se asiente antes de la despedida.
+.bol-libro__portada {
+  height: 50svh;
+}
+
+// ─── Accesibilidad ───────────────────────────────────────────────────────────
+.bol-libro__sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+// Area pulsable de los dos botones de la pagina de cierre. No pinta nada: el
+// boton ya esta dibujado en el papel, con su perspectiva y su luz, y la
+// respuesta al puntero ocurre DENTRO de la hoja (ver marcaSocial).
+.bol-libro__social {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+
+  // El foco si lleva anillo propio: el navegador tiene que poder senalar donde
+  // esta el teclado, y marcar la tinta no lo deja claro.
+  &:focus-visible {
+    outline: 2px solid var(--olive);
+    outline-offset: 4px;
+    border-radius: 999px;
+  }
+}

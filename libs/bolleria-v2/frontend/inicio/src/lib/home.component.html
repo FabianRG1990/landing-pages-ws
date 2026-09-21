@@ -1,7 +1,18 @@
 <!-- ACERCA DE NOSOTROS
-     Las especialidades ya no van aquí: sus cuatro tarjetas son ahora el índice
-     de la carta, en la pantalla de Menú. -->
-<bol-about-book />
+     Dos libros, y solo uno se monta. El nuevo va en escritorio y en cualquier
+     pantalla horizontal; el de siempre se queda con el telefono de pie, intacto.
+     Ver `LIBRO_NUEVO` en el componente.
+
+     `ngSkipHydration` en los dos: cual toca solo se sabe en el navegador -el
+     servidor no conoce la orientacion-, asi que el arbol cambia justo despues de
+     hidratar. Sin esto Angular compara el DOM del servidor con el del cliente y
+     avisa de discrepancia. No se pierde nada al saltarlo: los dos libros son un
+     lienzo que se pinta entero en cliente. -->
+@if (libroNuevo()) {
+  <bol-about-book-2026 ngSkipHydration />
+} @else {
+  <bol-about-book ngSkipHydration />
+}
 
 <!-- La portada NO lleva pie de página: cierra con esta despedida. El pie
      completo sigue intacto en Menú y Contacto (ver app.html). -->
