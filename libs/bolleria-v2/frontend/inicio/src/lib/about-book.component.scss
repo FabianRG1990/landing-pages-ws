@@ -158,6 +158,104 @@
   // retraida-, asi que centrar con el baja el libro y esconde una franja.
   height: 100vh;
   height: 100svh;
+
+  // ─── La mesa, solo en vertical ───────────────────────────────────────────
+  // En vertical el libro es pequeno y se queda flotando en medio de una
+  // pantalla casi lisa. La foto de la mesa enharinada le da suelo.
+  //
+  // Va en el elemento ANCLADO y no en la pista: asi la mesa se queda quieta
+  // mientras pasan las hojas. El libro esta apoyado en ella, no navegando por
+  // encima. La condicion es exactamente la que decide que libro se monta -ver
+  // LIBRO_NUEVO en home.component.ts-: de 901px en adelante, o en horizontal,
+  // este componente ni siquiera existe.
+  @media (max-width: 900px) and (orientation: portrait) {
+    // El pseudo-elemento va con z-index negativo, y eso solo se queda dentro si
+    // aqui hay contexto de apilamiento. `sticky` ya deberia crearlo; `isolation`
+    // lo garantiza sin depender de esa lectura del navegador.
+    isolation: isolate;
+
+    // ─── La camara ────────────────────────────────────────────────────────
+    // Esto NO es decoracion: es lo que hace que el libro tenga un tamano
+    // creible. La foto, a tamano natural, encuadra cerca de un metro de mesa
+    // -lo dicen sus propias referencias: el bol de fermentacion mide 22 cm y
+    // ocupa el 22 % del ancho; el pano, 45 cm; la espiga, 8-. Y el libro ocupa
+    // la pantalla entera. O sea que el libro se estaba viendo de medio metro
+    // largo, cuando un libro de recetas mide 20-25 cm. Ninguna sombra arregla
+    // eso: el ojo lee la escala en el bol y en las espigas y saca la cuenta
+    // solo. Por eso «se veia sobrepuesto».
+    //
+    // La cura no es encoger el libro -quedaria ilegible en un telefono- sino
+    // ACERCAR LA CAMARA a la mesa, que es lo que haria un fotografo. Al
+    // ampliar, las referencias de tamano se salen de cuadro y lo que queda es
+    // piedra enharinada, que no dice de que tamano es nada.
+    // 150 % y apoyada en el canto. Se probaron 100, 130, 150, 165, 200, 240 y
+    // 280: por debajo de 150 siguen en cuadro el bol y las espigas -las
+    // referencias que delatan el tamano-, y por encima de 165 la piedra se
+    // amplia tanto que se vuelve papilla; se llego a hornear el recorte con
+    // reenfoque y salia yeso, no piedra. A 150 % pegada abajo se conserva el
+    // GRUESO de la encimera, que es lo unico que hace falta para que se lea
+    // «mesa» y no «pared», y es una referencia de tamano que ya no contradice
+    // al libro.
+    --camara: 150%;
+    --encuadre: 50% 100%;
+
+    --desvanece: linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0) 0%,
+      rgba(0, 0, 0, 0.5) 4%,
+      rgba(0, 0, 0, 0.9) 9%,
+      #000 14%,
+      #000 84%,
+      rgba(0, 0, 0, 0.7) 93%,
+      rgba(0, 0, 0, 0) 100%
+    );
+
+    &::before {
+      content: '';
+      // Absoluto, y no un hijo mas: el pin es `flex`, y un pseudo en flujo se
+      // convertiria en elemento flexible y descuadraria el centrado del grupo.
+      position: absolute;
+      // A sangre. Los -24px cancelan el `padding: 0 24px` de `.bol-book`: sin
+      // ellos quedaban dos franjas de crema a los lados y la mesa se leia como
+      // una foto metida en un marco, que es justo lo que no puede parecer.
+      // Llega exacto al borde de la seccion -que ocupa el ancho de la ventana-,
+      // asi que no desplaza la pagina ni con `overflow: clip` ni sin el.
+      inset: 0 -24px;
+      // DEBAJO del libro, y todo lo de esta capa con el. Hubo una version con
+      // el grano y la luz por ENCIMA -para que libro y mesa compartieran
+      // textura, que es lo que hace que dos cosas parezcan una sola foto- y se
+      // retiro: sobre la letra manuscrita del libro el grano se come los trazos
+      // finos y cuesta leer. La legibilidad manda.
+      z-index: -1;
+      pointer-events: none;
+
+      // Cuatro capas, de arriba abajo en el apilado:
+      //   · el grano, que le devuelve a la piedra el detalle que se pierde al
+      //     ampliar la foto. Lleva su alfa en el archivo y no `mix-blend-mode`,
+      //     que sobre contenido que se anima obliga a WebKit a rehacer la
+      //     mezcla en cada fotograma.
+      //   · la luz de la escena, que entra por arriba a la derecha. Medido: la
+      //     mesa esta un 4 % mas clara por ese lado y el libro un 11 %, o sea
+      //     que la foto y el libro ya venian iluminados de acuerdo.
+      //   · su caida hacia abajo a la izquierda.
+      //   · la mesa.
+      background-image: url('/assets/grano.webp'),
+        radial-gradient(130% 80% at 88% 4%, rgba(255, 244, 224, 0.13), rgba(255, 244, 224, 0) 58%),
+        linear-gradient(200deg, rgba(255, 244, 224, 0) 42%, rgba(92, 56, 22, 0.13) 100%),
+        url('/assets/libro-mesa-mobile.webp');
+      background-size: 64px 64px, 100% 100%, 100% 100%, var(--camara) auto;
+      background-position: 0 0, 0 0, 0 0, var(--encuadre);
+      background-repeat: repeat, no-repeat, no-repeat, no-repeat;
+
+      // El desvanecido se hace con MASCARA, no con un velo de color encima.
+      // Detras no hay crema plano sino el fondo de espigas del sitio -medido en
+      // el telefono: de #FAF6EA arriba a #FDF9E6 abajo-, y un color fijo dejaria
+      // una banda justo donde se supone que no hay nada. La mascara se funde con
+      // lo que haya, sea lo que sea.
+      -webkit-mask-image: var(--desvanece);
+      mask-image: var(--desvanece);
+    }
+  }
 }
 // El escenario lleva margenes negativos ARRIBA -para pegarse a la cabecera- y
 // ABAJO -para descontar el aire transparente que el video deja bajo el libro-.
@@ -298,7 +396,16 @@
   height: 100%;
   opacity: 0;
   transition: opacity 0.4s ease;
-  filter: drop-shadow(0 22px 30px rgba(46, 37, 19, 0.22));
+  // En variables porque el pulso de apertura -`@keyframes bol-book-lift`-
+  // tambien escribe el filtro: si no, el libro recuperaria la sombra plana
+  // justo durante la animacion, que es cuando mas se le mira.
+  --sombra: drop-shadow(0 22px 30px rgba(46, 37, 19, 0.22));
+  --sombra-pico: drop-shadow(0 42px 48px rgba(46, 37, 19, 0.34));
+  // Sin graduar: `brightness(1)` no hace nada y existe solo para que el filtro
+  // tenga la misma forma en los dos casos y las keyframes no tengan que saber
+  // cual es cual.
+  --grada: brightness(1);
+  filter: var(--grada) var(--sombra);
 
   &.is-ready {
     opacity: 1;
@@ -330,6 +437,53 @@
     --pulso-escala: 1;
     --pulso-subida: -12px;
   }
+
+  // Sobre la mesa el libro ya no flota: se APOYA. Una sombra recta hacia abajo
+  // es exactamente lo que delata un montaje, asi que aqui son dos, y las dos
+  // salen de medir la propia foto:
+  //
+  //   · direccion. La luz entra por arriba a la derecha -la sombra del bol cae
+  //     a su izquierda, 150 de brillo contra 201 al otro lado, y la mesa limpia
+  //     esta 13 puntos mas clara por la derecha-. Las sombras van, pues, abajo
+  //     y a la IZQUIERDA.
+  //   · color. La sombra del bol sobre la mesa equivale a rgba(137, 69, 0, .45):
+  //     no es gris, es un pardo calido. Aqui se usa el mismo tono, algo menos
+  //     saturado porque `drop-shadow` compone en alfa recto y no multiplicando.
+  //   · fuerza. Esa sombra oscurece la mesa un 33 %. Las dos juntas, donde se
+  //     solapan, dan 0,46 de alfa: la misma profundidad que tiene la foto.
+  //
+  // La corta es el contacto -pegada al canto, es la que dice "esto toca la
+  // mesa"- y la larga es la ambiental.
+  @media (max-width: 900px) and (orientation: portrait) {
+    // Cuatro y no una. Midiendo columna a columna -la base del libro es
+    // diagonal, y una banda recta da una media falsa- el oscurecimiento bajo el
+    // canto era del 22 % con la sombra plana y del 47 % en la tabla de cortar de
+    // la foto, que es el objeto apoyado mas parecido. Con estas cuatro sale
+    // 46 % pegado al canto y baja despacio, como el de la tabla.
+    //
+    // No cuestan nada: medido con GPU real y la CPU a 1/4, la mediana por
+    // fotograma al pasar la hoja se queda en 16,7 ms -60 por segundo- con una
+    // sombra y con cuatro.
+    --sombra: drop-shadow(0 2px 4px rgba(110, 66, 26, 0.78))
+      drop-shadow(-7px 10px 14px rgba(110, 66, 26, 0.55))
+      drop-shadow(-18px 26px 38px rgba(110, 66, 26, 0.32))
+      drop-shadow(-32px 44px 68px rgba(110, 66, 26, 0.22));
+    --sombra-pico: drop-shadow(0 3px 6px rgba(110, 66, 26, 0.7))
+      drop-shadow(-10px 15px 20px rgba(110, 66, 26, 0.5))
+      drop-shadow(-26px 38px 54px rgba(110, 66, 26, 0.3))
+      drop-shadow(-44px 62px 96px rgba(110, 66, 26, 0.2));
+
+    // La luz del libro contra la de la mesa. El papel salia a saturacion 0,11 y
+    // la mesa a 0,29: el libro estaba frio, y eso se lee como recorte pegado
+    // antes que cualquier sombra. Con esto el papel sube a 0,21.
+    //
+    // SOLO temperatura. Se probo tambien bajar el contraste -para quitarle a la
+    // foto insertada su negro de imprenta perfecta- y desenfocar 0,4 px, y las
+    // dos cosas se retiraron: le comian el filo a la letra manuscrita y al papel
+    // del libro, y ese libro hay que poder LEERLO. Esto solo mueve el color, no
+    // toca ni el contraste ni el detalle.
+    --grada: sepia(0.12) saturate(1.22);
+  }
 }
 
 // El pico va parametrizado porque en movil NO puede escalar, y separar la
@@ -342,15 +496,15 @@
 @keyframes bol-book-lift {
   0% {
     transform: scale(1) translateY(0);
-    filter: drop-shadow(0 22px 30px rgba(46, 37, 19, 0.22));
+    filter: var(--grada) var(--sombra);
   }
   40% {
     transform: scale(var(--pulso-escala, 1.035)) translateY(var(--pulso-subida, -8px));
-    filter: drop-shadow(0 42px 48px rgba(46, 37, 19, 0.34));
+    filter: var(--grada) var(--sombra-pico);
   }
   100% {
     transform: scale(1) translateY(0);
-    filter: drop-shadow(0 22px 30px rgba(46, 37, 19, 0.22));
+    filter: var(--grada) var(--sombra);
   }
 }
 
