@@ -69,23 +69,39 @@
   height: calc(8 * 25svh);
 }
 
-// Permanencia en la pagina de cierre. Sin el, el anclaje se suelta en el
-// instante en que la ultima hoja termina de caer y los botones de ubicacion y
-// mensaje pasan de largo antes de que nadie pueda pulsarlos.
+// Sin permanencia: la pagina de cierre dura lo mismo que la portada.
+//
+// Este hueco existia para que los botones de ubicacion y mensaje no pasaran de
+// largo antes de poder pulsarlos, y llego a valer 65svh. Se sentia atascado: con
+// la histeresis a los dos lados salian 90svh de bajar sin que pasara nada, casi
+// una pantalla entera, cuando cualquier otra pagina cuesta 25svh.
+//
+// La referencia ahora es la portada, el otro extremo del libro, que no hay que
+// calibrar porque ya se siente bien: el libro cerrado aguanta (0,5 + PISTA_BANDA)
+// de vuelta -16,25svh- y se abre. Los botones siguen dibujados y pulsables todo
+// ese rato; lo que se pierde es el colchon para pararse encima bajando de
+// seguido. Si hiciera falta recuperarlo, este es el numero que hay que subir, y
+// solo este.
 .bol-libro__remate {
-  height: 65svh;
+  height: 0;
 }
 
-// Bajar la tapa cuesta lo mismo que pasar una hoja, con la misma histeresis.
-// Este tramo es mas largo de recorrer en cuadros que una vuelta (140 contra 52),
-// asi que la tapa baja mas despacio por el mismo scroll: es deliberado, es el
-// final del recorrido y el libro se aleja mientras se cierra.
+// La tapa se dispara antes, y esa es la otra mitad de igualar la portada: lo que
+// dura la pagina de cierre es 0,35 de vuelta -lo que le queda a la vuelta
+// octava- mas el remate mas 0,65 de este tramo. Con el remate a cero, para que
+// la suma de los mismos 16,25svh de la portada, este tramo vale 0,3/0,65 de
+// vuelta.
+//
+// Cambia CUANDO empieza a bajar la tapa, no como baja: se cierra en 140 cuadros
+// por tiempo, no por scroll, asi que se ve exactamente igual que antes. El
+// `calc` deja la cuenta a la vista; si se tocara PISTA_BANDA en el componente,
+// aqui hay que rehacerla.
 .bol-libro__cierre {
-  height: 25svh;
+  height: calc(25svh * 0.3 / 0.65); // ~11,5svh
 }
 
-// Algo menos que el remate: aqui no hay nada que pulsar, solo dejar que la
-// contraportada se asiente antes de la despedida.
+// Aqui no hay nada que pulsar: solo dejar que la contraportada se asiente antes
+// de la despedida. Es lo unico largo que queda en la cola, y a proposito.
 .bol-libro__portada {
   height: 50svh;
 }
