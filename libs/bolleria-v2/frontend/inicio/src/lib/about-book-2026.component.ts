@@ -13,6 +13,7 @@ import {
 import { NgStyle, isPlatformBrowser } from '@angular/common';
 import { CONTACT, waDirectLink } from '@bolleria-v2-ui-shared';
 import { HISTORIAS } from './libro-historias';
+import { PuntoPx, WarpGL } from './about-book-warp-gl';
 
 /**
  * El libro de la portada, version 2026.
@@ -217,6 +218,105 @@ interface Malla {
   giro: Record<string, CuadroGiro>;
 }
 
+// ─── El montaje durante la apertura y el cierre ───────────────────────────────
+/**
+ * Donde cae el area de lectura de cada pagina MIENTRAS el libro se abre y se
+ * cierra: las cuatro esquinas, en pixeles del video, cuadro a cuadro.
+ *
+ * Antes el contenido solo entraba en los ultimos cuadros de la apertura, cuando
+ * el libro ya estaba asentado, asi que se veia abrirse con las hojas EN BLANCO
+ * y el texto aparecer de golpe encima; al cerrarse pasaba lo mismo al reves. Se
+ * notaba que estaba montado.
+ *
+ * Cada pagina es un PLANO, o sea que su movimiento en pantalla es una
+ * homografia, y eso es lo que hay aqui medido. Como se saco, y por que no es un
+ * calculo sino una medida, esta en `libro-2026-montaje.md`.
+ *
+ * Lo que se guarda NO es el rastreo en crudo. El libro es rigido y se abre de
+ * corrido, asi que la FORMA del cuadrilatero no puede ir y volver; el rastreo
+ * cuadro a cuadro si lo hacia -la cizalla de la pagina derecha cambiaba de
+ * signo tres veces al abrir- y eso se veia como el texto deformandose sobre el
+ * papel. Por eso la forma va suavizada fuerte y la posicion poco: son dos
+ * errores distintos, la forma DEFORMA y la posicion RESBALA.
+ */
+const MONTAJE_URL = 'assets/libro-2026-montaje.json';
+
+/**
+ * En cuantas celdas se parte el panel al estamparlo sobre la hoja.
+ *
+ * Una homografia no es afin, y `drawImage` solo sabe afin, asi que se aproxima
+ * a trozos. Con 10x10 el error en el centro de una celda queda por debajo del
+ * pixel para el escorzo mas fuerte del metraje.
+ */
+const SUB_MONTAJE = 10;
+
+type Esquinas = readonly (readonly number[])[];
+type Lado = 'izq' | 'der';
+/**
+ * Por cuadro: donde cae el area de lectura de cada pagina (`izq`, `der`) y QUE
+ * LA TAPA (`ocuIzq`, `ocuDer`).
+ *
+ * Los dos ocultadores NO son la misma cosa, aunque hagan el mismo papel:
+ *
+ *   - `ocuDer`, al ABRIR, es la media hoja de enfrente cruzada por delante.
+ *   - `ocuIzq`, al CERRAR, es el SEMIPLANO que deja la contratapa al bajar: una
+ *     recta por cuadro, buscada en el propio metraje. La tapa es un plano
+ *     rigido, asi que su canto sobre la pagina es una recta y no hace falta
+ *     nada mas. Empieza en f204 con la recta en el borde de la pagina -que no
+ *     borra nada- para que la entrada sea un barrido y no un salto, igual que
+ *     el `CORTE_FOTO` del libro anterior.
+ *
+ * Un cuadro puede NO traer `izq`, y eso no es un hueco: es que ahi la pagina
+ * izquierda todavia esta de canto o de espaldas. Al abrir, `izq` arranca en
+ * f035, que es donde su cuadrilatero pasa por su area minima y el angulo de la
+ * esquina cruza por cero. Antes de f035 ese angulo es negativo -la cara que
+ * mira a la camara es el dorso-, y pintar ahi la foto era pintarla del reves.
+ * Sin `izq` no se dibuja nada (ver `transicionAbierta`).
+ */
+interface Montaje {
+  readonly [cuadro: string]: {
+    readonly izq?: Esquinas;
+    readonly der?: Esquinas;
+    readonly ocuIzq?: Esquinas;
+    readonly ocuDer?: Esquinas;
+  };
+}
+
+/**
+ * La transformada que lleva el panel (u y v de 0 a 1) al cuadrilatero `d`.
+ *
+ * Es la homografia del cuadrado unidad al cuadrilatero, resuelta a mano (el
+ * metodo clasico de Heckbert). Con una afin no basta: una afin conserva el
+ * paralelismo, asi que sobre una pagina escorzada el contenido se va abriendo
+ * hacia el lado que se aleja en vez de estrecharse.
+ */
+function cuadHomografia(d: readonly PuntoPx[]): (u: number, v: number) => PuntoPx {
+  const [p0, p1, p2, p3] = d;
+  const sx = p0.x - p1.x + p2.x - p3.x;
+  const sy = p0.y - p1.y + p2.y - p3.y;
+  let g = 0;
+  let h = 0;
+  if (Math.abs(sx) > 1e-9 || Math.abs(sy) > 1e-9) {
+    const dx1 = p1.x - p2.x;
+    const dx2 = p3.x - p2.x;
+    const dy1 = p1.y - p2.y;
+    const dy2 = p3.y - p2.y;
+    const den = dx1 * dy2 - dy1 * dx2;
+    if (Math.abs(den) > 1e-9) {
+      g = (sx * dy2 - sy * dx2) / den;
+      h = (dx1 * sy - dy1 * sx) / den;
+    }
+  }
+  const a = p1.x - p0.x + g * p1.x;
+  const b = p3.x - p0.x + h * p3.x;
+  const e = p1.y - p0.y + g * p1.y;
+  const f = p3.y - p0.y + h * p3.y;
+  return (u, v) => {
+    const w = g * u + h * v + 1 || 1e-9;
+    return { x: (a * u + b * v + p0.x) / w, y: (e * u + f * v + p0.y) / w };
+  };
+}
+
 /** Lo que hay que dibujar encima del cuadro de video en un instante dado. */
 interface Escena {
   /** Foto estatica de la pagina izquierda, o null. */
@@ -225,8 +325,15 @@ interface Escena {
   textoDer: number | null;
   /** La hoja en vuelo, si la hay. */
   hoja: { cuadro: number; cara: 'texto' | 'foto'; pagina: number } | null;
-  /** Fundido general del contenido (0..1), para la apertura y el cierre. */
-  alfa: number;
+  /**
+   * Donde cae el area de lectura mientras el libro se mueve, o null si esta en
+   * reposo y vale la geometria de siempre.
+   */
+  cuadIzq: Esquinas | null;
+  cuadDer: Esquinas | null;
+  /** La media hoja que cruza por delante y tapa a la otra, si la hay. */
+  ocuIzq: Esquinas | null;
+  ocuDer: Esquinas | null;
 }
 
 @Component({
@@ -270,6 +377,12 @@ export class AboutBook2026Component {
   // ─── Recursos ──────────────────────────────────────────────────────────────
   private cuadros: HTMLImageElement[] = [];
   private malla: Malla | null = null;
+  private montaje: Montaje = {};
+  /**
+   * El mismo deformador por GPU que usa el libro anterior: es una utilidad
+   * generica -recibe la geometria como cierre- y no toca aquel componente.
+   */
+  private readonly warpGL = new WarpGL();
   private fotos: (HTMLCanvasElement | null)[] = [];
   private textos: HTMLCanvasElement[] = [];
   private ctx: CanvasRenderingContext2D | null = null;
@@ -328,7 +441,7 @@ export class AboutBook2026Component {
     this.ctx = canvas.getContext('2d');
     if (!this.ctx) return;
 
-    await Promise.all([this.cargaMalla(), this.cargaFuentes()]);
+    await Promise.all([this.cargaMalla(), this.cargaMontaje(), this.cargaFuentes()]);
     await this.cargaCuadro(PORTADA);
     this.dimensiona();
     this.construyePaneles();
@@ -356,6 +469,19 @@ export class AboutBook2026Component {
       this.malla = (await r.json()) as Malla;
     } catch {
       this.malla = null;
+    }
+  }
+
+  /**
+   * Si esto no llega, el libro sigue funcionando: sin cuadrilateros el
+   * contenido se estampa con la geometria de reposo, que es lo que hacia antes.
+   */
+  private async cargaMontaje(): Promise<void> {
+    try {
+      const r = await fetch(MONTAJE_URL);
+      this.montaje = (await r.json()) as Montaje;
+    } catch {
+      this.montaje = {};
     }
   }
 
@@ -758,35 +884,77 @@ export class AboutBook2026Component {
     const c = this.cuadroActual;
     const t = this.transicion;
     const e = this.estado();
+    const quieto = { hoja: null, cuadIzq: null, cuadDer: null, ocuIzq: null, ocuDer: null };
     if (!t) {
-      if (e <= 0 || e >= CERRADO_FINAL) return { fotoIzq: null, textoDer: null, hoja: null, alfa: 0 };
-      return { fotoIzq: e, textoDer: e, hoja: null, alfa: 1 };
+      if (e <= 0 || e >= CERRADO_FINAL) return { ...quieto, fotoIzq: null, textoDer: null };
+      return { ...quieto, fotoIzq: e, textoDer: e };
     }
     const lo = Math.min(t.desde, t.hasta);
     const hi = Math.max(t.desde, t.hasta);
 
-    if (lo === 0) {
-      // Apertura o cierre de la tapa sobre la pagina 1. No hay malla para estos
-      // cuadros -la hoja no gira, el libro se abre-, asi que el contenido entra
-      // con un fundido en los ultimos cuadros, cuando el libro ya esta asentado
-      // y su geometria es la del reposo (de f097 a f102 no se mueve un pixel).
-      return { fotoIzq: 1, textoDer: 1, hoja: null, alfa: this.suave((c - 97) / 5) };
-    }
-    if (hi === CERRADO_FINAL) {
-      return { fotoIzq: LAST, textoDer: LAST, hoja: null, alfa: this.suave((158 - c) / 5) };
+    // Apertura de la tapa sobre la pagina 1, y su cierre sobre la ultima. La
+    // hoja no gira sobre el lomo: el libro entero se abre y ademas se acerca a
+    // la camara, asi que aqui no vale la malla del giro sino el montaje, que
+    // lleva medido donde cae el area de lectura en cada cuadro.
+    //
+    // El contenido NO entra ni sale con un fundido. Un fundido no puede parecer
+    // parte del libro -el papel no se desvanece- y era justo lo que se notaba.
+    // Entra y sale porque la media hoja de enfrente lo TAPA: se dibuja siempre y
+    // se recorta con ella, asi que el libro lo destapa al abrirse y lo cubre al
+    // cerrarse. Donde no hay cuadrilatero, esa pagina no se ve y no se dibuja.
+    if (lo === 0 || hi === CERRADO_FINAL) {
+      const pagina = lo === 0 ? 1 : LAST;
+      return {
+        fotoIzq: pagina,
+        textoDer: pagina,
+        hoja: null,
+        cuadIzq: this.esquinas('izq', c),
+        cuadDer: this.esquinas('der', c),
+        ocuIzq: this.esquinas('ocuIzq', c),
+        ocuDer: this.esquinas('ocuDer', c),
+      };
     }
     const g = this.malla?.giro[String(Math.round(c))];
-    if (!g) return { fotoIzq: lo, textoDer: hi, hoja: null, alfa: 1 };
+    if (!g) return { ...quieto, fotoIzq: lo, textoDer: hi };
     return {
+      ...quieto,
       fotoIzq: lo,
       textoDer: hi,
       hoja: { cuadro: Math.round(c), cara: g.lado > 0 ? 'texto' : 'foto', pagina: g.lado > 0 ? lo : hi },
-      alfa: 1,
     };
+  }
+
+  /**
+   * Un cuadrilatero del montaje en el cuadro `c`, o null si ahi no lo hay.
+   *
+   * Se INTERPOLA entre los dos cuadros vecinos en vez de redondear: el cuadro de
+   * video se cuantiza porque es un bitmap, pero la posicion del contenido no
+   * tiene por que, y en la apertura las esquinas recorren hasta 60 px entre
+   * cuadro y cuadro.
+   */
+  private esquinas(clave: Lado | 'ocuIzq' | 'ocuDer', c: number): Esquinas | null {
+    const a = this.montaje[String(Math.floor(c))]?.[clave];
+    const b = this.montaje[String(Math.ceil(c))]?.[clave];
+    if (!a || !b) return a ?? b ?? null;
+    const f = c - Math.floor(c);
+    if (f === 0) return a;
+    return a.map((p, i) => [p[0] + (b[i][0] - p[0]) * f, p[1] + (b[i][1] - p[1]) * f]);
   }
 
   private suave(t: number): number {
     return Math.max(0, Math.min(1, t));
+  }
+
+  /**
+   * Si el libro se esta abriendo o cerrando.
+   *
+   * Sin cuadrilatero ahi NO se dibuja nada: la geometria de reposo pondria el
+   * contenido plano en medio del cuadro mientras el libro esta de canto o
+   * cerrado. En el resto de la pista si vale, que es donde el libro esta abierto.
+   */
+  private transicionAbierta(): boolean {
+    const t = this.transicion;
+    return !!t && (Math.min(t.desde, t.hasta) === 0 || Math.max(t.desde, t.hasta) === CERRADO_FINAL);
   }
 
   private pinta(): void {
@@ -801,19 +969,23 @@ export class AboutBook2026Component {
     }
 
     const s = this.escena();
-    if (s.alfa <= 0) return;
     ctx.save();
-    ctx.globalAlpha = s.alfa;
     const g = (s.hoja ? this.malla?.giro[String(s.hoja.cuadro)] : null) ?? null;
 
     if (s.fotoIzq !== null) {
       const panel = this.fotos[s.fotoIzq - 1];
       // La hoja solo tapa la pagina izquierda cuando ya ha cruzado el lomo.
-      if (panel) this.estampaEstatico(ctx, panel, 'izq', g !== null && g.lado < 0 ? g : null);
+      if (panel && s.cuadIzq) this.estampaCuad(ctx, panel, s.cuadIzq, s.ocuIzq);
+      else if (panel && !s.cuadIzq && !this.transicionAbierta()) {
+        this.estampaEstatico(ctx, panel, 'izq', g !== null && g.lado < 0 ? g : null);
+      }
     }
     if (s.textoDer !== null) {
       const panel = this.textos[s.textoDer - 1];
-      if (panel) this.estampaEstatico(ctx, panel, 'der', g !== null && g.lado > 0 ? g : null);
+      if (panel && s.cuadDer) this.estampaCuad(ctx, panel, s.cuadDer, s.ocuDer);
+      else if (panel && !s.cuadDer && !this.transicionAbierta()) {
+        this.estampaEstatico(ctx, panel, 'der', g !== null && g.lado > 0 ? g : null);
+      }
     }
     if (s.hoja && g) {
       const panel = s.hoja.cara === 'texto' ? this.textos[s.hoja.pagina - 1] : this.fotos[s.hoja.pagina - 1];
@@ -838,6 +1010,126 @@ export class AboutBook2026Component {
     const i = Math.max(0, Math.min(nv - 2, Math.floor(t)));
     const f = Math.max(0, Math.min(1, t - i));
     return g.libre[i] * (1 - f) + g.libre[i + 1] * f;
+  }
+
+  /**
+   * Panel sobre la hoja mientras el libro se abre o se cierra.
+   *
+   * `esquinas` son las cuatro esquinas del area de lectura en pixeles del video,
+   * medidas cuadro a cuadro. Como la pagina es un plano, lo que hay entre las
+   * cuatro esquinas es una HOMOGRAFIA: no basta con estirar, hay que aplicar la
+   * perspectiva, o el contenido se desliza sobre el papel en cuanto la pagina
+   * esta escorzada -que es justo toda la apertura-.
+   *
+   * `tapa` es lo que cruza por delante: la media hoja al abrir, el semiplano de
+   * la contratapa al cerrar. El contenido se recorta con ella, y de ahi sale
+   * que el libro lo destape al abrirse y lo cubra al cerrarse en vez de que
+   * aparezca y desaparezca.
+   *
+   * `drawImage` solo sabe transformadas afines, asi que la homografia se
+   * aproxima a trozos con una malla. En GPU se dibuja de una pasada con dos
+   * triangulos por celda, que ademas es continuo por construccion; sin GPU se
+   * cae al camino de siempre, celda a celda.
+   */
+  private estampaCuad(
+    ctx: CanvasRenderingContext2D,
+    panel: HTMLCanvasElement,
+    esquinas: Esquinas,
+    tapa: Esquinas | null,
+  ): void {
+    const dst = esquinas.map((p) => ({ x: this.px(p[0]), y: this.py(p[1]) }));
+    const mapa = cuadHomografia(dst);
+    ctx.save();
+    if (tapa) {
+      // Recorte al COMPLEMENTARIO de la tapa: el lienzo entero menos su
+      // cuadrilatero, con la regla par-impar. `clip` solo sabe quedarse con lo de
+      // DENTRO de un trazado, asi que para quedarse con lo de fuera hay que
+      // meter tambien el lienzo entero y dejar que la regla haga el agujero.
+      const cv = ctx.canvas;
+      ctx.beginPath();
+      ctx.rect(0, 0, cv.width, cv.height);
+      ctx.moveTo(this.px(tapa[0][0]), this.py(tapa[0][1]));
+      for (const p of tapa.slice(1)) ctx.lineTo(this.px(p[0]), this.py(p[1]));
+      ctx.closePath();
+      ctx.clip('evenodd');
+    }
+    if (!this.warpGL.vivo || !this.warpGL.render(ctx, panel, SUB_MONTAJE, mapa, () => true, false)) {
+      this.estampaMalla(ctx, panel, mapa);
+    }
+    ctx.restore();
+  }
+
+  /**
+   * Camino sin GPU: la malla celda a celda, con una afin por celda.
+   *
+   * Entre celda y celda queda una costura: el recorte tiene sus bordes
+   * suavizados, asi que dos celdas vecinas ponen medio pixel cada una y el
+   * fondo asoma por debajo. Sobre la foto se ve como un enrejado claro.
+   *
+   * La cura son DOS cosas a la vez, y con una sola no basta: ensanchar el
+   * recorte hacia fuera Y dibujar tambien ese margen de mas. Ensanchar solo el
+   * recorte deja la costura igual -ahi no se pinta nada, porque `drawImage`
+   * solo pinta el trozo de origen que se le pide-, que es exactamente lo que
+   * pasaba con medio pixel de recorte y el trozo justo.
+   */
+  private estampaMalla(
+    ctx: CanvasRenderingContext2D,
+    panel: HTMLCanvasElement,
+    mapa: (u: number, v: number) => PuntoPx,
+  ): void {
+    const n = SUB_MONTAJE;
+    /** Margen del solape, en pixeles del PANEL. */
+    const m = 2;
+    for (let gy = 0; gy < n; gy++) {
+      for (let gx = 0; gx < n; gx++) {
+        const u0 = gx / n;
+        const v0 = gy / n;
+        const u1 = (gx + 1) / n;
+        const v1 = (gy + 1) / n;
+        const a = mapa(u0, v0);
+        const b = mapa(u1, v0);
+        const c = mapa(u0, v1);
+        const d = mapa(u1, v1);
+        const sw = (u1 - u0) * panel.width;
+        const sh = (v1 - v0) * panel.height;
+        if (sw <= 0 || sh <= 0) continue;
+        const cx = (a.x + b.x + c.x + d.x) / 4;
+        const cy = (a.y + b.y + c.y + d.y) / 4;
+        ctx.save();
+        ctx.beginPath();
+        let primero = true;
+        for (const p of [a, b, d, c]) {
+          const dx = p.x - cx;
+          const dy = p.y - cy;
+          const l = Math.hypot(dx, dy) || 1;
+          const x = p.x + (dx / l) * 0.7;
+          const y = p.y + (dy / l) * 0.7;
+          if (primero) {
+            ctx.moveTo(x, y);
+            primero = false;
+          } else {
+            ctx.lineTo(x, y);
+          }
+        }
+        ctx.closePath();
+        ctx.clip();
+        // Afin a partir de tres esquinas: el cuarto vertice queda donde lo deje
+        // el paralelogramo, y por eso hacen falta muchas celdas.
+        ctx.transform((b.x - a.x) / sw, (b.y - a.y) / sw, (c.x - a.x) / sh, (c.y - a.y) / sh, a.x, a.y);
+        ctx.drawImage(
+          panel,
+          u0 * panel.width - m,
+          v0 * panel.height - m,
+          sw + m * 2,
+          sh + m * 2,
+          -m,
+          -m,
+          sw + m * 2,
+          sh + m * 2,
+        );
+        ctx.restore();
+      }
+    }
   }
 
   /**
