@@ -546,12 +546,40 @@ export class AboutBook2026Component {
     this.zone.runOutsideAngular(() => {
       window.addEventListener('resize', this.alRedimensionar, { passive: true });
       this.sueltame.push(() => window.removeEventListener('resize', this.alRedimensionar));
+      const vv = window.visualViewport;
+      if (vv) {
+        vv.addEventListener('resize', this.alRedimensionar, { passive: true });
+        this.sueltame.push(() => vv.removeEventListener('resize', this.alRedimensionar));
+      }
+      this.sueltame.push(() => {
+        if (this.reencuadre) cancelAnimationFrame(this.reencuadre);
+      });
     });
   }
 
+  /**
+   * Re-encuadrar cuando cambia lo que se ve, agrupado en un fotograma.
+   *
+   * `resize` de la ventana no basta en el telefono: cuando la barra del
+   * navegador se retrae al bajar, la ventana de disposicion no cambia y quien
+   * avisa de que ahora hay mas alto VISIBLE es `visualViewport`. Como el pin
+   * mide `100dvh`, ese aviso es justo el momento en que la escena tiene que
+   * volver a medirse; sin escucharlo, el lienzo se quedaria con el alto de
+   * antes y volveria la banda.
+   *
+   * La barra no aparece de golpe: se desliza, y el aviso llega muchas veces
+   * seguidas. Agruparlos en un `requestAnimationFrame` deja un solo `dimensiona`
+   * -que reasigna `canvas.width`, o sea que tira el bitmap- y un solo repintado
+   * por fotograma.
+   */
+  private reencuadre = 0;
   private readonly alRedimensionar = (): void => {
-    this.dimensiona();
-    this.pinta();
+    if (this.reencuadre) return;
+    this.reencuadre = requestAnimationFrame(() => {
+      this.reencuadre = 0;
+      this.dimensiona();
+      this.pinta();
+    });
   };
 
   private async cargaMalla(): Promise<void> {
@@ -692,12 +720,22 @@ export class AboutBook2026Component {
     // pliego completo. Cuesta que el libro se vea un 14-20 % mas pequeno y que
     // aparezca papel a los lados, y es el precio de que quepa.
     //
-    // La condicion mira la CAJA y no la ventana, para que se pueda medir sola, y
-    // es la misma que en el SCSS decide el ritmo de la pista y el suelo del hero:
-    // acostada y baja. Un escritorio ancho -un 1911x906, por ejemplo- no entra
-    // por el alto, y con razon: ahi el libro a sangre cabe y esta aprobado.
-    const acostadoBajo = h <= 600 && w > h;
-    this.esc = acostadoBajo ? H / VIDEO_H : Math.max(W / VIDEO_W, H / VIDEO_H);
+    // Quien decide no es un tamano, es la FORMA de la caja comparada con la del
+    // metraje. `w * VIDEO_H > h * VIDEO_W` es `w/h > 16/9` sin dividir: la caja
+    // es mas ancha que el video, o sea que `cover` tendria que ajustar por el
+    // ancho y comerse alto. Ahi -y solo ahi- se ajusta por alto.
+    //
+    // Antes esto era `h <= 600`, un numero fijo que no dice nada de ninguna
+    // pantalla: un aparato mas grande con la misma proporcion se quedaba fuera
+    // por un pixel. La forma, en cambio, se cumple sola en cualquier medida.
+    //
+    // El puntero grueso es lo que protege al escritorio: un 1911x906 tambien es
+    // mas ancho que 16:9, pero ahi el libro a sangre cabe, esta aprobado y no se
+    // toca. Y la tableta acostada -1024x768, 1,33:1- es mas ESTRECHA que el
+    // metraje, asi que tampoco entra por aqui.
+    const esTactil = typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches;
+    const cabeSoloPorAlto = esTactil && w * VIDEO_H > h * VIDEO_W;
+    this.esc = cabeSoloPorAlto ? H / VIDEO_H : Math.max(W / VIDEO_W, H / VIDEO_H);
     this.offX = (W - VIDEO_W * this.esc) / 2;
     // Con el libro a sangre el recorte vertical se centra en la CAJA DE REPOSO
     // -centro 543- y no en el cuadro, que es lo que mantiene el libro cerrado

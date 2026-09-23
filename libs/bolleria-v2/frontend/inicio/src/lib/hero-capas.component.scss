@@ -105,8 +105,13 @@
  */
 .bol-heroc__fijo {
   position: relative;
+  // Misma escalera que el pin del libro: `dvh` manda y vale lo que hay visible
+  // en cada momento, `svh` y `vh` quedan de respaldo para navegadores viejos.
+  // Con `svh` solo, al retraerse la barra el bodegon se quedaba con el alto de
+  // antes y dejaba una franja bajo el hero.
   height: 100vh;
   height: 100svh;
+  height: 100dvh;
   // El suelo de 34rem protege de una ventana tan baja que el bodegón y los dos
   // botones se pisarían. Solo tiene sentido donde la pantalla es más alta que
   // él; donde no, hace justo el daño que quería evitar.

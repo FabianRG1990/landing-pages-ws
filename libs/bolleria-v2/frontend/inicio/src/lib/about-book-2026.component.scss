@@ -26,10 +26,30 @@
 .bol-libro__pin {
   position: sticky;
   top: 0;
-  // `svh` y no `vh`: en Android `100vh` es el viewport GRANDE -el de la barra
-  // retraida-, asi que con el la escena baja y esconde una franja.
+  // La escena mide lo que el telefono esta mostrando AHORA, ni mas ni menos.
+  //
+  // Las tres lineas son una escalera de respaldo y las tres hacen falta:
+  //
+  //   · `vh` es el viewport GRANDE -el de la barra retraida-. Solo, esconde una
+  //     franja mientras la barra se ve.
+  //   · `svh` es el PEQUENO -con la barra puesta-. Solo, hace lo contrario, y
+  //     eso es lo que se veia en el telefono acostado: la barra se retrae al
+  //     bajar, la pantalla pasa a tener ~15 % mas de alto y la escena se queda
+  //     con el de antes. Medido sobre una captura de 3088x1440: el cuadro del
+  //     video ocupaba 1154 px de los 1327 visibles -el 87 %-, el libro salia un
+  //     15 % mas pequeno de lo que cabia, descentrado, y el resto era crema.
+  //   · `dvh` es el DINAMICO: vale en cada momento lo que hay visible, asi que
+  //     sigue a la barra en vez de adivinarla. Es el que manda.
+  //
+  // El lienzo se vuelve a medir con cada aviso de `visualViewport` (ver
+  // `alRedimensionar`); sin esa mitad, el alto cambiaria y el dibujo no.
+  //
+  // Los tramos de la pista -recorrido, cierre, portada- siguen en `svh` A
+  // PROPOSITO: son distancias de SCROLL, y si cambiaran mientras la barra se
+  // mueve, el libro daria un salto bajo el dedo.
   height: 100vh;
   height: 100svh;
+  height: 100dvh;
 }
 
 .bol-libro__escena {
