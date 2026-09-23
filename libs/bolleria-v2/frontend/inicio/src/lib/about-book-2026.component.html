@@ -27,6 +27,9 @@
         [attr.aria-label]="etiqueta()"
         aria-describedby="bol-libro-ayuda"
         (keydown)="alTeclado($event)"
+        (touchstart)="alEmpezarToque($event)"
+        (touchend)="alSoltarToque($event)"
+        (touchcancel)="alCancelarToque()"
       >
         <canvas #canvas class="bol-libro__lienzo" [class.esta-listo]="listo()"></canvas>
 
@@ -82,7 +85,8 @@
            directamente sino que MUEVEN EL SCROLL, para que la posicion de la
            ventana siga siendo la unica fuente de verdad. -->
       <p id="bol-libro-ayuda" class="bol-libro__sr">
-        Ocho páginas. Se pasan bajando y subiendo con el scroll, o con las flechas del teclado.
+        Ocho páginas. Se pasan bajando y subiendo con el scroll, deslizando el dedo hacia los lados, o con las flechas
+        del teclado.
       </p>
       <div class="bol-libro__sr">
         <button type="button" (click)="vaA(estado() - 1)" [disabled]="estado() <= 0">Página anterior</button>

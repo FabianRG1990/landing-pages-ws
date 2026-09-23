@@ -179,3 +179,79 @@
     gap: 14px;
   }
 }
+
+// ─── En el teléfono DE PIE, este bloque cierra la escena del libro ────────────
+//
+// Sustituye a la regla de `max-width: 900px` de más arriba, que sigue valiendo
+// para el teléfono acostado y que aquí se deshace entera. Aquella daba por
+// bueno el hueco y se limitaba a llenarlo con una pantalla propia; medido en un
+// 393x873, no lo conseguía: entre el libro cerrado y la primera palabra de aquí
+// quedaban 1.266 px, de los cuales ~700 no tenían ni libro ni texto.
+//
+// Lo que se hace ahora es al revés: en lugar de esperar a que el libro termine
+// de irse, este bloque SUBE a meterse en la banda que el pin del libro deja
+// siempre vacía bajo el dibujo -el escenario va centrado y la encimera
+// desenfocada llega sola hasta abajo-. Mientras el libro cerrado sigue clavado
+// arriba, «Te esperamos pronto» y el versículo entran por abajo y se colocan
+// sobre esa encimera. El hueco no se tapa: deja de existir, porque ese espacio
+// pasa a tener contenido.
+//
+// `--solape` es cuánto sube, contado desde el final de la pista del libro. Va en
+// unidades de pantalla y no en píxeles porque el libro tampoco cae a la misma
+// altura en todas: su tamaño sale de `min(100vw, 56.8svh)`, o sea del ANCHO en
+// las pantallas estrechas y del ALTO en las demás. El valor está medido en las
+// cinco pantallas de referencia, tomando la peor -aquella en la que el dibujo
+// del libro baja más- para que el texto no llegue a tocarlo en ninguna.
+//
+// La otra mitad de este arreglo es el `padding-bottom: 0` de `.bol-book`; sin
+// él, el bloque subiría 90 px menos de lo que dice este número.
+//
+// `position: relative` no es decorativo: el pin del libro es `sticky`, o sea un
+// elemento posicionado, y pinta por encima de cualquier bloque normal. Sin
+// sacar este de su capa, el texto quedaría DEBAJO de la encimera.
+@media (max-width: 900px) and (orientation: portrait) {
+  .bol-despedida {
+    // El tope lo pone la pantalla más pequeña. Medido con el libro cerrado y el
+    // pin todavía clavado, su dibujo termina en el 68 % del alto en un 360x640 y
+    // en el 64 % de un 430x932; 28 deja 26 px de aire bajo el libro en la peor
+    // de las seis y más en el resto. Subirlo mete el texto dentro del libro.
+    --solape: 28svh;
+
+    min-height: 0;
+    display: block;
+    margin-top: calc(var(--solape) * -1);
+    position: relative;
+    z-index: 1;
+
+    // El aire de la cola se recorta 52 px entre esto y el margen de abajo, y no
+    // es cosmético: cuando la pista del libro se acaba, la página sigue bajando
+    // lo que este bloque mide de más que el solape, y ese sobrante se lo come el
+    // libro por arriba. Con los 335 px que medía, en un 360x640 el libro acababa
+    // cortado 31 px. Con 279 ya no se corta en ninguna de las seis.
+    padding-bottom: 24px;
+  }
+
+  .bol-despedida__legal {
+    margin-top: 20px;
+  }
+
+  // El texto deja de leerse sobre papel liso y pasa a leerse sobre la foto de la
+  // encimera, que es más oscura. Medido sobre la página ya montada, en cuatro
+  // pantallas: el fondo bajo el rótulo ronda el (211-220, 182-189, 155-162), y
+  // con eso el oliva de siempre daba 3,05-3,30:1 y la letra pequeña 3,06-4,41:1.
+  // Las dos por debajo del 4,5 que pide AA a estos cuerpos.
+  //
+  // Se oscurecen, y solo aquí: en horizontal y en escritorio este bloque sigue
+  // sobre el crema del sitio, donde los colores de siempre pasan de sobra.
+  //
+  // El versículo NO se toca: da 8,4:1 tal cual, porque ya iba en tinta.
+  .bol-despedida__rotulo {
+    color: #3f4a1e;
+  }
+
+  .bol-despedida__versiculo cite,
+  .bol-despedida__legal,
+  .bol-despedida__by {
+    color: #4a463a;
+  }
+}

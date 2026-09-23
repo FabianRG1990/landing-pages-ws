@@ -107,9 +107,30 @@
   position: relative;
   height: 100vh;
   height: 100svh;
+  // El suelo de 34rem protege de una ventana tan baja que el bodegón y los dos
+  // botones se pisarían. Solo tiene sentido donde la pantalla es más alta que
+  // él; donde no, hace justo el daño que quería evitar.
   min-height: 34rem;
   overflow: hidden;
   isolation: isolate;
+
+  /**
+   * El teléfono acostado es el único sitio donde ese suelo queda POR ENCIMA de
+   * la pantalla: medido en un 873x393, el hero medía 544 px en una ventana de
+   * 393 y no cabía de ninguna manera -o se cortaba el título o se cortaban los
+   * botones-, y los 151 px que sobraban eran además los que obligaban al hero y
+   * al libro a compartir pantalla durante el relevo.
+   *
+   * Comprobado: sin el suelo, el hero mide exactamente 393 y entran el título,
+   * los dos botones y el "Seguí bajando".
+   *
+   * Las dos condiciones van juntas a propósito. `landscape` sola alcanzaría a
+   * cualquier monitor, y `max-height` sola alcanzaría a una ventana de
+   * escritorio estrujada, donde el suelo sí está haciendo su trabajo.
+   */
+  @media (orientation: landscape) and (max-height: 600px) {
+    min-height: 0;
+  }
 }
 
 // ---------------------------------------------------------------- la escena

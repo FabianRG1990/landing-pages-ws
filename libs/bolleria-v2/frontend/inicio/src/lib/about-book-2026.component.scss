@@ -37,6 +37,16 @@
   width: 100%;
   height: 100%;
 
+  // El dedo pasa hoja arrastrando a los lados, y el navegador no tiene que
+  // hacer nada con ese arrastre: `pan-y` le deja el scroll vertical -que es como
+  // se recorre el libro- y le quita el horizontal, que aqui no lleva a ninguna
+  // parte y en algunos navegadores dispara el "atras" del historial.
+  //
+  // `pinch-zoom` se conserva a proposito: quitarlo impediria acercar la pagina,
+  // y eso es accesibilidad, no un adorno. Lo que NO se pone es `pan-x`: en
+  // Safari autoriza la deriva lateral y el arrastre sale en diagonal.
+  touch-action: pan-y pinch-zoom;
+
   // El foco tiene que verse: es una pieza enfocable que se maneja con el
   // teclado, y sin anillo no hay forma de saber donde esta.
   &:focus-visible {
@@ -59,14 +69,34 @@
 }
 
 // ─── La pista ────────────────────────────────────────────────────────────────
-// 25svh por vuelta, y este es EL numero del ritmo: pasar una hoja cuesta
-// exactamente la altura de su hueco. Es el mismo valor que el libro anterior,
-// donde se ajusto a base de uso -a 60svh eran "literalmente diez clics antes de
-// pasar la hoja"- y no hay motivo para que el libro nuevo se sienta distinto.
+// `--vuelta` es EL numero del ritmo: lo que cuesta pasar una hoja. Lo usan el
+// recorrido y el cierre, que tiene que seguir siendo una fraccion de la vuelta
+// (ver mas abajo), asi que vive en un solo sitio.
 //
+// 25svh viene del libro anterior, donde se ajusto a base de uso -a 60svh eran
+// "literalmente diez clics antes de pasar la hoja"-. En vertical y en escritorio
+// eso son 211 y 225 px por hoja.
+.bol-libro {
+  --vuelta: 25svh;
+
+  /**
+   * El telefono acostado es el unico sitio donde `svh` traiciona al numero: 25
+   * de 393 px son 98 px por hoja, menos de la mitad que en cualquier otra
+   * pantalla, y las ocho paginas pasaban en 786 px -el libro entero en menos de
+   * dos pantallas-. El ritmo se sentia distinto porque la unidad es la pantalla
+   * y la pantalla, acostada, es baja.
+   *
+   * Con 40svh son ~157 px por hoja, cerca de los 211 del vertical. Las mismas
+   * dos condiciones que en el hero: `landscape` sola alcanzaria a un monitor.
+   */
+  @media (orientation: landscape) and (max-height: 600px) {
+    --vuelta: 40svh;
+  }
+}
+
 // Ocho vueltas: abrir la tapa y las siete hojas que separan las ocho paginas.
 .bol-libro__recorrido {
-  height: calc(8 * 25svh);
+  height: calc(8 * var(--vuelta));
 }
 
 // Sin permanencia: la pagina de cierre dura lo mismo que la portada.
@@ -97,7 +127,7 @@
 // `calc` deja la cuenta a la vista; si se tocara PISTA_BANDA en el componente,
 // aqui hay que rehacerla.
 .bol-libro__cierre {
-  height: calc(25svh * 0.3 / 0.65); // ~11,5svh
+  height: calc(var(--vuelta) * 0.3 / 0.65); // ~11,5svh con la vuelta en 25
 }
 
 // Aqui no hay nada que pulsar: solo dejar que la contraportada se asiente antes

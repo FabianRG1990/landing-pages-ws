@@ -14,6 +14,7 @@ import { NgStyle, isPlatformBrowser } from '@angular/common';
 import { CONTACT, waDirectLink } from '@bolleria-v2-ui-shared';
 import { HISTORIAS } from './libro-historias';
 import { PuntoPx, WarpGL } from './about-book-warp-gl';
+import { GestoHoja } from './gesto-hoja';
 
 /**
  * El libro de la portada, version 2026.
@@ -146,6 +147,20 @@ const AREA_IZQ_X0 = 2 * LOMO - AREA_X1;
  */
 const PANEL_W = AREA_X1 - AREA_X0;
 const PANEL_H = AREA_Y1 - AREA_Y0;
+
+/**
+ * Donde cae el libro dentro del cuadro, medido sobre el alfa de los archivos.
+ * Son los numeros que justifican el encuadre de `dimensiona`, y estan aqui para
+ * que no haya que volver a medirlos si alguien lo toca:
+ *
+ *   cerrado (cuadros 1 y 292)   y  91..995   -> 904 px, el 84 % del alto
+ *   abierto (cuadros 102 y 153) y   0..1066  -> sangra por arriba en el propio
+ *                                               metraje: 1008 de 1919 columnas
+ *                                               llegan a y=0, o sea que la
+ *                                               orilla superior de la pagina no
+ *                                               esta en el video y no hay
+ *                                               encuadre que la recupere.
+ */
 
 /**
  * Tiras horizontales con las que se estampa un panel sobre la hoja.
@@ -622,9 +637,32 @@ export class AboutBook2026Component {
 
   // ─── Lienzo ────────────────────────────────────────────────────────────────
   /**
-   * El libro va A SANGRE: el video cubre la ventana entera y se sale por donde
-   * sobre, como un `object-fit: cover`. Con el libro abierto el cuadro esta
-   * lleno de libro hasta los bordes, asi que recortar no pierde nada.
+   * El libro va A SANGRE mientras cabe: el video cubre la ventana entera y se
+   * sale por donde sobre, como un `object-fit: cover`. Con el libro abierto el
+   * cuadro esta lleno de libro hasta los bordes, asi que recortar no pierde
+   * nada.
+   *
+   * Con el libro CERRADO si lo pierde, y en un telefono acostado lo perdia de
+   * verdad. El video es 16:9 y un telefono tumbado ronda 2,2:1, asi que `cover`
+   * ajusta por ancho y se come el 18 % del alto: medido en el sitio publicado,
+   * el libro cerrado salia cortado por abajo en las cuatro medidas probadas
+   * -873x393, 844x390, 932x430 y 740x360- y ademas rozaba el borde de arriba a
+   * 6 px. "Parece que no cabe", y es que literalmente no cabia.
+   *
+   * Por eso la escala es la MENOR de dos: la de `cover` y aquella a la que la
+   * caja de reposo entra entera. Donde `cover` ya cabe -escritorio, tableta,
+   * cualquier pantalla 16:9 o mas alta- la segunda es mayor y la regla no toca
+   * nada: comprobado, 0 % de diferencia en 1440x900, 1280x800 y 1024x768.
+   *
+   * Lo que cuesta en el telefono acostado: la escala baja un 8-10 % y el video
+   * deja de llegar a los lados, asi que aparecen unas bandas de papel. No dejan
+   * ningun corte a la vista, y esto SI hubo que comprobarlo antes de decidirlo,
+   * porque con el libro abierto el video sangra por los laterales -en el cuadro
+   * 140 la columna izquierda esta opaca al 100 %-. Mirados los bordes al 300 %
+   * en los cuadros 100, 120, 140 y 180, el corte cae exactamente sobre el canto
+   * de hojas del libro, que ahi es vertical, y se lee como el borde del propio
+   * libro. Arriba y abajo no aparece banda nunca: a esta escala el video sigue
+   * midiendo 1,12 pantallas de alto.
    */
   private dimensiona(): void {
     const canvas = this.canvasRef().nativeElement;
@@ -639,23 +677,33 @@ export class AboutBook2026Component {
     canvas.style.height = `${h}px`;
     const W = w * this.dpr;
     const H = h * this.dpr;
-    this.esc = Math.max(W / VIDEO_W, H / VIDEO_H);
+    // El libro va A SANGRE salvo en el telefono acostado, que es la unica
+    // pantalla donde eso no cabe.
+    //
+    // `cover` ajusta por el lado que le sobra. En una ventana de 16:9 o mas alta
+    // -cualquier escritorio, la tableta- ajusta por el ALTO y el libro llena el
+    // cuadro, que es como esta disenado. En un telefono tumbado, que ronda
+    // 2,2:1, ajusta por el ANCHO y se come el 18 % del alto: el libro abierto
+    // salia sin orillas -ni marco, ni canto de hojas- y el cerrado pegado al
+    // borde de arriba.
+    //
+    // Ahi se ajusta por alto: entra el cuadro entero, el libro cerrado queda con
+    // 33 px de aire arriba y 31 abajo en un 873x393 y el abierto ensena el
+    // pliego completo. Cuesta que el libro se vea un 14-20 % mas pequeno y que
+    // aparezca papel a los lados, y es el precio de que quepa.
+    //
+    // La condicion mira la CAJA y no la ventana, para que se pueda medir sola, y
+    // es la misma que en el SCSS decide el ritmo de la pista y el suelo del hero:
+    // acostada y baja. Un escritorio ancho -un 1911x906, por ejemplo- no entra
+    // por el alto, y con razon: ahi el libro a sangre cabe y esta aprobado.
+    const acostadoBajo = h <= 600 && w > h;
+    this.esc = acostadoBajo ? H / VIDEO_H : Math.max(W / VIDEO_W, H / VIDEO_H);
     this.offX = (W - VIDEO_W * this.esc) / 2;
-    // El recorte vertical se centra en el AREA DE LECTURA, no en el cuadro.
-    //
-    // El area va de y 88 a 933, o sea que su centro (510) esta 30 px por encima
-    // del centro del video (540). Recortando simetricamente, en una pantalla muy
-    // apaisada se come justo ese desfase por arriba: medido en un telefono
-    // acostado de 852x393, el borde superior de la foto quedaba en y -4, fuera
-    // de la pantalla. Corriendo el encuadre 30 px quedan 9 px de aire arriba y
-    // abajo, y entra entero.
-    //
-    // El `clamp` es lo que lo hace seguro en el resto de pantallas: el
-    // desplazamiento nunca puede destapar una banda vacia, asi que donde no hay
-    // recorte vertical -un 16:9 exacto, como 1920x1080 o 1366x768- vale 0 y el
-    // encuadre no se mueve ni un pixel.
-    const centroArea = (AREA_Y0 + AREA_Y1) / 2;
-    this.offY = Math.min(0, Math.max(H - VIDEO_H * this.esc, H / 2 - centroArea * this.esc));
+    // Con el libro a sangre el recorte vertical se centra en la CAJA DE REPOSO
+    // -centro 543- y no en el cuadro, que es lo que mantiene el libro cerrado
+    // dentro. Ajustando por alto no hay recorte que repartir y la cuenta da 0
+    // sola, asi que la misma linea vale para los dos casos.
+    this.offY = Math.min(0, Math.max(H - VIDEO_H * this.esc, H / 2 - 543 * this.esc));
     this.ctx.imageSmoothingQuality = 'high';
   }
 
@@ -1570,6 +1618,28 @@ export class AboutBook2026Component {
         ? (i / LAST) * recorrido.offsetHeight
         : recorrido.offsetHeight + remate.offsetHeight + (i - LAST) * cierre.offsetHeight;
     window.scrollTo({ top: arriba + dentro, behavior: this.reducido() ? 'auto' : 'smooth' });
+  }
+
+  // ─── El dedo ───────────────────────────────────────────────────────────────
+  /**
+   * Pasar hoja arrastrando. No anima nada por su cuenta: mueve el scroll a la
+   * pagina pedida, igual que las flechas del teclado y que los botones que no
+   * se ven, para que la posicion de la ventana siga siendo la unica fuente de
+   * verdad del recorrido. Los umbrales y su porque viven en `GestoHoja`.
+   */
+  private readonly gesto = new GestoHoja();
+
+  alEmpezarToque(ev: TouchEvent): void {
+    this.gesto.empieza(ev);
+  }
+
+  alCancelarToque(): void {
+    this.gesto.cancela();
+  }
+
+  alSoltarToque(ev: TouchEvent): void {
+    const paso = this.gesto.termina(ev);
+    if (paso) this.vaA(this.estado() + paso);
   }
 
   alTeclado(ev: KeyboardEvent): void {

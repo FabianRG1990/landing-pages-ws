@@ -36,6 +36,9 @@
           [attr.aria-label]="etiqueta()"
           aria-describedby="bol-book-ayuda"
           (keydown)="alTeclado($event)"
+          (touchstart)="alEmpezarToque($event)"
+          (touchend)="alSoltarToque($event)"
+          (touchcancel)="alCancelarToque()"
         >
           <canvas #canvas class="bol-book__canvas" [class.is-ready]="ready()" [class.is-lifting]="lifting()"></canvas>
           <!-- TODO se dibuja sobre el canvas -fotos, texto y los propios botones de
@@ -73,13 +76,29 @@
         </div>
       </div>
 
+      <!-- Invitación a girar el teléfono.
+           Solo se ve en un teléfono DE PIE y con dedo (ver el SCSS): acostado ya
+           se está viendo el libro nuevo, que es justo lo que esto promete, y en
+           un escritorio no hay nada que girar. Se retira sola en cuanto la
+           persona pasa de la primera página: para entonces ya decidió, y dejarla
+           puesta sería insistir. `aria-hidden` porque no es una instrucción de
+           manejo -el libro se recorre igual sin girar nada- sino una sugerencia
+           visual; lo que sí se anuncia es la línea de ayuda de aquí abajo. -->
+      @if (sugiereGirar()) {
+        <p class="bol-book__girar" aria-hidden="true">
+          <span class="bol-book__girar-icono"></span>
+          <span class="bol-book__girar-texto">Girá el teléfono<em>y vas a verlo en grande</em></span>
+        </p>
+      }
+
       <!-- Sin nada a la vista: quitar los botones deja sin manejo a quien no
            puede usar el scroll con precisión. Estos controles no se ven pero sí
            se enfocan y los anuncia un lector de pantalla; no llaman a next()
            directamente sino que MUEVEN EL SCROLL a la página pedida, para que
            la posición de la ventana siga siendo la única fuente de verdad. -->
       <p id="bol-book-ayuda" class="bol-book__sr">
-        Ocho páginas. Se pasan bajando y subiendo con el scroll, o con las flechas del teclado.
+        Ocho páginas. Se pasan bajando y subiendo con el scroll, deslizando el dedo hacia los lados, o con las
+        flechas del teclado.
       </p>
       <div class="bol-book__sr">
         <button type="button" (click)="irAIndice(estado() - 1)" [disabled]="estado() <= 0">Página anterior</button>
