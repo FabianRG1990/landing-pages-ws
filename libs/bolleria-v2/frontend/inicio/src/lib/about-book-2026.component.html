@@ -60,6 +60,20 @@
             (blur)="marcaSocial(null)"
           ></a>
         }
+
+        <!-- El sello de la contraportada: el logotipo y la frase van DIBUJADOS
+             sobre el cuero, con su perspectiva. Esto es solo el area pulsable,
+             colocada sobre el mismo cuadrilatero que se estampa. -->
+        @if (muestraSello()) {
+          <a
+            [href]="mensajeUrl"
+            target="_blank"
+            rel="noopener"
+            class="bol-libro__sello"
+            [ngStyle]="selloEstilo()"
+            aria-label="Escribinos por WhatsApp: el horno siempre está encendido"
+          ></a>
+        }
       </div>
 
       <!-- Sin nada a la vista: quitar los botones deja sin manejo a quien no

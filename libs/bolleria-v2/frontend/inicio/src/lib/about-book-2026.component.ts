@@ -172,6 +172,57 @@ const TEXTO_FAMILIA = '"Playball", "EB Garamond", serif';
 const TEXTO_TINTA = '#33291a';
 const ORO = '#C8912A';
 
+// ─── El sello de la contraportada ────────────────────────────────────────────
+/**
+ * Donde cae el sello dentro de esa cara, en coordenadas 0..1 del plano. Deja
+ * fuera el filete cosido y los cuatro florones, que son de la tapa y no del
+ * sello.
+ */
+const SELLO_CAJA = { u0: 0.17, v0: 0.13, u1: 0.83, v1: 0.8 };
+/**
+ * Lienzo del sello. La proporcion imita la de su hueco EN EL PLANO -no en
+ * pantalla-, que es donde el estampado lo estira: si no, el logotipo saldria
+ * ovalado.
+ */
+const SELLO_W = 900;
+const SELLO_H = 940;
+/** El logotipo: lado como fraccion del ancho, y centro como fraccion del alto. */
+const SELLO_LOGO = { lado: 0.42, cy: 0.29 };
+const SELLO_FRASE = 'El horno siempre está encendido';
+const SELLO_PIE = 'ESCRIBINOS Y HACEMOS TU PEDIDO';
+/** Verde de marca de WhatsApp. */
+const WA_VERDE = '#25D366';
+/**
+ * Cuanta tinta. No es opacidad decorativa: por debajo del 1 la veta del cuero y
+ * su sombreado atraviesan el verde, que es lo que distingue una tinta impresa de
+ * un color plano pegado encima.
+ */
+const SELLO_TINTA = 0.92;
+/**
+ * El grabado. La luz de esta escena es muy pareja sobre la tapa -232 de brillo
+ * por la izquierda contra 230 por la derecha, medido sobre el cuero-, asi que el
+ * relieve tiene que ser MINIMO: dos copias del trazado desplazadas un pelo, una
+ * mas oscura arriba-izquierda y otra mas clara abajo-derecha. Es un hundido, no
+ * un realce: la pared que mira a la luz es la de abajo a la derecha.
+ *
+ * Los dos tonos son el mismo verde aclarado y oscurecido, no gris: bajo
+ * `multiply` un verde claro casi no oscurece y por eso se lee como brillo.
+ */
+const SELLO_RELIEVE = { d: 2.4, sombra: '#0f7a38', luz: '#b9ecc9' };
+/**
+ * Las motas del entintado. `n` a ojo de la superficie del lienzo del sello;
+ * `min`/`max` en pixeles de ESE lienzo, que se ve a poco mas de un cuarto de su
+ * tamano, asi que una mota de 3 px es de menos de uno en pantalla.
+ */
+const SELLO_MOTA = { n: 2600, min: 2.2, max: 5.5, alfa: 0.13 };
+/**
+ * Trazado oficial del logotipo en un lienzo de 24x24. Es el MISMO que ya usa la
+ * pagina de contacto: se copia de ahi y no se redibuja a mano, que con una marca
+ * registrada es la diferencia entre el logotipo y un parecido.
+ */
+const WA_TRAZADO =
+  'M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z';
+
 /** Centro del bloque de texto dentro del panel. */
 const TEXTO_U = 0.5;
 const TEXTO_V = 0.5;
@@ -279,6 +330,27 @@ interface Montaje {
     readonly der?: Esquinas;
     readonly ocuIzq?: Esquinas;
     readonly ocuDer?: Esquinas;
+    /**
+     * Cara de la CONTRAPORTADA, para el sello de WhatsApp. Existe del cuadro 203
+     * -cuando la tapa empieza a asomar en el cierre- al 292, y no antes: hasta
+     * ahi lo que se ve del libro son las hojas de canto.
+     *
+     * Se midio de otra manera que el resto, porque aqui no hay nada que
+     * calibrar a mano: en el 292 el libro ya esta quieto -del 285 al 292 la
+     * diferencia entre cuadros es de 0,4 niveles-, asi que ahi se saca la cara
+     * una vez y se RASTREA hacia atras emparejando la textura del cuero cuadro a
+     * cuadro. De 150 a 430 pares por cuadro con mas del 80 % de acuerdo, y sin
+     * deriva visible: comprobado dibujando la rejilla del plano sobre el cuero
+     * en ocho cuadros del cierre.
+     *
+     * Los tres primeros vertices del 292 salen de segmentar la cara por relleno
+     * de color; el cuarto, el de abajo a la derecha, no habia manera -ahi la
+     * tapa se junta con el lomo y con el bloque de hojas y tanto el relleno como
+     * las rectas de Hough se iban 70 px mas abajo, ya sobre la sombra-, asi que
+     * se cerro por geometria: punto de fuga de los dos lados mas la condicion de
+     * que la tapa es un rectangulo.
+     */
+    readonly tapa?: Esquinas;
   };
 }
 
@@ -372,6 +444,8 @@ export class AboutBook2026Component {
 
   /** Los dos enlaces solo existen con la pagina de cierre abierta y quieta. */
   readonly muestraSocial = computed(() => this.listo() && !this.ocupado() && this.estado() === LAST);
+  /** Y el del sello, solo con el libro cerrado por detras y quieto. */
+  readonly muestraSello = computed(() => this.listo() && !this.ocupado() && this.estado() >= CERRADO_FINAL);
   private readonly socialMarcado = signal<SocialKind | null>(null);
 
   // ─── Recursos ──────────────────────────────────────────────────────────────
@@ -393,6 +467,8 @@ export class AboutBook2026Component {
   private offY = 0;
   private raf = 0;
   private cuadroActual = PORTADA;
+  /** Lienzo del sello, dibujado una sola vez. */
+  private sello: HTMLCanvasElement | null = null;
 
   /**
    * Al girar el telefono este componente se DESMONTA -el otro libro ocupa su
@@ -932,7 +1008,7 @@ export class AboutBook2026Component {
    * tiene por que, y en la apertura las esquinas recorren hasta 60 px entre
    * cuadro y cuadro.
    */
-  private esquinas(clave: Lado | 'ocuIzq' | 'ocuDer', c: number): Esquinas | null {
+  private esquinas(clave: Lado | 'ocuIzq' | 'ocuDer' | 'tapa', c: number): Esquinas | null {
     const a = this.montaje[String(Math.floor(c))]?.[clave];
     const b = this.montaje[String(Math.ceil(c))]?.[clave];
     if (!a || !b) return a ?? b ?? null;
@@ -990,6 +1066,132 @@ export class AboutBook2026Component {
     if (s.hoja && g) {
       const panel = s.hoja.cara === 'texto' ? this.textos[s.hoja.pagina - 1] : this.fotos[s.hoja.pagina - 1];
       if (panel) this.estampaHoja(ctx, panel, g);
+    }
+    ctx.restore();
+
+    // El sello de la contraportada. Va IMPRESO en el cuero, asi que se dibuja
+    // siempre que haya tapa a la vista -desde que asoma en el cierre, por el
+    // cuadro 203, hasta el final- y acompana a la tapa mientras baja. No entra
+    // con un fundido: un logotipo impreso no aparece ni desaparece, igual que no
+    // lo hacen los florones de las esquinas.
+    const tapa = this.esquinasSello();
+    if (tapa) {
+      ctx.save();
+      // MULTIPLICAR, que es como se comporta la tinta: deja pasar la veta del
+      // cuero y su sombreado en vez de taparlos con un color plano. Es la
+      // diferencia entre una tinta impresa y una calcomania pegada encima.
+      // `globalAlpha` y el modo de mezcla valen para los dos caminos de
+      // estampado: WarpGL termina con un `drawImage` sobre este mismo contexto,
+      // y la malla sin GPU tambien.
+      ctx.globalCompositeOperation = 'multiply';
+      ctx.globalAlpha = SELLO_TINTA;
+      this.estampaCuad(ctx, this.panelSello(), tapa, null);
+      ctx.restore();
+    }
+  }
+
+  /**
+   * El hueco del sello en el cuadro actual, o null si la tapa no esta a la
+   * vista. Sale del plano `tapa` del montaje, que esta medido cuadro a cuadro
+   * durante todo el cierre.
+   */
+  private esquinasSello(): Esquinas | null {
+    const cara = this.esquinas('tapa', this.cuadroActual);
+    if (!cara) return null;
+    const mapa = cuadHomografia(cara.map((q) => ({ x: q[0], y: q[1] })));
+    const { u0, v0, u1, v1 } = SELLO_CAJA;
+    return [
+      [u0, v0],
+      [u1, v0],
+      [u1, v1],
+      [u0, v1],
+    ].map(([u, v]) => {
+      const q = mapa(u, v);
+      return [q.x, q.y];
+    });
+  }
+
+  /**
+   * El sello: el logotipo de WhatsApp y, debajo, la frase. Se dibuja plano y de
+   * frente, y es el estampado el que le pone la perspectiva de la tapa, igual
+   * que con las paginas.
+   */
+  private panelSello(): HTMLCanvasElement {
+    if (this.sello) return this.sello;
+    const c = document.createElement('canvas');
+    c.width = SELLO_W;
+    c.height = SELLO_H;
+    const ctx = c.getContext('2d') as CanvasRenderingContext2D;
+
+    const lado = SELLO_W * SELLO_LOGO.lado;
+    const trazo = new Path2D(WA_TRAZADO);
+    const marca = (dx: number, dy: number, color: string): void => {
+      ctx.save();
+      ctx.translate((SELLO_W - lado) / 2 + dx, SELLO_H * SELLO_LOGO.cy - lado / 2 + dy);
+      ctx.scale(lado / 24, lado / 24);
+      ctx.fillStyle = color;
+      ctx.fill(trazo);
+      ctx.restore();
+    };
+    const { d, sombra, luz } = SELLO_RELIEVE;
+    marca(d, d, luz);          // la pared que mira a la luz
+    marca(-d, -d, sombra);     // la que le da la espalda
+    marca(0, 0, WA_VERDE);     // y la tinta encima de las dos
+
+    const cx = SELLO_W / 2;
+    const cuerpo = Math.round(SELLO_W * 0.093);
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'alphabetic';
+    ctx.fillStyle = TEXTO_TINTA;
+    ctx.font = `400 ${cuerpo}px ${TEXTO_FAMILIA}`;
+    const filas = this.reparte(ctx, SELLO_FRASE, SELLO_W * 0.84);
+    let y = SELLO_H * 0.63;
+    for (const f of filas) {
+      ctx.fillText(f, cx, y);
+      y += cuerpo * TEXTO_LINEA;
+    }
+
+    this.pintaFilete(ctx, cx, y + cuerpo * 0.25);
+
+    // Cuerpo y tracking cortos a proposito: con el renglon mas ancho, sus
+    // extremos se metian en los florones de las esquinas de abajo.
+    const pie = Math.round(SELLO_W * 0.03);
+    const track = pie * 0.18;
+    ctx.font = `500 ${pie}px "Jost", system-ui, sans-serif`;
+    ctx.textAlign = 'left';
+    ctx.fillStyle = ORO;
+    const ancho = this.anchoConTrack(ctx, SELLO_PIE, track);
+    this.textoConTrack(ctx, SELLO_PIE, cx - ancho / 2, y + cuerpo * 1.35, track);
+
+    this.motea(ctx);
+    this.sello = c;
+    return c;
+  }
+
+  /**
+   * El entintado irregular. Una tinta que se posa en un cuero no cubre parejo:
+   * el poro se la bebe a trozos. Sin esto el sello se lee como un vector
+   * perfecto pegado sobre la tapa, que es justo lo que se queria evitar.
+   *
+   * Se hace mordiendo el alfa -`destination-out`- con manchitas, no pintando
+   * puntos encima: asi lo que asoma por los huecos es el cuero de verdad, con su
+   * color y su sombreado, y no un beige inventado. El azar es fijo a proposito,
+   * para que el sello sea el mismo en cada carga.
+   */
+  private motea(ctx: CanvasRenderingContext2D): void {
+    let semilla = 20260922;
+    const azar = (): number => {
+      semilla = (semilla * 1103515245 + 12345) & 0x7fffffff;
+      return semilla / 0x7fffffff;
+    };
+    ctx.save();
+    ctx.globalCompositeOperation = 'destination-out';
+    for (let i = 0; i < SELLO_MOTA.n; i++) {
+      const r = SELLO_MOTA.min + azar() * (SELLO_MOTA.max - SELLO_MOTA.min);
+      ctx.globalAlpha = SELLO_MOTA.alfa * (0.35 + azar() * 0.65);
+      ctx.beginPath();
+      ctx.arc(azar() * SELLO_W, azar() * SELLO_H, r, 0, Math.PI * 2);
+      ctx.fill();
     }
     ctx.restore();
   }
@@ -1404,6 +1606,25 @@ export class AboutBook2026Component {
    * pagina, con la misma escala que el lienzo, para que siga al boton a
    * cualquier tamano de ventana.
    */
+  /**
+   * El <a> del sello. La caja se saca del MISMO cuadrilatero que se estampa, asi
+   * que sigue a la tapa a cualquier tamano de ventana sin repetir ninguna medida.
+   */
+  selloEstilo(): Record<string, string> {
+    const q = this.esquinasSello();
+    if (!q) return { display: 'none' };
+    const xs = q.map((p) => this.px(p[0]) / this.dpr);
+    const ys = q.map((p) => this.py(p[1]) / this.dpr);
+    const x0 = Math.min(...xs);
+    const y0 = Math.min(...ys);
+    return {
+      left: `${x0}px`,
+      top: `${y0}px`,
+      width: `${Math.max(...xs) - x0}px`,
+      height: `${Math.max(...ys) - y0}px`,
+    };
+  }
+
   socialEstilo(kind: SocialKind): Record<string, string> {
     const pos = SOCIAL_POS[kind];
     const cssEsc = this.esc / this.dpr;

@@ -119,6 +119,19 @@
   border: 0;
 }
 
+// Area pulsable del sello de la contraportada. Como los botones de la pagina de
+// cierre, no pinta nada: el logotipo y la frase estan estampados en el cuero.
+.bol-libro__sello {
+  position: absolute;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid var(--olive);
+    outline-offset: 6px;
+    border-radius: 12px;
+  }
+}
+
 // Area pulsable de los dos botones de la pagina de cierre. No pinta nada: el
 // boton ya esta dibujado en el papel, con su perspectiva y su luz, y la
 // respuesta al puntero ocurre DENTRO de la hoja (ver marcaSocial).
