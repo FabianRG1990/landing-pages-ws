@@ -26,30 +26,28 @@
 .bol-libro__pin {
   position: sticky;
   top: 0;
-  // La escena mide lo que el telefono esta mostrando AHORA, ni mas ni menos.
+  // Lo que MIDE es constante; lo que PINTA sigue a la pantalla. Esta separacion
+  // es la clave de toda la seccion.
   //
-  // Las tres lineas son una escalera de respaldo y las tres hacen falta:
+  // El pin forma parte de la pista, o sea de la GEOMETRIA de la pagina: su alto
+  // entra en la altura del documento y en el divisor del progreso. Medido con
+  // `dvh`, cada vez que la barra del navegador se desliza la pagina cambia de
+  // tamano bajo el dedo y el navegador compensa moviendo el scroll -medido en
+  // Chrome: 56 px, el equivalente a 0,29 paginas-. En el telefono la barra no se
+  // va de golpe sino animada, asi que eso no es un salto: es un empujon
+  // sostenido justo al levantar el dedo. Reportado como "el scroll continua solo
+  // y muy fuerte", y en Safari es peor, porque rehace la disposicion en cada
+  // fotograma de esa animacion.
   //
-  //   · `vh` es el viewport GRANDE -el de la barra retraida-. Solo, esconde una
-  //     franja mientras la barra se ve.
-  //   · `svh` es el PEQUENO -con la barra puesta-. Solo, hace lo contrario, y
-  //     eso es lo que se veia en el telefono acostado: la barra se retrae al
-  //     bajar, la pantalla pasa a tener ~15 % mas de alto y la escena se queda
-  //     con el de antes. Medido sobre una captura de 3088x1440: el cuadro del
-  //     video ocupaba 1154 px de los 1327 visibles -el 87 %-, el libro salia un
-  //     15 % mas pequeno de lo que cabia, descentrado, y el resto era crema.
-  //   · `dvh` es el DINAMICO: vale en cada momento lo que hay visible, asi que
-  //     sigue a la barra en vez de adivinarla. Es el que manda.
+  // Por eso aqui manda `svh`, que es una CONSTANTE -el viewport pequeno, el de
+  // la barra puesta-: la geometria no se mueve nunca. Lo que llena la pantalla
+  // es el LIENZO, que va en absoluto -no cuenta para la altura de nada- y ese si
+  // mide lo visible (ver `.bol-libro__lienzo`).
   //
-  // El lienzo se vuelve a medir con cada aviso de `visualViewport` (ver
-  // `alRedimensionar`); sin esa mitad, el alto cambiaria y el dibujo no.
-  //
-  // Los tramos de la pista -recorrido, cierre, portada- siguen en `svh` A
-  // PROPOSITO: son distancias de SCROLL, y si cambiaran mientras la barra se
-  // mueve, el libro daria un salto bajo el dedo.
+  // Los tramos de la pista -recorrido, cierre, portada- van en `svh` por la
+  // misma razon, y con mas motivo: son distancias de SCROLL.
   height: 100vh;
   height: 100svh;
-  height: 100dvh;
 }
 
 .bol-libro__escena {
@@ -76,10 +74,22 @@
 }
 
 .bol-libro__lienzo {
+  // El dibujo, y solo el dibujo. Va en absoluto y mide lo VISIBLE, asi que llena
+  // la pantalla aunque el pin -que es quien cuenta para la geometria- mida el
+  // viewport pequeno. Cuando la barra se retrae, lo unico que cambia es este
+  // rectangulo: ni la altura del documento, ni el progreso, ni el scroll.
+  //
+  // El alto real lo escribe el componente con `visualViewport.height` (ver
+  // `dimensiona`); `100dvh` es el respaldo hasta que JS mide.
   position: absolute;
-  inset: 0;
+  top: 0;
+  left: 0;
   width: 100%;
-  height: 100%;
+  height: 100dvh;
+  // No es una superficie tactil: quien escucha el dedo es la escena, que es su
+  // padre y se queda dentro del pin. Sin esto, el trozo de lienzo que sobresale
+  // por abajo se quedaria con toques que no son suyos.
+  pointer-events: none;
   opacity: 0;
   transition: opacity 0.45s ease;
 
@@ -100,17 +110,27 @@
   --vuelta: 25svh;
 
   /**
-   * El telefono acostado es el unico sitio donde `svh` traiciona al numero: 25
-   * de 393 px son 98 px por hoja, menos de la mitad que en cualquier otra
-   * pantalla, y las ocho paginas pasaban en 786 px -el libro entero en menos de
-   * dos pantallas-. El ritmo se sentia distinto porque la unidad es la pantalla
-   * y la pantalla, acostada, es baja.
+   * En el TELEFONO una hoja cuesta media pantalla larga, y esto no es afinar un
+   * gusto: es la fisica del dedo.
    *
-   * Con 40svh son ~157 px por hoja, cerca de los 211 del vertical. Las mismas
-   * dos condiciones que en el hero: `landscape` sola alcanzaria a un monitor.
+   * Con 25svh una hoja cuesta 218 px de pie y con 40svh 157 px acostado. Un
+   * deslizamiento con impulso recorre 700-900 px, asi que un solo gesto pasaba
+   * tres o cuatro hojas de golpe -reportado tal cual-. El numero corto venia de
+   * una queja de ESCRITORIO ("literalmente diez clics antes de pasar la hoja"),
+   * donde la unidad es la muesca de la rueda; en el telefono la unidad es el
+   * impulso, y no se parecen en nada.
+   *
+   * `svmax` y no `svh`: es el lado LARGO de la pantalla, que es el mismo trozo
+   * de cristal antes y despues de girar el aparato. Asi una hoja cuesta lo mismo
+   * en las dos posiciones -436 px en un 393x873- en vez de abaratarse justo
+   * donde la pantalla es baja. Con `svh` habria que escribir 50 en vertical y
+   * 112 en horizontal para decir lo mismo.
+   *
+   * El escritorio NO entra: alli manda la rueda, el ritmo esta aprobado y 25svh
+   * se queda. La tableta tampoco se toca, que no estaba en el encargo.
    */
-  @media (orientation: landscape) and (max-height: 600px) {
-    --vuelta: 40svh;
+  @media (pointer: coarse) and (orientation: landscape) and (max-height: 600px) {
+    --vuelta: 50svmax;
   }
 }
 

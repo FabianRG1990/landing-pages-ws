@@ -717,3 +717,49 @@
     right: 10px;
   }
 }
+
+// ── El hamburguesa SI se queda sobre el hero, y solo en el telefono ──────────
+//
+// La barra entera se esconde sobre la portada a proposito -"la portada va
+// limpia"-, y en escritorio y tableta eso se mantiene. Pero en el telefono la
+// navegacion ES ese boton: sin el, la primera pantalla no ofrece ninguna puerta
+// y hay que bajar para descubrir que el sitio tiene mas. El dueno del sitio lo
+// pidio asi y con el limite claro: solo telefonos.
+//
+// Se muestra SOLO el boton. El logotipo no se repite -ya esta grande dentro del
+// propio hero- ni la pildora de enlaces, que necesita un fondo que aqui no hay.
+//
+// El orden importa: la opacidad no se puede deshacer desde un hijo -si el padre
+// esta a 0, el hijo no puede verse-, asi que la barra pasa a opacidad 1 y lo que
+// se esconde es cada pieza por separado.
+//
+// El tono `foto` ya trae lo que hace legible el icono sobre la foto: tinta
+// oscura y un halo crema a su alrededor. No hace falta pieza nueva.
+@media (max-width: 600px), (max-height: 500px) and (orientation: landscape) {
+  .bol-nav--oculta {
+    opacity: 1;
+    visibility: visible;
+    // La barra no es una superficie: solo el boton recibe toques.
+    pointer-events: none;
+    transition: none;
+
+    .bol-nav__brand,
+    .bol-nav__links {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    // El segundo selector le gana por orden a la regla que apaga el hamburguesa
+    // mientras la pagina esta arriba del todo -donde normalmente manda la
+    // pildora de enlaces-: sobre el hero no hay pildora, asi que el boton se
+    // queda.
+    .bol-nav__hamburger,
+    &:not(.bol-nav--compact) .bol-nav__hamburger {
+      display: flex;
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+    }
+  }
+}

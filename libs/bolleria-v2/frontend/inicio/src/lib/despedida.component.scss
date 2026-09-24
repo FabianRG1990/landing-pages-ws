@@ -215,6 +215,12 @@
     // pin todavía clavado, su dibujo termina en el 68 % del alto en un 360x640 y
     // en el 64 % de un 430x932; 28 deja 26 px de aire bajo el libro en la peor
     // de las seis y más en el resto. Subirlo mete el texto dentro del libro.
+    // `svh`, la misma unidad que el pin del libro contra el que esta medido.
+    //
+    // Llego a estar en la unidad dinamica para seguir al dibujo cuando la barra
+    // se retraia, y fue un error: esto es un margen, o sea GEOMETRIA, y un
+    // margen que cambia mientras se hace scroll mueve la pagina bajo el dedo.
+    // Ahora el pin tampoco cambia, asi que los dos van juntos y quietos.
     --solape: 28svh;
 
     min-height: 0;

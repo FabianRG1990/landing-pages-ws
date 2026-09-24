@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, ElementRef, NgZone, PLATFORM_ID, computed, inject, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, NgZone, PLATFORM_ID, computed, inject, signal, viewChild } from '@angular/core';
 import { NgStyle, isPlatformBrowser } from '@angular/common';
 import { CONTACT, waDirectLink } from '@bolleria-v2-ui-shared';
 import { WarpGL } from './about-book-warp-gl';
@@ -1370,7 +1370,25 @@ const SOCIAL_LABEL: Readonly<Record<SocialKind, string>> = { ubicacion: 'UBICACI
 })
 export class AboutBookComponent {
   private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
+
+  /**
+   * Lo que hay que soltar al desmontar.
+   *
+   * Este componente nacio para vivir lo que vive la pagina y por eso no soltaba
+   * nada. Ya no es cierto: al girar el telefono se destruye y se construye el
+   * otro libro, asi que sin esto cada giro dejaria atras un juego de
+   * escuchadores de scroll y de resize apuntando a un componente muerto -que
+   * seguirian midiendo y dibujando sobre un lienzo que ya no esta en la pagina-
+   * y se irian acumulando giro tras giro.
+   */
+  private readonly sueltame: Array<() => void> = [];
   private readonly zone = inject(NgZone);
+  private readonly limpieza = inject(DestroyRef).onDestroy(() => {
+    this.sueltame.forEach((f) => f());
+    this.sueltame.length = 0;
+    if (this.rafPista) cancelAnimationFrame(this.rafPista);
+    if (this.rafMedida) cancelAnimationFrame(this.rafMedida);
+  });
   // Por aqui sale `--cam-k` hacia el SCSS: el acercamiento de la camara, que la
   // sombra necesita para crecer con el libro. Va en el anfitrion y no en el pin
   // para no depender de que la sombra siga colgando de la misma rama.
@@ -1734,6 +1752,11 @@ export class AboutBookComponent {
     this.leerPista(true);
     void this.conducir();
     window.addEventListener('resize', this.onResize, { passive: true });
+    window.visualViewport?.addEventListener('resize', this.onResize, { passive: true });
+    this.sueltame.push(() => {
+      window.removeEventListener('resize', this.onResize);
+      window.visualViewport?.removeEventListener('resize', this.onResize);
+    });
   }
 
   private async prepareFonts(): Promise<void> {
@@ -2338,9 +2361,24 @@ export class AboutBookComponent {
     ctx.restore();
   }
 
+  /**
+   * Re-encuadrar cuando cambia lo que se ve, agrupado en un fotograma.
+   *
+   * El `resize` de la ventana no se dispara cuando la barra del navegador se
+   * retrae: la ventana de disposicion no cambia, solo lo hace el area VISIBLE, y
+   * de eso avisa `visualViewport`. Como el pin mide `100dvh`, ese aviso es justo
+   * el momento en que el lienzo tiene que volver a medirse. Llega muchas veces
+   * seguidas mientras la barra se desliza, asi que se agrupan: `sizeCanvas`
+   * reasigna `canvas.width` y eso tira el bitmap.
+   */
+  private rafMedida = 0;
   private readonly onResize = (): void => {
-    this.sizeCanvas();
-    this.draw(this.lastDrawn);
+    if (this.rafMedida) return;
+    this.rafMedida = requestAnimationFrame(() => {
+      this.rafMedida = 0;
+      this.sizeCanvas();
+      this.draw(this.lastDrawn);
+    });
   };
 
   private sizeCanvas(): void {
@@ -4479,6 +4517,14 @@ export class AboutBookComponent {
       };
       window.addEventListener('scroll', alMover, { passive: true });
       window.addEventListener('resize', alMover, { passive: true });
+      // La barra retrayendose cambia el alto del pin, o sea el divisor del
+      // progreso: hay que releer la pista tambien con ese aviso.
+      window.visualViewport?.addEventListener('resize', alMover, { passive: true });
+      this.sueltame.push(() => {
+        window.removeEventListener('scroll', alMover);
+        window.removeEventListener('resize', alMover);
+        window.visualViewport?.removeEventListener('resize', alMover);
+      });
     });
   }
 

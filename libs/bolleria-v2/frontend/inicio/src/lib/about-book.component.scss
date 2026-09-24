@@ -154,8 +154,19 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
-  // `svh` y no `vh`: en Android `100vh` es el viewport GRANDE -el de la barra
-  // retraida-, asi que centrar con el baja el libro y esconde una franja.
+  // Constante A PROPOSITO, y aqui va el porque completo.
+  //
+  // El pin cuenta para la GEOMETRIA: su alto entra en la altura del documento y
+  // en el divisor del progreso del libro. Si se mide con la unidad dinamica,
+  // cada vez que la barra del navegador se desliza la pagina cambia de tamano
+  // bajo el dedo y el navegador compensa moviendo el scroll -medido: 56 px, o
+  // sea 0,29 paginas-. Como la barra no se va de golpe sino animada, eso no se
+  // siente como un salto sino como un empujon sostenido justo al soltar; en
+  // Safari es peor todavia, porque rehace la disposicion durante toda esa
+  // animacion. Reportado como "el scroll continua solo y muy fuerte".
+  //
+  // `svh` -el viewport pequeno- no cambia nunca. Lo que llena la pantalla es la
+  // ENCIMERA, que va en absoluto y si mide lo visible (ver `&::before`).
   height: 100vh;
   height: 100svh;
 
@@ -206,6 +217,12 @@
     // apoyando en el 57 % de la foto, sobre la piedra.
     --encuadre: 50% 25%;
 
+    // `svh` y no la unidad dinamica: este numero decide el TAMANO de la caja del
+    // libro, que esta en flujo y por tanto cuenta para la geometria. Con la
+    // dinamica, la caja crecia al retraerse la barra y con ella la altura de la
+    // pagina, que es exactamente lo que empujaba el scroll. En un telefono de
+    // pie ni siquiera llega a actuar -gana `100vw`, 393 contra los 496 del
+    // tope-; manda en tableta vertical, y alli la barra apenas se mueve.
     --ancho-libro: min(100vw, 56.8svh);
 
     --desvanece: linear-gradient(
@@ -231,7 +248,16 @@
       // una foto metida en un marco, que es justo lo que no puede parecer.
       // Llega exacto al borde de la seccion -que ocupa el ancho de la ventana-,
       // asi que no desplaza la pagina ni con `overflow: clip` ni sin el.
-      inset: 0 -24px;
+      //
+      // El ALTO es lo VISIBLE y no `inset: 0`: el pin mide el viewport pequeno
+      // para que la geometria no se mueva, asi que atarse a el dejaria una
+      // franja sin mesa en cuanto la barra del navegador se retrae -que es
+      // justo la franja en blanco que se veia abajo-. Al ir en absoluto, esta
+      // capa puede pasarse de largo sin mover un milimetro de la pagina.
+      top: 0;
+      left: -24px;
+      right: -24px;
+      height: 100dvh;
       // DEBAJO del libro, todo. Hubo una version con el grano y la luz por
       // ENCIMA -para que libro y mesa compartieran textura, que es lo que hace
       // que dos cosas parezcan una sola foto- y se retiro: sobre la letra
@@ -279,27 +305,62 @@
   display: flow-root;
 }
 
-.bol-book__recorrido {
-  // 25svh por vuelta, y este es EL numero del ritmo: pasar una hoja cuesta
-  // exactamente la altura de su hueco, ni mas ni menos. A 60svh eran 648 px en
-  // un monitor de 1080p -entre seis y diez muescas de rueda segun el equipo-, y
-  // el dueno del sitio lo reporto como "literalmente son diez clics antes de
-  // pasar la hoja". A 25svh son 270 px: unas tres muescas.
+// `--vuelta` es EL numero del ritmo: lo que cuesta pasar una hoja. Vive en un
+// solo sitio porque el cierre es una fraccion de el (mas abajo).
+//
+// 25svh es el valor de ESCRITORIO, donde la unidad es la muesca de la rueda: a
+// 60svh eran 648 px en un monitor de 1080p y el dueno del sitio lo reporto como
+// "literalmente son diez clics antes de pasar la hoja"; a 25svh son 270 px, unas
+// tres muescas.
+//
+// Lo que se paga a cambio: la vuelta dura ~810 ms pase lo que pase, asi que un
+// impulso fuerte de rueda encadena dos o tres y el libro va un instante por
+// detras del scroll. Esta previsto -`conducir` acelera hasta 3x y relee el
+// destino en cada paso-.
+.bol-book {
+  --vuelta: 25svh;
+
+  // En el TELEFONO la unidad no es la muesca: es el impulso del dedo, que
+  // recorre 700-900 px de una sola vez. Con 218 px por hoja eso pasaba tres o
+  // cuatro hojas de golpe, reportado tal cual. Media pantalla larga por hoja
+  // -436 px en un 393x873- deja una o dos.
   //
-  // Lo que se paga a cambio: la vuelta dura ~810 ms pase lo que pase, asi que un
-  // impulso fuerte de rueda encadena dos o tres y el libro va un instante por
-  // detras del scroll. Esta previsto -`conducir` acelera hasta 3x y relee el
-  // destino en cada paso-, pero es la razon por la que bajar bastante mas de
-  // aqui empezaria a leerse como un libro que persigue a la pagina.
-  height: calc(8 * 25svh);
+  // `svmax` es el lado LARGO de la pantalla, el mismo trozo de cristal antes y
+  // despues de girar, asi que el numero significa lo mismo en las dos
+  // posiciones. La tableta no entra a proposito: no estaba en el encargo.
+  @media (pointer: coarse) and (max-width: 600px) {
+    --vuelta: 50svmax;
+  }
 }
+
+.bol-book__recorrido {
+  height: calc(8 * var(--vuelta));
+}
+// Sin permanencia en la ultima hoja. Este hueco valia 65svh -567 px en un
+// telefono- y su unica razon era que los botones de ubicacion y mensaje no
+// pasaran de largo antes de poder pulsarlos. El precio era desproporcionado:
+// medido en un 393x873, de la ultima hoja a la tapa cerrada habia 785 px, o sea
+// 3,6 veces lo que cuesta pasar una hoja (218), y el dueno del sitio lo reporto
+// como "scroll y scroll y scroll" y "tengo que hacer un scroll muy fuerte para
+// que se cierre". Los botones siguen dibujados y pulsables todo el rato; lo que
+// se pierde es el colchon para pararse encima bajando de seguido.
+//
+// Es la misma correccion que ya llevaba el libro de escritorio, con los mismos
+// numeros.
 .bol-book__remate {
-  height: 65svh;
+  height: 0;
 }
-// Lo mismo que una vuelta del recorrido: cerrar cuesta lo que pasar una hoja,
-// con la misma histeresis (ver `progresoPista` y PISTA_BANDA).
+// La referencia es la PORTADA, el otro extremo del libro, que no hay que
+// calibrar porque ya se siente bien: la tapa cerrada aguanta (0,5 + PISTA_BANDA)
+// = 0,65 de vuelta y se abre. Para que cerrar cueste lo mismo -0,35 de vuelta
+// que le queda a la octava, mas el remate, mas 0,65 de este tramo-, con el
+// remate a cero este vale 0,3/0,65 de vuelta: ~101 px, y el total de la ultima
+// hoja al libro cerrado queda en ~142.
+//
+// Cambia CUANDO empieza a bajar la tapa, no como baja: la vuelta dura lo que
+// dura por tiempo, no por scroll, asi que se ve exactamente igual que antes.
 .bol-book__cierre {
-  height: 25svh;
+  height: calc(var(--vuelta) * 0.3 / 0.65);
 }
 // Algo menos que el remate: aqui no hay nada que pulsar, solo dejar que la
 // tapa termine de bajar y el libro cerrado se asiente antes del footer.

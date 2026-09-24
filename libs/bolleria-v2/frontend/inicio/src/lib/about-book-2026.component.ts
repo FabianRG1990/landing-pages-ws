@@ -696,8 +696,15 @@ export class AboutBook2026Component {
     const canvas = this.canvasRef().nativeElement;
     const caja = canvas.parentElement;
     if (!caja || !this.ctx) return;
+    // El ANCHO sale de la caja; el ALTO, de lo que el telefono esta mostrando.
+    //
+    // No son lo mismo, y esa es toda la cuestion: la caja -el pin- mide el
+    // viewport pequeno a proposito, para que la geometria de la pagina no cambie
+    // cuando la barra del navegador se desliza (ver el SCSS del pin). El dibujo,
+    // en cambio, tiene que llegar hasta abajo de lo que se ve. Como el lienzo va
+    // en absoluto, crecer no mueve nada de sitio.
     const w = caja.clientWidth;
-    const h = caja.clientHeight;
+    const h = Math.round(window.visualViewport?.height ?? window.innerHeight);
     this.dpr = Math.min(window.devicePixelRatio || 1, 2);
     canvas.width = Math.round(w * this.dpr);
     canvas.height = Math.round(h * this.dpr);

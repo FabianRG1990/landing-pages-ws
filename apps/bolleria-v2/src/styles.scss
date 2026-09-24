@@ -25,27 +25,64 @@ html {
 // ilustración de siempre — y el resto del sitio (huecos entre tarjetas,
 // footer, otras páginas) queda visualmente consistente con el hero en vez de
 // cortar a un cream liso.
-// `fixed` solo desde 900px: en iOS Safari los fondos fixed en body se
-// ignoran o degradan el rendimiento, así que en mobile se deja `scroll` normal.
 body {
   margin: 0;
-  background-color: #faf6ec;
+  // SIN color de fondo, y es imprescindible: el papel lo pinta `html` (arriba).
+  //
+  // El orden de pintado del contexto raíz es: fondo de la raíz → descendientes
+  // con z-index NEGATIVO → fondos de los bloques en flujo. El `body` es uno de
+  // esos bloques, así que su color se pinta DESPUÉS de la capa y la tapa entera.
+  // Medido: con `background-color` aquí, la ilustración cargaba, la capa medía
+  // 1440x900 y era visible... y no se veía ni un píxel de ella.
+  //
+  // Un hijo con z-index negativo queda detrás del CONTENIDO de su padre, no
+  // detrás del fondo de su padre. De ahí que el papel viva en `html`.
+  color: #2e2a1c;
+  font-family: 'Jost', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+// La ilustración va en una CAPA FIJA, no en el fondo del `body`.
+//
+// Pintada en el `body` con `background-attachment: scroll` —que es lo que hacía
+// el móvil— la imagen queda pegada al DOCUMENTO y se desliza 1:1 con el scroll.
+// Detrás del libro eso se ve mal y el dueño del sitio lo reportó así: el libro
+// clavado y el fondo corriendo por detrás. Medido en un 873x393, entre dos
+// páginas consecutivas cambiaba el 30 % de los píxeles de la pantalla, y en las
+// franjas laterales —donde no hay libro, o sea donde solo se ve fondo— el 25-34 %.
+//
+// La alternativa obvia, `background-attachment: fixed`, es justo la que iOS
+// Safari ignora o castiga en rendimiento, y por eso el móvil estaba excluido.
+// Una capa `fixed` propia hace lo mismo sin ese problema: es un elemento más que
+// el compositor coloca una vez, no un fondo que el motor tenga que recalcular en
+// cada fotograma de scroll.
+//
+// Vale para las dos pantallas, así que el escritorio deja de necesitar su
+// excepción: `fixed` + `cover` ya encuadraba contra la VENTANA, que es
+// exactamente lo que hace esta capa. Comprobado, no se mueve un píxel allí.
+//
+// `100lvh` y no `100%` ni `100dvh`: la ventana en su tamaño GRANDE, con la barra
+// del navegador retraída, que es el peor caso. Con cualquier medida menor, al
+// irse la barra quedaría una franja descubierta abajo (el mismo motivo por el
+// que el preloader y la cortina ya usan `lvh`).
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100lvh;
   background-image: url('/assets/hero-bg-mobile.webp');
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  background-attachment: scroll;
-  color: #2e2a1c;
-  font-family: 'Jost', system-ui, sans-serif;
-  -webkit-font-smoothing: antialiased;
+  // Detrás de todo el contenido, y por delante del color de papel del `body`.
+  z-index: -1;
+  // No es una superficie: no puede comerse un toque ni un clic.
+  pointer-events: none;
 
   @media (min-width: 900px) {
     background-image: url('/assets/hero-bg-desktop.webp');
-    background-attachment: fixed;
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    background-attachment: scroll;
   }
 }
 

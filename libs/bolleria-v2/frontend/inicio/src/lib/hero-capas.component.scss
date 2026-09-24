@@ -69,6 +69,8 @@
    * validado- ni más allá de la mitad de la pantalla, que es lo que deja el eje
    * centrado en móvil.
    */
+  // La escala va con `svh`, la misma unidad que la caja: son la misma medida
+  // mirada de dos maneras, y si se separan el bodegon deja de encajar.
   --esc: max(calc(100vw / 1672), calc(100svh / 941));
   --img-w: calc(var(--esc) * 1672);
   --eje-foto: calc((100vw - var(--img-w)) / 2 + var(--img-w) * 0.271);
@@ -105,13 +107,16 @@
  */
 .bol-heroc__fijo {
   position: relative;
-  // Misma escalera que el pin del libro: `dvh` manda y vale lo que hay visible
-  // en cada momento, `svh` y `vh` quedan de respaldo para navegadores viejos.
-  // Con `svh` solo, al retraerse la barra el bodegon se quedaba con el alto de
-  // antes y dejaba una franja bajo el hero.
+  // Constante, igual que el pin del libro y por el mismo motivo: esta caja esta
+  // en flujo y su alto es la altura de la primera pantalla del documento. Con la
+  // unidad dinamica, la barra del navegador deslizandose cambiaba la geometria
+  // en pleno scroll y el navegador compensaba empujando la pagina.
+  //
+  // Quien llena la pantalla es la ESCENA, que va en absoluto (ver
+  // `.bol-heroc__escena`). Y `svh` -no `lvh`- porque aqui abajo del todo vive la
+  // pista de "segui bajando": con el viewport grande se escondería tras la barra.
   height: 100vh;
   height: 100svh;
-  height: 100dvh;
   // El suelo de 34rem protege de una ventana tan baja que el bodegón y los dos
   // botones se pisarían. Solo tiene sentido donde la pantalla es más alta que
   // él; donde no, hace justo el daño que quería evitar.
@@ -151,8 +156,16 @@
  * empieza y se lee como una banda.
  */
 .bol-heroc__escena {
+  // El ALTO es lo VISIBLE y no `inset: 0`. La caja del hero mide el viewport
+  // pequeno para que la geometria no se mueva mientras la barra del navegador se
+  // desliza; atar la foto a esa caja dejaria una franja sin escena en cuanto la
+  // barra se va. Al ir en absoluto, pasarse de largo no mueve nada: el
+  // desvanecido de abajo cae siempre en el borde de lo que se ve.
   position: absolute;
-  inset: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 100dvh;
   z-index: 0;
   $fundido: linear-gradient(
     to bottom,
