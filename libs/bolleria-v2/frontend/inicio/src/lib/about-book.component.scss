@@ -249,15 +249,30 @@
       // Llega exacto al borde de la seccion -que ocupa el ancho de la ventana-,
       // asi que no desplaza la pagina ni con `overflow: clip` ni sin el.
       //
-      // El ALTO es lo VISIBLE y no `inset: 0`: el pin mide el viewport pequeno
-      // para que la geometria no se mueva, asi que atarse a el dejaria una
-      // franja sin mesa en cuanto la barra del navegador se retrae -que es
-      // justo la franja en blanco que se veia abajo-. Al ir en absoluto, esta
-      // capa puede pasarse de largo sin mover un milimetro de la pagina.
+      // El ALTO es CONSTANTE y vale el viewport GRANDE. Hay dos trampas y hay
+      // que esquivar las dos a la vez:
+      //
+      //   · atarse al pin -que mide el viewport pequeno, ver arriba- deja una
+      //     franja sin mesa en cuanto la barra del navegador se retrae. Esa era
+      //     la franja en blanco de abajo.
+      //   · medir lo VISIBLE la quita, pero a cambio la foto va en `cover` y su
+      //     escala sale de esta caja: cada vez que la barra se desliza, la mesa
+      //     se reencuadra. Medido en un 393x873, la foto pasa de 491 a 525 px de
+      //     ancho -un 6,8 %- y como el libro mide en una unidad constante el
+      //     libro NO acompana. Reportado como "la mesa cambia de tamano, el
+      //     libro no".
+      //
+      // `lvh` -el viewport grande, el de la barra retraida- es el unico valor
+      // que es a la vez constante y suficiente: cubre el peor caso, asi que no
+      // hay franja, y no cambia nunca, asi que no hay reencuadre. Lo que sobra
+      // por abajo con la barra puesta queda fuera de pantalla, y al ir en
+      // absoluto no mueve un milimetro de la pagina.
+      //
+      // Es la misma solucion que la capa de fondo del sitio en `styles.scss`.
       top: 0;
       left: -24px;
       right: -24px;
-      height: 100dvh;
+      height: 100lvh;
       // DEBAJO del libro, todo. Hubo una version con el grano y la luz por
       // ENCIMA -para que libro y mesa compartieran textura, que es lo que hace
       // que dos cosas parezcan una sola foto- y se retiro: sobre la letra
@@ -328,8 +343,90 @@
   // `svmax` es el lado LARGO de la pantalla, el mismo trozo de cristal antes y
   // despues de girar, asi que el numero significa lo mismo en las dos
   // posiciones. La tableta no entra a proposito: no estaba en el encargo.
+  // Con el FRENO puesto la hoja vuelve a costar lo que costaba, y esa es la
+  // mitad buena del arreglo. El 50svmax de antes existia para domar la inercia
+  // del dedo -a 218 px un dedazo pasaba tres o cuatro hojas- y el precio era que
+  // pasar una hoja pedia 284 px, o sea que un deslizamiento suave no movia nada
+  // y habia que repetirlo cinco o seis veces. Un solo numero no puede servir
+  // para las dos cosas: la inercia la para ahora `scroll-snap-stop` (ver
+  // `.bol-book__paso`), asi que aqui manda el dedo tranquilo.
+  //
+  // 25svmax son 218 px, y con los topes puestos basta con recorrer la MITAD
+  // -109 px- para que la hoja pase.
   @media (pointer: coarse) and (max-width: 600px) {
-    --vuelta: 50svmax;
+    --vuelta: 25svmax;
+  }
+}
+
+// ─── Los topes de la pista ───────────────────────────────────────────────────
+//
+// Una pieza por vuelta. Cada una empieza donde reposa una hoja, asi que su
+// borde superior es el punto al que el navegador puede agarrarse.
+//
+// `scroll-margin-top` vale lo que mide el PIN, y no es un ajuste fino: el
+// progreso del libro se cuenta desde el borde de la PISTA -`progresoPista` lee
+// `-pista.getBoundingClientRect().top`-, pero estas piezas viven detras del pin,
+// una pantalla mas abajo. El margen devuelve esa pantalla, y asi el tope cae
+// exactamente donde la hoja esta quieta y no una pantalla despues.
+//
+// `scroll-snap-stop: always` en una de cada dos: el navegador no deja que un
+// solo gesto ATRAVIESE un tope marcado asi, por fuerte que venga el dedo. Con
+// una de cada dos, un dedazo pasa dos hojas y se para; el resto de topes son
+// normales, o sea que un deslizamiento suave se agarra a la hoja siguiente sin
+// que el fuerte se quede corto. La consecuencia honesta de que los frenos esten
+// en sitios fijos es que saliendo de una hoja impar el dedazo pasa una sola
+// hoja en vez de dos. Nunca mas de dos, que es lo que importaba.
+//
+// Solo en el TELEFONO. En escritorio y tableta manda la rueda, el ritmo esta
+// aprobado y no habia nada que arreglar; sin `scroll-snap-align` no hay topes y
+// el interruptor de la raiz no tiene a que agarrarse.
+.bol-book__paso {
+  height: var(--vuelta);
+
+  @media (pointer: coarse) and (max-width: 600px) {
+    scroll-snap-align: start;
+    scroll-margin-top: 100svh;
+
+    &:nth-child(odd) {
+      scroll-snap-stop: always;
+    }
+  }
+}
+
+// ─── La camara, y donde se apaga ─────────────────────────────────────────────
+//
+// El componente le pone al video una camara: se acerca 1,68x a la tapa cerrada
+// y se retira al abrirse, para que el libro ocupe siempre el mismo ancho de
+// pantalla (ver el bloque CAM_* del componente). En una pantalla ancha eso es un
+// movimiento de camara normal; en un telefono DE PIE no se lee asi, y es
+// medible:
+//
+//   · la tapa sale a 360 px de ancho y una pagina del libro abierto a 189, o sea
+//     que la tapa se ve 1,91 veces la pagina que contiene. En un libro real
+//     miden lo mismo -1,12, que es el vuelo de la cubierta-;
+//   · filmada la apertura, en 850 ms el borde superior del libro baja 129 px y
+//     su altura cae un 38 % con la base clavada en la mesa.
+//
+// El fondo esta quieto a proposito, asi que no hay paralaje que diga "se movio
+// la camara": lo unico que se lee es que el libro encoge. Reportado como "el
+// libro grandote que cuando se abre se hace chiquitito, las fisicas no se
+// respetan". Y es tambien lo que lo hacia parecer sobrepuesto: la tapa grande se
+// apoyaba en la franja media de la foto, que esta desenfocada por profundidad de
+// campo, con el libro nitido encima.
+//
+// Con la camara apagada el encuadre se queda en los valores del libro ABIERTO,
+// que son los que las tablas ya dan de la pagina 1 a la 8 y durante las vueltas
+// de hoja: ese tramo queda identico al pixel y lo unico que cambia es la tapa.
+//
+// El corte es el MISMO que el del ritmo de arriba y por la misma razon: lo que
+// se reporto es el telefono de pie. La tableta vertical conserva su camara -no
+// estaba en el encargo y ahi si sobra pantalla-, y escritorio y telefono
+// acostado ni entran en esta consulta.
+.bol-book {
+  --camara: 1;
+
+  @media (pointer: coarse) and (max-width: 600px) {
+    --camara: 0;
   }
 }
 
@@ -366,6 +463,15 @@
 // tapa termine de bajar y el libro cerrado se asiente antes del footer.
 .bol-book__portada {
   height: 50svh;
+
+  // El ultimo tope, y con freno: cerrar la tapa es un paso mas del libro y un
+  // dedazo no puede saltarselo. Su borde superior es justo donde el libro queda
+  // cerrado (ver CERRADO_FINAL).
+  @media (pointer: coarse) and (max-width: 600px) {
+    scroll-snap-align: start;
+    scroll-margin-top: 100svh;
+    scroll-snap-stop: always;
+  }
 }
 
 // Controles que no se ven pero si se enfocan y si los anuncia un lector de

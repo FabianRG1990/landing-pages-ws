@@ -15,6 +15,27 @@
 
 html {
   scroll-behavior: smooth;
+
+  // El freno de la pista del libro. Va aqui y no en el componente porque
+  // `scroll-snap-type` tiene que estar en el elemento que hace scroll -la raiz
+  // del documento- y los estilos de un componente van encapsulados. La clase la
+  // pone y la quita `frenaMientrasSeVe`, y los topes los declara cada libro en
+  // su SCSS con `scroll-snap-align`, solo en el telefono.
+  //
+  // `proximity` y no `mandatory`: el estricto obliga a estar siempre pegado a
+  // un tope, y al final del libro eso puede tirar de vuelta hacia el ultimo y
+  // dejar a alguien atrapado. El freno de `scroll-snap-stop` -que es lo que
+  // impide que un dedazo atraviese la pista entera- funciona igual en los dos.
+  // Y solo donde hay dedo. Los topes los declaran los dos libros dentro de sus
+  // consultas de telefono, asi que en escritorio no hay ninguno y esto no
+  // tendria efecto; se acota igual para no dejarle al ratón una propiedad de
+  // scroll puesta que nadie usa. La tableta entra en `pointer: coarse` pero
+  // tampoco tiene topes, por el mismo motivo.
+  @media (pointer: coarse) {
+    &.bol-frena {
+      scroll-snap-type: y proximity;
+    }
+  }
   background: #faf6ec;
 }
 

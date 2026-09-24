@@ -129,8 +129,37 @@
    * El escritorio NO entra: alli manda la rueda, el ritmo esta aprobado y 25svh
    * se queda. La tableta tampoco se toca, que no estaba en el encargo.
    */
+  // Con el FRENO puesto la hoja vuelve a costar lo que costaba. El 50svmax
+  // existia para domar la inercia del dedo, y el precio era que un
+  // deslizamiento suave pedia 284 px y no movia nada. La inercia la para ahora
+  // `scroll-snap-stop` (ver `.bol-libro__paso`), asi que aqui manda el dedo
+  // tranquilo: 25svmax son 218 px y basta con recorrer la mitad.
   @media (pointer: coarse) and (orientation: landscape) and (max-height: 600px) {
-    --vuelta: 50svmax;
+    --vuelta: 25svmax;
+  }
+}
+
+// ─── Los topes de la pista ───────────────────────────────────────────────────
+//
+// Una pieza por vuelta; su borde superior es donde reposa una hoja. El
+// `scroll-margin-top` vale lo que mide el PIN porque el progreso se cuenta desde
+// el borde de la pista y estas piezas viven una pantalla mas abajo, detras del
+// pin. Y `scroll-snap-stop: always` en una de cada dos impide que un solo gesto
+// atraviese mas de dos hojas.
+//
+// La explicacion larga esta en el libro vertical, que es donde se reporto;
+// aqui va igual porque el mismo dedazo se llevaba la pista entera acostado.
+// Solo en el TELEFONO acostado: la misma consulta que decide el ritmo.
+.bol-libro__paso {
+  height: var(--vuelta);
+
+  @media (pointer: coarse) and (orientation: landscape) and (max-height: 600px) {
+    scroll-snap-align: start;
+    scroll-margin-top: 100svh;
+
+    &:nth-child(odd) {
+      scroll-snap-stop: always;
+    }
   }
 }
 
@@ -174,6 +203,14 @@
 // de la despedida. Es lo unico largo que queda en la cola, y a proposito.
 .bol-libro__portada {
   height: 50svh;
+
+  // El ultimo tope, y con freno: cerrar la tapa es un paso mas y un dedazo no
+  // puede saltarselo.
+  @media (pointer: coarse) and (orientation: landscape) and (max-height: 600px) {
+    scroll-snap-align: start;
+    scroll-margin-top: 100svh;
+    scroll-snap-stop: always;
+  }
 }
 
 // ─── Accesibilidad ───────────────────────────────────────────────────────────

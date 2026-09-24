@@ -94,7 +94,21 @@
       </div>
     </div>
 
-    <div class="bol-libro__recorrido" #recorrido></div>
+    <!-- Las ocho vueltas, una por pieza: cada una pone un TOPE de scroll donde
+         reposa una hoja, para que un deslizamiento con inercia no se lleve la
+         pista entera. Ver `.bol-libro__paso` en el SCSS y `freno-de-pista.ts`.
+         El recorrido sigue midiendo ocho vueltas, asi que `progresoPista` no se
+         entera de que ahora tiene hijos. -->
+    <div class="bol-libro__recorrido" #recorrido>
+      <div class="bol-libro__paso"></div>
+      <div class="bol-libro__paso"></div>
+      <div class="bol-libro__paso"></div>
+      <div class="bol-libro__paso"></div>
+      <div class="bol-libro__paso"></div>
+      <div class="bol-libro__paso"></div>
+      <div class="bol-libro__paso"></div>
+      <div class="bol-libro__paso"></div>
+    </div>
     <div class="bol-libro__remate" #remate></div>
     <div class="bol-libro__cierre" #cierre></div>
     <div class="bol-libro__portada"></div>

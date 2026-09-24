@@ -251,13 +251,69 @@
   // sobre el crema del sitio, donde los colores de siempre pasan de sobra.
   //
   // El versículo NO se toca: da 8,4:1 tal cual, porque ya iba en tinta.
+  // El color ya no basta, y esto es lo que faltaba medir: el contraste se
+  // habia calculado contra el PROMEDIO del fondo, y el fondo no es un color,
+  // es una foto de piedra con harina. Midiendo pixel a pixel bajo cada texto en
+  // un 393x873, el peor 5 % del fondo daba 3,76:1 en el rotulo, 1,73:1 en la
+  // cita y 3,54:1 en el legal: por debajo del minimo justo donde caen las motas.
+  //
+  // Y las tres familias son de trazo fino por diseno -Cinzel y Cormorant son
+  // serifas de alto contraste, con astas de un pixel a este cuerpo-, asi que la
+  // letra tiene el mismo grosor que el grano de la foto y se confunde con el.
+  // Reportado como "estan demasiado finas y se confunden muchisimo con el
+  // fondo".
+  //
+  // Dos medidas, y las dos hacen falta:
+  //
+  //   · PESO. Sube un grado en cada familia, y siempre a un peso que YA esta
+  //     cargado en el index.html -Cinzel 700, Cormorant cursiva 600, Jost 500-,
+  //     nunca a uno que no este: el navegador lo fabricaria engordando el trazo
+  //     a mano y eso emborrona justo lo que se quiere aclarar.
+  //   · HALO. Un aura del crema del sitio en dos anillos: uno cerrado, que
+  //     despega el asta de la mota que tenga debajo, y otro ancho y muy tenue,
+  //     que levanta la palabra entera. No dibuja ninguna caja ni ningun borde
+  //     -no hay velo, no hay recuadro-, solo separa la letra de la textura. Es
+  //     la tecnica de siempre para tipografia sobre fotografia.
+  //
+  // Solo aqui: en horizontal y en escritorio este bloque sigue sobre el crema
+  // liso del sitio, donde no hay textura que competir y los colores de siempre
+  // pasan de sobra.
+  .bol-despedida {
+    --halo: 0 0 3px rgba(252, 246, 233, 0.95), 0 0 9px rgba(252, 246, 233, 0.72);
+  }
+
   .bol-despedida__rotulo {
     color: #3f4a1e;
+    font-weight: 700;
+    text-shadow: var(--halo);
+  }
+
+  // El versiculo ya daba 7,4:1 de mediana, pero su peor 5 % caia a 3,50:1 y es
+  // el texto mas grande de la pagina: es el que mas se mira.
+  .bol-despedida__versiculo p {
+    font-weight: 600;
+    text-shadow: var(--halo);
   }
 
   .bol-despedida__versiculo cite,
   .bol-despedida__legal,
   .bol-despedida__by {
     color: #4a463a;
+    font-weight: 500;
+    text-shadow: var(--halo);
+  }
+
+  // El peor de todos -1,73:1 en el peor 5 %- y ademas el mas pequeno, asi que
+  // se le da un pixel mas de cuerpo, que a 12 px se nota, y algo mas de tinta.
+  //
+  // El color es lo unico que aqui no basta con engordar: la cita cae sobre el
+  // canto de madera de la encimera, que es la zona MAS oscura de la foto, y un
+  // gris claro con halo crema sigue sin separarse de ella -medido: el resto de
+  // las piezas ganaron entre un 11 y un 111 % y esta solo un 6 %-. Baja a un
+  // pardo mas cerrado, que sigue estando un escalon por encima de la tinta del
+  // versiculo para que no le compita.
+  .bol-despedida__versiculo cite {
+    font-size: 13px;
+    color: #3d382b;
   }
 }

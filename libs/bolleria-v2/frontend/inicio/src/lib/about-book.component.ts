@@ -1,6 +1,6 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, NgZone, PLATFORM_ID, computed, inject, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, NgZone, PLATFORM_ID, computed, effect, inject, signal, viewChild } from '@angular/core';
 import { NgStyle, isPlatformBrowser } from '@angular/common';
-import { CONTACT, waDirectLink } from '@bolleria-v2-ui-shared';
+import { CONTACT, frenaMientrasSeVe, waDirectLink } from '@bolleria-v2-ui-shared';
 import { WarpGL } from './about-book-warp-gl';
 import { GestoHoja } from './gesto-hoja';
 
@@ -162,6 +162,30 @@ const CAM_CY: readonly number[] = [
 const CAM_Z_REF = 1.1925;
 /** Donde se apoya la BASE del libro dentro del lienzo. Con `aspect-ratio: 100/155` cae en 543 px de una pantalla de 844, que es donde estaba. */
 const CAM_P_Y = 0.7;
+
+/**
+ * El encuadre con la camara APAGADA (telefono de pie; quien decide donde es
+ * `--camara` en el SCSS, y alli esta el porque completo).
+ *
+ * No son tres numeros elegidos: son los que las tres tablas ya dan en el tramo
+ * del libro abierto -del cuadro ~70 en adelante, que cubre los ocho reposos y
+ * las vueltas de hoja enteras, porque el giro va del 81 al 139-. Congelar aqui
+ * deja todo ese tramo IDENTICO al pixel; lo unico que cambia son los cuadros
+ * 1..50, la tapa abriendose y cerrandose.
+ *
+ * Y ahi el cambio es justo el que se pedia: en vez de que la camara se retire
+ * mientras la tapa se abre -y el libro parezca encoger un 38 %-, la tapa mide lo
+ * que mide en el video y el libro CRECE al abrirse, de 212 a 377 px, porque pasa
+ * de una hoja a dos. Que es lo que hace un libro.
+ *
+ * De regalo se arregla la sombra: va multiplicada por `--cam-k` para crecer con
+ * el acercamiento, y en la tapa eso la hinchaba 1,68 veces -los 68 px de
+ * difuminado calibrados se dibujaban a 114-. Con el encuadre fijo vuelve sola a
+ * su medida.
+ */
+const CAM_FIJO_Z = 0.9862;
+const CAM_FIJO_CX = 461.0;
+const CAM_FIJO_CY = 587.0;
 
 const LAST = 8; // 1..7 = historias con foto+texto, 8 = cierre (foto + horario, ubicacion y mensaje)
 /**
@@ -1659,6 +1683,7 @@ export class AboutBookComponent {
     if (this.isBrowser) {
       this.arrancarCuandoSeAcerque();
       this.engancharPista();
+      this.enganchaElFreno();
     }
   }
 
@@ -2381,11 +2406,29 @@ export class AboutBookComponent {
     });
   };
 
+  /**
+   * Si la camara esta viva. Lo decide el SCSS con `--camara` para que el umbral
+   * de pantalla viva en un solo sitio -al lado del de la mesa y el del ritmo- en
+   * vez de repetir aqui un `matchMedia` que habria que acordarse de mantener.
+   *
+   * Se lee de `box` -el escenario- y NO del host: la variable se declara en
+   * `.bol-book`, que es la seccion de dentro, y las variables CSS heredan hacia
+   * abajo, nunca hacia arriba. Preguntandole al host volvia siempre vacia y la
+   * camara no se apagaba nunca.
+   *
+   * Se lee en `sizeCanvas`, que es justo donde hace falta: corre al arrancar y
+   * en cada redimension -incluido el giro del aparato, que es lo unico que puede
+   * cambiar la respuesta- y ya va agrupado en un fotograma, asi que el
+   * `getComputedStyle` no cae dentro de ninguna animacion.
+   */
+  private camaraViva = true;
+
   private sizeCanvas(): void {
     const c = this.canvasRef()?.nativeElement;
     if (!c) return;
     const box = c.parentElement;
     if (!box) return;
+    this.camaraViva = getComputedStyle(box).getPropertyValue('--camara').trim() !== '0';
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     const w = box.clientWidth || box.offsetWidth;
     const h = box.clientHeight || box.offsetHeight;
@@ -2552,6 +2595,17 @@ export class AboutBookComponent {
     frameCrudo: number,
     c: HTMLCanvasElement,
   ): { ox: number; oy: number; scale: number; k: number } {
+    // Camara apagada: un encuadre y ya, el mismo para los 169 cuadros. Ver
+    // CAM_FIJO_*.
+    if (!this.camaraViva) {
+      const escala = (c.width / VIDEO_W) * CAM_Z_REF * CAM_FIJO_Z;
+      return {
+        ox: c.width * 0.5 - CAM_FIJO_CX * escala,
+        oy: c.height * CAM_P_Y - CAM_FIJO_CY * escala,
+        scale: escala,
+        k: CAM_FIJO_Z,
+      };
+    }
     const n = CAM_Z.length;
     // Los cuadros van de 1 a 169 y las tablas de 0 a 168.
     const t = Math.max(0, Math.min(n - 1, frameCrudo - 1));
@@ -4503,6 +4557,28 @@ export class AboutBookComponent {
   private objetivo = 0;
   private conduciendo = false;
   private rafPista = 0;
+
+  /**
+   * El freno de la inercia, encendido solo mientras la pista se ve. Los topes
+   * los declara el SCSS; esto es el interruptor. Ver `freno-de-pista.ts`.
+   *
+   * Va en un `effect` y no en el constructor como `engancharPista`: aquel solo
+   * engancha oyentes de la ventana y lee la pista mas tarde, cuando ya existe,
+   * pero esto necesita el ELEMENTO en la mano para observarlo, y en el
+   * constructor la vista todavia no se ha creado. Registrado alli, `trackRef()`
+   * venia vacio y el freno no se encendia nunca -medido: la clase no llegaba a
+   * ponerse ni con el libro a media pantalla-.
+   */
+  private enganchaElFreno(): void {
+    let puesto = false;
+    const ref = effect(() => {
+      const pista = this.trackRef()?.nativeElement;
+      if (!pista || puesto) return;
+      puesto = true;
+      this.sueltame.push(frenaMientrasSeVe(pista));
+      ref.destroy();
+    });
+  }
 
   private engancharPista(): void {
     // Fuera de la zona: esto corre en cada fotograma de scroll y no toca ningun

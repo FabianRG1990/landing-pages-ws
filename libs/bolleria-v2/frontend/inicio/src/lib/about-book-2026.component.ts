@@ -11,7 +11,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { NgStyle, isPlatformBrowser } from '@angular/common';
-import { CONTACT, waDirectLink } from '@bolleria-v2-ui-shared';
+import { CONTACT, frenaMientrasSeVe, waDirectLink } from '@bolleria-v2-ui-shared';
 import { HISTORIAS } from './libro-historias';
 import { PuntoPx, WarpGL } from './about-book-warp-gl';
 import { GestoHoja } from './gesto-hoja';
@@ -1512,7 +1512,17 @@ export class AboutBook2026Component {
   private conduciendo = false;
   private rafPista = 0;
 
+  /**
+   * El freno de la inercia, encendido solo mientras la pista se ve. Los topes
+   * los declara el SCSS; esto es el interruptor. Ver `freno-de-pista.ts`.
+   */
+  private enganchaElFreno(): void {
+    const pista = this.trackRef()?.nativeElement;
+    if (pista) this.sueltame.push(frenaMientrasSeVe(pista));
+  }
+
   private enganchaPista(): void {
+    this.enganchaElFreno();
     this.zone.runOutsideAngular(() => {
       const alMover = (): void => {
         if (this.rafPista) return;
