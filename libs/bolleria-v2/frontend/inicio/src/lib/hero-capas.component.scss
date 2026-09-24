@@ -70,7 +70,10 @@
    * centrado en móvil.
    */
   // La escala va con `svh`, la misma unidad que la caja: son la misma medida
-  // mirada de dos maneras, y si se separan el bodegon deja de encajar.
+  // mirada de dos maneras, y si se separan el bodegon deja de encajar. Llegaron
+  // a separarse -esto en `svh` y la escena que pinta en `dvh`- y era justo lo
+  // que este aviso decia que no podia pasar: ver `.bol-heroc__escena`, donde
+  // estan los dos precios medidos.
   --esc: max(calc(100vw / 1672), calc(100svh / 941));
   --img-w: calc(var(--esc) * 1672);
   --eje-foto: calc((100vw - var(--img-w)) / 2 + var(--img-w) * 0.271);
@@ -156,16 +159,37 @@
  * empieza y se lee como una banda.
  */
 .bol-heroc__escena {
-  // El ALTO es lo VISIBLE y no `inset: 0`. La caja del hero mide el viewport
-  // pequeno para que la geometria no se mueva mientras la barra del navegador se
-  // desliza; atar la foto a esa caja dejaria una franja sin escena en cuanto la
-  // barra se va. Al ir en absoluto, pasarse de largo no mueve nada: el
-  // desvanecido de abajo cae siempre en el borde de lo que se ve.
+  // EL MISMO ALTO QUE LA CAJA QUE LA RECORTA, y esa es toda la regla.
+  //
+  // Esta capa vive dentro de `.bol-heroc__fijo`, que mide `100svh` y lleva
+  // `overflow: hidden`. O sea que la escena esta recortada a `svh` pase lo que
+  // pase: hacerla mas alta no cubre ni un pixel mas. Lo unico que cambia su alto
+  // son dos cosas, y las dos para mal si no coincide con el recorte:
+  //
+  //   · la ESCALA. Las fotos van en `cover` y la sacan de esta caja. Medido en
+  //     un 393x873 con `dvh`: al retraerse la barra la foto pasaba de 1551 a
+  //     1656 px de ancho, un 6,8 %. Y como la barra no se va de golpe sino
+  //     animada, no se lee como un salto sino como un acercamiento en pleno
+  //     scroll. Reportado como "cuando la imagen se hace para arriba se hace mas
+  //     grande, se ve muy tosco".
+  //   · el DESVANECIDO de abajo, que va en porcentajes de esta caja. Si la caja
+  //     es mas alta que el recorte, el fundido no ha terminado cuando el recorte
+  //     llega y la foto se corta en seco. Medido: con la escena 59 px mas alta
+  //     que su recorte, el salto de brillo entre dos filas vecinas justo en el
+  //     corte pasa de 13 niveles -la textura de la propia foto- a 58, en
+  //     Chromium y en WebKit. Eso es una linea, y una linea entre secciones es
+  //     exactamente lo que este sitio no puede tener.
+  //
+  // Con `svh` las dos cajas son la misma medida, asi que van siempre juntas: la
+  // foto no se reencuadra nunca y el fundido termina justo donde el recorte
+  // corta. No hay franja que temer: el hero esta en FLUJO -no hay nada clavado
+  // aqui-, asi que cuando la barra se retrae lo que asoma por abajo no es un
+  // hueco, es la seccion siguiente.
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
-  height: 100dvh;
+  height: 100svh;
   z-index: 0;
   $fundido: linear-gradient(
     to bottom,
