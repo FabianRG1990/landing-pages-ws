@@ -1,0 +1,73 @@
+<!-- LA CARTA
+     Una sola página que se recorre de arriba abajo: las cuatro tarjetas son el
+     índice y llevan a su sección, así se ve la carta entera sin abrir pestañas.
+     Aquí no se hacen pedidos: los encargos y las consultas van por WhatsApp. -->
+<section class="bol-menu" data-nav-tono="papel">
+  <header class="bol-menu__head">
+    <div class="bol-menu__eyebrow">Nuestra carta</div>
+    <h1>Menú</h1>
+    <p>Todo se hornea cada mañana. Precios en colones.</p>
+    <a [href]="waDirect" target="_blank" rel="noopener" class="bol-menu__wa bol-btn bol-btn--claro">
+      <svg class="bol-btn__wa" width="21" height="21" viewBox="0 0 24 24" aria-hidden="true"><path [attr.d]="waGlifo"/></svg>
+      <span class="bol-btn__sep" aria-hidden="true"></span>
+      <span>Encargos y consultas por WhatsApp</span>
+      <svg class="bol-btn__fl" width="19" height="12" viewBox="0 0 19 12" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 6h16M12.5 1.5 17 6l-4.5 4.5"/></svg>
+    </a>
+  </header>
+
+  <nav class="bol-menu__indice" aria-label="Categorías de la carta">
+    @for (c of categorias; track c.key) {
+      <a [href]="'#' + c.ancla" (click)="irA($event, c.ancla)" class="bol-menu__card">
+        <div class="bol-menu__card-foto">
+          <img [src]="c.foto.indice.src" [alt]="c.foto.indice.alt" loading="lazy" decoding="async" />
+        </div>
+        <div class="bol-menu__card-scrim"></div>
+        <div class="bol-menu__card-info">
+          <div class="bol-menu__card-nombre">{{ c.label }}</div>
+          <div class="bol-menu__card-cuenta">{{ c.items.length }} variedades</div>
+        </div>
+      </a>
+    }
+  </nav>
+
+  @for (c of categorias; track c.key) {
+    <!-- `tabindex="-1"`: al saltar desde el índice el foco viaja con la vista,
+         y quien navega con teclado sigue leyendo desde la categoría elegida. -->
+    <section class="bol-menu__cat" [id]="c.ancla" tabindex="-1" [attr.aria-labelledby]="c.ancla + '-titulo'">
+      <figure class="bol-menu__foto">
+        <img [src]="c.foto.seccion.src" [alt]="c.foto.seccion.alt" loading="lazy" decoding="async" />
+      </figure>
+
+      <div class="bol-menu__cuerpo">
+        <div class="bol-menu__rotulo">
+          <span>{{ c.numero }}</span><i aria-hidden="true"></i><span>{{ c.items.length }} variedades</span>
+        </div>
+        <h2 [id]="c.ancla + '-titulo'">{{ c.label }}</h2>
+
+        <ul class="bol-menu__lista">
+          @for (it of c.items; track it.id) {
+            <li class="bol-menu__item">
+              <div class="bol-menu__linea">
+                <span class="bol-menu__nombre">{{ it.name }}</span>
+                <span class="bol-menu__puntos" aria-hidden="true"></span>
+                <span class="bol-menu__precio">{{ fmt(it.price) }}</span>
+              </div>
+              @if (it.options?.length) {
+                <div class="bol-menu__sabores">{{ it.options!.join(' · ') }}</div>
+              }
+            </li>
+          }
+        </ul>
+      </div>
+    </section>
+  }
+
+  <div class="bol-menu__cierre">
+    <a [href]="waDirect" target="_blank" rel="noopener" class="bol-menu__wa bol-btn bol-btn--claro">
+      <svg class="bol-btn__wa" width="21" height="21" viewBox="0 0 24 24" aria-hidden="true"><path [attr.d]="waGlifo"/></svg>
+      <span class="bol-btn__sep" aria-hidden="true"></span>
+      <span>Encargos y consultas por WhatsApp</span>
+      <svg class="bol-btn__fl" width="19" height="12" viewBox="0 0 19 12" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 6h16M12.5 1.5 17 6l-4.5 4.5"/></svg>
+    </a>
+  </div>
+</section>

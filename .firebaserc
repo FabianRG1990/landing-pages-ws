@@ -32,6 +32,9 @@
         "bolleria": [
           "bolleria"
         ],
+        "bolleria-v2": [
+          "bolleria-cr"
+        ],
         "adn-business": [
           "adn-business"
         ]

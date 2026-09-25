@@ -1,0 +1,27 @@
+<!-- `data-nav-tono="papel"` y no "oscuro" como el pie: este bloque va sobre el
+     fondo crema del sitio, así que la barra de navegación tiene que conservar
+     su tinta oscura al final de la portada (ver site-nav.component.ts). -->
+<section class="bol-despedida" data-nav-tono="papel" aria-labelledby="bol-despedida-titulo">
+  <div class="bol-despedida__inner">
+    <h2 id="bol-despedida-titulo" class="bol-despedida__rotulo">Te esperamos pronto</h2>
+
+    <!-- Filete de espiga: el mismo recurso dorado que el sitio usa para separar
+         sin dibujar una línea dura. -->
+    <span class="bol-despedida__filete" aria-hidden="true"></span>
+
+    <blockquote class="bol-despedida__versiculo">
+      <p>«Gusten y vean qué bueno es el Señor.»</p>
+      <cite>Salmos 34:8</cite>
+    </blockquote>
+  </div>
+
+  <!-- El © y la firma del estudio vivían solo en el pie. Al quitarlo de la
+       portada -que es la página más visitada- se replican aquí en voz baja,
+       para que el crédito no dependa de que la persona entre a Menú. -->
+  <div class="bol-despedida__legal">
+    <span>© 2026 Bollería Panadería</span>
+    <a href="https://claudioandrade.solutions/" target="_blank" rel="noopener" class="bol-despedida__by">
+      Diseño y desarrollo por Claudio Andrade Solutions
+    </a>
+  </div>
+</section>

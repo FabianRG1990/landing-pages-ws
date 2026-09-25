@@ -1,0 +1,27 @@
+<!-- ACERCA DE NOSOTROS
+     Dos libros, y solo uno se monta. El nuevo va en escritorio y en cualquier
+     pantalla horizontal; el de siempre se queda con el telefono de pie, intacto.
+     Ver `LIBRO_NUEVO` en el componente.
+
+     `ngSkipHydration` en los dos: cual toca solo se sabe en el navegador -el
+     servidor no conoce la orientacion-, asi que el arbol cambia justo despues de
+     hidratar. Sin esto Angular compara el DOM del servidor con el del cliente y
+     avisa de discrepancia. No se pierde nada al saltarlo: los dos libros son un
+     lienzo que se pinta entero en cliente. -->
+@if (libroNuevo()) {
+  <bol-about-book-2026 ngSkipHydration />
+} @else {
+  <bol-about-book ngSkipHydration />
+}
+
+<!-- La portada NO lleva pie de página: cierra con esta despedida. El pie
+     completo sigue intacto en Menú y Contacto (ver app.html). -->
+<bol-despedida />
+
+<!-- El velo del giro. Esta SIEMPRE en el DOM, aunque no se vea, y eso no es
+     descuido: montarlo en el momento del giro dejaba el isotipo sin pintar -el
+     navegador no llega a decodificar la imagen en el primer fotograma, medido- y
+     el velo aparecia como un crema vacio. Estando puesto desde la carga, la
+     imagen ya esta decodificada y aparece con el papel. Oculto no cuesta nada:
+     `visibility: hidden` lo saca de la composicion. Ver `relevo()`. -->
+<bol-velo-giro [fase]="fase()" />

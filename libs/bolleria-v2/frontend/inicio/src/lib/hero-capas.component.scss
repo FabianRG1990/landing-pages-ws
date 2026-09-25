@@ -1,0 +1,737 @@
+:host {
+  display: block;
+  /**
+   * `preventDefault` en `touchmove` NO basta: en cuanto el navegador entrega un
+   * desplazamiento al compositor ya no hay nada que cancelar. Con la clase
+   * puesta -la pone el componente mientras quede un paso hacia abajo- el dedo no
+   * puede arrastrar la página. `pinch-zoom` y no `none`: el zoom es una ayuda de
+   * accesibilidad y no se toca. En el último estado se abre para poder salir.
+   */
+  touch-action: pan-y pinch-zoom;
+  // Es el host, y no la sección de dentro, quien compite con lo que venga
+  // después en el flujo de la página: el z-index tiene que vivir aquí.
+  position: relative;
+  z-index: 2;
+  /**
+   * El compás de un paso. Es el único número que hay que tocar para que la
+   * transición dure más o menos, y tiene un gemelo en el componente (`DUR`):
+   * quien decide cuándo se puede volver a dar un paso necesita saber cuánto dura
+   * el que está en curso.
+   *
+   * Las imágenes usan `--dur` entera. Las palabras y los botones usan
+   * `--dur-txt`, más corta, y el que ENTRA lleva además un retraso: si los dos
+   * titulares se cruzaran a media opacidad se leerían los dos a la vez.
+   */
+  --dur: 400ms;
+  --dur-txt: 180ms;
+  --curva: cubic-bezier(0.4, 0, 0.2, 1);
+  // No queda ningún paralaje: en la escena sólo cambia el pan.
+  /**
+   * Retrasos por pieza. Los escribe el componente: 220ms para la que entra, 0
+   * para la que sale. En reposo, sin JavaScript, todos a cero y no pasa nada
+   * porque tampoco hay nada que relevar.
+   */
+  --td0: 0ms;
+  --td1: 0ms;
+  --td2: 0ms;
+  --ta0: 0ms;
+  --ta1: 0ms;
+  --pista: 1;
+  /**
+   * Valores en reposo: primer estado, primer texto. Los escribe el componente
+   * fotograma a fotograma, pero si el JavaScript no corre -SSR, «menos
+   * movimiento», un error- el hero se queda en un estado completo y correcto.
+   */
+  --o2: 0;
+  --o3: 0;
+  --t0: 1;
+  --t1: 0;
+  --t2: 0;
+  // Y los botones: en reposo mandan los dos de siempre. `visibility` va como
+  // palabra porque un enlace transparente sigue siendo enfocable y sigue
+  // leyéndose en voz alta; escondido de verdad, no.
+  --a0: 1;
+  --a1: 0;
+  --va0: visible;
+  --va1: hidden;
+  /**
+   * Eje del bloque de texto, atado a la geometría de la foto.
+   *
+   * La escena es 1672x941 y va con `cover`, así que su escala en pantalla es la
+   * mayor de las dos razones, y lo que sobra se recorta a partes iguales por los
+   * lados. Con eso se puede señalar un punto CONCRETO de la fotografía y saber
+   * dónde cae: el 27,1 % del ancho de la escena es el centro del paño de muro
+   * libre, entre la celosía de la izquierda y el ramo de la derecha. Un valor
+   * fijo en px no serviría, porque cuanto más estrecha es la ventana más recorta
+   * `cover` y más se acerca el bodegón.
+   *
+   * Los dos topes: nunca a la izquierda de 21rem -que es donde ya estaba, y está
+   * validado- ni más allá de la mitad de la pantalla, que es lo que deja el eje
+   * centrado en móvil.
+   */
+  // La escala va con `svh`, la misma unidad que la caja: son la misma medida
+  // mirada de dos maneras, y si se separan el bodegon deja de encajar. Llegaron
+  // a separarse -esto en `svh` y la escena que pinta en `dvh`- y era justo lo
+  // que este aviso decia que no podia pasar: ver `.bol-heroc__escena`, donde
+  // estan los dos precios medidos.
+  --esc: max(calc(100vw / 1672), calc(100svh / 941));
+  --img-w: calc(var(--esc) * 1672);
+  --eje-foto: calc((100vw - var(--img-w)) / 2 + var(--img-w) * 0.271);
+  --eje: min(50%, max(21rem, var(--eje-foto)));
+}
+
+:host(.bol-manda) {
+  touch-action: pinch-zoom;
+}
+
+/**
+ * El hero mide una pantalla y ya está: no hay riel, no hay recorrido y no hay
+ * nada clavado. Los tres estados no se recorren, se saltan.
+ */
+.bol-heroc {
+  position: relative;
+  width: 100%;
+  /**
+   * Sin fondo propio A PROPÓSITO. La escena se funde por abajo (ver
+   * `.bol-heroc__escena`) y lo que tiene que asomar en ese fundido es el papel
+   * del `body`, el mismo sobre el que sigue la página. Un crema liso aquí
+   * volvería a dibujar el corte que el fundido quita.
+   */
+}
+
+/**
+ * El escenario. Mide una pantalla y se queda pegado mientras el envoltorio pasa
+ * por delante: eso es lo que da las tres paradas sin que nada se mueva.
+ *
+ * `100svh` y no `100vh`: en móvil la barra del navegador entra y sale, y con
+ * `vh` el escenario mediría más que lo visible y dejaría una franja. El
+ * componente mide el recorrido contra el alto REAL de este elemento, no contra
+ * `innerHeight`, por esa misma razón.
+ */
+.bol-heroc__fijo {
+  position: relative;
+  // Constante, igual que el pin del libro y por el mismo motivo: esta caja esta
+  // en flujo y su alto es la altura de la primera pantalla del documento. Con la
+  // unidad dinamica, la barra del navegador deslizandose cambiaba la geometria
+  // en pleno scroll y el navegador compensaba empujando la pagina.
+  //
+  // Quien llena la pantalla es la ESCENA, que va en absoluto (ver
+  // `.bol-heroc__escena`). Y `svh` -no `lvh`- porque aqui abajo del todo vive la
+  // pista de "segui bajando": con el viewport grande se escondería tras la barra.
+  height: 100vh;
+  height: 100svh;
+  // El suelo de 34rem protege de una ventana tan baja que el bodegón y los dos
+  // botones se pisarían. Solo tiene sentido donde la pantalla es más alta que
+  // él; donde no, hace justo el daño que quería evitar.
+  min-height: 34rem;
+  overflow: hidden;
+  isolation: isolate;
+
+  /**
+   * El teléfono acostado es el único sitio donde ese suelo queda POR ENCIMA de
+   * la pantalla: medido en un 873x393, el hero medía 544 px en una ventana de
+   * 393 y no cabía de ninguna manera -o se cortaba el título o se cortaban los
+   * botones-, y los 151 px que sobraban eran además los que obligaban al hero y
+   * al libro a compartir pantalla durante el relevo.
+   *
+   * Comprobado: sin el suelo, el hero mide exactamente 393 y entran el título,
+   * los dos botones y el "Seguí bajando".
+   *
+   * Las dos condiciones van juntas a propósito. `landscape` sola alcanzaría a
+   * cualquier monitor, y `max-height` sola alcanzaría a una ventana de
+   * escritorio estrujada, donde el suelo sí está haciendo su trabajo.
+   */
+  @media (orientation: landscape) and (max-height: 600px) {
+    min-height: 0;
+  }
+}
+
+// ---------------------------------------------------------------- la escena
+
+/**
+ * El borde inferior se funde con el papel de la página. Sin esto el hero
+ * terminaba en línea recta -la mesa contra el papel- justo donde empieza el
+ * libro.
+ *
+ * La máscara va en la ESCENA y no en la sección: así solo se desvanece la foto,
+ * y la pista de scroll y los botones, que viven fuera de ella, conservan su
+ * opacidad entera. Los tramos no son lineales: una rampa recta marca dónde
+ * empieza y se lee como una banda.
+ */
+.bol-heroc__escena {
+  // EL MISMO ALTO QUE LA CAJA QUE LA RECORTA, y esa es toda la regla.
+  //
+  // Esta capa vive dentro de `.bol-heroc__fijo`, que mide `100svh` y lleva
+  // `overflow: hidden`. O sea que la escena esta recortada a `svh` pase lo que
+  // pase: hacerla mas alta no cubre ni un pixel mas. Lo unico que cambia su alto
+  // son dos cosas, y las dos para mal si no coincide con el recorte:
+  //
+  //   · la ESCALA. Las fotos van en `cover` y la sacan de esta caja. Medido en
+  //     un 393x873 con `dvh`: al retraerse la barra la foto pasaba de 1551 a
+  //     1656 px de ancho, un 6,8 %. Y como la barra no se va de golpe sino
+  //     animada, no se lee como un salto sino como un acercamiento en pleno
+  //     scroll. Reportado como "cuando la imagen se hace para arriba se hace mas
+  //     grande, se ve muy tosco".
+  //   · el DESVANECIDO de abajo, que va en porcentajes de esta caja. Si la caja
+  //     es mas alta que el recorte, el fundido no ha terminado cuando el recorte
+  //     llega y la foto se corta en seco. Medido: con la escena 59 px mas alta
+  //     que su recorte, el salto de brillo entre dos filas vecinas justo en el
+  //     corte pasa de 13 niveles -la textura de la propia foto- a 58, en
+  //     Chromium y en WebKit. Eso es una linea, y una linea entre secciones es
+  //     exactamente lo que este sitio no puede tener.
+  //
+  // Con `svh` las dos cajas son la misma medida, asi que van siempre juntas: la
+  // foto no se reencuadra nunca y el fundido termina justo donde el recorte
+  // corta. No hay franja que temer: el hero esta en FLUJO -no hay nada clavado
+  // aqui-, asi que cuando la barra se retrae lo que asoma por abajo no es un
+  // hueco, es la seccion siguiente.
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 100svh;
+  z-index: 0;
+  $fundido: linear-gradient(
+    to bottom,
+    #000 84%,
+    rgba(0, 0, 0, 0.72) 90%,
+    rgba(0, 0, 0, 0.3) 95.5%,
+    transparent 100%
+  );
+  -webkit-mask-image: $fundido;
+  mask-image: $fundido;
+}
+
+/**
+ * El fondo es la escena aprobada y va sin ampliar: cualquier escala extra la
+ * recorta más y deja de leerse como la imagen. No la necesita, porque no se
+ * mueve nada.
+ *
+ * Sin escala, `cover` deja ver el 90 % del ancho (la imagen es 16:9 y el hero es
+ * más cuadrado). Con el `scale(1.22)` que había antes se quedaba en el 74 %, y de
+ * ahí venía que todo saliera enorme.
+ */
+.bol-heroc__muro {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 50%;
+  pointer-events: none;
+  user-select: none;
+  /**
+   * Quietos y sin `will-change`: al no moverse no necesitan capa de composición
+   * propia ni margen de escala, así que muestran el 100 % del encuadre aprobado.
+   */
+}
+
+/**
+ * Los estados 2 y 3 del mostrador, encima del 1 y en el mismo encuadre exacto.
+ *
+ * Sólo cambia la opacidad, que el compositor resuelve sin repintar. Y son capas
+ * transparentes con sólo lo que cambia -el 5 y el 8 % de la escena-: fuera
+ * de él su alfa es 0 exacto, medido tras la compresión, así que en el resto de
+ * la pantalla el fundido es aritméticamente una operación nula. Por eso «sólo
+ * aparece el pan» no es una impresión: es una propiedad del montaje, no algo
+ * que haya que disimular con la velocidad.
+ */
+.bol-heroc__muro--2 {
+  opacity: var(--o2);
+  transition: opacity var(--dur) var(--curva);
+}
+
+.bol-heroc__muro--3 {
+  opacity: var(--o3);
+  transition: opacity var(--dur) var(--curva);
+}
+
+/**
+ * El parche de muro que tapa el logo pintado. Aquí no lleva imagen: se declara
+ * sólo dentro de la media query de estrecho, así que en escritorio el navegador
+ * no la pide.
+ */
+.bol-heroc__parche {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+/**
+ * Velo de legibilidad. Sobre el muro el titular ya da 8,76:1, así que en
+ * escritorio es casi imperceptible; existe para cuando el recorte de las
+ * pantallas estrechas mete pan debajo del texto, donde el contraste cae a 3,65.
+ */
+.bol-heroc__velo {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    100deg,
+    rgba(250, 246, 236, 0.62) 0%,
+    rgba(250, 246, 236, 0.34) 26%,
+    rgba(250, 246, 236, 0) 52%
+  );
+  pointer-events: none;
+}
+
+// -------------------------------------------------------------- el contenido
+
+/**
+ * Alineación por defecto, en bandera. El bloque se centra sólo donde cabe, al
+ * final del archivo: ver la nota del bloque «texto centrado».
+ */
+.bol-heroc__contenido {
+  position: relative;
+  z-index: 1;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 1.15rem;
+  padding: 0 clamp(1.5rem, 6vw, 7rem);
+  /**
+   * Sube el bloque 4vh sobre el centro. Se hace restando altura por abajo en vez
+   * de con un `translate`: así el bloque sigue siendo el que manda en el flujo
+   * -nada que recalcular, ninguna capa de composición nueva- y la pista de
+   * scroll, que va anclada al fondo del hero, se queda donde tiene que estar.
+   * El centro geométrico dejaba el titular por debajo del logo pintado; a esta
+   * altura los dos se leen en la misma banda de luz del muro.
+   */
+  padding-bottom: 8vh;
+  max-width: 42rem;
+}
+
+/**
+ * Los tres relevos de texto, apilados en una sola celda.
+ *
+ * Con la rejilla el bloque mide siempre lo que el más alto de los tres, así que
+ * al cambiar de titular no se mueve ni el bloque ni los botones de debajo. Si
+ * fueran hermanos en el flujo, cada relevo cambiaría la altura y todo daría un
+ * salto justo en el momento en que el ojo está mirando.
+ */
+.bol-heroc__textos {
+  display: grid;
+  width: 100%;
+}
+
+.bol-heroc__texto {
+  grid-area: 1 / 1;
+  display: flex;
+  flex-direction: column;
+  // Los mismos huecos que tenía la columna cuando era plana.
+  gap: 1.15rem;
+  // Cada texto se centra dentro de la celda común, así que los tres comparten
+  // línea media aunque midan distinto.
+  justify-content: center;
+  align-items: flex-start;
+}
+
+// Sólo el primero entra animado al cargar: es el que se ve. Los otros dos los
+// gobierna el scroll, y una animación con `forwards` les fijaría la opacidad a 1
+// y ganaría a la del relevo.
+.bol-heroc__texto:not(:first-child) {
+  .bol-heroc__lugar,
+  .bol-heroc__titulo {
+    opacity: 1;
+    animation: none;
+  }
+}
+
+.bol-heroc__texto:nth-child(1) {
+  opacity: var(--t0);
+  transition: opacity var(--dur-txt) var(--curva) var(--td0);
+}
+.bol-heroc__texto:nth-child(2) {
+  opacity: var(--t1);
+  transition: opacity var(--dur-txt) var(--curva) var(--td1);
+}
+.bol-heroc__texto:nth-child(3) {
+  opacity: var(--t2);
+  transition: opacity var(--dur-txt) var(--curva) var(--td2);
+}
+
+/**
+ * Los tres relevos ocupan el mismo sitio, así que arrastrar el ratón sobre el
+ * titular seleccionaría también los dos que no se ven y saldría un revoltijo.
+ * El texto del hero no es interactivo -los botones van fuera de la pila-, de
+ * modo que se le quita el ratón al bloque entero. El foco no se pierde: aquí
+ * dentro no hay nada enfocable.
+ */
+.bol-heroc__textos {
+  pointer-events: none;
+  user-select: none;
+}
+
+.bol-heroc__lugar {
+  margin: 0;
+  font-family: 'Cinzel', serif;
+  font-weight: 600;
+  font-size: 0.72rem;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: #454e24;
+  opacity: 0;
+  animation: heroc-entra 0.9s cubic-bezier(0.2, 0.75, 0.2, 1) 0.15s forwards;
+}
+
+// Playfair Display en itálica, elegida por el dueño del sitio sobre Cormorant y
+// EB Garamond. Es una transicional del XVIII: el salto entre el trazo grueso y
+// el fino es el más marcado de las tres y los remates son rectos y afilados, de
+// donde le viene el aire editorial.
+//
+// Va ENTERA en itálica, las dos líneas. Antes la primera era romana y sólo el
+// énfasis cursivo; el encargo era que el titular fuese más italic, no que
+// conservara el contraste entre renglones. Ese contraste no se pierde: lo
+// sostiene el color, que sigue separando la frase en dos.
+//
+// Tres ajustes que la letra pide y Cormorant no pedía:
+//   · Cuerpo MENOR (5,1rem de techo, no 5,4). Playfair tiene la x-height alta
+//     y ocupa más a igualdad de cuerpo; al tamaño anterior el renglón se salía
+//     de la columna en la parada larga.
+//   · `line-height` de 1.12 y no 0.98. Sus ascendentes y descendentes son más
+//     largas y a 0,98 la «g» de «ganas» chocaba con la línea de abajo.
+//   · Tracking casi neutro. El -0,015em de antes compensaba la holgura de
+//     Cormorant; aquí aprieta unos remates que ya son afilados.
+.bol-heroc__titulo {
+  margin: 0;
+  font-family: 'Playfair Display', Georgia, serif;
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(2.55rem, 5.9vw, 5.1rem);
+  line-height: 1.12;
+  letter-spacing: -0.005em;
+  color: #2e2a1c;
+  opacity: 0;
+  animation: heroc-entra 1s cubic-bezier(0.2, 0.75, 0.2, 1) 0.28s forwards;
+
+  em {
+    display: block;
+    font-style: italic;
+    // Oliva oscuro y no el dorado de la marca: sobre este muro el dorado
+    // se queda en 1,70:1 y es ilegible. Este da 5,42:1.
+    color: #454e24;
+  }
+}
+
+/**
+ * Los dos juegos de botones comparten celda, como los tres textos: el bloque
+ * reserva el alto del más alto -en móvil, el de las dos píldoras partidas en dos
+ * filas- y al relevarse no se mueve nada de lo que hay arriba ni abajo. La
+ * columna es `1fr` para que cada juego mida el ancho entero y decida por su
+ * cuenta si va en bandera o centrado.
+ */
+.bol-heroc__acciones {
+  display: grid;
+  grid-template-columns: 1fr;
+  // El aire bajo el titular ESCALA con el titular, no es un número fijo.
+  //
+  // Los 0,6rem de antes sumaban 28px con el `gap` del contenedor, y eso bastaba
+  // cuando entre el titular y los botones iba el párrafo: el que separaba de
+  // verdad era él. Sin el párrafo, 28px bajo un titular de 81px dejan los
+  // botones colgando de la última línea.
+  //
+  // El término en `vw` hace que el hueco crezca con el cuerpo de la letra, que
+  // también es `vw`: da ~32px de separación total en un teléfono y ~48px en
+  // escritorio, en torno a 0,55em del titular en ambos extremos, que es el
+  // ritmo editorial habitual entre un titular y lo que le sigue.
+  margin-top: clamp(1.1rem, 2.1vw, 2.2rem);
+  opacity: 0;
+  animation: heroc-entra 1s cubic-bezier(0.2, 0.75, 0.2, 1) 0.56s forwards;
+}
+
+.bol-heroc__grupo {
+  grid-area: 1 / 1;
+  // Centrado en la celda común: el juego de un solo botón queda a la altura
+  // media del que lleva dos, no pegado al borde de arriba.
+  align-self: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+}
+
+.bol-heroc__grupo:nth-child(1) {
+  opacity: var(--a0);
+  visibility: var(--va0);
+  transition: opacity var(--dur-txt) var(--curva) var(--ta0);
+}
+.bol-heroc__grupo:nth-child(2) {
+  opacity: var(--a1);
+  visibility: var(--va1);
+  transition: opacity var(--dur-txt) var(--curva) var(--ta1);
+}
+
+// El aspecto vive en `.bol-btn` (styles.scss); aquí solo queda que el rótulo
+// del botón se centre en su caja, que es lo único propio del hero.
+.bol-heroc__cta {
+  justify-content: center;
+}
+
+// El secundario es ahora `.bol-btn--claro`: la misma pieza en papel claro, no
+// un relleno translúcido distinto. No necesita nada propio.
+
+// ------------------------------------------------------------- pista de scroll
+
+.bol-heroc__pista {
+  position: absolute;
+  z-index: 1;
+  left: clamp(1.5rem, 6vw, 7rem);
+  bottom: 2.1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  font-family: 'Jost', system-ui, sans-serif;
+  font-size: 0.68rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: rgba(46, 42, 28, 0.6);
+  // Se retira en el último estado: ya no queda nada hacia lo que invitar.
+  opacity: var(--pista);
+  transition: opacity var(--dur) var(--curva);
+  pointer-events: none;
+
+  i {
+    display: block;
+    width: 3.2rem;
+    height: 1px;
+    background: currentColor;
+    transform-origin: left center;
+    animation: heroc-pista 2.6s ease-in-out infinite;
+  }
+}
+
+@keyframes heroc-entra {
+  from {
+    opacity: 0;
+    transform: translateY(1.15rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes heroc-pista {
+  0%,
+  100% {
+    transform: scaleX(0.45);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+}
+
+// ------------------------------------------------------------------- estrecho
+
+@media (max-width: 720px) {
+  /**
+   * En vertical, una escena 16:9 se recorta mucho: se abre el encuadre hacia la
+   * derecha, donde está el pan. Las capas y el parche tienen que llevar SIEMPRE
+   * el mismo encuadre o se desalinean entre sí.
+   *
+   * Esto es un apaño hasta que exista la versión vertical de la escena, que es
+   * la solución de verdad para el móvil.
+   */
+  .bol-heroc__muro {
+    object-position: 64% 50%;
+  }
+
+  // El titular manda: dos marcas superpuestas no se leen ni una ni otra. El
+  // parche tapa el logo pintado con el mismo encuadre que la escena: `cover` y
+  // `background-position` reparten el sobrante igual que `object-fit` y
+  // `object-position`.
+  .bol-heroc__parche {
+    background: url('/assets/hero-capas/hero-muro-movil.webp') 64% 50% / cover no-repeat;
+  }
+
+  /**
+   * BANDA, no velo de arriba abajo. El velo empezaba opaco en el borde superior
+   * y se apagaba hacia el 62 %: lavaba el 71 % de la pantalla -el arco del muro,
+   * la rama de olivo, las flores- y el dueño del sitio lo reportó como que
+   * difuminaba la foto.
+   *
+   * Aquí solo cubre la franja del texto (del 22 % al 42 %, que es donde caen el
+   * rótulo, el titular y la bajada), y entra y sale con rampas largas para que
+   * no se lea como una banda con bordes.
+   *
+   * Medido en 390x844, contraste en el PEOR punto del fondo -el percentil 5 de
+   * luminancia bajo cada bloque, que es la flor oscura bajo la bajada-:
+   *
+   *                       lavado   aclarado   bajada   titular
+   *   velo de antes        71 %      26,0      6,20     8,52
+   *   esta banda           49 %      17,0      6,93     7,82
+   *   solo acortarlo       43 %      16,4      3,92 <- por debajo del 4,5 de AA
+   *
+   * O sea: mucho menos lavado con MAS contraste. Acortar el velo sin mover
+   * dónde cubre NO vale, aunque sea lo primero que uno prueba.
+   *
+   * El punto que fija la opacidad no es la bajada sino el rótulo "GRECIA ·
+   * ALAJUELA": es el texto más pequeño y cae justo donde entra la banda. A 0,45
+   * se quedaba en 4,23 en una pantalla de 720 -por debajo del 4,5 de AA-, y por
+   * eso la meseta es 0,5 y empieza 86px por encima del texto.
+   *
+   * Y la banda va en LAS MISMAS UNIDADES que el texto, no en porcentajes de
+   * pantalla. El bloque arranca en `$texto-top` y mide ~205px fijos, asi que en
+   * una pantalla corta ocupa una fraccion mayor: con la banda en porcentajes, en
+   * un 360x640 la bajada caia por debajo y su contraste se hundia a 2,89.
+   */
+  $texto-top: 22vh; // el mismo que `padding-top` de `.bol-heroc__contenido`
+  // Del rotulo a la ultima linea del TITULAR, medido en 390x844 y en 360x640
+  // (da 121 en las dos: el titular no depende del ancho en este tramo).
+  //
+  // Eran 205px cuando debajo del titular iba el parrafo. Al retirarlo, dejar el
+  // 205 no era inofensivo: la banda seguia cubriendo 84px de foto por debajo de
+  // donde acaba el texto, que es justo la zona de los croissants. Lavado por
+  // lavado, esos 84px no protegian nada.
+  $texto-alto: 121px;
+
+  .bol-heroc__velo {
+    background: linear-gradient(
+      175deg,
+      rgba(250, 246, 236, 0) 0,
+      rgba(250, 246, 236, 0.16) calc(#{$texto-top} - 130px),
+      rgba(250, 246, 236, 0.5) calc(#{$texto-top} - 86px),
+      rgba(250, 246, 236, 0.5) calc(#{$texto-top} + #{$texto-alto} + 14px),
+      rgba(250, 246, 236, 0.12) calc(#{$texto-top} + #{$texto-alto} + 80px),
+      rgba(250, 246, 236, 0) calc(#{$texto-top} + #{$texto-alto} + 140px)
+    );
+  }
+
+  .bol-heroc__contenido {
+    justify-content: flex-start;
+    // El velo de arriba se ancla a este mismo valor (`$texto-top`): si cambia,
+    // la banda tiene que seguirlo o dejara de cubrir el texto.
+    padding-top: $texto-top;
+    gap: 0.9rem;
+  }
+
+  .bol-heroc__texto {
+    gap: 0.9rem;
+  }
+
+  .bol-heroc__pista {
+    bottom: 1.4rem;
+  }
+}
+
+// --------------------------------------------------------- texto centrado
+
+/**
+ * El bloque se centra en el hueco limpio del muro, no en la pantalla: su eje
+ * cae en 21rem desde la izquierda, a salvo del pan y del logo pintado.
+ *
+ * Sólo se aplica donde ese hueco existe. La escena es 16:9 y va con `cover`:
+ * cuanto más estrecha o más alta es la ventana, más recorta por los lados y más
+ * se acerca el bodegón al centro. Medido el contraste del texto sobre la escena
+ * real ancho por ancho, el centrado aguanta de 1100px en adelante -a 1440px el
+ * peor punto incluso mejora, de 4,61:1 a 5,95:1- y se rompe a partir de 1024px,
+ * donde la bajada cae de 4,97:1 a 1,32:1 porque el titular se sienta encima del
+ * pan. En ese tramo intermedio se queda en bandera, pegada al margen, que es
+ * donde queda muro. Por debajo de 720px vuelve a centrarse: ahí el bloque sube
+ * a la zona alta del muro y el velo cubre.
+ */
+@media (min-width: 1100px), (max-width: 720px) {
+  .bol-heroc__contenido {
+    align-items: center;
+    text-align: center;
+    // Los botones de la casa miden 195 y 271px: con las 7rem de relleno lateral
+    // sumaban más que la columna y se partían en dos filas. Reducirlo no mueve
+    // el eje -el contenido se centra igual- sólo abre sitio.
+    padding-left: clamp(1.5rem, 3vw, 3rem);
+    padding-right: clamp(1.5rem, 3vw, 3rem);
+    // La columna se desplaza hasta apoyar su eje sobre el del muro. Nunca hacia
+    // la izquierda: si la foto está tan recortada que su eje cae antes de las
+    // 21rem, el bloque se queda donde estaba.
+    margin-left: max(0px, calc(var(--eje) - 21rem));
+  }
+
+  // `align-items` no se hereda: la pila de relevos necesita su propia orden o
+  // los tres textos se quedarían en bandera dentro de un bloque centrado.
+  .bol-heroc__texto {
+    align-items: center;
+  }
+
+  .bol-heroc__lugar {
+    // El espaciado entre letras deja un hueco DETRÁS de la última que no existe
+    // delante de la primera: la caja mide 0,26em de más y la tinta queda medio
+    // hueco a la izquierda del eje. Se compensa con la mitad; con el hueco
+    // entero se pasa de largo y desvía 1px al otro lado.
+    text-indent: 0.13em;
+  }
+
+  .bol-heroc__grupo {
+    justify-content: center;
+  }
+
+  .bol-heroc__cta {
+    // Misma compensación que el rótulo de lugar, dentro del botón. El valor de
+    // partida ya no es 1,9rem: `.bol-btn` entra por la izquierda a 15px, que es
+    // donde empieza el croissant.
+    padding-left: calc(15px + 0.085em);
+  }
+
+  /**
+   * La pista de scroll NO se lleva al eje del texto, aunque compartir eje sea lo
+   * coherente. Medido el contraste sobre la escena real, bajo el eje cae a
+   * 1,08-2,73:1 con el 66-93 % de su superficie por debajo de 3:1, porque ahí
+   * abajo está la mesa; anclada al margen izquierdo se queda en 2,17-3,16:1 con
+   * el 0-35 %. La esquina inferior izquierda es el único sitio del hero donde a
+   * esa altura sigue habiendo muro, y por eso estaba puesta ahí.
+   */
+}
+
+// ------------------------------------------------------------ menos movimiento
+
+@media (prefers-reduced-motion: reduce) {
+  /**
+   * El hero no se clava y no se llena: una pantalla, la primera parada y el
+   * primer titular. Los estados 2 y 3 se retiran del todo -no basta con dejarlos
+   * a opacidad 0- para no componer dos capas de pantalla completa que no se van
+   * a ver nunca.
+   */
+  .bol-heroc {
+    height: 100vh;
+    height: 100svh;
+  }
+
+  .bol-heroc__fijo {
+    position: static;
+    height: 100%;
+  }
+
+  .bol-heroc__muro--2,
+  .bol-heroc__muro--3,
+  .bol-heroc__texto:not(:first-child),
+  .bol-heroc__grupo:not(:first-child) {
+    display: none;
+  }
+
+  // Nada que animar: no hay pasos que dar.
+  .bol-heroc__muro,
+  .bol-heroc__texto,
+  .bol-heroc__grupo,
+  .bol-heroc__pista {
+    transition: none;
+  }
+
+  .bol-heroc__lugar,
+  .bol-heroc__titulo,
+  .bol-heroc__acciones {
+    opacity: 1;
+    animation: none;
+  }
+
+  .bol-heroc__pista {
+    opacity: 1;
+
+    i {
+      animation: none;
+    }
+  }
+
+  .bol-heroc__cta {
+    transition: none;
+  }
+}

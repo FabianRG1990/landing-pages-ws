@@ -1,0 +1,5 @@
+Assets de la versión 2. Es la única carpeta pública que lee su build.
+
+La v2 es una aplicación independiente de la v1 (apps/bolleria): no comparte
+con ella ni esta carpeta ni ninguna otra. Lo que nació copiado de la v1 ya es
+de la v2 y puede cambiar sin tocar la otra app.

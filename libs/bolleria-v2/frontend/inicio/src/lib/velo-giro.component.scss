@@ -1,0 +1,50 @@
+// Papel a pantalla completa mientras se hace el relevo de libro.
+//
+// `1400` lo pone por encima de la barra (900 y 1200) y del libro, y por debajo
+// de la cortina del horno (1500) y del preloader (2000): si el usuario navega a
+// otra pagina justo al girar, manda el viaje, no el parpadeo.
+:host {
+  position: fixed;
+  inset: 0;
+  z-index: 1400;
+  display: grid;
+  place-items: center;
+
+  // El mismo crema del sitio (`--cream`), que es el fondo real de la pagina: el
+  // velo no introduce un color nuevo, solo quita el contenido de en medio.
+  background: var(--cream, #faf6ec);
+
+  // Reposo: montado pero fuera de la composicion. `visibility` y no `display`,
+  // porque `display: none` no decodifica la imagen y el isotipo volveria a
+  // llegar tarde a su propio velo.
+  opacity: 0;
+  visibility: hidden;
+  // Sin esto, el velo se comeria los toques mientras es invisible.
+  pointer-events: none;
+  // Sin transicion al entrar: aparece opaco en el primer fotograma. Un fundido
+  // aqui es una ventana por la que se ve el montaje (ver el .ts).
+}
+
+// Puesto: tapa y, mientras tapa, se traga los toques a proposito. Debajo se
+// esta desmontando un libro y montando otro; un dedo ahi no tiene a donde ir.
+:host(.esta-puesto) {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+// Lo unico que se anima es irse.
+:host(.se-va) {
+  opacity: 0;
+  visibility: visible;
+  transition: opacity 180ms ease-in;
+}
+
+// El isotipo NO se anima, y es a proposito. El relevo entero dura entre 450 y
+// 760 ms medidos; una entrada de 260 ms dentro de eso no se lee como un detalle,
+// se lee como un parpadeo, y encima competiria con lo unico que si tiene que
+// notarse: que la pantalla se despeja. Aparece con el papel y se va con el.
+.bol-velo__marca {
+  width: 76px;
+  height: auto;
+}

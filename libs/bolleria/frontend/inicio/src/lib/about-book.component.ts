@@ -7,6 +7,28 @@ const FRAME_COUNT = 169;
 const FRAMES_DIR = 'assets/about-book-frames';
 const LAST = 7; // 1..6 = historias con foto+texto, 7 = cierre (redes sociales)
 
+/**
+ * Histeresis alrededor de la FRONTERA entre dos huecos, en fracciones de pagina.
+ *
+ * El libro se maneja con el scroll y la pagina sale de un progreso continuo. Sin
+ * histeresis, quedarse parado justo en una frontera con el temblor normal de un
+ * trackpad alterna "siguiente" y "anterior" indefinidamente.
+ *
+ * Antes esto era una banda de 0,55 alrededor del OBJETIVO vigente, y estaba
+ * DESCENTRADA: al pasar de hoja el objetivo saltaba a `round(bruto)`, que queda
+ * 0,45 por delante de donde esta la ventana, asi que seguir hacia adelante
+ * costaba una hoja entera de scroll y volver atras solo 0,1 -unos 65 px en el
+ * hueco de entonces-. Subir un pelo justo despues de pasar una hoja la devolvia.
+ *
+ * Ahora la franja muerta esta en la FRONTERA y no en el objetivo: el destino se
+ * acepta solo cuando la ventana esta a menos de `0,5 - PISTA_BANDA` del centro
+ * de su hueco. O sea que se pasa hacia adelante al 65% del hueco y hacia atras
+ * al 35%, igual de firme en los dos sentidos, y la franja entre esos dos puntos
+ * conserva lo que hubiera. Sigue aceptando saltos largos: `round` de un progreso
+ * lejano cae dentro de su propio hueco, no en una frontera.
+ */
+const PISTA_BANDA = 0.15;
+
 // Cuadros calibrados a mano midiendo el movimiento real (diff de pixeles) entre
 // cuadros del video: 1..42 tapa abriendose; 43..50 asentando (51 en adelante ya
 // es el libro abierto, real y visualmente quieto). PAGE_REST es donde TERMINA
@@ -651,9 +673,11 @@ const MS_PER_FRAME = 14;
 const CUADROS_LEAD_NEXT = GIRO_HI - MESH_HI;
 const CUADROS_LEAD_PREV = MESH_LO - 1 - GIRO_LO;
 
-// Mismo dorado que usa el resto del sitio para acentos/ornamentos (ver
-// `.bol-book__wheat` en about-book.component.scss) -se reutiliza para el
-// divisor del texto, en vez de inventar un color nuevo.
+// Mismo dorado que usa el resto del sitio para acentos y ornamentos -es el
+// `--acc` de la marca- y se reutiliza para el divisor del texto, en vez de
+// inventar un color nuevo. Antes esta nota apuntaba a `.bol-book__wheat`, la
+// espiga del boton "Siguiente"; ese boton ya no existe -el libro se pasa con
+// el scroll- pero el dorado sigue siendo el mismo.
 const GOLD = '#C8912A';
 // --- TIPOGRAFIA DE LAS HISTORIAS ---
 // Los tres numeros de abajo (cuerpo, medida y centro) NO son preferencias: son
@@ -871,10 +895,13 @@ const PRINT_PAPER = '#F7F0E2';
 // tintada en calido -un negro neutro sobre papel crema da un gris muerto que
 // delata el composite al instante.
 const PRINT_SHADOW = 'hsl(28 32% 17%)';
-// Mismo trazo de espiga de trigo que ya existe en el fondo decorativo del
-// sitio (about-book.component.scss, `.bol-book__wheat`) -se reutiliza en el
-// divisor del texto para que hable el mismo idioma visual que el resto de la
-// marca, en vez de inventar un ornamento sin relacion con el sitio.
+// Mismo trazo de espiga de trigo que el fondo decorativo del sitio: se
+// reutiliza en el divisor del texto para que hable el mismo idioma visual que
+// el resto de la marca, en vez de inventar un ornamento sin relacion.
+//
+// El trazo venia de `.bol-book__wheat`, la espiga que llevaba el boton
+// "Siguiente". Ese boton se retiro al pasar el libro al scroll; el dibujo se
+// quedo aqui, que es donde de verdad se usa.
 const WHEAT_ICON_URL =
   "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='22' viewBox='0 0 14 22'%3E%3Cpath d='M7 1v20M7 5c-1.8.3-3 1.5-3.6 3 1.8.9 3 .3 3.6-1.2M7 5c1.8.3 3 1.5 3.6 3-1.8.9-3 .3-3.6-1.2M7 11c-1.8.3-3 1.5-3.6 3 1.8.9 3 .3 3.6-1.2M7 11c1.8.3 3 1.5 3.6 3-1.8.9-3 .3-3.6-1.2' stroke='%23C8912A' stroke-width='1.3' fill='none' stroke-linecap='round'/%3E%3C/svg%3E";
 
@@ -1125,6 +1152,10 @@ export class AboutBookComponent {
   private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
   private readonly zone = inject(NgZone);
   private readonly canvasRef = viewChild.required<ElementRef<HTMLCanvasElement>>('canvas');
+  // Opcionales a proposito -no `required`-: `leerPista` puede llegar a
+  // consultarlas antes de que la vista exista y `required` lanzaria.
+  private readonly trackRef = viewChild<ElementRef<HTMLElement>>('track');
+  private readonly recorridoRef = viewChild<ElementRef<HTMLElement>>('recorrido');
 
   readonly last = LAST;
   readonly contact = CONTACT;
@@ -1132,6 +1163,11 @@ export class AboutBookComponent {
   readonly coverOpen = signal(false);
   readonly busy = signal(false);
   readonly current = signal(1);
+  /**
+   * La pagina como INDICE unico: 0 = tapa cerrada, 1..LAST = paginas abiertas.
+   * Es lo que se compara contra el progreso de la pista de scroll.
+   */
+  readonly estado = computed(() => (this.coverOpen() ? this.current() : 0));
   // El titulo esta pegado al libro a proposito (ver SCSS) y la tapa lo tapa un
   // instante real durante la apertura -este signal dispara el pulso de
   // "elevacion" (escala + sombra) sincronizado con ese momento exacto, para
@@ -1303,7 +1339,10 @@ export class AboutBookComponent {
   private raf = 0;
 
   constructor() {
-    if (this.isBrowser) this.arrancarCuandoSeAcerque();
+    if (this.isBrowser) {
+      this.arrancarCuandoSeAcerque();
+      this.engancharPista();
+    }
   }
 
   /**
@@ -1389,6 +1428,11 @@ export class AboutBookComponent {
     this.sizeCanvas();
     this.draw(1);
     this.ready.set(true);
+    // Si el visitante ya estaba dentro de la pista cuando termino la carga,
+    // cada intento de conducir se habia rechazado por `ready`: hay que releer
+    // la posicion y ponerse al dia ahora.
+    this.leerPista(true);
+    void this.conducir();
     window.addEventListener('resize', this.onResize, { passive: true });
   }
 
@@ -4022,6 +4066,149 @@ export class AboutBookComponent {
     );
   }
 
+  // ────────────────────────── Conduccion por scroll ──────────────────────────
+  //
+  // El libro tenia cuatro botones -abrir, anterior, siguiente y volver a la
+  // portada- y ahora lo mueve el scroll. La regla de diseño es que el scroll NO
+  // se toca: ni un `preventDefault`, ni arrastrar la ventana a una parada. El
+  // hero ya tiene su controlador de paradas y dos secciones secuestrando la
+  // rueda en la misma pagina se sentirian como una pagina que no obedece.
+  //
+  // Lo unico que se hace aqui es LEER en que punto de la pista esta la ventana
+  // y derivar de ahi la pagina, llamando a los mismos open()/next()/prev() de
+  // siempre. Toda la calibracion de la vuelta sigue intacta.
+  //
+  // Fuente de verdad unica: la posicion del scroll. Por eso el teclado y los
+  // controles ocultos NO llaman a next() -moverian el libro sin mover la pagina
+  // y el siguiente evento de scroll los desharia-: mueven la ventana.
+
+  /** Objetivo que pide la posicion del scroll, en el mismo indice que `estado`. */
+  private objetivo = 0;
+  private conduciendo = false;
+  private rafPista = 0;
+
+  private engancharPista(): void {
+    // Fuera de la zona: esto corre en cada fotograma de scroll y no toca ningun
+    // signal salvo cuando de verdad cambia la pagina.
+    this.zone.runOutsideAngular(() => {
+      const alMover = (): void => {
+        if (this.rafPista) return;
+        this.rafPista = requestAnimationFrame(() => {
+          this.rafPista = 0;
+          this.leerPista();
+        });
+      };
+      window.addEventListener('scroll', alMover, { passive: true });
+      window.addEventListener('resize', alMover, { passive: true });
+    });
+  }
+
+  /** Progreso dentro de la pista, de 0 a LAST. `null` si aun no se puede medir. */
+  private progresoPista(): number | null {
+    const pista = this.trackRef()?.nativeElement;
+    const recorrido = this.recorridoRef()?.nativeElement;
+    if (!pista || !recorrido) return null;
+    // El tramo util lo MIDE su propio elemento en vez de recalcularlo con las
+    // constantes del SCSS. Asi el ritmo de la pista vive en un solo sitio y no
+    // hay dos numeros que se puedan desincronizar al retocarlo.
+    const util = recorrido.offsetHeight;
+    if (util <= 0) return null;
+    const recorridoYa = -pista.getBoundingClientRect().top;
+    return Math.min(LAST, Math.max(0, (recorridoYa / util) * LAST));
+  }
+
+  /**
+   * `forzar` salta la histeresis, y lo usa solo el arranque: si la carga termina
+   * con la ventana ya metida en la pista y justo sobre una frontera, la franja
+   * muerta dejaria el libro en la portada -con el scroll a media pista- hasta
+   * que alguien volviera a moverlo.
+   */
+  private leerPista(forzar = false): void {
+    const bruto = this.progresoPista();
+    if (bruto === null) return;
+    const previo = this.objetivo;
+    const hueco = Math.round(bruto);
+    if (forzar || Math.abs(bruto - hueco) < 0.5 - PISTA_BANDA) {
+      this.objetivo = Math.min(LAST, Math.max(0, hueco));
+    }
+    if (this.objetivo === previo) return;
+    // open()/next()/prev() escriben signals, asi que tienen que correr DENTRO de
+    // la zona o los enlaces de la pagina 7 y la etiqueta de accesibilidad se
+    // quedan en el valor anterior (mismo motivo que el `zone.run` de
+    // `alEmpezar` en playChain).
+    this.zone.run(() => void this.conducir());
+  }
+
+  /**
+   * Lleva el libro hasta `objetivo` de una vuelta en una, releyendo el destino
+   * en cada paso: si mientras tanto el visitante cambia de idea y sube, la
+   * cadena se da la vuelta sola en vez de terminar un recorrido que ya nadie
+   * pide.
+   *
+   * Una vuelta dura unos 810 ms, asi que con la cola larga la vuelta se ACELERA.
+   * Sin eso, medido: saltar de la portada al final de la pista tardaba 8,5 s en
+   * ponerse al dia, con el libro pasando hojas mucho despues de que el visitante
+   * hubiera dejado de moverse.
+   *
+   * Acelerar es seguro y no toca ninguna calibracion, que es lo que hay que
+   * comprobar antes de hacerlo:
+   *
+   *   · las dos tablas del cruce (DX_TEXTO_CRUCE y DY_FOTO_CRUCE) se leen con el
+   *     reloj de la COLA, cuya duracion es TAIL_MS -65 ms fijos- y no depende de
+   *     `msPorCuadro`. La rampa cae siempre en el mismo tramo de la cola;
+   *   · `leadMs` ya va en CUADROS por `msPorCuadro`, asi que el cruce sigue
+   *     arrancando en el mismo cuadro del video y no en el mismo milisegundo;
+   *   · y el reposo final es el ultimo valor de la tabla, al que `dxTextoCruce`
+   *     satura, o sea que el texto acaba donde acababa.
+   *
+   * El tope de 3x no es cosmetico: por debajo de ~4,7 ms por cuadro la cola de
+   * 65 ms dura mas que los cuadros que le quedan a la cadena y el fundido pasa a
+   * mandar sobre el giro.
+   */
+  private async conducir(): Promise<void> {
+    if (this.conduciendo) return;
+    this.conduciendo = true;
+    try {
+      while (this.ready() && this.estado() !== this.objetivo) {
+        const desde = this.estado();
+        const pendientes = Math.abs(this.objetivo - desde);
+        this.msPorCuadro = MS_PER_FRAME / Math.min(3, pendientes);
+        if (this.objetivo > desde) await (desde === 0 ? this.open() : this.next());
+        else await (desde === 1 ? this.cerrar() : this.prev());
+        // Si el paso no movio nada -algun guard lo rechazo- no insistir: seria
+        // un bucle infinito con la CPU al maximo.
+        if (this.estado() === desde) break;
+      }
+    } finally {
+      // La velocidad es de la COLA, no del libro: en cuanto se vacia, la vuelta
+      // vuelve a su ritmo calibrado.
+      this.msPorCuadro = MS_PER_FRAME;
+      this.conduciendo = false;
+    }
+  }
+
+  /**
+   * Mueve la VENTANA hasta el tramo de la pista que corresponde a esa pagina.
+   * Lo usan el teclado y los controles ocultos; el cambio de pagina lo dispara
+   * despues `leerPista`, igual que con cualquier otro scroll.
+   */
+  irAIndice(indice: number): void {
+    const pista = this.trackRef()?.nativeElement;
+    const recorrido = this.recorridoRef()?.nativeElement;
+    if (!pista || !recorrido) return;
+    const destino = Math.min(LAST, Math.max(0, indice));
+    const y = window.scrollY + pista.getBoundingClientRect().top + (recorrido.offsetHeight * destino) / LAST;
+    window.scrollTo({ top: y, behavior: this.reduced() ? 'auto' : 'smooth' });
+  }
+
+  alTeclado(e: KeyboardEvent): void {
+    const adelante = e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === 'PageDown';
+    const atras = e.key === 'ArrowLeft' || e.key === 'ArrowUp' || e.key === 'PageUp';
+    if (!adelante && !atras) return;
+    e.preventDefault();
+    this.irAIndice(this.estado() + (adelante ? 1 : -1));
+  }
+
   async open(): Promise<void> {
     if (this.busy() || this.coverOpen() || !this.ready()) return;
     this.busy.set(true);
@@ -4053,14 +4240,31 @@ export class AboutBookComponent {
     this.busy.set(false);
   }
 
-  async restart(): Promise<void> {
-    if (this.busy() || !this.coverOpen() || this.current() !== LAST) return;
+  /**
+   * Cierra la tapa desde la pagina 1: es el paso 1 -> 0 de la pista, el reves
+   * exacto de `open()`.
+   *
+   * Era `restart()`, el boton "Volver a la portada", que solo existia estando en
+   * la ultima pagina y saltaba las seis de en medio. Con el scroll el recorrido
+   * se deshace de una en una, asi que aqui solo se llega desde la 1 y el guard
+   * lo exige. La cadena es la misma: del cuadro vivo a PAGE_REST y de ahi al 1.
+   */
+  async cerrar(): Promise<void> {
+    if (this.busy() || !this.coverOpen() || this.current() !== 1) return;
     this.busy.set(true);
-    // Se sale de la pagina de cierre con el puntero encima de un boton: sus
-    // <a> se destruyen ahi mismo y el `mouseleave` ya no llega nunca, asi que
-    // la marca se quedaria puesta y al volver a la 7 el cajetin apareceria
-    // encendido sin nadie encima.
-    this.marcaSocial(null);
+    // GUARDIA DE POSE, y no es decorativa: la cadena de abajo baja del cuadro
+    // VIVO hasta PAGE_REST, y si el libro estuviera en GIRO_HI ese recorrido
+    // atraviesa hacia atras el tramo entero de la vuelta de pagina -malla
+    // incluida-. O sea que antes de cerrarse el libro reproducia el giro AL
+    // REVES: una hoja fantasma se levantaba y volvia, con el contenido pintado
+    // plano por debajo (medido en el navegador: la hoja sube a los 829 ms y no
+    // vuelve a su sitio hasta los 1076, y la foto se ve a traves de ella).
+    //
+    // Hoy es un no-op medido -`prev()` ya deja la pagina 1 en GIRO_LO, y
+    // `dissolveTo` sale sin dibujar si ya esta en ese cuadro-, pero se queda
+    // como red: cualquier camino futuro que llegue a la pagina 1 desde otro
+    // cuadro entra por aqui y no puede reintroducir el defecto.
+    await this.dissolveTo(GIRO_LO, SNAP_FADE_MS);
     await this.playChain([PAGE_REST, 1]);
     this.coverOpen.set(false);
     this.current.set(1);
@@ -4142,36 +4346,57 @@ export class AboutBookComponent {
     this.transition = { leaving: this.current(), entering: entra, towardHigh: false };
     // El desplazamiento del texto es una propiedad del cuadro de REPOSO, no un
     // gesto de la animacion: en el 81 el papel esta 4,02px a la derecha que en
-    // el 139 (ver DX_TEXTO_CRUCE). "Anterior" devuelve el libro al 139, asi que
-    // tiene que deshacerlo o el texto se queda corrido para siempre.
+    // el 139 (ver DX_TEXTO_CRUCE). "Anterior" cambia de cuadro de reposo, asi
+    // que tiene que llevarlo al valor de ESE cuadro o el texto se queda corrido.
     // Esto es un ESPEJO provisional -recorre el tramo con la curva del cruce-,
     // no una calibracion: la tabla de "anterior" esta vacia.
     //
-    // Va del valor VIVO al que exige el reposo alto (ver DX_TEXTO_REPOSO_HI), no
-    // a cero. Del vivo para que no haya salto al arrancar -medido, poner el
-    // valor de golpe cambia 45045 px contra los 96 que mueve la animacion en ese
-    // instante: seria un pop de toda la pagina al hacer clic-. Y al valor del
-    // reposo alto para que al terminar lo impreso quede SOBRE el papel, venga de
-    // donde venga y sea la primera vuelta atras o la quinta.
+    // Va del valor VIVO al que exige el reposo de destino (`dxHasta`), no a
+    // cero. Del vivo para que no haya salto al arrancar -medido, poner el valor
+    // de golpe cambia 45045 px contra los 96 que mueve la animacion en ese
+    // instante: seria un pop de toda la pagina-. Y al del reposo de destino para
+    // que al terminar lo impreso quede SOBRE el papel, venga de donde venga y
+    // sea la primera vuelta atras o la quinta.
     const dxDesde = this.textoDx;
     // La foto tiene exactamente el mismo problema, y por la misma razon: sus 5
     // px son una propiedad del cuadro 81, donde la foto queda 12 px de lienzo
     // mas arriba que en el 139 (ver DY_FOTO_CRUCE). Mismo espejo, y mismo
-    // destino: el valor que exige el reposo alto, no cero.
+    // destino: el valor que exige el reposo de su cuadro, no cero.
     const dyDesde = this.fotoDy;
+    // LA PAGINA 1 NO REBOBINA, y es la unica.
+    //
+    // El rebobinado al final de "anterior" existe para que REPETIR "anterior"
+    // arranque sin nada por delante (ver el comentario de `next`). Desde la
+    // pagina 1 no hay "anterior" -lo prohibe el guard de arriba-, asi que ese
+    // reposo alto no lo aprovecha ningun camino, y en cambio se lo cobraba el
+    // cierre: `cerrar()` bajaba desde el 139 y reproducia la vuelta al reves.
+    //
+    // Dejandola donde su propia cadena termina se QUITA un cruce en vez de
+    // anadir otro: ni fundido sobre el libro quieto -que ahi desdoblaria los
+    // adornos impresos, porque no hay movimiento que lo tape- ni 83 cuadros de
+    // recorrido muerto. Y "siguiente" desde la pagina 1 sale ganando de paso:
+    // su `dissolveTo(GIRO_LO)` de entrada pasa a ser un no-op.
+    //
+    // El desplazamiento del contenido va con el cuadro, no con la direccion:
+    // es una propiedad del reposo (ver DX_TEXTO_CRUCE), asi que si el reposo
+    // pasa a ser el bajo, los dos valores de destino son los del reposo bajo.
+    const reposaEnAlto = entra > 1;
+    const reposo = reposaEnAlto ? GIRO_HI : GIRO_LO;
+    const dxHasta = reposaEnAlto ? DX_TEXTO_REPOSO_HI : DX_TEXTO_REPOSO_LO;
+    const dyHasta = reposaEnAlto ? DY_FOTO_REPOSO_HI : DY_FOTO_REPOSO_LO;
     await this.playChain([GIRO_LO], {
-      frame: GIRO_HI,
+      frame: reposo,
       ms: TAIL_MS,
       leadMs: CUADROS_LEAD_PREV * this.msPorCuadro,
       // `t` ya viene contado desde el arranque del cruce, asi que "antes del
       // cruce" es simplemente t<=0 y el desvanecido ocupa sus TAIL_MS.
       dxTexto: (t: number): number => {
         if (t <= 0) return dxDesde;
-        return dxDesde + (DX_TEXTO_REPOSO_HI - dxDesde) * COLA_SIN_SOLAPE(Math.min(1, t / TAIL_MS));
+        return dxDesde + (dxHasta - dxDesde) * COLA_SIN_SOLAPE(Math.min(1, t / TAIL_MS));
       },
       dyFoto: (t: number): number => {
         if (t <= 0) return dyDesde;
-        return dyDesde + (DY_FOTO_REPOSO_HI - dyDesde) * COLA_SIN_SOLAPE(Math.min(1, t / TAIL_MS));
+        return dyDesde + (dyHasta - dyDesde) * COLA_SIN_SOLAPE(Math.min(1, t / TAIL_MS));
       },
       alEmpezar: () => {
         this.transition = null;

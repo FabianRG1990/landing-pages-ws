@@ -1,0 +1,26 @@
+<bol-preloader />
+<bol-curtain />
+<bol-site-nav />
+
+<main>
+  @switch (store.screen()) {
+    @case ('inicio') {
+      <section data-screen="inicio">
+        <bol-hero-capas />
+        <bol-home />
+      </section>
+    }
+    @case ('menu') {
+      <bol-menu-page />
+    }
+    @case ('contacto') {
+      <bol-contact-page />
+    }
+  }
+</main>
+
+<!-- El pie NO sale en la portada: ahí el cierre es `<bol-despedida />`, dentro de
+     `<bol-home />`. En Menú y Contacto se conserva entero. -->
+@if (store.screen() !== 'inicio') {
+  <bol-site-footer />
+}
