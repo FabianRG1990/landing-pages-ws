@@ -1,0 +1,695 @@
+/* ============================================================
+   PROGRAMAS — tabla comparativa y servicios
+   ============================================================ */
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Sin fondo propio: deja ver la capa fija de .malla. */
+.prog {
+  position: relative;
+}
+
+.prog__intro {
+  padding-block: clamp(4.5rem, 12vh, 8rem) clamp(2.5rem, 6vh, 4rem);
+}
+
+/* Etiqueta de seccion en ambar: es lo que hace que el duo termico se
+   note en TODAS las secciones y no solo donde hay cifras. */
+.prog__intro .mono,
+.serv__intro .mono {
+  color: var(--warm);
+}
+
+.prog__intro h2 {
+  margin-top: 1.25rem;
+  max-width: 20ch;
+}
+
+.prog__entrada {
+  margin-top: 1.5rem;
+  color: var(--text-2);
+}
+
+/* ---------------- La escena que se ancla ----------------
+   Solo existe como caja mientras el ensamblaje esta activo. Sin la clase,
+   la seccion se maqueta como siempre: eso es lo que ve el servidor al
+   prerenderizar, el movil y quien pide menos movimiento. */
+.prog__escena {
+  position: relative;
+}
+
+.prog__escena--anima {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+
+  /* Anclada, la intro no puede permitirse el respiro de una seccion
+     normal: encabezado y tabla tienen que caber juntos en la pantalla. */
+  .prog__intro {
+    padding-block: clamp(1.25rem, 4vh, 2.5rem) clamp(1.25rem, 3.5vh, 2rem);
+  }
+
+  /* Al empezar no hay tarjeta: ni contorno, ni fondo, ni sombra. Todo eso
+     llega. El borde real cede su sitio al armazon, que es el que se
+     ensambla; la piel entra despues, cuando el contorno ya cerro. */
+  .prog__marco {
+    background: none;
+    border-color: transparent;
+    box-shadow: none;
+  }
+}
+
+/* La caja da un contexto de posicionamiento SIN recorte: es donde viven la
+   piel y el armazon. El marco no sirve, porque `overflow-x: auto` obliga al
+   eje vertical a `auto` tambien y por tanto recorta las dos direcciones. */
+.prog__caja {
+  position: relative;
+}
+
+/* Contenedor que permite desplazar la tabla en pantallas estrechas
+   sin que la pagina entera se mueva en horizontal */
+.prog__marco {
+  position: relative;
+  z-index: 2;
+  overflow-x: auto;
+  padding: 0.5rem;
+  background: linear-gradient(
+    155deg,
+    rgba(255, 255, 255, 0.04),
+    rgba(255, 255, 255, 0.01) 60%
+  );
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  box-shadow: var(--edge), var(--shadow-lg);
+}
+
+/* El degradado y la sombra del marco, en una capa aparte para poder
+   traerlos cuando toca. En reposo --montado no existe y vale 0, asi que
+   fuera del ensamblaje esta capa es invisible y manda la piel real. */
+.prog__piel {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  border-radius: var(--r-lg);
+  background: linear-gradient(
+    155deg,
+    rgba(255, 255, 255, 0.04),
+    rgba(255, 255, 255, 0.01) 60%
+  );
+  box-shadow: var(--edge), var(--shadow-lg);
+  opacity: var(--montado, 0);
+}
+
+/* Las cuatro esquinas en L que forman el contorno. Solo existe durante el
+   ensamblaje: fuera de el manda el borde real del marco y dos contornos
+   superpuestos se verian como una linea doble. */
+.prog__armazon {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+  opacity: 0;
+}
+
+.prog__escena--anima .prog__armazon {
+  opacity: 1;
+}
+
+.prog__pieza {
+  fill: none;
+  stroke-width: 1;
+  stroke-linecap: round;
+  /* --dx y --dy los fija el marcado: cada esquina viene de su diagonal.
+     El factor (1 - --e) es lo que hace que converjan al ensamblarse. */
+  transform: translate(calc((1 - var(--e, 1)) * var(--dx, 0px)), calc((1 - var(--e, 1)) * var(--dy, 0px)));
+  opacity: var(--e, 1);
+
+  /* En reposo el contorno es el borde de la tarjeta —blanco al 14%— y a esa
+     intensidad, a media opacidad y en movimiento, sencillamente no se ve:
+     la llegada de las piezas pasaba desapercibida. --vuelo es una campana
+     que vale 1 a mitad del trayecto y 0 en los dos extremos, asi que la
+     pieza viaja encendida y se apaga justo al encajar, sin que el color
+     final se desvie ni un punto del borde real. */
+  stroke: rgba(255, 255, 255, calc(0.14 + 0.6 * var(--vuelo, 0)));
+  filter: drop-shadow(0 0 8px rgba(255, 255, 255, calc(0.2 * var(--vuelo, 0))));
+}
+
+.tabla {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  min-width: 780px;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+/* La ranura por la que entra cada pieza de contenido. El recorte lo hace
+   el overflow y el movimiento es una traslacion: trabajo del compositor,
+   sin repintado por fotograma. */
+.tabla__texto {
+  display: block;
+  /* El recorte solo existe mientras hay algo que recortar. Si se quedara
+     puesto, el anillo de foco del teclado sobre un CTA se cortaria contra
+     el borde de la ranura. */
+  overflow: var(--ranura, visible);
+}
+
+.prog__escena--anima {
+  --ranura: hidden;
+}
+
+.tabla__pieza {
+  display: block;
+  transform: translate(calc((1 - var(--e, 1)) * var(--dx, 0%)), calc((1 - var(--e, 1)) * var(--dy, 0%)));
+  opacity: var(--e, 1);
+}
+
+/* Cada tipo de pieza llega de un lado distinto: las etiquetas y los datos
+   entran por la izquierda, siguiendo la lectura, y las cabeceras caen desde
+   arriba, que es de donde cuelga una columna. */
+.tabla__esquina .tabla__pieza,
+.tabla__fila .tabla__pieza,
+.tabla__celda .tabla__pieza {
+  --dx: -100%;
+}
+
+.tabla__cab .tabla__pieza {
+  --dy: -115%;
+}
+
+/* Las reglas de la cuadricula. Van en pseudoelementos y no en `border`
+   porque un borde no se puede trazar: --rh barre la horizontal de
+   izquierda a derecha y --rv baja la vertical desde arriba. */
+.tabla__cab,
+.tabla__fila,
+.tabla__celda {
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    right: 0;
+    bottom: -0.5px;
+    left: 0;
+    height: 1px;
+    background: var(--regla, var(--line-soft));
+    transform: scaleX(var(--rh, 1));
+    transform-origin: left center;
+  }
+}
+
+.tabla__celda::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -0.5px;
+  width: 1px;
+  background: var(--line-soft);
+  transform: scaleY(var(--rv, 1));
+  transform-origin: center top;
+}
+
+.tabla__esquina {
+  width: 8.5rem;
+  padding: 0 1.25rem 1rem 0;
+  vertical-align: bottom;
+  font-weight: var(--w-emph);
+
+  /* La celda vacia de la esquina no lleva regla: la cuadricula empieza
+     donde empieza la primera cabecera. */
+  &::before {
+    content: none;
+  }
+}
+
+.tabla__cab {
+  padding: 0 1.25rem 1rem;
+  vertical-align: bottom;
+  font-weight: var(--w-read);
+  /* La regla bajo las cabeceras es la fuerte, la que separa el encabezado
+     del cuerpo. */
+  --regla: var(--line-strong);
+}
+
+.tabla__eje {
+  display: block;
+  margin-bottom: 0.375rem;
+  color: var(--brand);
+}
+
+.tabla__nombre {
+  display: block;
+  font-size: var(--fs-h3);
+  font-weight: var(--w-announce);
+  letter-spacing: -0.01em;
+}
+
+.tabla__fila {
+  padding: 1.5rem 1.25rem 1.5rem 0;
+  vertical-align: top;
+  color: var(--text-3);
+  font-weight: var(--w-emph);
+  --regla: var(--line);
+}
+
+.tabla__celda {
+  padding: 1.5rem 1.25rem;
+  vertical-align: top;
+  font-size: var(--fs-small);
+  color: var(--text-2);
+  transition: background var(--dur-base) var(--ease-out);
+}
+
+.tabla tbody tr:hover .tabla__celda {
+  background: rgba(255, 255, 255, 0.035);
+}
+
+/* La fila de entregables es lo que el cliente se lleva a casa: es el
+   resultado de la tabla y por eso lleva el ambar. Las cabeceras, los
+   enlaces y los ejes se quedan en azul.
+
+   --ambar es el remate del ensamblaje: la fila se tine al final, cuando
+   la tabla ya esta entera. En reposo vale 1 y la fila se ve como siempre. */
+/* La etiqueta pasa de gris de fila a ambar interpolando canal a canal.
+   `color-mix()` con un porcentaje sacado de una custom property no resuelve
+   —la declaracion entera cae y la etiqueta se queda gris—, asi que va con
+   `rgb()` y calc, que si evalua. Los extremos son --text-3 (124 135 145) y
+   --warm (224 186 89): si alguno de los dos tokens cambia, esta linea es la
+   unica que hay que revisar. */
+.tabla__clave .tabla__fila {
+  color: rgb(
+    calc(124 + 100 * var(--ambar, 1))
+    calc(135 + 51 * var(--ambar, 1))
+    calc(145 - 56 * var(--ambar, 1))
+  );
+}
+
+.tabla__clave .tabla__celda {
+  color: var(--text);
+  background: rgb(var(--warm-rgb) / calc(0.055 * var(--ambar, 1)));
+}
+
+.tabla__clave .tabla__celda:first-of-type {
+  box-shadow: inset 2px 0 0 rgb(var(--warm-rgb) / calc(0.24 * var(--ambar, 1)));
+}
+
+/* Sin esto, la regla de hover de arriba gana por especificidad y la
+   fila pierde el ambar justo al pasar por encima. */
+.tabla tbody tr.tabla__clave:hover .tabla__celda {
+  background: rgb(var(--warm-rgb) / calc(0.1 * var(--ambar, 1)));
+}
+
+.tabla__celda--cta {
+  padding-block: 1.125rem;
+}
+
+.prog__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-mono);
+  font-size: var(--fs-caption);
+  font-weight: var(--w-emph);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--brand-light);
+  border-bottom: 1px solid rgba(127, 212, 236, 0.3);
+  padding-bottom: 2px;
+  transition: border-color var(--dur-fast) var(--ease-out);
+
+  svg {
+    width: 13px;
+    transition: transform var(--dur-base) var(--ease-fluid);
+  }
+
+  &:hover {
+    border-bottom-color: var(--brand-light);
+
+    svg {
+      transform: translateX(3px);
+    }
+  }
+}
+
+/* ---------------- El comparador en el telefono ----------------
+   La tabla se queda para el escritorio con su ensamblaje; aqui cada
+   columna es una tarjeta que se lee de arriba abajo, con el gesto normal
+   del pulgar y sin nada escondido detras de un deslizamiento lateral.
+   Ambas ramas conviven en el documento y `display` decide cual: la que
+   no toca sale tambien del arbol de accesibilidad. */
+.prog__tarjetas {
+  display: none;
+  /* A todo lo ancho, en una tableta de 768px la tarjeta queda estirada y
+     la linea de texto se pasa de largo. */
+  max-width: 34rem;
+  margin-inline: auto;
+}
+
+.prog__tarjeta {
+  padding: 1.5rem 1.25rem 1.375rem;
+  /* mismo vidrio que el marco de la tabla: es la misma pieza, girada */
+  background: linear-gradient(
+    155deg,
+    rgba(255, 255, 255, 0.04),
+    rgba(255, 255, 255, 0.01) 60%
+  );
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  box-shadow: var(--edge), var(--shadow-md);
+}
+
+.prog__tarjeta + .prog__tarjeta {
+  margin-top: 1.25rem;
+}
+
+.prog__tarjeta-eje {
+  color: var(--brand);
+}
+
+.prog__tarjeta-nombre {
+  margin-top: 0.375rem;
+  font-size: var(--fs-h3);
+  font-weight: var(--w-announce);
+  letter-spacing: -0.01em;
+}
+
+/* El ritmo lo lleva la regla superior de cada campo, no un hueco: sin
+   ella los pares etiqueta/valor se leen como un parrafo corrido. */
+.prog__campo {
+  margin-top: 1.25rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--line-soft);
+}
+
+.prog__campo dd {
+  /* el navegador sangra el `dd` 40px por su cuenta y el valor se iba a la
+     derecha de su propia etiqueta */
+  margin: 0.5rem 0 0;
+  font-size: var(--fs-small);
+  line-height: 1.55;
+  color: var(--text-2);
+}
+
+/* Entregables es lo que el cliente se lleva a casa, igual que en la
+   tabla y por la misma razon. El relleno crece hacia AFUERA con el margen
+   negativo, de modo que su etiqueta sigue alineada con las demas en vez
+   de quedarse un centimetro a la derecha. Y para adentro, no a sangre: si
+   manana el dato marcara la ultima fila, un tinte hasta el canto se
+   saldria por la esquina redondeada de la tarjeta. */
+.prog__campo--clave {
+  margin-inline: -1rem;
+  padding: 1.125rem 1rem;
+  border-top-color: transparent;
+  border-radius: var(--r-md);
+  background: var(--warm-fill);
+  box-shadow: inset 2px 0 0 var(--warm-line);
+}
+
+.prog__campo--clave dt {
+  color: var(--warm);
+}
+
+.prog__campo--clave dd {
+  color: var(--text);
+}
+
+.prog__tarjeta .prog__cta {
+  position: relative;
+  margin-top: 1.5rem;
+}
+
+/* El objetivo tactil se gana con una caja invisible alrededor, no
+   estirando el enlace: el subrayado tiene que quedarse pegado al texto.
+   40px de alto pasan a 64, y el ancho gana 16. */
+.prog__tarjeta .prog__cta::after {
+  content: '';
+  position: absolute;
+  inset: -12px -8px;
+}
+
+/* La entrada. La clase la pone el componente al hidratar, asi que sin
+   JavaScript —o antes de que llegue— las tarjetas ya estan a la vista. */
+/* Reversible, igual que servicios: la regla base es la salida y la
+   --dentro la entrada. Al subir la tarjeta se retira y al volver a bajar
+   entra de nuevo, que es lo que permite ver el gesto mas de una vez. */
+.prog__tarjetas--anima .prog__tarjeta {
+  opacity: 0;
+  transform: translateY(14px);
+  transition:
+    opacity 260ms var(--ease-out),
+    transform 400ms var(--ease-out);
+}
+
+.prog__tarjetas--anima .prog__tarjeta--dentro {
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity var(--dur-slow) var(--ease-out),
+    transform var(--dur-slow) var(--ease-out);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .prog__tarjetas--anima .prog__tarjeta {
+    transform: none;
+    transition: opacity var(--dur-base) linear;
+  }
+}
+
+/* ---------------- Servicios ---------------- */
+.serv {
+  padding-block: clamp(4.5rem, 12vh, 8rem);
+  /* Una pieza desplazada 44px sobre un margen de 20px en el telefono se
+     sale de la pantalla y aparece una barra horizontal. `clip` y no
+     `hidden` a proposito: `hidden` en un eje obliga al otro a `auto` —ya
+     nos costo un fallo en el marco de la tabla—, mientras que `clip`
+     convive con el `visible` vertical. Y como recorta al borde del shell,
+     que llega al canto de la ventana, las piezas emergen literalmente del
+     borde de la pantalla. El margen deja salir la sombra de la tarjeta. */
+  overflow-x: clip;
+  overflow-clip-margin: 1.5rem;
+
+  /* Curva de llegada: easeOutQuad. Con la --ease-fluid del sistema el
+     trayecto se consume en los primeros 150ms —medido: 59% del camino en
+     el 14% del tiempo— y para cuando la pieza es opaca ya casi no se
+     mueve, asi que se lee como un destello y no como algo que llega.
+     Esta reparte el recorrido y deja que se vea. */
+  --ease-llegada: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* ---- La llegada ----
+   La opacidad y el desplazamiento van desacoplados a proposito: la pieza
+   se hace solida en 300ms y sigue acomodandose otros 500. Con las dos
+   propiedades a la misma duracion, la pieza terminaba de aparecer justo
+   cuando ya habia dejado de moverse y el viaje no se veia.
+   100ms de escalon es el intervalo por debajo del cual el ojo lee las
+   tres llegadas como simultaneas. */
+/* La entrada es reversible: al subir las piezas se van por donde
+   vinieron y al volver a bajar entran otra vez, las veces que haga falta.
+   El reparto sale de como funcionan las transiciones: la regla BASE
+   gobierna el viaje hacia el estado oculto —la salida— y la regla
+   --dentro el viaje hacia el visible —la entrada—. Por eso los retardos
+   viven solo en la segunda: entrada escalonada, salida a la vez.
+
+   La salida ademas es mas corta. Un retorno con los mismos 800ms y los
+   mismos 140/240/340 se siente como si la pagina se resistiera a dejarte
+   subir. */
+.serv--anima .serv__entra {
+  opacity: 0;
+  transform: translate(var(--viaje, 0), var(--sube, 0));
+  transition:
+    opacity 260ms var(--ease-out),
+    transform 400ms var(--ease-out);
+}
+
+.serv--anima .serv__entra--dentro {
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity 300ms var(--ease-out) var(--retardo, 0ms),
+    transform 800ms var(--ease-llegada) var(--retardo, 0ms);
+}
+
+/* El encabezado abre la secuencia y solo sube: el titulo no viaja, para
+   que el movimiento lateral quede reservado al contenido que llega. */
+.serv--anima .serv__intro {
+  --sube: 16px;
+}
+
+.serv--anima .serv__item {
+  --viaje: -56px;
+}
+
+.serv--anima .serv__item:nth-child(1) {
+  --retardo: 140ms;
+}
+
+.serv--anima .serv__item:nth-child(2) {
+  --retardo: 240ms;
+}
+
+.serv--anima .serv__item:nth-child(3) {
+  --retardo: 340ms;
+}
+
+/* La tarjeta arranca CON el primer renglon, no detras: los dos lados se
+   entrelazan en lugar de turnarse. */
+.serv--anima .serv__export {
+  --viaje: 56px;
+  --retardo: 140ms;
+}
+
+/* Y sus lineas se escriben mientras la tarjeta todavia se esta
+   acomodando, que es lo que lleva la mirada al texto. Suben, no viajan:
+   el desplazamiento lateral ya lo puso el bloque que las contiene. */
+/* Las propiedades personalizadas heredan: sin este corte, una sexta linea
+   sin regla propia arrastraria el retardo de 140ms de la tarjeta. */
+.serv--anima .serv__export-lista {
+  --retardo: 0ms;
+}
+
+.serv--anima .serv__export-lista li {
+  opacity: 0;
+  transform: translateY(10px);
+  transition:
+    opacity 260ms var(--ease-out),
+    transform 260ms var(--ease-out);
+}
+
+.serv--anima .serv__entra--dentro .serv__export-lista li {
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity var(--dur-base) var(--ease-out) var(--retardo, 0ms),
+    transform var(--dur-base) var(--ease-out) var(--retardo, 0ms);
+}
+
+.serv--anima .serv__export-lista li:nth-child(1) {
+  --retardo: 320ms;
+}
+
+.serv--anima .serv__export-lista li:nth-child(2) {
+  --retardo: 380ms;
+}
+
+.serv--anima .serv__export-lista li:nth-child(3) {
+  --retardo: 440ms;
+}
+
+.serv--anima .serv__export-lista li:nth-child(4) {
+  --retardo: 500ms;
+}
+
+.serv--anima .serv__export-lista li:nth-child(5) {
+  --retardo: 560ms;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .serv--anima .serv__entra,
+  .serv--anima .serv__export-lista li {
+    transform: none;
+  }
+}
+
+.serv__intro h2 {
+  margin-top: 1.25rem;
+  max-width: 18ch;
+}
+
+.serv__cuerpo {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  gap: clamp(2.5rem, 6vw, 5rem);
+  margin-top: clamp(2.5rem, 6vh, 4rem);
+}
+
+.serv__item {
+  padding: 1.5rem 1.25rem;
+  border-top: 1px solid var(--line-soft);
+  border-radius: var(--r-md);
+  transition: background var(--dur-base) var(--ease-out);
+}
+
+.serv__item:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.serv__item:last-child {
+  border-bottom: 1px solid var(--line-soft);
+}
+
+.serv__nombre {
+  font-size: var(--fs-h3);
+}
+
+.serv__detalle {
+  margin-top: 0.5rem;
+  color: var(--text-2);
+  max-width: 52ch;
+}
+
+/* La exportacion es un aparte: bloque de acento sobrio, sin tarjeta */
+.serv__export {
+  padding: 1.75rem;
+  background:
+    radial-gradient(120% 80% at 50% 0%, rgba(92, 160, 180, 0.1), transparent 68%),
+    linear-gradient(160deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.012) 62%);
+  border: 1px solid var(--line);
+  border-top-color: rgba(127, 212, 236, 0.4);
+  border-radius: var(--r-lg);
+  box-shadow: var(--edge), var(--shadow-md);
+}
+
+.serv__export-titulo {
+  font-size: var(--fs-h3);
+  max-width: 22ch;
+}
+
+.serv__export-lista {
+  margin-top: 1.25rem;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.serv__export-lista li {
+  padding-top: 0.75rem;
+  color: var(--text-2);
+  border-top: 1px solid var(--line-soft);
+  line-height: 1.5;
+  text-transform: none;
+  letter-spacing: var(--tracking-label);
+}
+
+/* Una sola frontera para toda la seccion. 900px no es un numero redondo
+   elegido a ojo: la tabla necesita 796px de interior y, con el margen del
+   shell, eso solo ocurre a partir de ~858px de ventana. Es ademas el
+   ancho por debajo del cual el componente ya renunciaba al anclaje, de
+   modo que la regla queda en una sola linea: debajo, tarjetas sin
+   ensamblaje; encima, tabla con el. */
+@media (max-width: 900px) {
+  .prog__caja {
+    display: none;
+  }
+
+  .prog__tarjetas {
+    display: block;
+  }
+
+  .serv__cuerpo {
+    grid-template-columns: 1fr;
+  }
+}

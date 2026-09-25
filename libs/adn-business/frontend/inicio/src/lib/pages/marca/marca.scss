@@ -1,0 +1,93 @@
+/* ============================================================
+   FIRMA DE MARCA — el wordmark a sangre
+   ============================================================ */
+
+.marca {
+  position: relative;
+  padding-top: clamp(4rem, 11vh, 8rem);
+  /* el radial viaja con la seccion; el --void sale para no tapar la trama */
+  background: radial-gradient(60% 100% at 50% 100%, rgba(92, 160, 180, 0.07), transparent 72%);
+  overflow: hidden;
+  /* El wordmark se dimensiona del ancho de ESTA caja y no de la ventana:
+     100vw incluye la barra de desplazamiento, y en una ventana estrecha
+     de escritorio son 15px de ancho que en realidad no existen. */
+  container-type: inline-size;
+}
+
+.marca__pie {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: clamp(2rem, 5vh, 3.5rem);
+}
+
+.marca__unidad {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+}
+
+.marca__isotipo {
+  width: 32px;
+  color: var(--brand);
+}
+
+.marca__lema {
+  color: var(--brand);
+}
+
+/* El wordmark llena el ancho: 12 caracteres a 14.2vw con el tracking
+   apretado dejan un margen optico de ~1.5vw a cada lado. */
+.marca__wordmark {
+  display: flex;
+  justify-content: center;
+  gap: 0.22em;
+  font-size: 14.2vw;
+  line-height: 0.78;
+  letter-spacing: -0.045em;
+  white-space: nowrap;
+  /* recorta la altura de linea sobrante por arriba y por abajo */
+  margin-block: -0.06em -0.02em;
+}
+
+.marca__adn {
+  font-weight: var(--w-announce);
+  background: linear-gradient(180deg, var(--text) 30%, rgba(242, 245, 247, 0.35) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.marca__business {
+  font-weight: var(--w-read);
+  background: linear-gradient(180deg, var(--brand) 20%, rgba(92, 160, 180, 0.16) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+@media (max-width: 720px) {
+  .marca__pie {
+    flex-direction: column;
+    gap: 0.375rem;
+  }
+
+  /* 22vw desbordaba ~38px en TODO el rango de telefono —medido de 320 a
+     720— y hasta 52 en el limite: la letra y el margen escalan los dos
+     con el ancho, pero el margen crece mas rapido, asi que ningun vw fijo
+     lo resuelve en los dos extremos. El cuerpo sale ahora del ancho
+     realmente disponible. 4.6 es el ratio medido de «BUSINESS» sobre su
+     cuerpo —4.517 en Geist 400 con este tracking— mas un 1.8% de holgura
+     optica; si se cambia la tipografia, esta es la linea a revisar.
+     El vw de arriba es la reserva por si `cqw` no resuelve. */
+  .marca__wordmark {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0;
+    padding-inline: var(--gutter);
+    font-size: 19vw;
+    font-size: calc((100cqw - 2 * var(--gutter)) / 4.6);
+    line-height: 0.86;
+  }
+}

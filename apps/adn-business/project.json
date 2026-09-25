@@ -1,0 +1,91 @@
+{
+  "name": "adn-business",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "prefix": "app",
+  "sourceRoot": "apps/adn-business/src",
+  "tags": [
+    "scope:adn-business"
+  ],
+  "targets": {
+    "build": {
+      "executor": "@angular/build:application",
+      "outputs": [
+        "{options.outputPath}"
+      ],
+      "options": {
+        "outputPath": "dist/apps/adn-business",
+        "browser": "apps/adn-business/src/main.ts",
+        "tsConfig": "apps/adn-business/tsconfig.app.json",
+        "inlineStyleLanguage": "scss",
+        "assets": [
+          {
+            "glob": "**/*",
+            "input": "apps/adn-business/public"
+          }
+        ],
+        "styles": [
+          "apps/adn-business/src/styles.scss"
+        ],
+        "server": "apps/adn-business/src/main.server.ts",
+        "ssr": {
+          "entry": "apps/adn-business/src/server.ts"
+        },
+        "outputMode": "server",
+        "stylePreprocessorOptions": {
+          "includePaths": [
+            "libs/adn-business/frontend/shared/src/lib/styles"
+          ]
+        }
+      },
+      "configurations": {
+        "production": {
+          "budgets": [
+            {
+              "type": "initial",
+              "maximumWarning": "500kb",
+              "maximumError": "1mb"
+            },
+            {
+              "type": "anyComponentStyle",
+              "maximumWarning": "8kb",
+              "maximumError": "12kb"
+            }
+          ],
+          "outputHashing": "all"
+        },
+        "development": {
+          "optimization": false,
+          "extractLicenses": false,
+          "sourceMap": true
+        }
+      },
+      "defaultConfiguration": "production"
+    },
+    "serve": {
+      "continuous": true,
+      "executor": "@angular/build:dev-server",
+      "configurations": {
+        "production": {
+          "buildTarget": "adn-business:build:production"
+        },
+        "development": {
+          "buildTarget": "adn-business:build:development"
+        }
+      },
+      "defaultConfiguration": "development"
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    },
+    "serve-static": {
+      "continuous": true,
+      "executor": "@nx/web:file-server",
+      "options": {
+        "buildTarget": "adn-business:build",
+        "staticFilePath": "dist/apps/adn-business/browser",
+        "spa": true
+      }
+    }
+  }
+}

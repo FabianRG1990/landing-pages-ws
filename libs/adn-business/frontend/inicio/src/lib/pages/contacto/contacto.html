@@ -1,0 +1,151 @@
+<section id="contacto" class="cont" aria-labelledby="cont-titulo">
+  <div class="shell cont__shell">
+    <div class="cont__texto">
+      <p class="mono">{{ c.eyebrow }}</p>
+      <h2 id="cont-titulo">{{ c.titulo }}</h2>
+      <p class="cont__entrada measure">{{ c.entrada }}</p>
+
+      <ul class="cont__garantias">
+        @for (g of c.garantias; track g) {
+          <li class="mono mono--ink">{{ g }}</li>
+        }
+      </ul>
+
+      <p class="cont__directo">
+        ¿Prefiere escribir?
+        <a class="cont__wa" [href]="site.whatsapp" target="_blank" rel="noopener">
+          {{ site.telefono }}
+        </a>
+      </p>
+    </div>
+
+    <div class="cont__caja">
+      @if (estado() === 'enviado') {
+        <div class="cont__ok" role="status">
+          <p class="mono">Solicitud registrada</p>
+          <p class="cont__ok-titulo">Gracias. Le respondemos en menos de 24 horas.</p>
+          <p class="cont__ok-nota">
+            Le escribiremos al correo indicado para coordinar la sesión de 60 minutos.
+          </p>
+          <button type="button" class="btn btn--linea" (click)="otraConsulta()">
+            Enviar otra consulta
+          </button>
+        </div>
+      } @else {
+        <form class="form" [formGroup]="form" (ngSubmit)="enviar()" novalidate>
+          <div class="campo">
+            <label class="mono mono--ink" for="nombre">Nombre y apellido</label>
+            <input id="nombre" type="text" formControlName="nombre" autocomplete="name" />
+            @if (campoMal('nombre')) {
+              <p class="campo__error">Indíquenos su nombre completo.</p>
+            }
+          </div>
+
+          <div class="campo">
+            <label class="mono mono--ink" for="correo">Correo corporativo</label>
+            <input id="correo" type="email" formControlName="correo" autocomplete="email" />
+            @if (campoMal('correo')) {
+              <p class="campo__error">Revise el correo: falta el formato nombre&#64;empresa.com</p>
+            }
+          </div>
+
+          <div class="campo">
+            <label class="mono mono--ink" for="telefono">Teléfono</label>
+            <input
+              id="telefono"
+              type="tel"
+              inputmode="tel"
+              formControlName="telefono"
+              autocomplete="tel"
+              placeholder="+51 9__ ___ ___"
+            />
+            @if (campoMal('telefono')) {
+              <p class="campo__error">Incluya el código de país, por ejemplo +51.</p>
+            }
+          </div>
+
+          <div class="campo">
+            <label class="mono mono--ink" for="empresa">Empresa</label>
+            <input id="empresa" type="text" formControlName="empresa" autocomplete="organization" />
+            @if (campoMal('empresa')) {
+              <p class="campo__error">Indíquenos el nombre de su empresa.</p>
+            }
+          </div>
+
+          <div class="campo campo--ancho">
+            <label class="mono mono--ink" for="interes">Qué le interesa</label>
+            <select id="interes" formControlName="interes">
+              <option value="" disabled>Seleccione una opción</option>
+              @for (op of c.programas; track op) {
+                <option [value]="op">{{ op }}</option>
+              }
+            </select>
+            @if (campoMal('interes')) {
+              <p class="campo__error">Elija una opción para orientar la asesoría.</p>
+            }
+          </div>
+
+          <div class="campo campo--ancho consent">
+            <label class="consent__linea">
+              <input type="checkbox" formControlName="consentimiento" />
+              <span>
+                Autorizo el tratamiento de mis datos personales para ser contactado por
+                ADN Business, conforme a la Ley 29733.
+              </span>
+            </label>
+            @if (campoMal('consentimiento')) {
+              <p class="campo__error">Necesitamos su autorización para poder contactarle.</p>
+            }
+          </div>
+
+          <button
+            type="submit"
+            class="btn btn--solido form__enviar"
+            [disabled]="estado() === 'enviando'"
+          >
+            {{ estado() === 'enviando' ? 'Enviando…' : 'Solicitar la asesoría' }}
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+              <path d="M3 8h10M9 4l4 4-4 4" />
+            </svg>
+          </button>
+        </form>
+      }
+    </div>
+  </div>
+</section>
+
+<footer class="pie">
+  <div class="shell pie__shell">
+    <div class="pie__marca">
+      <div class="pie__lockup">
+        <app-isotipo class="pie__isotipo" />
+        <p class="pie__nombre">ADN <span>Business</span></p>
+      </div>
+      <p class="mono">Potencia · Transforma · Impacta</p>
+    </div>
+
+    <dl class="pie__datos">
+      <div>
+        <dt class="mono">Unidad de</dt>
+        <dd>{{ site.matriz }}</dd>
+      </div>
+      <div>
+        <dt class="mono">Base</dt>
+        <dd>{{ site.ciudad }}</dd>
+      </div>
+      <div>
+        <dt class="mono">Contacto</dt>
+        <dd>
+          <a class="pie__enlace" [href]="site.whatsapp" target="_blank" rel="noopener">
+            {{ site.telefono }}
+          </a>
+        </dd>
+      </div>
+    </dl>
+  </div>
+
+  <div class="shell pie__legal">
+    <p class="mono">© 2026 {{ site.matriz }}</p>
+    <p class="mono pie__demo">Demostración · contenido preliminar</p>
+  </div>
+</footer>

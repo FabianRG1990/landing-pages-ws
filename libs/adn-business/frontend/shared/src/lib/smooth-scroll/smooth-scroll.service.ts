@@ -1,0 +1,121 @@
+import { Injectable, PLATFORM_ID, inject } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import Lenis from 'lenis';
+
+/**
+ * Smooth scroll de página (Lenis) acoplado al ticker de GSAP, equivalente al
+ * `useEffect` de `App` en el index.html original.
+ *
+ *   click → Lenis decelera → su rAF (dentro del ticker de GSAP) actualiza
+ *   ScrollTrigger → el showcase cinemático mapea scroll → frame.
+ *
+ * Reglas (de cinematic-scroll-engine.md):
+ *   • `lenis.on('scroll', ScrollTrigger.update)` mantiene ST sincronizado.
+ *   • Lenis se maneja dentro del ticker de GSAP (un único loop rAF).
+ *   • `gsap.ticker.lagSmoothing(0)` evita saltos de catch-up.
+ *   • Lenis es dueño de TODA la deceleración (el showcase usa `scrub: true`,
+ *     nunca `scrub: <número>`, para no apilar un segundo easing).
+ *
+ * Browser-only: en SSR/prerender no se inicializa nada.
+ */
+@Injectable({ providedIn: 'root' })
+export class SmoothScroll {
+  private readonly platformId = inject(PLATFORM_ID);
+  private readonly isBrowser = isPlatformBrowser(this.platformId);
+
+  private lenis: Lenis | null = null;
+  private tickerFn: ((time: number) => void) | null = null;
+
+  init(): void {
+    if (!this.isBrowser || this.lenis) return;
+
+    this.fijarArranque();
+    gsap.registerPlugin(ScrollTrigger);
+
+    this.lenis = new Lenis({
+      duration: 1.2,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      smoothWheel: true,
+    });
+
+    // Mantener ScrollTrigger en sync con el scroll virtual de Lenis.
+    this.lenis.on('scroll', ScrollTrigger.update);
+
+    // Manejar Lenis dentro del ticker de GSAP — un único loop rAF.
+    this.tickerFn = (time: number) => this.lenis?.raf(time * 1000);
+    gsap.ticker.add(this.tickerFn);
+    gsap.ticker.lagSmoothing(0);
+  }
+
+  /**
+   * La página siempre empieza donde empieza.
+   *
+   * `history.scrollRestoration` viene en `auto`, así que al recargar el
+   * navegador es libre de devolverte al desplazamiento anterior. En una
+   * página normal eso es una cortesía; aquí no: hay dos secciones ancladas
+   * con `scrub`, y aterrizar a media secuencia deja el pin y la animación
+   * en un estado que nadie eligió — y qué sección te toque depende de la
+   * altura del documento, que cambia cada vez que se añade un anclaje.
+   *
+   * Con fragmento en la URL no se fuerza el tope, porque ahí sí hay una
+   * intención explícita. Que además SALTE al segmento es otra cosa, y hoy
+   * no ocurre: hay que esperar a que los anclajes existan para conocer el
+   * desplazamiento real. Queda pendiente y no lo introduce este cambio.
+   */
+  private fijarArranque(): void {
+    if (!('scrollRestoration' in history)) return;
+    history.scrollRestoration = 'manual';
+    if (!location.hash) window.scrollTo(0, 0);
+  }
+
+  /**
+   * Scroll suave a un segmento (selector CSS) — navegación del nav en la misma
+   * página. Compensa la altura del nav fijo. Si Lenis no está activo
+   * (reduced-motion / SSR ya filtrado), cae a `scrollIntoView` nativo.
+   */
+  scrollTo(target: string): void {
+    if (!this.isBrowser) return;
+    const navH = 72; // var(--nav-h)
+    if (this.lenis) {
+      this.lenis.scrollTo(target, { offset: -navH, duration: 1.6 });
+      return;
+    }
+    const el = document.querySelector(target);
+    if (el) {
+      const y =
+        el.getBoundingClientRect().top + window.scrollY - navH;
+      window.scrollTo({ top: y, behavior: 'smooth' });
+    }
+  }
+
+  /** Salta al tope al instante (al cambiar de segmento, oculto bajo el telón). */
+  toTop(): void {
+    if (!this.isBrowser) return;
+    if (this.lenis) {
+      this.lenis.scrollTo(0, { immediate: true });
+    } else {
+      window.scrollTo(0, 0);
+    }
+  }
+
+  /** Pausa el scroll (lo usa el preloader mientras carga la experiencia). */
+  stop(): void {
+    this.lenis?.stop();
+  }
+
+  /** Reanuda el scroll cuando la experiencia está lista. */
+  start(): void {
+    this.lenis?.start();
+  }
+
+  destroy(): void {
+    if (this.tickerFn) {
+      gsap.ticker.remove(this.tickerFn);
+      this.tickerFn = null;
+    }
+    this.lenis?.destroy();
+    this.lenis = null;
+  }
+}
