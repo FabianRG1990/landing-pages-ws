@@ -60,6 +60,15 @@ export class RevelarDirective {
       if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
       document.documentElement.classList.add('con-movimiento', 'movimiento-listo');
       const el = this.host.nativeElement;
+      // Lo que ya está en la primera pantalla al cargar entra siempre, sin
+      // esperar al margen del observador: si no, un botón que cae en el
+      // 12 % inferior del hero se queda invisible hasta que alguien haga
+      // scroll. Un fotograma de espera para que el estado inicial se pinte.
+      const r = el.getBoundingClientRect();
+      if (r.top < window.innerHeight && r.bottom > 0) {
+        requestAnimationFrame(() => el.classList.add('revelado'));
+        return;
+      }
       observar(el);
       destroyRef.onDestroy(() => observador?.unobserve(el));
     });
