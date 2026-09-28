@@ -1,0 +1,30 @@
+<section id="lineas" class="lineas" aria-labelledby="lineas-titulo">
+  <div class="shell">
+    <header class="lineas__cabeza">
+      <app-capitulo [num]="l.num" [nombre]="l.nombre" appRevelar />
+      <h2 id="lineas-titulo" class="titular" appRevelar [retraso]="80">
+        <app-renglones [renglones]="l.titulo" />
+      </h2>
+    </header>
+  </div>
+
+  <!-- En móvil la lista es una fila con scroll horizontal nativo: se
+       arrastra con el dedo, se recorre con Tab y no necesita JS. -->
+  <div class="lineas__pista" tabindex="0" role="region" aria-label="Líneas de producto, desplazable">
+    <ul class="lineas__lista shell">
+      @for (item of l.items; track item.id; let i = $index) {
+        <li class="linea" appRevelar [retraso]="(i % 3) * 110">
+          <figure class="linea__foto">
+            <img [src]="item.imagen" [alt]="item.alt" width="1024" height="1536" loading="lazy" decoding="async" />
+            <figcaption class="linea__nombre">
+              <span class="mono">0{{ i + 1 }}</span>
+              <h3>{{ item.nombre }}</h3>
+            </figcaption>
+          </figure>
+          <p class="linea__productos">{{ item.productos.join(' · ') }}</p>
+          <p class="linea__ideal"><span class="mono">Ideal para</span> {{ item.ideal }}</p>
+        </li>
+      }
+    </ul>
+  </div>
+</section>

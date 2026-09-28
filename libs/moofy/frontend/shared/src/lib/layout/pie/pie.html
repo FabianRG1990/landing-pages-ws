@@ -1,0 +1,41 @@
+<footer class="pie">
+  <div class="pie__shell shell">
+    <div class="pie__marca">
+      <app-logo class="pie__logo" alt="Moofy" [diferido]="true" />
+      <p class="pie__lema">Repostería fina empacada, hecha en planta propia.</p>
+      <p class="mono">{{ site.planta }}</p>
+    </div>
+
+    <nav class="pie__col" aria-label="Secciones del sitio">
+      <p class="mono">Secciones</p>
+      <ul>
+        @for (item of nav; track item.ancla) {
+          <li><a [href]="item.ancla">{{ item.etiqueta }}</a></li>
+        }
+        <li><a href="#contacto">Contacto</a></li>
+      </ul>
+    </nav>
+
+    <div class="pie__col">
+      <p class="mono">Contacto</p>
+      <ul>
+        <li><a [href]="whatsapp" target="_blank" rel="noopener">WhatsApp {{ site.whatsappVisible }}</a></li>
+        <li><a [href]="site.telefonoHref">{{ site.telefono }}</a></li>
+        <li><a [href]="'mailto:' + site.correo">{{ site.correo }}</a></li>
+      </ul>
+    </div>
+
+    <div class="pie__col">
+      <p class="mono">Redes</p>
+      <ul>
+        <li><a [href]="site.facebook" target="_blank" rel="noopener">Facebook</a></li>
+        <li><a [href]="site.instagram" target="_blank" rel="noopener">Instagram</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="pie__base shell">
+    <p class="mono">{{ pie.legal }}</p>
+    <p class="mono">{{ pie.nota }}</p>
+  </div>
+</footer>

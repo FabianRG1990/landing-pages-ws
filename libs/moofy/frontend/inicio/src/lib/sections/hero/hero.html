@@ -1,0 +1,48 @@
+<section #seccion class="hero" aria-labelledby="hero-titulo">
+  <!-- La foto, a sangre. Escala y oscurecimiento los mueve el scroll. -->
+  <div #foto class="hero__foto">
+    <picture>
+      <source media="(max-width: 767.98px)" [attr.srcset]="hero.imagenMovil" />
+      <img [src]="hero.imagen" [alt]="hero.alt" width="1536" height="1024" fetchpriority="high" decoding="async" />
+    </picture>
+  </div>
+  <div class="hero__velo" aria-hidden="true"></div>
+  <div #sombra class="hero__sombra" aria-hidden="true"></div>
+  <div class="hero__grano" aria-hidden="true"></div>
+
+  <div class="hero__shell shell">
+    <p class="hero__eyebrow mono mono--ink" appRevelar>
+      <span class="hero__punto" aria-hidden="true"></span>
+      {{ hero.eyebrow }}
+    </p>
+
+    <h1 id="hero-titulo" class="hero__titulo titular" appRevelar [retraso]="120">
+      <app-renglones [renglones]="hero.titulo" />
+    </h1>
+
+    <p class="hero__entrada lead" appRevelar [retraso]="420">{{ hero.entrada }}</p>
+
+    <div class="hero__acciones" appRevelar [retraso]="560">
+      <a class="btn btn--rojo" [href]="whatsapp" target="_blank" rel="noopener">
+        {{ hero.ctaPrimario }}
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+          <path d="M3 8h10M9 4l4 4-4 4" />
+        </svg>
+      </a>
+      <a class="btn btn--vidrio" href="#lineas" (click)="ir($event, '#lineas')">{{ hero.ctaSecundario }}</a>
+    </div>
+  </div>
+
+  <dl class="hero__meta shell" appRevelar [retraso]="720">
+    @for (m of hero.meta; track m.k) {
+      <div class="hero__celda">
+        <dt class="mono">{{ m.k }}</dt>
+        <dd>{{ m.v }}</dd>
+      </div>
+    }
+    <div class="hero__celda">
+      <dt class="mono">Contacto directo</dt>
+      <dd><a class="enlace" [href]="site.telefonoHref">{{ site.telefono }}</a></dd>
+    </div>
+  </dl>
+</section>

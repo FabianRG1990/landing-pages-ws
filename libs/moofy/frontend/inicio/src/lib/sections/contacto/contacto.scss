@@ -1,0 +1,158 @@
+:host {
+  display: block;
+}
+
+.contacto {
+  position: relative;
+  padding-block: var(--section-y);
+  isolation: isolate;
+}
+
+/* Luz de horno detrás de la tarjeta: radial a 0.07 que se apaga antes
+   del borde de la sección, así no marca ninguna frontera. */
+.contacto__luz {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: radial-gradient(50% 55% at 72% 50%, rgb(var(--corteza-rgb) / 0.07), transparent 72%);
+  pointer-events: none;
+}
+
+.contacto__shell {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: var(--gutter);
+  row-gap: 3rem;
+  align-items: start;
+}
+
+.contacto__cabeza {
+  grid-column: 1 / span 5;
+  position: sticky;
+  top: calc(var(--nav-h) + 2rem);
+
+  .lead {
+    margin-top: 1.25rem;
+    max-width: 38ch;
+  }
+}
+
+/* ---------- Tarjeta ---------- */
+
+.tarjeta {
+  grid-column: 7 / -1;
+  display: grid;
+  gap: 0.75rem;
+  padding: clamp(1.5rem, 1rem + 2vw, 2.5rem);
+  background: linear-gradient(180deg, rgb(var(--crema-rgb) / 0.045), rgb(var(--crema-rgb) / 0.015));
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-lg), var(--edge);
+}
+
+.tarjeta__canales {
+  margin: 0 0 1.25rem;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+
+  legend {
+    padding: 0;
+    margin-bottom: 1rem;
+  }
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.chip {
+  position: relative;
+  cursor: pointer;
+
+  input {
+    position: absolute;
+    opacity: 0;
+    inset: 0;
+    margin: 0;
+    cursor: pointer;
+  }
+
+  span {
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
+    padding: 0.5rem 0.95rem;
+    font-size: var(--fs-small);
+    color: var(--crema-2);
+    border: 1px solid var(--line);
+    border-radius: var(--r-pill);
+    transition:
+      color var(--dur-fast) var(--ease-out),
+      background var(--dur-fast) var(--ease-out),
+      border-color var(--dur-fast) var(--ease-out);
+  }
+
+  &:hover span {
+    color: var(--crema);
+    border-color: var(--line-strong);
+  }
+
+  input:checked + span {
+    color: var(--crema);
+    background: rgb(var(--rojo-rgb) / 0.16);
+    border-color: rgb(var(--rojo-rgb) / 0.7);
+  }
+
+  input:focus-visible + span {
+    outline: 2px solid var(--corteza);
+    outline-offset: 2px;
+  }
+}
+
+.tarjeta__cta,
+.tarjeta__visita {
+  width: 100%;
+}
+
+.tarjeta__datos {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.25rem 1.5rem;
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--line-soft);
+
+  > div {
+    display: grid;
+    align-content: start;
+    gap: 0.375rem;
+    min-width: 0;
+  }
+
+  dd {
+    font-size: var(--fs-small);
+    overflow-wrap: anywhere;
+  }
+}
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 899.98px) {
+  .contacto__cabeza,
+  .tarjeta {
+    grid-column: 1 / -1;
+  }
+
+  .contacto__cabeza {
+    position: static;
+  }
+}
+
+@media (max-width: 479.98px) {
+  .tarjeta__datos {
+    grid-template-columns: 1fr;
+  }
+}

@@ -130,6 +130,12 @@ button {
 
 /* ---------- Composición ---------- */
 
+/* Los saltos de ancla nativos (enlaces del pie) no deben dejar el
+   titular debajo de la barra fija. */
+section[id] {
+  scroll-margin-top: var(--nav-h);
+}
+
 .shell {
   width: 100%;
   max-width: var(--maxw);

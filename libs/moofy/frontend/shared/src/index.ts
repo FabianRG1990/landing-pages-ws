@@ -4,3 +4,7 @@ export * from './lib/layout/nav/nav';
 export * from './lib/motion/smooth-scroll.service';
 export * from './lib/motion/revelar.directive';
 export * from './lib/tipografia/renglones';
+export * from './lib/motion/contador.directive';
+export * from './lib/motion/parallax.directive';
+export * from './lib/tipografia/capitulo';
+export * from './lib/layout/pie/pie';
