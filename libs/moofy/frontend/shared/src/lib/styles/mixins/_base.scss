@@ -283,3 +283,10 @@ button {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Con el menú móvil abierto el documento no se desplaza por debajo.
+   Lenis se detiene aparte; esto cubre el scroll nativo (movimiento
+   reducido) y el táctil. */
+html.menu-abierto {
+  overflow: hidden;
+}
