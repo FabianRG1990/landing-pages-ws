@@ -1,85 +1,87 @@
 /* ============================================================
    MOOFY — Design tokens
-   «La planta de noche»: fondo tostado casi negro, luz de horno y
-   el producto dorado recortado contra la penumbra.
+   Los tres colores del logo y ninguno más: rojo, azul y blanco.
    ------------------------------------------------------------
-   El logo es tricolor (rojo, blanco, azul). En la interfaz solo
-   entra el rojo, y con cuentagotas: rojo y azul juntos en botones
-   y titulares se leen como bandera o como juguete, y la marca
-   quiere hablarle a un comprador corporativo. El azul vive solo
-   dentro del logo.
+   · Azul: la base. Es el mismo tono del contorno del logo (#0055a0,
+     tono 208°) llevado a la noche; el fondo es azul, no negro.
+   · Blanco: el texto y la sección firma.
+   · Rojo: acción y énfasis (botones, cursiva de titulares, números
+     de capítulo, nodos). Nunca como fondo de sección.
+   El dorado solo existe en las fotos, porque es el color del pan.
    ------------------------------------------------------------
-   Contrastes WCAG medidos sobre --horno / --surface / --surface-2.
+   Contrastes WCAG medidos sobre --noche / --surface / --surface-2.
    ============================================================ */
 
 :root {
-  /* Tema único y oscuro: los controles nativos (barras, casillas) se
-     pintan con el mismo tema y no aparecen parches claros. */
   color-scheme: dark;
 
-  /* --- Profundidad: el fondo es tostado de verdad, no gris ---
-         El canal suelto sirve para las viñetas y degradados que
-         tienen que fundirse exactamente con el fondo: si se copia el
-         hex a mano en cada sitio, un ajuste deja costuras. */
-  --horno-rgb: 18 14 11;
-  --horno: #120e0b; /* el fondo del que emerge todo */
-  --surface: #1c1612; /* plano de tarjeta */
-  --surface-2: #26201a; /* plano elevado */
+  /* --- Profundidad: cuatro planos del mismo azul ---
+         El canal suelto sirve para viñetas y velos que tienen que
+         fundirse exactamente con el fondo sin dejar costura. */
+  --noche-rgb: 5 26 54;
+  --noche: #051a36; /* el fondo */
+  --surface: #0a2548; /* tarjeta */
+  --surface-2: #0f3059; /* tarjeta elevada */
 
-  /* --- Texto: crema, nunca blanco puro, para que no vibre --- */
-  --crema-rgb: 245 238 228;
-  --crema: #f5eee4; /* 16.68 · 15.55 · 13.98 */
-  --crema-2: #bfb3a4; /*  9.33 ·  8.70 ·  7.82 */
-  --crema-3: #998d7e; /*  5.91 ·  5.51 ·  4.96 — el mínimo permitido */
+  /* --- Azul de marca --- */
+  --azul-rgb: 0 85 160;
+  --azul: #0055a0; /* el del logo, sin retocar: superficies y rellenos */
+  --azul-luz-rgb: 90 167 240;
+  --azul-luz: #5aa7f0; /* 6.81 · 6.00 · 5.18 — bordes vivos, enlaces, luz */
 
-  /* --- Marca ---
-         --rojo es el del logo, sin retocar. Sobre el fondo da 3.39:1:
-         vale como relleno (con texto crema encima, 4.92:1) y para
-         formas, nunca como color de texto pequeño. Para texto rojo
-         está --rojo-luz. */
+  /* --- Blanco --- */
+  --blanco-rgb: 255 255 255;
+  --blanco: #ffffff;
+  --texto: #f4f7fb; /* 16.19 · 14.25 · 12.31 */
+  --texto-2: #b7c6da; /* 10.02 ·  8.83 ·  7.62 */
+  --texto-3: #8da2bd; /*  6.65 ·  5.86 ·  5.06 — el mínimo permitido */
+
+  /* --- Rojo ---
+         --rojo es el del logo. Sobre el azul de fondo da 3.07:1: vale
+         como relleno (con blanco encima, 5.67:1), nunca como texto.
+         Para texto rojo sobre azul existe --rojo-luz. */
   --rojo-rgb: 208 0 32;
   --rojo: #d00020;
-  --rojo-hondo: #9e0018; /* el rojo en sombra: base del degradado del botón */
-  --rojo-luz: #f2555f; /*  5.71 · 5.32 · 4.79 */
+  --rojo-hondo: #a30019;
+  --rojo-luz: #ff6b77; /* 6.31 · 5.56 · 4.80 */
 
-  /* --- El dorado de horneado ---
-         Solo donde hay un RESULTADO: cifras, sellos, lo que el comprador
-         se lleva. Nunca en botones, enlaces ni navegación, para que no
-         compita con el rojo. */
-  --corteza-rgb: 217 161 91;
-  --corteza: #d9a15b; /*  8.41 · 7.84 · 7.06 */
-  --corteza-line: rgb(var(--corteza-rgb) / 0.26);
-  --corteza-fill: rgb(var(--corteza-rgb) / 0.06);
+  /* --- Líneas y bordes: blanco azulado translúcido --- */
+  --line: rgb(var(--blanco-rgb) / 0.12);
+  --line-soft: rgb(var(--blanco-rgb) / 0.07);
+  --line-strong: rgb(var(--blanco-rgb) / 0.26);
+  --line-azul: rgb(var(--azul-luz-rgb) / 0.35);
+  --edge: inset 0 1px 0 rgb(var(--blanco-rgb) / 0.08);
 
-  /* --- Líneas y bordes: crema translúcida, no blanco --- */
-  --line: rgb(var(--crema-rgb) / 0.13);
-  --line-soft: rgb(var(--crema-rgb) / 0.07);
-  --line-strong: rgb(var(--crema-rgb) / 0.28);
-  --edge: inset 0 1px 0 rgb(var(--crema-rgb) / 0.07);
+  /* --- Vidrio: la tarjeta de las referencias ---
+         Degradado del azul de marca a transparente, con canto de luz. */
+  --vidrio: linear-gradient(
+    160deg,
+    rgb(var(--azul-luz-rgb) / 0.12) 0%,
+    rgb(var(--azul-rgb) / 0.1) 38%,
+    rgb(var(--noche-rgb) / 0.4) 100%
+  );
 
-  /* --- Luz ambiente: por norma ≤ 0.07. Un radial saturado a
-         pantalla completa se ve a videojuego en pantallas densas. --- */
-  --glow-horno: radial-gradient(
-    60% 50% at 70% 10%,
-    rgb(var(--corteza-rgb) / 0.07),
+  /* --- Luz ambiente: por norma ≤ 0.07 en radiales grandes --- */
+  --glow-azul: radial-gradient(
+    60% 50% at 50% 0%,
+    rgb(var(--azul-luz-rgb) / 0.07),
     transparent 70%
   );
 
-  /* --- Sombras: negras y hondas; sobre tostado, el negro puro es
-         lo único que separa la tarjeta del suelo. --- */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.45);
-  --shadow-md: 0 8px 24px -8px rgba(0, 0, 0, 0.78);
-  --shadow-lg: 0 28px 72px -28px rgba(0, 0, 0, 0.92);
-  --shadow-rojo: 0 16px 44px -20px rgb(var(--rojo-rgb) / 0.55);
+  /* --- Sombras: azul muy hondo, nunca gris --- */
+  --shadow-sm: 0 1px 2px rgb(1 8 20 / 0.5);
+  --shadow-md: 0 10px 28px -10px rgb(1 8 20 / 0.8);
+  --shadow-lg: 0 30px 80px -30px rgb(1 8 20 / 0.95);
+  --shadow-rojo: 0 16px 44px -18px rgb(var(--rojo-rgb) / 0.65);
+  --shadow-azul: 0 0 0 1px rgb(var(--azul-luz-rgb) / 0.4), 0 18px 60px -24px rgb(var(--azul-luz-rgb) / 0.45);
 
   /* --- Tipografía ---
-         Fraunces para titulares (serif editorial, cálida); Geist para
-         leer; Geist Mono para el metadato técnico. */
-  --font-display: 'Fraunces', ui-serif, Georgia, 'Times New Roman', serif;
-  --font-sans: 'Geist', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+         Instrument Sans para todo lo que se lee y se anuncia, con
+         cursiva real para el énfasis; Geist Mono para el metadato. */
+  --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-mono: 'Geist Mono', ui-monospace, 'SF Mono', 'Cascadia Mono', monospace;
 
-  --fs-display: clamp(2.75rem, 1.2rem + 6vw, 7rem);
+  --fs-display: clamp(2.75rem, 1.25rem + 5.8vw, 6.75rem);
   --fs-h2: clamp(2.125rem, 1.35rem + 3.1vw, 4rem);
   --fs-h3: clamp(1.25rem, 1.08rem + 0.75vw, 1.625rem);
   --fs-lead: clamp(1.0625rem, 1rem + 0.3vw, 1.25rem);
@@ -87,17 +89,15 @@
   --fs-small: 0.9375rem;
   --fs-caption: 0.75rem;
 
-  /* Una serif de display pide menos tracking negativo que una sans:
-     con el de ADN (-0.035em) los remates de Fraunces se tocan. */
-  --tracking-display: -0.02em;
-  --tracking-h2: -0.015em;
+  --tracking-display: -0.035em;
+  --tracking-h2: -0.028em;
   --tracking-caps: 0.1em;
-  --tracking-label: 0.02em;
+  --tracking-label: 0.01em;
 
   --w-read: 400;
   --w-emph: 500;
   --w-announce: 600;
-  --w-display: 380; /* Fraunces respira mejor ligera en cuerpos grandes */
+  --w-display: 650;
 
   /* --- Layout --- */
   --maxw: 1440px;
@@ -105,9 +105,10 @@
   --section-y: clamp(6rem, 3rem + 9vw, 10rem);
   --nav-h: 72px;
   --measure: 60ch;
-  --r-sm: 6px;
-  --r-md: 12px;
-  --r-lg: 20px;
+  --r-sm: 8px;
+  --r-md: 14px;
+  --r-lg: 22px;
+  --r-xl: 32px;
   --r-pill: 999px;
 
   /* --- Movimiento --- */

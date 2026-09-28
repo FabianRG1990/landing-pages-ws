@@ -8,14 +8,18 @@
   box-sizing: border-box;
 }
 
+/* El fondo va en <html> y el body es transparente: la trama fija del
+   fondo (z-index -1) se pinta encima del fondo raíz pero debajo del
+   contenido. Con el fondo en el body, el body la taparía. */
 html {
   -webkit-text-size-adjust: 100%;
+  background: var(--noche);
 }
 
 body {
   margin: 0;
-  background: var(--horno);
-  color: var(--crema);
+  background: transparent;
+  color: var(--texto);
   font-family: var(--font-sans);
   font-size: var(--fs-body);
   font-weight: var(--w-read);
@@ -40,21 +44,20 @@ button {
   hyphens: manual;
 }
 
-/* Titulares: Fraunces con corte óptico automático (opsz sigue al
-   tamaño) y un punto de suavidad; la cursiva es el énfasis. */
+/* Titulares: sans de peso fuerte y apretado, como en las dos
+   referencias; el segundo tramo va en cursiva roja (el recurso de
+   «Seis productos. Una arquitectura.»). */
 h1,
 h2 {
   margin: 0;
-  font-family: var(--font-display);
+  font-family: var(--font-sans);
   font-weight: var(--w-display);
-  font-optical-sizing: auto;
-  font-variation-settings: 'SOFT' 50;
   text-wrap: balance;
 
   em {
     font-style: italic;
-    font-variation-settings: 'SOFT' 100;
-    color: var(--corteza);
+    font-weight: 600;
+    color: var(--rojo-luz);
   }
 }
 
@@ -66,7 +69,7 @@ h1 {
 
 h2 {
   font-size: var(--fs-h2);
-  line-height: 1.04;
+  line-height: 1.02;
   letter-spacing: var(--tracking-h2);
 }
 
@@ -119,13 +122,13 @@ button {
 }
 
 :focus-visible {
-  outline: 2px solid var(--corteza);
+  outline: 2px solid var(--azul-luz);
   outline-offset: 3px;
 }
 
 ::selection {
   background: rgb(var(--rojo-rgb) / 0.55);
-  color: var(--crema);
+  color: var(--blanco);
 }
 
 /* ---------- Composición ---------- */
@@ -150,7 +153,7 @@ section[id] {
 .lead {
   font-size: var(--fs-lead);
   line-height: 1.55;
-  color: var(--crema-2);
+  color: var(--texto-2);
 }
 
 /* Metadato técnico: versales siempre con tracking ≥ 0.06em */
@@ -160,12 +163,12 @@ section[id] {
   font-weight: var(--w-emph);
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
-  color: var(--crema-3);
+  color: var(--texto-3);
   font-variant-numeric: tabular-nums;
 }
 
 .mono--ink {
-  color: var(--crema-2);
+  color: var(--texto-2);
 }
 
 /* Encabezado de capítulo: «01 — LA FÁBRICA» con un filete que
@@ -240,7 +243,7 @@ section[id] {
 
 /* El único relleno rojo de la pantalla */
 .btn--rojo {
-  color: var(--crema);
+  color: var(--blanco);
   background: linear-gradient(180deg, var(--rojo), var(--rojo-hondo));
   box-shadow: var(--shadow-rojo), inset 0 1px 0 rgb(255 255 255 / 0.22);
 
@@ -253,29 +256,29 @@ section[id] {
 
 /* Vidrio: canto refractado, no un simple borde */
 .btn--vidrio {
-  color: var(--crema);
-  background: rgb(var(--crema-rgb) / 0.05);
+  color: var(--texto);
+  background: rgb(var(--blanco-rgb) / 0.06);
   border: 1px solid var(--line);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   box-shadow: var(--edge);
 
   &:hover {
-    background: rgb(var(--crema-rgb) / 0.09);
+    background: rgb(var(--blanco-rgb) / 0.1);
     border-color: var(--line-strong);
   }
 }
 
 .enlace {
-  color: var(--crema);
+  color: var(--texto);
   border-bottom: 1px solid var(--line-strong);
   transition:
     border-color var(--dur-fast) var(--ease-out),
     color var(--dur-fast) var(--ease-out);
 
   &:hover {
-    color: var(--corteza);
-    border-bottom-color: var(--corteza);
+    color: var(--azul-luz);
+    border-bottom-color: var(--azul-luz);
   }
 }
 

@@ -7,7 +7,7 @@
 
 /* Renglón de titular (lo pinta <app-renglones>). La máscara es el
    propio renglón: overflow clip con un respiro abajo para que los
-   descendentes de Fraunces (g, p, y) no queden cortados. */
+   descendentes (g, p, y) no queden cortados. */
 .renglon {
   display: block;
   overflow: clip;
