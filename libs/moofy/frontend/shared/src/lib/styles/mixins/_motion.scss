@@ -1,0 +1,47 @@
+/* ============================================================
+   MOOFY — Revelado al entrar en pantalla
+   Solo bajo html.con-movimiento (lo pone RevelarDirective en el
+   navegador y sin movimiento reducido). Sin esa clase, todo está
+   en su sitio: SSR, sin JS o con reduce-motion se lee igual.
+   ============================================================ */
+
+/* Renglón de titular (lo pinta <app-renglones>). La máscara es el
+   propio renglón: overflow clip con un respiro abajo para que los
+   descendentes de Fraunces (g, p, y) no queden cortados. */
+.renglon {
+  display: block;
+  overflow: clip;
+  padding-bottom: 0.1em;
+  margin-bottom: -0.1em;
+}
+
+.renglon__in {
+  display: block;
+}
+
+.con-movimiento {
+  /* Elementos sueltos: suben 18 px y aparecen */
+  [appRevelar]:not(.titular) {
+    opacity: 0;
+    transform: translateY(18px);
+    transition:
+      opacity 0.8s var(--ease-out) var(--retraso, 0ms),
+      transform 1s var(--ease-fluid) var(--retraso, 0ms);
+  }
+
+  [appRevelar].revelado:not(.titular) {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* Titulares: cada renglón sale de debajo de su máscara */
+  .titular[appRevelar] .renglon__in {
+    transform: translateY(108%);
+    transition: transform 1.1s var(--ease-fluid);
+    transition-delay: calc(var(--retraso, 0ms) + var(--r) * 110ms);
+  }
+
+  .titular[appRevelar].revelado .renglon__in {
+    transform: none;
+  }
+}
