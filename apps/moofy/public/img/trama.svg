@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="360" height="360" viewBox="0 0 360 360" fill="none" stroke="#5aa7f0" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+  <!-- Espiga de trigo -->
+  <g transform="translate(30 24) rotate(-18 32 32)">
+    <path d="M32 60V10"/>
+    <path d="M32 18c-6-2-9-7-9-12 6 1 9 6 9 12z"/>
+    <path d="M32 18c6-2 9-7 9-12-6 1-9 6-9 12z"/>
+    <path d="M32 30c-6-2-9-7-9-12 6 1 9 6 9 12z"/>
+    <path d="M32 30c6-2 9-7 9-12-6 1-9 6-9 12z"/>
+    <path d="M32 42c-6-2-9-7-9-12 6 1 9 6 9 12z"/>
+    <path d="M32 42c6-2 9-7 9-12-6 1-9 6-9 12z"/>
+  </g>
+  <!-- Croissant -->
+  <g transform="translate(196 36)">
+    <path d="M4 46C6 30 18 18 36 18s30 12 32 28c-4-4-10-4-14 0l-4-10c-4-5-9-7-14-7s-10 2-14 7l-4 10c-4-4-10-4-14 0z"/>
+    <path d="M24 22l4 9M36 18v11M48 22l-4 9"/>
+  </g>
+  <!-- Gorro de chef -->
+  <g transform="translate(110 150)">
+    <path d="M18 44V34c-7-1-12-7-12-14 0-8 7-14 15-13 2-6 8-10 15-10s13 4 15 10c8-1 15 5 15 13 0 7-5 13-12 14v10z"/>
+    <path d="M18 52h36v-8H18z"/>
+  </g>
+  <!-- Rodillo -->
+  <g transform="translate(250 180) rotate(-30 32 32)">
+    <rect x="14" y="26" width="36" height="12" rx="6"/>
+    <path d="M14 32H4M50 32h10"/>
+  </g>
+  <!-- Batidor -->
+  <g transform="translate(20 226) rotate(20 32 32)">
+    <rect x="29" y="38" width="6" height="22" rx="3"/>
+    <path d="M32 38C20 32 20 8 32 4c12 4 12 28 0 34z"/>
+    <path d="M32 38c-6-7-6-26 0-34M32 38c6-7 6-26 0-34"/>
+  </g>
+  <!-- Porción de pastel -->
+  <g transform="translate(170 280)">
+    <path d="M8 44h48V26L8 14z"/>
+    <path d="M8 26h48M8 14l48 12"/>
+    <circle cx="44" cy="12" r="4"/>
+  </g>
+</svg>

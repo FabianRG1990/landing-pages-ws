@@ -299,3 +299,18 @@ section[id] {
 html.menu-abierto {
   overflow: hidden;
 }
+
+/* ---------- La trama del fondo ----------
+   Iconos de línea de panadería (espiga, croissant, gorro, rodillo,
+   batidor, pastel), el mismo recurso que Moofy usa detrás de su logo en
+   redes. Una capa fija y estática: cero repintado por fotograma. Muy
+   tenue: es textura, no ilustración. */
+.trama {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: url('/img/trama.svg') repeat;
+  background-size: 360px;
+  opacity: 0.055;
+  pointer-events: none;
+}
