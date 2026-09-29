@@ -7,6 +7,9 @@ import { Renglon } from '../data/site';
  *
  *   <h2 class="titular" appRevelar><app-renglones [renglones]="x.titulo" /></h2>
  *
+ * Las cursivas llevan un trazo de marcador azul detrás (el contorno del
+ * logo bajo la letra roja) que se pasa cuando el renglón ya llegó.
+ *
  * Cada renglón es su propia máscara de revelado (_motion.scss); por eso
  * los titulares se escriben renglón a renglón en site.ts y no se parten
  * con SplitText, que depende de que la fuente ya haya cargado.
