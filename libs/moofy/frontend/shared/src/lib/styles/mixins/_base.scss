@@ -312,3 +312,102 @@ html.menu-abierto {
   opacity: 0.1;
   pointer-events: none;
 }
+
+/* ---------- Piezas globales ----------
+   El vocabulario de claudioandrade.solutions (insignia con punto,
+   tarjeta, punto vivo) traducido a Moofy de día, más el bloque azul:
+   el panel a todo color que da el contraste alegre sobre el blanco.
+   Globales porque las usan el hero, las líneas, los canales y la firma. */
+
+/* Insignia: píldora blanca con punto rojo y contorno azul suave */
+.insignia {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.375rem 0.8rem;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: var(--w-emph);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--azul);
+  background: var(--blanco);
+  border: 1px solid var(--line-azul);
+  border-radius: var(--r-pill);
+  box-shadow: var(--shadow-sm);
+}
+
+/* El punto de la insignia es una pegatina en miniatura: rojo, filete
+   blanco, contorno azul. */
+.insignia__punto {
+  flex-shrink: 0;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--rojo);
+  box-shadow: var(--pegatina-fina);
+  margin-inline: 2px;
+}
+
+/* Carta: la tarjeta blanca de la página, con sombra azulada */
+.carta {
+  position: relative;
+  background: var(--blanco);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Bloque azul: el azul del logo a todo color, con luz arriba a la
+   derecha. El texto encima va en blanco (7.48:1 sobre --azul). */
+.bloque-azul {
+  position: relative;
+  color: var(--blanco);
+  background:
+    radial-gradient(70% 90% at 85% 0%, rgb(255 255 255 / 0.16), transparent 60%),
+    linear-gradient(135deg, var(--azul-hondo) 0%, var(--azul) 55%, var(--azul-vivo) 100%);
+  border-radius: var(--r-xl);
+  overflow: clip;
+  isolation: isolate;
+
+  h2,
+  h3 {
+    color: var(--blanco);
+  }
+
+  .mono {
+    color: rgb(255 255 255 / 0.82);
+  }
+}
+
+/* Punto «en marcha»: late despacio, sin llamar la atención */
+.vivo {
+  position: relative;
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--rojo);
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border-radius: 50%;
+    border: 1.5px solid var(--rojo);
+    opacity: 0;
+    animation: latir 2.4s var(--ease-out) infinite;
+  }
+}
+
+@keyframes latir {
+  0% {
+    opacity: 0.7;
+    transform: scale(0.6);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(1.8);
+  }
+}
