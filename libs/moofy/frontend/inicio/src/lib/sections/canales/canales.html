@@ -52,23 +52,34 @@
           <span class="solo-lectores">{{ activo().alt }}</span>
         </div>
 
-        @for (a of [activo()]; track a.id) {
-          <div class="panel__info carta">
-            <p class="panel__frase">{{ a.frase }}</p>
-            <dl class="panel__datos">
-              @for (d of a.datos; track d.k) {
-                <div>
-                  <dt class="mono">{{ d.k }}</dt>
-                  <dd>{{ d.v }}</dd>
-                </div>
-              }
-            </dl>
-            <a class="btn btn--rojo panel__cta" [href]="whatsapp()" target="_blank" rel="noopener">
-              <app-icono nombre="whatsapp" />
-              Escribir como {{ a.nombre.toLowerCase() }}
-            </a>
-          </div>
-        }
+        <!-- Todas las tarjetas en la misma celda y solo se ve la activa: la
+             sección mide siempre lo que la más alta y no brinca al cambiar
+             de canal (en móvil la tarjeta va debajo de la foto). Las ocultas
+             quedan fuera del lector de pantalla y del Tab. -->
+        <div class="panel__tarjetas">
+          @for (a of c.items; track a.id; let i = $index) {
+            <div
+              class="panel__info carta"
+              [class.activa]="i === indice()"
+              [attr.aria-hidden]="i === indice() ? null : 'true'"
+              [inert]="i !== indice()"
+            >
+              <p class="panel__frase">{{ a.frase }}</p>
+              <dl class="panel__datos">
+                @for (d of a.datos; track d.k) {
+                  <div>
+                    <dt class="mono">{{ d.k }}</dt>
+                    <dd>{{ d.v }}</dd>
+                  </div>
+                }
+              </dl>
+              <a class="btn btn--rojo panel__cta" [href]="enlaces[i]" target="_blank" rel="noopener">
+                <app-icono nombre="whatsapp" />
+                Escribir como {{ a.nombre.toLowerCase() }}
+              </a>
+            </div>
+          }
+        </div>
       </div>
     </div>
   </div>

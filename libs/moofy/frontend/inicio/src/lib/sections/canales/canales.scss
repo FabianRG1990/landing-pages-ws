@@ -138,17 +138,32 @@
   }
 }
 
-/* La tarjeta blanca de información flota sobre la foto, abajo. Se vuelve a
-   crear en cada cambio de canal y entra con un fundido corto; con
-   movimiento reducido la regla global lo anula. */
-.panel__info {
+/* Las tarjetas blancas de información flotan sobre la foto, abajo. Van
+   todas en la misma celda (la rejilla toma el alto de la más alta) y
+   solo se ve la activa, que entra con un fundido corto al cambiar de
+   canal; con movimiento reducido la regla global lo anula. */
+.panel__tarjetas {
   position: absolute;
   inset: auto 1.25rem 1.25rem;
   z-index: 2;
   display: grid;
+  /* Sin esto la columna toma el ancho de la tarjeta más ancha (su botón
+     no parte) y desbordaba la página 54 px a 390. */
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.panel__info {
+  grid-area: 1 / 1;
+  align-self: end;
+  display: grid;
   gap: 1.25rem;
   padding: 1.5rem;
-  animation: entrar 0.6s var(--ease-fluid) both;
+  visibility: hidden;
+
+  &.activa {
+    visibility: visible;
+    animation: entrar 0.6s var(--ease-fluid) both;
+  }
 }
 
 @keyframes entrar {
@@ -242,18 +257,30 @@
   }
 
   /* En móvil la tarjeta va debajo de la foto, no encima: sobre una foto
-     de 350 px taparía el producto entero. */
-  .panel__info {
+     de 350 px taparía el producto entero. Arriba de su celda: la más
+     corta deja el hueco abajo, no entre la foto y la tarjeta. */
+  .panel__tarjetas {
     position: relative;
     inset: auto;
     margin: -2.5rem 0.75rem 0;
+  }
+
+  .panel__info {
+    align-self: start;
   }
 
   .panel__datos {
     grid-template-columns: 1fr;
   }
 
+  /* «Escribir como conveniencia y estaciones» no cabe en una línea a
+     390: el botón parte el texto en vez de salirse de la tarjeta. */
   .panel__cta {
     justify-self: stretch;
+    white-space: normal;
+    text-align: center;
+    text-wrap: balance;
+    line-height: 1.25;
+    padding-block: 0.75rem;
   }
 }

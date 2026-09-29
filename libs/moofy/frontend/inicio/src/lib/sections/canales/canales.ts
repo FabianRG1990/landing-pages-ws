@@ -43,7 +43,8 @@ export class CanalesComponent {
   protected readonly c = CANALES;
   protected readonly indice = signal(0);
   protected readonly activo = computed(() => this.c.items[this.indice()]);
-  protected readonly whatsapp = computed(() => enlaceWhatsapp(mensajeCanal(this.activo().nombre)));
+  /** Un enlace por canal: cada tarjeta lleva el suyo. */
+  protected readonly enlaces = this.c.items.map((i) => enlaceWhatsapp(mensajeCanal(i.nombre)));
 
   /** Varias pestañas comparten foto: se pinta cada archivo una sola vez. */
   protected readonly imagenes = [...new Set(this.c.items.map((i) => i.imagen))].map((src) => ({ src }));
