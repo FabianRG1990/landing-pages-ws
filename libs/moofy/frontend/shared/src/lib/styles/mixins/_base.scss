@@ -55,10 +55,11 @@ h2 {
   color: var(--tinta);
   text-wrap: balance;
 
+  /* --cursiva: las secciones sobre fondo de color la redefinen */
   em {
     font-style: italic;
     font-weight: 600;
-    color: var(--rojo);
+    color: var(--cursiva, var(--rojo));
   }
 }
 
@@ -169,11 +170,13 @@ section[id] {
 }
 
 .mono--ink {
-  color: var(--tinta);
+  color: var(--mono-ink, var(--tinta));
 }
 
 /* Encabezado de capítulo: «01 — LA FÁBRICA» con un filete que
-   separa el número del nombre. Es el hilo que ordena la página. */
+   separa el número del nombre. Es el hilo que ordena la página.
+   Sus colores son variables para que una sección sobre fondo de color
+   los cambie sin salirse de su encapsulación. */
 .capitulo {
   display: flex;
   align-items: center;
@@ -181,14 +184,14 @@ section[id] {
   margin-bottom: clamp(1.25rem, 1rem + 1vw, 2rem);
 
   &__num {
-    color: var(--rojo);
+    color: var(--capitulo-num, var(--rojo));
   }
 
   &__regla {
     width: 2.5rem;
     height: 2px;
     border-radius: 2px;
-    background: linear-gradient(90deg, var(--rojo), var(--azul));
+    background: var(--capitulo-regla, linear-gradient(90deg, var(--rojo), var(--azul)));
     transform-origin: left center;
   }
 }
