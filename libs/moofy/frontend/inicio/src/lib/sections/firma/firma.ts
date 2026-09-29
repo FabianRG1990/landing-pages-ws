@@ -10,19 +10,20 @@ import {
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { gsap } from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { PORTAFOLIO } from '@moofy-ui-shared/data/site';
 import { LogoComponent } from '@moofy-ui-shared/marca/logo';
 import { RevelarDirective } from '@moofy-ui-shared/motion/revelar.directive';
+import { montarEscena } from '@moofy-ui-shared/motion/escena';
 
 /**
  * La firma de la marca: el único plano blanco de la página, con el logo
  * en grande, como el «ADN BUSINESS» gigante de la referencia. Pan José y
  * Panrico aparecen aquí, debajo de Moofy y con mucho menos peso.
  *
- * Con el scroll el panel se abre desde un recorte más estrecho y el logo
- * se asienta de 0.84 a 1: un plano que se acerca. `scrub: true` porque
- * Lenis ya suaviza; clip-path y transform, sin reflujo.
+ * Con el scroll el panel se abre desde un recorte más estrecho (`scrub:
+ * true`, porque Lenis ya suaviza). El logo no va ligado al scroll: cae
+ * una vez, grande y torcido, y se estampa con un rebote corto mientras
+ * el panel acusa el golpe. Un sello no se reproduce hacia atrás.
  */
 @Component({
   selector: 'app-firma',
@@ -44,29 +45,30 @@ export class FirmaComponent {
 
     afterNextRender(() => {
       if (!esNavegador) return;
-      if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      montarEscena(destroyRef, () => {
+        const panel = this.panel().nativeElement;
+        const logo = this.logo().nativeElement;
 
-      gsap.registerPlugin(ScrollTrigger);
-      const tl = gsap.timeline({
-        scrollTrigger: {
-          trigger: this.seccion().nativeElement,
-          start: 'top 90%',
-          end: 'center 55%',
-          scrub: true,
-        },
-        defaults: { ease: 'none' },
-      });
-      tl.fromTo(
-        this.panel().nativeElement,
-        { clipPath: 'inset(9% 7% round 32px)' },
-        { clipPath: 'inset(0% 0% round 32px)' },
-        0,
-      );
-      tl.fromTo(this.logo().nativeElement, { scale: 0.84 }, { scale: 1 }, 0);
+        gsap.fromTo(
+          panel,
+          { clipPath: 'inset(9% 7% round 32px)' },
+          {
+            clipPath: 'inset(0% 0% round 32px)',
+            ease: 'none',
+            scrollTrigger: {
+              trigger: this.seccion().nativeElement,
+              start: 'top 90%',
+              end: 'center 55%',
+              scrub: true,
+            },
+          },
+        );
 
-      destroyRef.onDestroy(() => {
-        tl.scrollTrigger?.kill();
-        tl.kill();
+        gsap
+          .timeline({ scrollTrigger: { trigger: panel, start: 'top 62%', once: true } })
+          .from(logo, { scale: 1.9, rotation: -9, opacity: 0, duration: 0.7, ease: 'back.out(1.6)' })
+          // El golpe: el panel baja 5 px y vuelve, en el instante del sello
+          .fromTo(panel, { y: 0 }, { y: 5, duration: 0.07, yoyo: true, repeat: 1, ease: 'power1.out' }, 0.32);
       });
     });
   }
