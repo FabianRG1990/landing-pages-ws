@@ -1,49 +1,61 @@
-<section id="lineas" class="lineas" aria-labelledby="lineas-titulo">
-  <div class="shell">
-    <header class="lineas__cabeza">
-      <app-capitulo [num]="l.num" [nombre]="l.nombre" appRevelar />
-      <h2 id="lineas-titulo" class="titular" appRevelar [retraso]="80">
-        <app-renglones [renglones]="l.titulo" />
-      </h2>
-      <p class="lead" appRevelar [retraso]="220">{{ l.entrada }}</p>
-    </header>
+<section #seccion id="lineas" class="lineas" aria-labelledby="lineas-titulo">
+  <!-- El carril: en escritorio se fija la sección y el carril entero
+       (cabecera y tarjetas) se desplaza en horizontal con el scroll
+       (lineas.ts). En móvil y sin movimiento es cabecera y lista. -->
+  <div #carril class="lineas__carril">
+    <div class="shell lineas__intro">
+      <header class="lineas__cabeza">
+        <app-capitulo [num]="l.num" [nombre]="l.nombre" appRevelar />
+        <h2 id="lineas-titulo" class="titular" appRevelar [retraso]="80">
+          <app-renglones [renglones]="l.titulo" />
+        </h2>
+        <p class="lead" appRevelar [retraso]="220">{{ l.entrada }}</p>
+      </header>
+    </div>
+
+    <!-- En móvil la lista es una fila con scroll horizontal nativo: se
+         arrastra con el dedo, se recorre con Tab y no necesita JS. -->
+    <div class="lineas__pista" tabindex="0" role="region" aria-label="Líneas de producto, desplazable">
+      <ul class="lineas__lista shell">
+        @for (item of l.items; track item.id; let i = $index) {
+          <li class="linea" appRevelar [retraso]="(i % 3) * 110">
+            <article class="linea__tarjeta">
+              <figure class="linea__foto">
+                <img [src]="item.imagen" [alt]="item.alt" width="1024" height="1536" loading="lazy" decoding="async" />
+                <div class="linea__marcas">
+                  <span class="insignia"><span class="insignia__punto" aria-hidden="true"></span>Línea 0{{ i + 1 }}</span>
+                  <span class="linea__cuenta mono">{{ item.productos.length }} {{ item.productos.length === 1 ? 'producto' : 'productos' }}</span>
+                </div>
+              </figure>
+
+              <div class="linea__cuerpo">
+                <h3 class="linea__nombre">{{ item.nombre }}</h3>
+                <p class="linea__productos">{{ item.productos.join(' · ') }}</p>
+
+                <div class="linea__pie">
+                  <p class="linea__ideal"><span class="mono">Ideal para</span> {{ item.ideal }}</p>
+                  <a
+                    class="linea__boton"
+                    [href]="muestras(item.nombre)"
+                    target="_blank"
+                    rel="noopener"
+                    [attr.aria-label]="'Pedir muestras de ' + item.nombre + ' por WhatsApp'"
+                  >
+                    <app-icono nombre="diagonal" />
+                  </a>
+                </div>
+              </div>
+            </article>
+          </li>
+        }
+      </ul>
+    </div>
   </div>
 
-  <!-- En móvil la lista es una fila con scroll horizontal nativo: se
-       arrastra con el dedo, se recorre con Tab y no necesita JS. -->
-  <div class="lineas__pista" tabindex="0" role="region" aria-label="Líneas de producto, desplazable">
-    <ul class="lineas__lista shell">
-      @for (item of l.items; track item.id; let i = $index) {
-        <li class="linea" appRevelar [retraso]="(i % 3) * 110">
-          <article class="linea__tarjeta">
-            <figure class="linea__foto">
-              <img [src]="item.imagen" [alt]="item.alt" width="1024" height="1536" loading="lazy" decoding="async" />
-              <div class="linea__marcas">
-                <span class="insignia"><span class="insignia__punto" aria-hidden="true"></span>Línea 0{{ i + 1 }}</span>
-                <span class="linea__cuenta mono">{{ item.productos.length }} {{ item.productos.length === 1 ? 'producto' : 'productos' }}</span>
-              </div>
-            </figure>
-
-            <div class="linea__cuerpo">
-              <h3 class="linea__nombre">{{ item.nombre }}</h3>
-              <p class="linea__productos">{{ item.productos.join(' · ') }}</p>
-
-              <div class="linea__pie">
-                <p class="linea__ideal"><span class="mono">Ideal para</span> {{ item.ideal }}</p>
-                <a
-                  class="linea__boton"
-                  [href]="muestras(item.nombre)"
-                  target="_blank"
-                  rel="noopener"
-                  [attr.aria-label]="'Pedir muestras de ' + item.nombre + ' por WhatsApp'"
-                >
-                  <app-icono nombre="diagonal" />
-                </a>
-              </div>
-            </div>
-          </article>
-        </li>
-      }
-    </ul>
+  <!-- Dónde va el recorrido: cuenta y barra. Decorativo; la lista ya
+       dice cuántas líneas hay. Solo se ve en el modo horizontal. -->
+  <div class="lineas__hud shell" aria-hidden="true">
+    <p class="lineas__cuenta-grande mono"><span #actual>01</span> / {{ total }}</p>
+    <div class="lineas__barra"><div #barra class="lineas__barra-in"></div></div>
   </div>
 </section>

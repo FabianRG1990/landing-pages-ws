@@ -161,6 +161,102 @@
   }
 }
 
+/* ---------- Indicador (solo en modo horizontal) ---------- */
+
+.lineas__hud {
+  display: none;
+}
+
+/* ---------- Modo horizontal (escritorio, lo activa lineas.ts) ----------
+   La sección ocupa la pantalla y se fija; el carril pone cabecera y
+   tarjetas en una fila y GSAP lo desplaza con transform. El ancho de la
+   tarjeta sale del alto disponible: foto (0.85 del ancho) más ~190 px de
+   cuerpo tienen que caber bajo la barra y sobre el indicador. */
+.lineas--horizontal {
+  --tarjeta-w: clamp(16rem, calc((100svh - 25rem) / 0.85), 25rem);
+
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 100svh;
+  padding-block: calc(var(--nav-h) + 1rem) 5.5rem;
+  overflow: clip;
+
+  .lineas__carril {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: max-content;
+    will-change: transform;
+  }
+
+  /* Ancho del contenido: un ancho fijo cortaba «Un mismo estándar.»,
+     que no se parte (la cursiva lleva el marcador y va en nowrap). */
+  .lineas__intro {
+    flex: 0 0 auto;
+    width: auto;
+    max-width: none;
+    margin: 0;
+    padding-right: clamp(2rem, 4vw, 5rem);
+  }
+
+  .lineas__cabeza {
+    margin-bottom: 0;
+  }
+
+  .lineas__lista {
+    display: flex;
+    gap: clamp(1.25rem, 1rem + 1vw, 2rem);
+    width: max-content;
+    max-width: none;
+    margin: 0;
+    padding-left: 0;
+  }
+
+  .linea {
+    flex: 0 0 var(--tarjeta-w);
+  }
+
+  .lineas__hud {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 1.75rem;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+  }
+
+  .lineas__cuenta-grande {
+    flex-shrink: 0;
+    font-size: 0.875rem;
+    color: var(--tinta-2);
+    font-variant-numeric: tabular-nums;
+
+    span {
+      font-size: 1.5rem;
+      font-weight: 500;
+      color: var(--rojo);
+    }
+  }
+
+  .lineas__barra {
+    flex: 1;
+    height: 3px;
+    overflow: clip;
+    background: var(--line);
+    border-radius: 3px;
+  }
+
+  .lineas__barra-in {
+    height: 100%;
+    background: linear-gradient(90deg, var(--rojo), var(--azul));
+    transform: scaleX(0);
+    transform-origin: left center;
+  }
+}
+
 /* ---------- Responsive ---------- */
 
 @media (max-width: 1023.98px) {
