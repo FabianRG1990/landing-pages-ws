@@ -47,34 +47,16 @@ export class ProcesoComponent {
 
     afterNextRender(() => {
       if (!esNavegador) return;
-      const pista = this.pista().nativeElement;
-      const pasos = Array.from(pista.querySelectorAll<HTMLElement>('.paso'));
-
-      // Cada nodo se enciende cuando el camión lo alcanza. Se compara con
-      // la posición REAL del nodo sobre la línea (izquierda en escritorio,
-      // arriba en móvil), no con i/(n-1): los nodos van al inicio de cada
-      // columna y no están repartidos a partes iguales.
-      const pintar = (avance: number) => {
-        pista.style.setProperty('--avance', avance.toFixed(4));
-        const linea = pista.querySelector('.proceso__linea')?.getBoundingClientRect();
-        if (!linea) return;
-        const vertical = linea.height > linea.width;
-        const largo = vertical ? linea.height : linea.width;
-        for (const paso of pasos) {
-          const r = paso.getBoundingClientRect();
-          const pos = vertical ? r.top - linea.top : r.left - linea.left;
-          paso.classList.toggle('paso--alcanzado', avance * largo >= pos - 1);
-        }
-      };
 
       // Sin movimiento: el recorrido ya hecho, que es el estado que se lee.
       if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
-        pintar(1);
+        this.avanzar(1);
         return;
       }
 
       montarEscena(destroyRef, ({ escritorio }) => {
         const seccion = this.seccion().nativeElement;
+        const pista = this.pista().nativeElement;
         if (escritorio) seccion.classList.add('proceso--fijo');
         ScrollTrigger.create({
           ...(escritorio
@@ -86,11 +68,35 @@ export class ProcesoComponent {
               }
             : { trigger: pista, start: 'top 78%', end: 'bottom 55%' }),
           invalidateOnRefresh: true,
-          onUpdate: (s) => pintar(s.progress),
-          onRefresh: (s) => pintar(s.progress),
+          onUpdate: (s) => this.avanzar(s.progress),
+          onRefresh: (s) => this.avanzar(s.progress),
         });
         return () => seccion.classList.remove('proceso--fijo');
       });
     });
+  }
+
+  /**
+   * Pone el recorrido en `avance` (0 a 1): la línea, el camión y los
+   * nodos alcanzados. Público para que quien orqueste la sección desde
+   * fuera (un pin que la contiene) pueda llevar el camión.
+   *
+   * Cada nodo se enciende cuando el camión lo alcanza. Se compara con la
+   * posición REAL del nodo sobre la línea (izquierda en escritorio, arriba
+   * en móvil), no con i/(n-1): los nodos van al inicio de cada columna y
+   * no están repartidos a partes iguales.
+   */
+  avanzar(avance: number): void {
+    const pista = this.pista().nativeElement;
+    pista.style.setProperty('--avance', avance.toFixed(4));
+    const linea = pista.querySelector('.proceso__linea')?.getBoundingClientRect();
+    if (!linea) return;
+    const vertical = linea.height > linea.width;
+    const largo = vertical ? linea.height : linea.width;
+    for (const paso of Array.from(pista.querySelectorAll<HTMLElement>('.paso'))) {
+      const r = paso.getBoundingClientRect();
+      const pos = vertical ? r.top - linea.top : r.left - linea.left;
+      paso.classList.toggle('paso--alcanzado', avance * largo >= pos - 1);
+    }
   }
 }
