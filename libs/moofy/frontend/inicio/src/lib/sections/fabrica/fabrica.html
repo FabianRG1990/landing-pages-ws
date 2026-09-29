@@ -18,7 +18,7 @@
       <ol class="fabrica__pilares">
         @for (p of f.pilares; track p.titulo; let i = $index) {
           <li class="pilar" appRevelar [retraso]="i * 120">
-            <span class="pilar__num mono">0{{ i + 1 }}</span>
+            <span class="pilar__icono"><app-icono [nombre]="p.icono" /></span>
             <div>
               <h3 class="pilar__titulo">{{ p.titulo }}</h3>
               <p class="pilar__texto">{{ p.texto }}</p>
@@ -28,14 +28,18 @@
       </ol>
     </div>
 
-    <dl class="fabrica__cifras">
-      @for (c of f.cifras; track c.titulo; let i = $index) {
-        <div class="cifra" appRevelar [retraso]="i * 140">
-          <dt class="cifra__titulo">{{ c.titulo }}</dt>
-          <dd class="cifra__valor" [appContador]="c.valor">{{ c.valor }}</dd>
-          <dd class="cifra__detalle">{{ c.detalle }}</dd>
-        </div>
-      }
-    </dl>
+    <!-- Las cifras en un bloque a todo azul: el contraste alegre de la
+         página, con los números en blanco. -->
+    <div class="fabrica__bloque bloque-azul" appRevelar>
+      <dl class="fabrica__cifras">
+        @for (c of f.cifras; track c.titulo; let i = $index) {
+          <div class="cifra">
+            <dt class="cifra__titulo">{{ c.titulo }}</dt>
+            <dd class="cifra__valor" [appContador]="c.valor">{{ c.valor }}</dd>
+            <dd class="cifra__detalle">{{ c.detalle }}</dd>
+          </div>
+        }
+      </dl>
+    </div>
   </div>
 </section>

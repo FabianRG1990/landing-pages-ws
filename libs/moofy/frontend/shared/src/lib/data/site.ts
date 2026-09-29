@@ -86,14 +86,17 @@ export const FABRICA = {
   alt: 'Operarios con bata y redecilla revisan una línea de horneado en la planta.',
   pilares: [
     {
+      icono: 'espiga',
       titulo: 'Formulación propia',
       texto: 'Nuestras recetas y nuestro estándar, sin intermediarios.',
     },
     {
+      icono: 'gorro',
       titulo: 'Producción controlada',
       texto: 'De la masa al empaque sellado, bajo el mismo techo.',
     },
     {
+      icono: 'camion',
       titulo: 'Flota propia',
       texto: 'Despachamos con nuestros camiones a cualquier punto del país.',
     },
