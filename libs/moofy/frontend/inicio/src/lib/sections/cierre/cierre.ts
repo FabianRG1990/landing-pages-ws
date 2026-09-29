@@ -93,12 +93,27 @@ export class CierreComponent {
     const proceso = this.proceso();
     const camion = { v: 0 };
 
+    // El ritmo, en unidades de la timeline. La rendija se enciende
+    // mientras el camión termina de llegar y las puertas se abren en el
+    // mismo instante en que llega, con una curva que arranca fuerte
+    // (power2.out): con 0.4 unidades de rendija sola (≈320 px de scroll)
+    // y un arranque inOut, la espera se hacía larga.
+    const LLEGA = 1.5; // el camión termina la línea
+    const RENDIJA = 1.4; // la luz se enciende (0.12 de duración)
+    const ABRE = LLEGA; // las hojas empiezan a separarse
+    const APERTURA = 0.9;
+    const RESPIRO = 0.15;
+    const TOTAL = ABRE + APERTURA + RESPIRO;
+    // 0.88 pantallas de scroll por unidad: la misma velocidad del camión
+    // que tenía el pin de 2.6 pantallas.
+    const PANTALLAS_POR_UNIDAD = 0.88;
+
     const tl = gsap.timeline({
       defaults: { ease: 'none' },
       scrollTrigger: {
         trigger: host,
         start: 'top top',
-        end: () => '+=' + window.innerHeight * 2.6,
+        end: () => '+=' + window.innerHeight * PANTALLAS_POR_UNIDAD * TOTAL,
         pin: true,
         scrub: true,
         invalidateOnRefresh: true,
@@ -110,34 +125,34 @@ export class CierreComponent {
     });
 
     // 1. El camión recorre la línea
-    tl.to(camion, { v: 1, duration: 1.5, onUpdate: () => proceso.avanzar(camion.v) });
+    tl.to(camion, { v: 1, duration: LLEGA, onUpdate: () => proceso.avanzar(camion.v) });
 
     // 2. La rendija de luz se enciende de centro a bordes
     tl.fromTo(
       rendija,
       { scaleX: 0, autoAlpha: 0 },
-      { scaleX: 1, autoAlpha: 1, duration: 0.3, ease: 'power2.out' },
-      1.6,
+      { scaleX: 1, autoAlpha: 1, duration: 0.12, ease: 'power2.out' },
+      RENDIJA,
     );
 
     // 3. La franja se parte en dos hojas por la rendija y se abren
-    tl.set(franja, { clipPath: () => `inset(0px 0px ${alto() - corte()}px 0px)` }, 1.9)
-      .set(hoja, { autoAlpha: 1, clipPath: () => `inset(${corte()}px 0px 0px 0px)` }, 1.9)
-      .to(franja, { y: () => -corte(), duration: 0.9, ease: 'power2.inOut' }, 1.9)
-      .to(hoja, { y: () => alto() - corte(), duration: 0.9, ease: 'power2.inOut' }, 1.9)
-      .to(rendija, { scaleY: 14, autoAlpha: 0, duration: 0.45, ease: 'power1.out' }, 1.9)
+    tl.set(franja, { clipPath: () => `inset(0px 0px ${alto() - corte()}px 0px)` }, ABRE)
+      .set(hoja, { autoAlpha: 1, clipPath: () => `inset(${corte()}px 0px 0px 0px)` }, ABRE)
+      .to(franja, { y: () => -corte(), duration: APERTURA, ease: 'power2.out' }, ABRE)
+      .to(hoja, { y: () => alto() - corte(), duration: APERTURA, ease: 'power2.out' }, ABRE)
+      .to(rendija, { scaleY: 14, autoAlpha: 0, duration: 0.45, ease: 'power1.out' }, ABRE)
       .fromTo(
         panel,
         { scale: 0.9, autoAlpha: 0.4 },
-        { scale: 1, autoAlpha: 1, duration: 0.9, ease: 'power2.out' },
-        1.9,
+        { scale: 1, autoAlpha: 1, duration: APERTURA, ease: 'power2.out' },
+        ABRE,
       )
       // La hoja de abajo, ya fuera, se oculta: si no, quedaría sobre el
       // resto del contacto al seguir bajando. La de arriba NO: es la franja
       // real, y visibility: hidden la sacaría del árbol de accesibilidad;
       // basta con que salga por encima del bloque, que la recorta.
-      .set(hoja, { autoAlpha: 0 }, 2.8)
-      .to({}, { duration: 0.15 });
+      .set(hoja, { autoAlpha: 0 }, ABRE + APERTURA)
+      .to({}, { duration: RESPIRO });
 
     // Con Tab se puede entrar en el contacto con las puertas cerradas
     // (está debajo, tapado): se lleva la página a las puertas abiertas.
