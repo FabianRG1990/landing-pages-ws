@@ -107,24 +107,35 @@
   background: var(--azul-50);
   box-shadow: 0 0 0 6px var(--blanco), var(--shadow-lg);
 
+  /* Cortina diagonal al cambiar de canal: la foto nueva entra por la
+     izquierda con el borde inclinado y la anterior se queda debajo,
+     entera, hasta que la cubre; entonces se recoge sin transición.
+     Oculta = el polígono colapsado a la izquierda del marco (mismo
+     número de vértices que el visible, para que interpole). */
   img {
     position: absolute;
     inset: 0;
+    z-index: 1;
     width: 100%;
     height: 100%;
     object-fit: cover;
-    opacity: 0;
-    transform: scale(1.04);
+    clip-path: polygon(0 0, 0 0, -30% 100%, 0 100%);
+    transform: scale(1.06);
     transition:
-      opacity 0.7s var(--ease-out),
-      transform 1.4s var(--ease-fluid);
+      clip-path 0s linear 0.95s,
+      transform 0s linear 0.95s;
   }
 
   img.visible {
-    opacity: 1;
+    z-index: 2;
+    clip-path: polygon(0 0, 130% 0, 100% 100%, 0 100%);
     transform: none;
+    /* Curva simétrica: con --ease-fluid el 80 % del barrido ocurre en
+       los primeros 150 ms y la cortina no llega a verse. */
+    transition:
+      clip-path 0.85s cubic-bezier(0.65, 0, 0.35, 1),
+      transform 1.4s var(--ease-fluid);
   }
-
 }
 
 /* La tarjeta blanca de información flota sobre la foto, abajo. Se vuelve a
