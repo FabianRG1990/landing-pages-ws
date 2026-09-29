@@ -89,6 +89,14 @@
   --maxw: 1440px;
   --gutter: clamp(1.25rem, 0.6rem + 2.6vw, 4rem);
   --section-y: clamp(5.5rem, 3rem + 8vw, 9rem);
+
+  /* Escala de espacios: todo hueco interior sale de aquí */
+  --esp-1: 0.5rem; /*  8 */
+  --esp-2: 0.75rem; /* 12 */
+  --esp-3: 1rem; /* 16 */
+  --esp-4: 1.5rem; /* 24 */
+  --esp-5: 2rem; /* 32 */
+  --esp-6: 3rem; /* 48 */
   --nav-h: 72px;
   --measure: 60ch;
   --r-sm: 8px;
@@ -103,4 +111,14 @@
   --dur-fast: 200ms;
   --dur-base: 340ms;
   --dur-slow: 700ms;
+}
+
+/* ---------- Sistema móvil (< 900 px) ----------
+   Un solo margen (--gutter, 20 px a 390) al que se alinea todo, y
+   secciones separadas unos 80 px: con el espaciado de escritorio los
+   huecos entre secciones llegaban a 228 px y parecían zonas vacías. */
+@media (max-width: 899.98px) {
+  :root {
+    --section-y: 2.5rem;
+  }
 }
