@@ -39,6 +39,7 @@ export class SmoothScroll {
       smoothWheel: true,
     });
 
+    this.desviarAnclas();
     this.lenis.on('scroll', ScrollTrigger.update);
     this.tickerFn = (time: number) => this.lenis?.raf(time * 1000);
     gsap.ticker.add(this.tickerFn);
@@ -67,27 +68,56 @@ export class SmoothScroll {
   scrollTo(destino: string, inmediato = false): void {
     if (!this.esNavegador) return;
     const navH = this.alturaNav();
-    const el = this.inicioDe(destino);
-    if (!el) return;
+    const objetivo = this.destinoDe(destino);
+    if (objetivo === null) return;
     if (this.lenis) {
-      this.lenis.scrollTo(el, { duration: 1.4, immediate: inmediato });
+      this.lenis.scrollTo(objetivo, { duration: 1.4, immediate: inmediato });
       return;
     }
-    const y = el.getBoundingClientRect().top + window.scrollY - navH;
+    const y =
+      typeof objetivo === 'number' ? objetivo : objetivo.getBoundingClientRect().top + window.scrollY - navH;
     const suave = !inmediato && !matchMedia('(prefers-reduced-motion: reduce)').matches;
     window.scrollTo({ top: y, behavior: suave ? 'smooth' : 'instant' });
   }
 
   /**
-   * Una sección fijada con ScrollTrigger vive dentro de su `.pin-spacer`
-   * y, pasado el pin, se mide en su posición del FINAL del recorrido: ir
-   * a ella desde abajo aterrizaba con las líneas ya en 06. Se apunta al
-   * espaciador, que empieza donde empieza el pin.
+   * A dónde ir de verdad. Lo que vive dentro de un tramo fijado con
+   * ScrollTrigger (su `.pin-spacer`) se mide, pasado el pin, en su
+   * posición del FINAL del recorrido: ir a las líneas desde abajo
+   * aterrizaba con el carril ya en 06. Por defecto se va al espaciador,
+   * que empieza donde empieza el pin. Si el destino está marcado con
+   * `data-ancla-fin` (el contacto tras las puertas del cierre), se va al
+   * final del pin: ahí es donde esa sección está a la vista.
    */
-  private inicioDe(destino: string): HTMLElement | null {
+  private destinoDe(destino: string): HTMLElement | number | null {
     const el = document.querySelector<HTMLElement>(destino);
-    const padre = el?.parentElement;
-    return padre?.classList.contains('pin-spacer') ? padre : el;
+    if (!el) return null;
+    const espaciador = el.closest<HTMLElement>('.pin-spacer');
+    if (!espaciador) return el;
+    const fijado = espaciador.firstElementChild as HTMLElement | null;
+    if (el.closest('[data-ancla-fin]') && fijado) {
+      const inicio = espaciador.getBoundingClientRect().top + window.scrollY;
+      return inicio + espaciador.offsetHeight - fijado.offsetHeight;
+    }
+    return espaciador;
+  }
+
+  /**
+   * Los enlaces con ancla que no pasan por scrollTo (los del pie) saltan
+   * con el navegador, que no sabe de pins. Se desvían aquí solo los que
+   * apuntan dentro de un tramo fijado; el resto (p. ej. «Ir al
+   * contenido», que además mueve el foco) sigue siendo nativo.
+   */
+  private desviarAnclas(): void {
+    document.addEventListener('click', (e) => {
+      if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey) return;
+      const enlace = (e.target as Element | null)?.closest<HTMLAnchorElement>('a[href^="#"]');
+      const hash = enlace?.getAttribute('href');
+      if (!hash || hash === '#') return;
+      if (!document.querySelector(hash)?.closest('.pin-spacer')) return;
+      e.preventDefault();
+      this.scrollTo(hash);
+    });
   }
 
   /** Congela el scroll (menú móvil abierto). */

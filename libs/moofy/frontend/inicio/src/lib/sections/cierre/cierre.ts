@@ -72,6 +72,10 @@ export class CierreComponent {
 
     host.classList.add('cierre--puertas');
     const hoja = this.copiarFranja(franja);
+    // El contacto se ve al FINAL del pin: el menú y los enlaces a
+    // #contacto deben ir ahí (SmoothScroll lee esta marca).
+    const contacto = host.querySelector<HTMLElement>('section.contacto');
+    contacto?.setAttribute('data-ancla-fin', '');
 
     // La rendija va en el hueco entre el titular y la línea: así ninguna
     // hoja corta texto. Se mide dentro de la franja (los transforms de la
@@ -135,7 +139,18 @@ export class CierreComponent {
       .set(hoja, { autoAlpha: 0 }, 2.8)
       .to({}, { duration: 0.15 });
 
+    // Con Tab se puede entrar en el contacto con las puertas cerradas
+    // (está debajo, tapado): se lleva la página a las puertas abiertas.
+    const alEnfocar = (e: FocusEvent) => {
+      const st = tl.scrollTrigger;
+      if (!st || st.progress >= 1 || !contacto?.contains(e.target as Node)) return;
+      window.scrollTo({ top: st.end, behavior: 'instant' });
+    };
+    host.addEventListener('focusin', alEnfocar);
+
     return () => {
+      host.removeEventListener('focusin', alEnfocar);
+      contacto?.removeAttribute('data-ancla-fin');
       hoja.remove();
       host.classList.remove('cierre--puertas');
     };
