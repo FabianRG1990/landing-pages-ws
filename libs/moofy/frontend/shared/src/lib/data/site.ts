@@ -306,12 +306,6 @@ export const PROCESO = {
   ],
 } as const;
 
-export const PORTAFOLIO = {
-  lema: 'Repostería fina empacada. Hecha en nuestra planta de Grecia, Costa Rica.',
-  etiqueta: 'También en nuestro portafolio',
-  marcas: ['Pan José', 'Panrico'],
-} as const;
-
 export const CONTACTO = {
   num: '05',
   nombre: 'Hablemos',
