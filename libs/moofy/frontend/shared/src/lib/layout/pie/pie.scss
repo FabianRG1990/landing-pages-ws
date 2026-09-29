@@ -77,17 +77,12 @@ nav.pie__col {
   grid-area: pedidos;
 }
 
-.pie__placa {
-  display: inline-block;
-  padding: 0.625rem 0.875rem;
-  background: var(--blanco);
-  border-radius: var(--r-md);
-  box-shadow: 0 14px 30px -14px rgb(0 0 0 / 0.6);
-}
-
+/* Logo troquelado: el contorno blanco sigue la silueta y una sombra
+   corta lo levanta del azul, como una pegatina. Sin caja. */
 .pie__logo {
   display: block;
-  width: 104px;
+  width: 140px;
+  filter: drop-shadow(0 8px 12px rgb(0 0 0 / 0.32));
 }
 
 .pie__lema {
