@@ -45,8 +45,12 @@ export function montarEscena(
  * Las posiciones de los pins dependen del alto de los titulares, y ese
  * alto cambia cuando llega Instrument Sans: se recalcula una vez con la
  * fuente ya cargada. (La carga de imágenes ya la cubre ScrollTrigger con
- * su propio refresh en `load`.)
+ * su propio refresh en `load`.) `despues` corre con las posiciones ya
+ * buenas: es el momento de volver a un ancla de la URL.
  */
-export function refrescarConFuentes(): void {
-  document.fonts?.ready.then(() => ScrollTrigger.refresh());
+export function refrescarConFuentes(despues?: () => void): void {
+  document.fonts?.ready.then(() => {
+    ScrollTrigger.refresh();
+    despues?.();
+  });
 }

@@ -62,18 +62,19 @@ export class SmoothScroll {
    * Lenis (1.3) ya resta el `scroll-margin-top` del destino, que en
    * `section[id]` es la altura de la barra: restarla otra vez dejaba la
    * sección 144 px por debajo del borde en lugar de 72.
+   * `inmediato`: sin animación (al entrar por un enlace con ancla).
    */
-  scrollTo(destino: string): void {
+  scrollTo(destino: string, inmediato = false): void {
     if (!this.esNavegador) return;
     const navH = this.alturaNav();
     const el = this.inicioDe(destino);
     if (!el) return;
     if (this.lenis) {
-      this.lenis.scrollTo(el, { duration: 1.4 });
+      this.lenis.scrollTo(el, { duration: 1.4, immediate: inmediato });
       return;
     }
     const y = el.getBoundingClientRect().top + window.scrollY - navH;
-    const suave = !matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const suave = !inmediato && !matchMedia('(prefers-reduced-motion: reduce)').matches;
     window.scrollTo({ top: y, behavior: suave ? 'smooth' : 'instant' });
   }
 

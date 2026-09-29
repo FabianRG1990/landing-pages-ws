@@ -22,10 +22,17 @@ import { PieComponent } from '@moofy-ui-shared/layout/pie/pie';
 })
 export class HomeComponent {
   constructor() {
-    inject(SmoothScroll).init();
+    const smooth = inject(SmoothScroll);
+    smooth.init();
     const esNavegador = isPlatformBrowser(inject(PLATFORM_ID));
     afterNextRender(() => {
-      if (esNavegador) refrescarConFuentes();
+      if (!esNavegador) return;
+      // Con un ancla en la URL el navegador salta antes de que existan los
+      // pins, que después añaden su recorrido por encima: la sección
+      // acababa 2000 px más abajo. Se vuelve al ancla ya recalculado.
+      refrescarConFuentes(() => {
+        if (location.hash) smooth.scrollTo(location.hash, true);
+      });
     });
   }
 }
