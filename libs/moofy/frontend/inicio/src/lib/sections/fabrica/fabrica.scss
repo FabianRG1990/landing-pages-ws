@@ -94,6 +94,58 @@
   color: var(--tinta-2);
 }
 
+/* ---------- Escenario fijo (escritorio, lo activa fabrica.ts) ----------
+   El cuerpo pasa a ocupar la pantalla entera: la foto llena el escenario
+   (el recorte de tarjeta a sangre lo anima GSAP con clip-path) y los
+   pilares son tarjetas blancas encima, a la derecha. Sin la clase
+   (móvil, movimiento reducido, sin JS) todo sigue en la rejilla. */
+.fabrica--escena {
+  .fabrica__cuerpo {
+    position: relative;
+    display: block;
+    max-width: none;
+    height: 100svh;
+    padding: 0;
+    overflow: clip;
+  }
+
+  .fabrica__foto {
+    position: absolute;
+    inset: 0;
+    aspect-ratio: auto;
+    border-radius: 0;
+    box-shadow: none;
+    will-change: clip-path;
+  }
+
+  /* Los pilares se alinean al borde derecho del contenido, no al de la
+     pantalla: en monitores anchos siguen dentro de la rejilla. */
+  .fabrica__pilares {
+    position: absolute;
+    z-index: 1;
+    top: calc(var(--nav-h) + 1.5rem);
+    bottom: 1.5rem;
+    right: max(var(--gutter), calc((100% - var(--maxw)) / 2 + var(--gutter)));
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 1rem;
+    width: min(27rem, 36%);
+  }
+
+  .pilar {
+    padding: 1.375rem 1.5rem;
+    background: var(--blanco);
+    border: 0;
+    border-radius: var(--r-lg);
+    box-shadow: 0 30px 60px -24px rgb(2 20 50 / 0.45), 0 0 0 1px rgb(var(--tinta-rgb) / 0.04);
+
+    &:last-child {
+      border-bottom: 0;
+    }
+  }
+}
+
 /* ---------- Cifras en el bloque azul ---------- */
 
 .fabrica__bloque {

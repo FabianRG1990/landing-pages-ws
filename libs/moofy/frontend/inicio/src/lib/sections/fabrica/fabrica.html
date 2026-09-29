@@ -1,4 +1,4 @@
-<section id="fabrica" class="fabrica" aria-labelledby="fabrica-titulo">
+<section #seccion id="fabrica" class="fabrica" aria-labelledby="fabrica-titulo">
   <div class="shell">
     <header class="fabrica__cabeza">
       <div>
@@ -9,25 +9,30 @@
       </div>
       <p class="fabrica__entrada lead" appRevelar [retraso]="240">{{ f.entrada }}</p>
     </header>
+  </div>
 
-    <div class="fabrica__cuerpo">
-      <figure class="fabrica__foto" appParallax appRevelar>
-        <img [src]="f.imagen" [alt]="f.alt" width="1536" height="1024" loading="lazy" decoding="async" />
-      </figure>
+  <!-- El escenario. En escritorio se fija a pantalla completa: la foto se
+       abre de tarjeta a sangre y los pilares entran encima, uno a uno
+       (fabrica.ts). En móvil y sin movimiento es foto y lista. -->
+  <div #escenario class="fabrica__cuerpo shell">
+    <figure #foto class="fabrica__foto">
+      <img [src]="f.imagen" [alt]="f.alt" width="1536" height="1024" loading="lazy" decoding="async" />
+    </figure>
 
-      <ol class="fabrica__pilares">
-        @for (p of f.pilares; track p.titulo; let i = $index) {
-          <li class="pilar" appRevelar [retraso]="i * 120">
-            <span class="pilar__icono"><app-icono [nombre]="p.icono" /></span>
-            <div>
-              <h3 class="pilar__titulo">{{ p.titulo }}</h3>
-              <p class="pilar__texto">{{ p.texto }}</p>
-            </div>
-          </li>
-        }
-      </ol>
-    </div>
+    <ol class="fabrica__pilares">
+      @for (p of f.pilares; track p.titulo) {
+        <li class="pilar">
+          <span class="pilar__icono"><app-icono [nombre]="p.icono" /></span>
+          <div>
+            <h3 class="pilar__titulo">{{ p.titulo }}</h3>
+            <p class="pilar__texto">{{ p.texto }}</p>
+          </div>
+        </li>
+      }
+    </ol>
+  </div>
 
+  <div class="shell">
     <!-- Las cifras en un bloque a todo azul: el contraste alegre de la
          página, con los números en blanco. -->
     <div class="fabrica__bloque bloque-azul" appRevelar>
