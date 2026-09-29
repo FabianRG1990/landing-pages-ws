@@ -1,4 +1,6 @@
-<section id="proceso" class="proceso" aria-labelledby="proceso-titulo">
+<section #seccion id="proceso" class="proceso" aria-labelledby="proceso-titulo">
+  <div class="proceso__trama" aria-hidden="true"></div>
+
   <div class="shell">
     <header class="proceso__cabeza">
       <app-capitulo [num]="p.num" [nombre]="p.nombre" appRevelar />
@@ -8,10 +10,11 @@
     </header>
 
     <div #pista class="proceso__pista">
-      <!-- La línea se dibuja con el scroll: el recorrido de la reunión a
-           la entrega. Decorativa; el orden ya lo da la lista numerada. -->
-      <div #linea class="proceso__linea" aria-hidden="true">
-        <div #progreso class="proceso__progreso"></div>
+      <!-- La línea se dibuja con el scroll y el camión la recorre: de la
+           reunión a la entrega. Decorativa; el orden ya lo da la lista. -->
+      <div class="proceso__linea" aria-hidden="true">
+        <div class="proceso__progreso"></div>
+        <span class="proceso__camion"><app-icono nombre="camion" /></span>
       </div>
 
       <ol class="proceso__pasos">

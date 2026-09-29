@@ -9,21 +9,28 @@ import {
   viewChild,
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { PROCESO } from '@moofy-ui-shared/data/site';
 import { CapituloComponent } from '@moofy-ui-shared/tipografia/capitulo';
 import { RenglonesComponent } from '@moofy-ui-shared/tipografia/renglones';
 import { RevelarDirective } from '@moofy-ui-shared/motion/revelar.directive';
+import { IconoComponent } from '@moofy-ui-shared/marca/icono';
+import { montarEscena } from '@moofy-ui-shared/motion/escena';
 
 /**
- * Capítulo 04: cuatro pasos y una línea que los recorre al ritmo del
- * scroll. La línea crece con `scaleX` en escritorio y `scaleY` en móvil
- * (la dirección la decide el CSS con --eje); solo transform, en GPU.
+ * Capítulo 04: la franja azul de la página. Cuatro pasos, una línea que
+ * los recorre al ritmo del scroll y un camión que la sigue; cada paso se
+ * enciende cuando el camión llega a él.
+ *
+ * Todo cuelga de una sola variable, `--avance` (0 a 1) en la pista: la
+ * línea crece con scaleX/scaleY y el camión se traslada en unidades del
+ * contenedor (cqw/cqh), así que no se mide nada en cada fotograma salvo
+ * los nodos. Escritorio: la sección se fija mientras el camión viaja.
+ * Móvil: sin pin, la línea baja por la izquierda.
  */
 @Component({
   selector: 'app-proceso',
-  imports: [CapituloComponent, RenglonesComponent, RevelarDirective],
+  imports: [CapituloComponent, RenglonesComponent, RevelarDirective, IconoComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './proceso.html',
   styleUrl: './proceso.scss',
@@ -31,9 +38,8 @@ import { RevelarDirective } from '@moofy-ui-shared/motion/revelar.directive';
 export class ProcesoComponent {
   protected readonly p = PROCESO;
 
+  private readonly seccion = viewChild.required<ElementRef<HTMLElement>>('seccion');
   private readonly pista = viewChild.required<ElementRef<HTMLElement>>('pista');
-  private readonly linea = viewChild.required<ElementRef<HTMLElement>>('linea');
-  private readonly progreso = viewChild.required<ElementRef<HTMLElement>>('progreso');
 
   constructor() {
     const esNavegador = isPlatformBrowser(inject(PLATFORM_ID));
@@ -41,24 +47,17 @@ export class ProcesoComponent {
 
     afterNextRender(() => {
       if (!esNavegador) return;
-      const barra = this.progreso().nativeElement;
-      if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
-        barra.style.setProperty('--avance', '1');
-        this.pista().nativeElement.querySelectorAll('.paso').forEach((p) => p.classList.add('paso--alcanzado'));
-        return;
-      }
-
-      gsap.registerPlugin(ScrollTrigger);
       const pista = this.pista().nativeElement;
       const pasos = Array.from(pista.querySelectorAll<HTMLElement>('.paso'));
 
-      // Cada nodo se enciende cuando la punta de la línea lo alcanza. Se
-      // compara con la posición REAL del nodo sobre la línea (izquierda en
-      // escritorio, arriba en móvil), no con i/(n-1): los nodos van al
-      // inicio de cada columna y no están repartidos a partes iguales.
+      // Cada nodo se enciende cuando el camión lo alcanza. Se compara con
+      // la posición REAL del nodo sobre la línea (izquierda en escritorio,
+      // arriba en móvil), no con i/(n-1): los nodos van al inicio de cada
+      // columna y no están repartidos a partes iguales.
       const pintar = (avance: number) => {
-        barra.style.setProperty('--avance', avance.toFixed(4));
-        const linea = this.linea().nativeElement.getBoundingClientRect();
+        pista.style.setProperty('--avance', avance.toFixed(4));
+        const linea = pista.querySelector('.proceso__linea')?.getBoundingClientRect();
+        if (!linea) return;
         const vertical = linea.height > linea.width;
         const largo = vertical ? linea.height : linea.width;
         for (const paso of pasos) {
@@ -68,14 +67,30 @@ export class ProcesoComponent {
         }
       };
 
-      const st = ScrollTrigger.create({
-        trigger: pista,
-        start: 'top 78%',
-        end: 'bottom 55%',
-        onUpdate: (s) => pintar(s.progress),
-        onRefresh: (s) => pintar(s.progress),
+      // Sin movimiento: el recorrido ya hecho, que es el estado que se lee.
+      if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        pintar(1);
+        return;
+      }
+
+      montarEscena(destroyRef, ({ escritorio }) => {
+        const seccion = this.seccion().nativeElement;
+        if (escritorio) seccion.classList.add('proceso--fijo');
+        ScrollTrigger.create({
+          ...(escritorio
+            ? {
+                trigger: seccion,
+                start: 'top top',
+                end: () => '+=' + window.innerHeight * 1.5,
+                pin: true,
+              }
+            : { trigger: pista, start: 'top 78%', end: 'bottom 55%' }),
+          invalidateOnRefresh: true,
+          onUpdate: (s) => pintar(s.progress),
+          onRefresh: (s) => pintar(s.progress),
+        });
+        return () => seccion.classList.remove('proceso--fijo');
       });
-      destroyRef.onDestroy(() => st.kill());
     });
   }
 }
