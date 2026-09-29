@@ -27,7 +27,19 @@
       <div #forma class="hero__forma" aria-hidden="true"></div>
 
       <figure #foto class="hero__foto" appParallax [recorrido]="5">
-        <img [src]="hero.imagen" [alt]="hero.alt" width="1536" height="1024" fetchpriority="high" decoding="async" />
+        <picture>
+          <source media="(max-width: 899.98px)" [attr.srcset]="foto800(hero.imagen)" />
+          <img
+            [src]="hero.imagen"
+            [attr.srcset]="foto800(hero.imagen) + ' 800w, ' + hero.imagen + ' 1536w'"
+            sizes="(max-width: 1439px) 46vw, 670px"
+            [alt]="hero.alt"
+            width="1536"
+            height="1024"
+            fetchpriority="high"
+            decoding="async"
+          />
+        </picture>
       </figure>
 
       <!-- Pegatina: rojo, filete blanco y contorno azul, como las letras

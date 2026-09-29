@@ -21,7 +21,19 @@
           <li class="linea" appRevelar [retraso]="(i % 3) * 110">
             <article class="linea__tarjeta" appInclinar>
               <figure class="linea__foto">
-                <img [src]="item.imagen" [alt]="item.alt" width="1024" height="1536" loading="lazy" decoding="async" />
+                <picture>
+                  <source media="(max-width: 899.98px)" [attr.srcset]="foto800(item.imagen)" />
+                  <img
+                    [src]="item.imagen"
+                    [attr.srcset]="foto800(item.imagen) + ' 800w, ' + item.imagen + ' 1024w'"
+                    sizes="400px"
+                    [alt]="item.alt"
+                    width="1024"
+                    height="1536"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                </picture>
                 <div class="linea__marcas">
                   <span class="insignia"><span class="insignia__punto" aria-hidden="true"></span>Línea 0{{ i + 1 }}</span>
                   <span class="linea__cuenta mono">{{ item.productos.length }} {{ item.productos.length === 1 ? 'producto' : 'productos' }}</span>

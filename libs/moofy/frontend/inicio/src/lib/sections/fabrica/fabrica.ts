@@ -10,7 +10,7 @@ import {
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { gsap } from 'gsap';
-import { FABRICA } from '@moofy-ui-shared/data/site';
+import { FABRICA, foto800 } from '@moofy-ui-shared/data/site';
 import { CapituloComponent } from '@moofy-ui-shared/tipografia/capitulo';
 import { RenglonesComponent } from '@moofy-ui-shared/tipografia/renglones';
 import { RevelarDirective } from '@moofy-ui-shared/motion/revelar.directive';
@@ -39,6 +39,7 @@ import { montarEscena } from '@moofy-ui-shared/motion/escena';
 })
 export class FabricaComponent {
   protected readonly f = FABRICA;
+  protected readonly foto800 = foto800;
 
   private readonly seccion = viewChild.required<ElementRef<HTMLElement>>('seccion');
   private readonly escenario = viewChild.required<ElementRef<HTMLElement>>('escenario');

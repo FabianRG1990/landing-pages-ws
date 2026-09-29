@@ -22,6 +22,15 @@ export type Renglon = readonly Tramo[];
 
 const WA_NUMERO = '50688780709';
 
+/**
+ * La variante de 800 px de una foto (misma ruta con «-800»). El móvil la
+ * recibe siempre, con <picture>: con un srcset normal un teléfono 3x pedía
+ * la de 1536 y no ahorraba nada. En escritorio decide el srcset.
+ */
+export function foto800(src: string): string {
+  return src.replace(/\.webp$/, '-800.webp');
+}
+
 /** Enlace de WhatsApp con el mensaje ya redactado. */
 export function enlaceWhatsapp(mensaje: string): string {
   return `https://wa.me/${WA_NUMERO}?text=${encodeURIComponent(mensaje)}`;

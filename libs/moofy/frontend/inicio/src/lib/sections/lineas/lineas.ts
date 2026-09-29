@@ -11,7 +11,7 @@ import {
 import { isPlatformBrowser } from '@angular/common';
 import { gsap } from 'gsap';
 import type { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { LINEAS, enlaceWhatsapp, mensajeMuestras } from '@moofy-ui-shared/data/site';
+import { LINEAS, enlaceWhatsapp, mensajeMuestras, foto800 } from '@moofy-ui-shared/data/site';
 import { CapituloComponent } from '@moofy-ui-shared/tipografia/capitulo';
 import { RenglonesComponent } from '@moofy-ui-shared/tipografia/renglones';
 import { RevelarDirective } from '@moofy-ui-shared/motion/revelar.directive';
@@ -42,6 +42,7 @@ type Ref = ElementRef<HTMLElement>;
 })
 export class LineasComponent {
   protected readonly l = LINEAS;
+  protected readonly foto800 = foto800;
   protected readonly total = String(LINEAS.items.length).padStart(2, '0');
 
   private readonly seccion = viewChild.required<Ref>('seccion');

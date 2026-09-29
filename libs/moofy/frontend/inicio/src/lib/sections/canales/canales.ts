@@ -11,7 +11,7 @@ import {
   viewChildren,
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { CANALES, enlaceWhatsapp, mensajeCanal } from '@moofy-ui-shared/data/site';
+import { CANALES, enlaceWhatsapp, foto800, mensajeCanal } from '@moofy-ui-shared/data/site';
 import { IconoComponent } from '@moofy-ui-shared/marca/icono';
 import { CapituloComponent } from '@moofy-ui-shared/tipografia/capitulo';
 import { RenglonesComponent } from '@moofy-ui-shared/tipografia/renglones';
@@ -41,6 +41,7 @@ import { RevelarDirective } from '@moofy-ui-shared/motion/revelar.directive';
 })
 export class CanalesComponent {
   protected readonly c = CANALES;
+  protected readonly foto800 = foto800;
   protected readonly indice = signal(0);
   protected readonly activo = computed(() => this.c.items[this.indice()]);
   /** Un enlace por canal: cada tarjeta lleva el suyo. */

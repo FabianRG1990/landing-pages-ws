@@ -10,7 +10,7 @@ import {
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { gsap } from 'gsap';
-import { HERO, SITE, enlaceWhatsapp } from '@moofy-ui-shared/data/site';
+import { HERO, SITE, enlaceWhatsapp, foto800 } from '@moofy-ui-shared/data/site';
 import { RevelarDirective } from '@moofy-ui-shared/motion/revelar.directive';
 import { ParallaxDirective } from '@moofy-ui-shared/motion/parallax.directive';
 import { RenglonesComponent } from '@moofy-ui-shared/tipografia/renglones';
@@ -45,6 +45,7 @@ export class HeroComponent {
   private readonly smooth = inject(SmoothScroll);
 
   protected readonly hero = HERO;
+  protected readonly foto800 = foto800;
   protected readonly t = HERO.tarjeta;
   protected readonly whatsapp = enlaceWhatsapp(SITE.mensajeReunion);
 

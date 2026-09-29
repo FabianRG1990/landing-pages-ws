@@ -16,7 +16,10 @@
        (fabrica.ts). En móvil y sin movimiento es foto y lista. -->
   <div #escenario class="fabrica__cuerpo shell">
     <figure #foto class="fabrica__foto">
-      <img [src]="f.imagen" [alt]="f.alt" width="1536" height="1024" loading="lazy" decoding="async" />
+      <picture>
+        <source media="(max-width: 899.98px)" [attr.srcset]="foto800(f.imagen)" />
+        <img [src]="f.imagen" [alt]="f.alt" width="1536" height="1024" loading="lazy" decoding="async" />
+      </picture>
     </figure>
 
     <ol class="fabrica__pilares">

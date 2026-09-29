@@ -38,16 +38,21 @@
       >
         <div class="panel__foto">
           @for (img of imagenes; track img.src) {
-            <img
-              #capa
-              [src]="img.src"
-              alt=""
-              width="1536"
-              height="1024"
-              loading="lazy"
-              decoding="async"
-              [class.visible]="img.src === foto()"
-            />
+            <picture>
+              <source media="(max-width: 899.98px)" [attr.srcset]="foto800(img.src)" />
+              <img
+                #capa
+                [src]="img.src"
+                [attr.srcset]="foto800(img.src) + ' 800w, ' + img.src + ' 1536w'"
+                sizes="(max-width: 1439px) 53vw, 770px"
+                alt=""
+                width="1536"
+                height="1024"
+                loading="lazy"
+                decoding="async"
+                [class.visible]="img.src === foto()"
+              />
+            </picture>
           }
           <span class="solo-lectores">{{ activo().alt }}</span>
         </div>
