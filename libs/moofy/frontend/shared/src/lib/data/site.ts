@@ -51,7 +51,7 @@ export const NAV = [
 ] as const;
 
 export const HERO = {
-  eyebrow: 'Fábrica de repostería · Grecia, Costa Rica',
+  eyebrow: 'Fábrica de repostería · Costa Rica',
   titulo: [
     [{ t: 'Hecho en ' }, { t: 'nuestra', em: true }, { t: ' planta.' }],
     [{ t: 'Servido en ' }, { t: 'su', em: true }, { t: ' mesa.' }],
@@ -61,12 +61,19 @@ export const HERO = {
   ctaPrimario: 'Agendar reunión comercial',
   ctaSecundario: 'Ver líneas',
   imagen: 'img/hero-hojaldre.webp',
-  imagenMovil: 'img/hero-hojaldre-movil.webp',
   alt: 'Hojaldres dorados recién horneados sobre la bandeja de una línea de producción.',
-  meta: [
-    { k: 'Planta propia', v: 'Grecia, Alajuela' },
-    { k: 'Cobertura', v: 'Todo Costa Rica' },
-  ],
+  pegatina: ['Hecho en', 'Costa Rica'],
+  // La tarjeta de datos del hero: solo hechos publicados.
+  tarjeta: {
+    etiqueta: 'Planta propia · Grecia',
+    cifra: '06',
+    cifraTexto: 'Líneas en producción',
+    datos: [
+      { k: 'Canales', v: '9' },
+      { k: 'Provincias', v: '7' },
+      { k: 'Flota', v: 'Propia' },
+    ],
+  },
 } as const;
 
 export const FABRICA = {

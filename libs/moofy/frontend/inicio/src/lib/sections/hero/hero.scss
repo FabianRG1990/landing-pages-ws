@@ -2,187 +2,214 @@
   display: block;
 }
 
-/* svh: la altura con las barras del navegador visibles. Con dvh el hero
-   cambia de alto al hacer scroll en móvil y todo lo de abajo salta. */
 .hero {
   position: relative;
-  display: grid;
-  grid-template-rows: 1fr auto;
-  min-height: max(100svh, 640px);
   overflow: clip;
-  isolation: isolate;
 }
-
-/* ---------- Capas de imagen ---------- */
-
-.hero__foto {
-  position: absolute;
-  inset: 0;
-  z-index: -4;
-  transform: scale(1.08);
-  transform-origin: 60% 40%;
-  will-change: transform;
-
-  picture,
-  img {
-    width: 100%;
-    height: 100%;
-  }
-
-  img {
-    object-fit: cover;
-    /* El producto vive en el tercio derecho de la foto: al recortar en
-       pantallas estrechas se conserva ese lado, no el vacío. */
-    object-position: 68% 50%;
-  }
-}
-
-/* El velo hace legible el titular sin «caja» detrás: oscurece desde la
-   izquierda (donde está el texto) y desde abajo, y termina EXACTAMENTE
-   en el color del fondo para que no haya costura con la sección de
-   debajo. */
-.hero__velo {
-  position: absolute;
-  inset: 0;
-  z-index: -3;
-  background:
-    linear-gradient(
-      to top,
-      rgb(var(--horno-rgb)) 0%,
-      rgb(var(--horno-rgb) / 0.82) 16%,
-      rgb(var(--horno-rgb) / 0.3) 42%,
-      rgb(var(--horno-rgb) / 0) 64%
-    ),
-    linear-gradient(
-      to right,
-      rgb(var(--horno-rgb) / 0.88) 0%,
-      rgb(var(--horno-rgb) / 0.55) 34%,
-      rgb(var(--horno-rgb) / 0) 66%
-    ),
-    linear-gradient(to bottom, rgb(var(--horno-rgb) / 0.55) 0%, rgb(var(--horno-rgb) / 0) 22%);
-}
-
-/* La penumbra que cierra el plano al hacer scroll (la mueve GSAP) */
-.hero__sombra {
-  position: absolute;
-  inset: 0;
-  z-index: -2;
-  background: var(--horno);
-  opacity: 0;
-  pointer-events: none;
-}
-
-/* Grano horneado en una imagen fija: sin filtros ni mezclas que WebKit
-   tenga que recalcular en cada fotograma. */
-.hero__grano {
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  background: url('/img/grano.png') repeat;
-  background-size: 192px;
-  opacity: 0.5;
-  pointer-events: none;
-}
-
-/* ---------- Contenido ---------- */
 
 .hero__shell {
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  padding-top: calc(var(--nav-h) + 3rem);
-  padding-bottom: clamp(2.5rem, 2rem + 3vw, 4.5rem);
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: var(--gutter);
+  row-gap: 3.5rem;
+  align-items: center;
+  min-height: min(100svh, 980px);
+  padding-top: calc(var(--nav-h) + clamp(1.5rem, 1rem + 2vw, 3rem));
+  padding-bottom: clamp(2.5rem, 2rem + 2vw, 4rem);
+}
+
+/* ---------- Texto ---------- */
+
+.hero__texto {
+  grid-column: 1 / span 6;
 }
 
 .hero__eyebrow {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 0.625rem;
   margin-bottom: clamp(1.25rem, 1rem + 1vw, 1.75rem);
 }
 
-.hero__punto {
-  flex-shrink: 0;
-  align-self: flex-start;
-  margin-top: 0.4em;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--rojo-luz);
-  box-shadow: 0 0 0 4px rgb(var(--rojo-rgb) / 0.18);
-}
-
 .hero__titulo {
-  max-width: 14ch;
+  max-width: 11ch;
 }
 
 .hero__entrada {
-  max-width: 44ch;
+  max-width: 42ch;
   margin-top: clamp(1.25rem, 1rem + 1vw, 2rem);
 }
 
 .hero__acciones {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.75rem;
+  gap: 1rem;
   margin-top: clamp(1.75rem, 1.4rem + 1.4vw, 2.5rem);
 }
 
-/* ---------- Franja de datos ---------- */
+/* ---------- Escena: forma azul, foto, pegatina y tarjeta ---------- */
 
-.hero__meta {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  padding-bottom: clamp(1.5rem, 1rem + 2vw, 2.5rem);
+.hero__escena {
+  grid-column: 7 / -1;
+  position: relative;
+  padding: 1.5rem 0 2.5rem 2.5rem;
 }
 
-.hero__celda {
+/* La forma azul: un óvalo del azul del logo, ligeramente girado, que
+   asoma por detrás de la foto arriba a la derecha. */
+.hero__forma {
+  position: absolute;
+  inset: 0 -12% 18% 18%;
+  z-index: 0;
+  background:
+    radial-gradient(60% 60% at 70% 20%, rgb(255 255 255 / 0.22), transparent 60%),
+    linear-gradient(140deg, var(--azul-vivo), var(--azul) 55%, var(--azul-hondo));
+  border-radius: 46% 54% 42% 58% / 52% 44% 56% 48%;
+  transform: rotate(-6deg);
+}
+
+.hero__foto {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  aspect-ratio: 1;
+  overflow: clip;
+  border-radius: var(--r-xl);
+  background: var(--azul-50);
+  /* El marco blanco grueso es el filete del logo alrededor de la foto */
+  box-shadow: 0 0 0 6px var(--blanco), var(--shadow-lg);
+
+  img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 60% 50%;
+    will-change: transform;
+  }
+}
+
+/* Pegatina roja: rojo con filete blanco y contorno azul, girada como si
+   estuviera pegada a mano. */
+.hero__pegatina {
+  position: absolute;
+  top: 0.5rem;
+  right: -0.75rem;
+  z-index: 3;
   display: grid;
-  gap: 0.375rem;
-  padding: 1.125rem 1.25rem 0 0;
+  place-content: center;
+  width: clamp(6.5rem, 5rem + 4vw, 8.25rem);
+  aspect-ratio: 1;
+  text-align: center;
+  line-height: 1.05;
+  color: var(--blanco);
+  background: radial-gradient(circle at 35% 30%, var(--rojo-vivo), var(--rojo) 55%, var(--rojo-hondo));
+  border-radius: 50%;
+  box-shadow: 0 0 0 4px var(--blanco), 0 0 0 8px var(--azul), var(--shadow-rojo);
+  transform: rotate(10deg);
+
+  span {
+    font-size: 0.8125rem;
+    font-weight: var(--w-emph);
+  }
+
+  strong {
+    font-size: clamp(1rem, 0.85rem + 0.5vw, 1.25rem);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+}
+
+/* Tarjeta de datos, montada sobre la esquina inferior izquierda */
+.hero__tarjeta {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  z-index: 2;
+  width: min(19rem, 70%);
+  padding: 1.25rem 1.375rem;
+}
+
+.hero__tarjeta-cabeza {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.hero__cifra {
+  margin-top: 0.75rem;
+  font-size: clamp(2.75rem, 2.2rem + 2vw, 3.75rem);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.045em;
+  color: var(--azul);
+  font-variant-numeric: tabular-nums;
+}
+
+.hero__cifra-texto {
+  margin-top: 0.25rem;
+  font-weight: var(--w-announce);
+}
+
+.hero__tarjeta-datos {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-top: 1rem;
+  padding-top: 0.875rem;
   border-top: 1px solid var(--line);
 
-  & + & {
-    padding-left: 1.25rem;
-    border-left: 1px solid var(--line-soft);
+  > div {
+    display: grid;
+    gap: 0.2rem;
+  }
+
+  dt {
+    font-size: 0.625rem;
   }
 
   dd {
-    font-size: var(--fs-small);
-    font-weight: var(--w-emph);
+    font-weight: 700;
+    color: var(--rojo);
   }
 }
 
-@media (max-width: 767.98px) {
-  .hero__foto img {
-    object-position: 50% 42%;
+/* ---------- Responsive ---------- */
+
+@media (max-width: 1023.98px) {
+  .hero__shell {
+    min-height: 0;
   }
 
-  /* En vertical el producto ocupa el centro alto de la foto: el velo
-     sube desde abajo, que es donde va el texto, y no desde un lado. */
-  .hero__velo {
-    background:
-      linear-gradient(
-        to top,
-        rgb(var(--horno-rgb)) 0%,
-        rgb(var(--horno-rgb) / 0.9) 34%,
-        rgb(var(--horno-rgb) / 0.35) 58%,
-        rgb(var(--horno-rgb) / 0) 76%
-      ),
-      linear-gradient(to bottom, rgb(var(--horno-rgb) / 0.6) 0%, rgb(var(--horno-rgb) / 0) 20%);
+  .hero__texto,
+  .hero__escena {
+    grid-column: 1 / -1;
+  }
+
+  .hero__titulo {
+    max-width: 13ch;
+  }
+
+  .hero__escena {
+    max-width: 38rem;
+    width: 100%;
+    justify-self: center;
+  }
+}
+
+@media (max-width: 599.98px) {
+  .hero__escena {
+    padding: 1.5rem 0 4rem 1rem;
+  }
+
+  .hero__foto {
+    aspect-ratio: 4 / 4.4;
+  }
+
+  .hero__pegatina {
+    right: -0.25rem;
   }
 
   .hero__acciones .btn {
     flex: 1 1 100%;
-  }
-
-  .hero__meta {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .hero__celda + .hero__celda:last-child {
-    grid-column: 1 / -1;
-    padding-left: 0;
-    border-left: 0;
   }
 }
