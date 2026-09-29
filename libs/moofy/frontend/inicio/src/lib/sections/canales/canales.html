@@ -52,7 +52,7 @@
         </div>
 
         @for (a of [activo()]; track a.id) {
-          <div class="panel__texto">
+          <div class="panel__info carta">
             <p class="panel__frase">{{ a.frase }}</p>
             <dl class="panel__datos">
               @for (d of a.datos; track d.k) {
@@ -62,6 +62,10 @@
                 </div>
               }
             </dl>
+            <a class="btn btn--rojo panel__cta" [href]="whatsapp()" target="_blank" rel="noopener">
+              <app-icono nombre="whatsapp" />
+              Escribir como {{ a.nombre.toLowerCase() }}
+            </a>
           </div>
         }
       </div>

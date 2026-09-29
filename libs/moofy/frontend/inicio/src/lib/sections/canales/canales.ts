@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, ElementRef, computed, signal, viewChildren } from '@angular/core';
-import { CANALES } from '@moofy-ui-shared/data/site';
+import { CANALES, enlaceWhatsapp, mensajeCanal } from '@moofy-ui-shared/data/site';
+import { IconoComponent } from '@moofy-ui-shared/marca/icono';
 import { CapituloComponent } from '@moofy-ui-shared/tipografia/capitulo';
 import { RenglonesComponent } from '@moofy-ui-shared/tipografia/renglones';
 import { RevelarDirective } from '@moofy-ui-shared/motion/revelar.directive';
@@ -15,7 +16,7 @@ import { RevelarDirective } from '@moofy-ui-shared/motion/revelar.directive';
  */
 @Component({
   selector: 'app-canales',
-  imports: [CapituloComponent, RenglonesComponent, RevelarDirective],
+  imports: [CapituloComponent, RenglonesComponent, RevelarDirective, IconoComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './canales.html',
   styleUrl: './canales.scss',
@@ -24,6 +25,7 @@ export class CanalesComponent {
   protected readonly c = CANALES;
   protected readonly indice = signal(0);
   protected readonly activo = computed(() => this.c.items[this.indice()]);
+  protected readonly whatsapp = computed(() => enlaceWhatsapp(mensajeCanal(this.activo().nombre)));
 
   /** Varias pestañas comparten foto: se pinta cada archivo una sola vez. */
   protected readonly imagenes = [...new Set(this.c.items.map((i) => i.imagen))].map((src) => ({ src }));
