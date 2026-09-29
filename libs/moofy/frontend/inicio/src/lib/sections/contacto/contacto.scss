@@ -153,6 +153,10 @@
 
 /* ---------- Responsive ---------- */
 
+.solo-movil {
+  display: none;
+}
+
 @media (max-width: 899.98px) {
   .contacto__cabeza,
   .tarjeta {
@@ -164,8 +168,41 @@
   }
 }
 
-@media (max-width: 479.98px) {
+/* Móvil: una sola tarjeta, alineada al margen. El panel de color era
+   una caja con otra caja dentro (tres bordes izquierdos: 20, 40 y 60
+   px); aquí deja de ser caja. Y sin los chips de canal: el canal ya se
+   elige en Canales, y el botón abre un mensaje general. */
+@media (max-width: 899.98px) {
+  .contacto__panel {
+    row-gap: var(--esp-5);
+    padding: 0;
+    background: none;
+    border: 0;
+    border-radius: 0;
+  }
+
+  .contacto__cabeza .lead {
+    margin-top: var(--esp-4);
+  }
+
+  .tarjeta {
+    gap: var(--esp-2);
+    padding: var(--esp-4);
+  }
+
+  .tarjeta__canales,
+  .solo-escritorio {
+    display: none;
+  }
+
+  .solo-movil {
+    display: inline;
+  }
+
   .tarjeta__datos {
     grid-template-columns: 1fr;
+    gap: var(--esp-4);
+    margin-top: var(--esp-4);
+    padding-top: var(--esp-4);
   }
 }

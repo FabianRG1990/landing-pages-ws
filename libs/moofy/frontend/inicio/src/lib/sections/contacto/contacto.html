@@ -7,7 +7,10 @@
       <h2 id="contacto-titulo" class="titular" appRevelar [retraso]="80">
         <app-renglones [renglones]="k.titulo" />
       </h2>
-      <p class="lead" appRevelar [retraso]="220">{{ k.entrada }}</p>
+      <p class="lead" appRevelar [retraso]="220">
+        <span class="solo-escritorio">{{ k.entrada }}</span>
+        <span class="solo-movil">{{ k.entradaMovil }}</span>
+      </p>
     </header>
 
     <div class="tarjeta carta" appRevelar [retraso]="160">

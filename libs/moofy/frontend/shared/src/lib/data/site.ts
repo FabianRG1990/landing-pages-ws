@@ -319,6 +319,8 @@ export const CONTACTO = {
   nombre: 'Hablemos',
   titulo: [[{ t: 'Hablemos de su ' }, { t: 'operación.', em: true }]] as readonly Renglon[],
   entrada: 'Elija su canal y abra la conversación directamente con el equipo comercial.',
+  /* En móvil no hay chips de canal: no puede pedir que se elija uno */
+  entradaMovil: 'Abra la conversación directamente con el equipo comercial.',
   pregunta: '¿Desde qué canal nos escribe?',
   cta: 'Escribir por WhatsApp',
   visita: 'Solicitar visita a planta',
