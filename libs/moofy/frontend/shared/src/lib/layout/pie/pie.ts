@@ -4,9 +4,9 @@ import { LogoComponent } from '../../marca/logo';
 import { IconoComponent } from '../../marca/icono';
 
 /**
- * Pie compacto en tres franjas: la marca con el cierre por WhatsApp; las
- * secciones, el contacto directo y las redes; y lo legal con la firma
- * del estudio (Claudio Andrade Solutions), como en bollería.
+ * Pie en azul profundo, con el esquema del de bollería: cuatro columnas
+ * con título (marca, navegación, contacto y pedidos por WhatsApp) y lo
+ * legal con la firma del estudio (Claudio Andrade Solutions).
  */
 @Component({
   selector: 'app-pie',

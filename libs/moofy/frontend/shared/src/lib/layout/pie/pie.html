@@ -1,40 +1,40 @@
 <footer class="pie">
-  <div class="pie__shell shell">
-    <!-- 1. Marca y cierre de conversión -->
-    <div class="pie__cabeza">
-      <div class="pie__marca">
-        <app-logo class="pie__logo" alt="Moofy" [diferido]="true" />
-        <p class="pie__lema">Repostería fina empacada, hecha en planta propia.</p>
-      </div>
-      <a class="btn btn--rojo pie__cta" [href]="whatsapp" target="_blank" rel="noopener">
-        <app-icono nombre="whatsapp" />
-        Escribir por WhatsApp
-      </a>
+  <div class="pie__rejilla shell">
+    <!-- 1. La marca: el logo sobre su placa blanca (su contorno azul se
+         perdería en el azul del pie) y el lema -->
+    <div class="pie__col pie__marca">
+      <span class="pie__placa"><app-logo class="pie__logo" alt="Moofy" [diferido]="true" /></span>
+      <p class="pie__lema">Repostería fina empacada, hecha en planta propia.</p>
     </div>
 
-    <!-- 2. Secciones, contacto directo y redes, en una sola franja -->
-    <div class="pie__cuerpo">
-      <nav class="pie__nav" aria-label="Secciones del sitio">
-        <ul>
-          @for (item of nav; track item.ancla) {
-            <li><a [href]="item.ancla">{{ item.etiqueta }}</a></li>
-          }
-          <li><a href="#contacto">Contacto</a></li>
-        </ul>
-      </nav>
-
-      <ul class="pie__contacto" aria-label="Contacto directo">
-        <li>
-          <a [href]="site.telefonoHref"><app-icono nombre="telefono" />{{ site.telefono }}</a>
-        </li>
-        <li>
-          <a [href]="'mailto:' + site.correo"><app-icono nombre="correo" />{{ site.correo }}</a>
-        </li>
-        <li>
-          <span><app-icono nombre="ubicacion" />{{ site.planta }}</span>
-        </li>
+    <nav class="pie__col" aria-labelledby="pie-nav">
+      <p class="pie__titulo" id="pie-nav">Navegación</p>
+      <ul class="pie__lista">
+        @for (item of nav; track item.ancla) {
+          <li><a [href]="item.ancla">{{ item.etiqueta }}</a></li>
+        }
+        <li><a href="#contacto">Contacto</a></li>
       </ul>
+    </nav>
 
+    <div class="pie__col">
+      <p class="pie__titulo" id="pie-contacto">Contacto</p>
+      <ul class="pie__lista pie__datos" aria-labelledby="pie-contacto">
+        <li><a [href]="site.telefonoHref">{{ site.telefono }}</a></li>
+        <li><a [href]="'mailto:' + site.correo">{{ site.correo }}</a></li>
+        <li>{{ site.planta }}</li>
+      </ul>
+    </div>
+
+    <!-- 4. El cierre de conversión: el botón de la casa, con el glifo
+         oficial de WhatsApp, y las redes -->
+    <div class="pie__col pie__pedidos">
+      <p class="pie__titulo">Pedidos</p>
+      <a class="btn btn--rojo pie__cta" [href]="whatsapp" target="_blank" rel="noopener">
+        <app-icono nombre="whatsapp" />
+        <span class="pie__cta-sep" aria-hidden="true"></span>
+        Escribir por WhatsApp
+      </a>
       <ul class="pie__redes" aria-label="Redes sociales">
         <li>
           <a [href]="site.facebook" target="_blank" rel="noopener" aria-label="Moofy en Facebook">
@@ -50,20 +50,20 @@
     </div>
   </div>
 
-  <!-- 3. Lo legal y la firma del estudio -->
-  <div class="pie__base">
-    <div class="pie__base-in shell">
-      <p class="pie__legal">{{ pie.legal }} <span aria-hidden="true">·</span> {{ pie.nota }}</p>
-      <!-- Firma del estudio, a la derecha y en voz baja: la marca del cliente
-           manda a la izquierda (la misma convención que en bollería). -->
-      <a class="pie__firma" href="https://claudioandrade.solutions/" target="_blank" rel="noopener">
-        <span>Diseño y desarrollo por</span>
-        <!-- Emblema y nombre juntos: al envolver en móvil bajan a la vez -->
-        <span class="pie__firma-marca">
+  <!-- Lo legal y la firma del estudio, dentro del mismo azul -->
+  <div class="pie__base shell">
+    <p>{{ pie.legal }} <span aria-hidden="true">·</span> {{ pie.nota }}</p>
+    <!-- Firma del estudio, a la derecha y en voz baja: la marca del cliente
+         manda a la izquierda (la misma convención que en bollería). -->
+    <a class="pie__firma" href="https://claudioandrade.solutions/" target="_blank" rel="noopener">
+      <span>Diseño y desarrollo por</span>
+      <!-- Emblema y nombre juntos: al envolver en móvil bajan a la vez -->
+      <span class="pie__firma-marca">
+        <span class="pie__firma-disco">
           <img src="img/marca/cas-mark.webp" alt="" width="22" height="22" loading="lazy" decoding="async" />
-          <span class="pie__firma-nombre">Claudio Andrade Solutions</span>
         </span>
-      </a>
-    </div>
+        <span class="pie__firma-nombre">Claudio Andrade Solutions</span>
+      </span>
+    </a>
   </div>
 </footer>
