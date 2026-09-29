@@ -79,3 +79,11 @@
     box-shadow: 0 0 0 2px var(--blanco);
   }
 }
+
+/* Móvil: las bandas giradas ocupan unos 90 px; con 160 de bloque
+   quedaba aire muerto arriba y abajo, entre dos secciones. */
+@media (max-width: 899.98px) {
+  .cinta {
+    height: 7.5rem;
+  }
+}
