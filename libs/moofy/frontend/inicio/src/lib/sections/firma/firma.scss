@@ -1,0 +1,81 @@
+:host {
+  display: block;
+}
+
+.firma {
+  padding-block: clamp(2rem, 1rem + 3vw, 4rem);
+}
+
+/* El gran bloque azul de la página, con el logo en grande. Es un panel
+   con radio dentro del ancho de la página, no una franja a sangre: así
+   es un objeto sobre el blanco y no una costura entre secciones.
+   El color, el degradado y el radio los pone .bloque-azul. */
+.firma__panel {
+  display: grid;
+  justify-items: center;
+  gap: clamp(1.5rem, 1rem + 1.5vw, 2.5rem);
+  padding: clamp(4rem, 3rem + 6vw, 8rem) var(--gutter);
+  text-align: center;
+}
+
+/* La trama de la casa, en blanco sobre el azul */
+.firma__trama {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  background: url('/img/trama.svg') center / 300px repeat;
+  opacity: 0.16;
+  filter: brightness(0) invert(1);
+  mask-image: radial-gradient(70% 70% at 50% 50%, transparent 32%, #000 85%);
+}
+
+/* Luz blanca tras el logo: el azul se aclara donde está la marca */
+.firma__luz {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: radial-gradient(40% 44% at 50% 42%, rgb(255 255 255 / 0.3), transparent 72%);
+}
+
+.firma__logo {
+  width: min(78%, 620px);
+  will-change: transform;
+
+  app-logo {
+    width: 100%;
+    /* Un filete blanco alrededor del contorno azul: sobre el bloque azul
+       el contorno del logo se funde con el fondo; así se despega. */
+    filter: drop-shadow(0 0 2px #fff) drop-shadow(0 0 1px #fff)
+      drop-shadow(0 24px 30px rgb(2 20 50 / 0.35));
+  }
+}
+
+.firma__lema {
+  max-width: 34ch;
+  font-size: var(--fs-lead);
+  font-weight: var(--w-emph);
+  color: rgb(255 255 255 / 0.92);
+}
+
+.firma__portafolio {
+  display: grid;
+  justify-items: center;
+  gap: 0.75rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgb(255 255 255 / 0.25);
+
+  ul {
+    display: flex;
+    gap: 1.5rem;
+  }
+
+  li {
+    font-weight: var(--w-announce);
+    color: var(--blanco);
+
+    & + li {
+      padding-left: 1.5rem;
+      border-left: 1px solid rgb(255 255 255 / 0.3);
+    }
+  }
+}
