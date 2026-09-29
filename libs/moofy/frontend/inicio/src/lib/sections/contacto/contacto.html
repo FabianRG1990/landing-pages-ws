@@ -16,8 +16,8 @@
       <fieldset class="tarjeta__canales">
         <legend class="mono mono--ink">{{ k.pregunta }}</legend>
         <div class="chips">
-          @for (c of canales; track c.id) {
-            <label class="chip">
+          @for (c of canales; track c.id; let i = $index) {
+            <label class="chip" [style.--i]="i">
               <input type="radio" name="canal" [value]="c.nombre" (change)="canal.set(c.nombre)" />
               <span>{{ c.nombre }}</span>
             </label>

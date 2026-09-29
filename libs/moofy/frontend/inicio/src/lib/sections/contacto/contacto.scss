@@ -109,6 +109,22 @@
   }
 }
 
+/* Los chips entran uno tras otro cuando la tarjeta ya está en su sitio:
+   la pregunta se lee primero y las respuestas llegan detrás. */
+:host-context(.con-movimiento) .tarjeta[appRevelar] .chip {
+  opacity: 0;
+  transform: translateY(12px) scale(0.94);
+  transition:
+    opacity 0.5s var(--ease-out),
+    transform 0.7s var(--ease-fluid);
+  transition-delay: calc(var(--retraso, 0ms) + 350ms + var(--i) * 55ms);
+}
+
+:host-context(.con-movimiento) .tarjeta.revelado .chip {
+  opacity: 1;
+  transform: none;
+}
+
 .tarjeta__cta,
 .tarjeta__visita {
   width: 100%;
