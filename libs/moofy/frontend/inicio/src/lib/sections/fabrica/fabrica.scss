@@ -213,7 +213,18 @@
 
 /* ---------- Responsive ---------- */
 
+/* ---------- Móvil: un solo borde, cifras en una fila ----------
+   Antes el texto de cada pilar arrancaba a 88 px (detrás del círculo
+   del icono), la foto llevaba el filete blanco por fuera del margen y
+   las dos cifras apiladas ocupaban media pantalla. Ahora todo arranca
+   en el margen: el icono va encima de su título y las cifras forman
+   una franja azul baja, lado a lado. */
 @media (max-width: 899.98px) {
+  .fabrica__cabeza {
+    row-gap: var(--esp-4);
+    margin-bottom: var(--esp-5);
+  }
+
   .fabrica__cabeza > div,
   .fabrica__entrada,
   .fabrica__foto,
@@ -221,22 +232,46 @@
     grid-column: 1 / -1;
   }
 
+  .fabrica__cuerpo {
+    row-gap: var(--esp-4);
+  }
+
   .fabrica__foto {
     aspect-ratio: 4 / 3;
+    border-radius: var(--r-lg);
+    box-shadow: var(--shadow-lg);
   }
-}
 
-@media (max-width: 599.98px) {
-  .fabrica__cifras {
-    grid-auto-flow: row;
+  .pilar {
+    grid-template-columns: 1fr;
+    gap: var(--esp-2);
+    padding-block: var(--esp-4);
+  }
+
+  .pilar__icono {
+    width: 2.5rem;
+    height: 2.5rem;
+    font-size: 1.125rem;
+  }
+
+  .pilar__texto {
+    margin-top: var(--esp-1);
+  }
+
+  .fabrica__bloque {
+    margin-top: var(--esp-6);
+    padding: var(--esp-5) var(--esp-4);
   }
 
   .cifra {
-    padding: 1.25rem 0;
+    padding-inline: var(--esp-4);
+  }
 
-    & + & {
-      border-left: 0;
-      border-top: 1px solid rgb(255 255 255 / 0.22);
-    }
+  .cifra__valor {
+    font-size: 3rem;
+  }
+
+  .cifra__titulo {
+    margin-top: var(--esp-2);
   }
 }
