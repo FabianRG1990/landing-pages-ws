@@ -5,6 +5,7 @@
       <h2 id="lineas-titulo" class="titular" appRevelar [retraso]="80">
         <app-renglones [renglones]="l.titulo" />
       </h2>
+      <p class="lead" appRevelar [retraso]="220">{{ l.entrada }}</p>
     </header>
   </div>
 
@@ -14,15 +15,33 @@
     <ul class="lineas__lista shell">
       @for (item of l.items; track item.id; let i = $index) {
         <li class="linea" appRevelar [retraso]="(i % 3) * 110">
-          <figure class="linea__foto">
-            <img [src]="item.imagen" [alt]="item.alt" width="1024" height="1536" loading="lazy" decoding="async" />
-            <figcaption class="linea__nombre">
-              <span class="mono">0{{ i + 1 }}</span>
-              <h3>{{ item.nombre }}</h3>
-            </figcaption>
-          </figure>
-          <p class="linea__productos">{{ item.productos.join(' · ') }}</p>
-          <p class="linea__ideal"><span class="mono">Ideal para</span> {{ item.ideal }}</p>
+          <article class="linea__tarjeta">
+            <figure class="linea__foto">
+              <img [src]="item.imagen" [alt]="item.alt" width="1024" height="1536" loading="lazy" decoding="async" />
+              <div class="linea__marcas">
+                <span class="insignia"><span class="insignia__punto" aria-hidden="true"></span>Línea 0{{ i + 1 }}</span>
+                <span class="linea__cuenta mono">{{ item.productos.length }} {{ item.productos.length === 1 ? 'producto' : 'productos' }}</span>
+              </div>
+            </figure>
+
+            <div class="linea__cuerpo">
+              <h3 class="linea__nombre">{{ item.nombre }}</h3>
+              <p class="linea__productos">{{ item.productos.join(' · ') }}</p>
+
+              <div class="linea__pie">
+                <p class="linea__ideal"><span class="mono">Ideal para</span> {{ item.ideal }}</p>
+                <a
+                  class="linea__boton"
+                  [href]="muestras(item.nombre)"
+                  target="_blank"
+                  rel="noopener"
+                  [attr.aria-label]="'Pedir muestras de ' + item.nombre + ' por WhatsApp'"
+                >
+                  <app-icono nombre="diagonal" />
+                </a>
+              </div>
+            </div>
+          </article>
         </li>
       }
     </ul>

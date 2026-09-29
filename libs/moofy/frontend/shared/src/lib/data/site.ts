@@ -112,6 +112,7 @@ export const LINEAS = {
   num: '02',
   nombre: 'Líneas',
   titulo: [[{ t: 'Seis líneas. ' }, { t: 'Un mismo estándar.', em: true }]] as readonly Renglon[],
+  entrada: 'Todo sale de la misma planta. Pida muestras de la línea que encaja con su operación.',
   items: [
     {
       id: 'hojaldre',
@@ -331,3 +332,8 @@ export const PIE = {
   legal: `© 2026 ${SITE.razonSocial}`,
   nota: 'Fotografías ilustrativas.',
 } as const;
+
+/** El mensaje de WhatsApp para pedir muestras de una línea. */
+export function mensajeMuestras(linea: string): string {
+  return `Hola, Moofy. Me interesa recibir muestras de la línea «${linea}» para mi empresa.`;
+}
