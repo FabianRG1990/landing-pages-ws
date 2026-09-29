@@ -205,23 +205,59 @@
   }
 }
 
+/* ---------- Móvil: un solo borde ----------
+   Foto y tarjeta ocupan exactamente el ancho del texto (el margen de
+   la página): antes la foto entraba 16 px, el óvalo azul asomaba por
+   la derecha cortado y la pegatina chocaba con el borde. La tarjeta
+   deja de flotar en una esquina y se monta bajo la foto, con los
+   mismos bordes. */
 @media (max-width: 599.98px) {
+  .hero__shell {
+    row-gap: var(--esp-6);
+  }
+
   .hero__escena {
-    padding: 1.5rem 0 4rem 1rem;
+    display: grid;
+    padding: 0;
+  }
+
+  /* El óvalo solo funciona con aire alrededor; en móvil cortaba la
+     composición por la derecha. */
+  .hero__forma {
+    display: none;
   }
 
   .hero__foto {
-    aspect-ratio: 4 / 4.4;
+    aspect-ratio: 4 / 3.4;
+    border-radius: var(--r-lg);
+    box-shadow: var(--shadow-lg);
   }
 
+  /* Dentro de la foto, en su esquina: no se sale del borde común */
   .hero__pegatina {
-    right: -0.25rem;
+    top: var(--esp-3);
+    right: var(--esp-3);
+    width: 5.25rem;
+    box-shadow: 0 0 0 3px var(--blanco), 0 0 0 6px var(--azul), var(--shadow-rojo);
+
+    span {
+      font-size: 0.6875rem;
+    }
+
+    strong {
+      font-size: 0.9375rem;
+    }
   }
 
-  /* Al 70 % la tarjeta queda en ~245 px y las tres etiquetas mono se
-     tocan («PROVINCIASFLOTA»). Recupera el ancho de escritorio. */
   .hero__tarjeta {
-    width: min(19rem, 94%);
+    position: relative;
+    z-index: 2;
+    width: auto;
+    margin: calc(var(--esp-6) * -1) var(--esp-3) 0;
+  }
+
+  .hero__acciones {
+    gap: var(--esp-2);
   }
 
   .hero__acciones .btn {
