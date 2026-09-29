@@ -39,13 +39,14 @@
         <div class="panel__foto">
           @for (img of imagenes; track img.src) {
             <img
+              #capa
               [src]="img.src"
               alt=""
               width="1536"
               height="1024"
               loading="lazy"
               decoding="async"
-              [class.visible]="img.src === activo().imagen"
+              [class.visible]="img.src === foto()"
             />
           }
           <span class="solo-lectores">{{ activo().alt }}</span>
