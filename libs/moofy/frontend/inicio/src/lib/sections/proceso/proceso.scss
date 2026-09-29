@@ -176,11 +176,14 @@
 
 /* ---------- Móvil: la línea baja por la izquierda ---------- */
 
+/* Móvil: la vía va a 24 px del margen para que el camión (40 px) y su
+   halo queden dentro; con la vía en el borde asomaban 17 px por fuera
+   de la página. */
 @media (max-width: 767.98px) {
   .proceso__linea {
     top: 6px;
     bottom: 0;
-    left: 6px;
+    left: 1.5rem;
     right: auto;
     width: 2px;
     height: auto;
@@ -209,6 +212,11 @@
 
   .paso {
     padding-top: 0;
-    padding-left: 2.75rem;
+    padding-left: 3.75rem;
+  }
+
+  /* Centrado sobre la vía: 24 + 1 (medio trazo) − 7 (medio nodo) */
+  .paso__nodo {
+    left: 1.125rem;
   }
 }
