@@ -6,6 +6,7 @@ export * from './lib/motion/revelar.directive';
 export * from './lib/tipografia/renglones';
 export * from './lib/motion/contador.directive';
 export * from './lib/motion/parallax.directive';
+export * from './lib/motion/escena';
 export * from './lib/tipografia/capitulo';
 export * from './lib/layout/pie/pie';
 export * from './lib/marca/icono';

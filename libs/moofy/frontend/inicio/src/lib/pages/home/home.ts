@@ -1,6 +1,8 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, PLATFORM_ID, afterNextRender, inject } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { NavComponent } from '@moofy-ui-shared/layout/nav/nav';
 import { SmoothScroll } from '@moofy-ui-shared/motion/smooth-scroll.service';
+import { refrescarConFuentes } from '@moofy-ui-shared/motion/escena';
 import { HeroComponent } from '../../sections/hero/hero';
 import { FabricaComponent } from '../../sections/fabrica/fabrica';
 import { LineasComponent } from '../../sections/lineas/lineas';
@@ -20,5 +22,9 @@ import { PieComponent } from '@moofy-ui-shared/layout/pie/pie';
 export class HomeComponent {
   constructor() {
     inject(SmoothScroll).init();
+    const esNavegador = isPlatformBrowser(inject(PLATFORM_ID));
+    afterNextRender(() => {
+      if (esNavegador) refrescarConFuentes();
+    });
   }
 }
