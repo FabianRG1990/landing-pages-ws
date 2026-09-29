@@ -13,13 +13,13 @@
    contenido. Con el fondo en el body, el body la taparía. */
 html {
   -webkit-text-size-adjust: 100%;
-  background: var(--noche);
+  background: var(--fondo);
 }
 
 body {
   margin: 0;
   background: transparent;
-  color: var(--texto);
+  color: var(--tinta);
   font-family: var(--font-sans);
   font-size: var(--fs-body);
   font-weight: var(--w-read);
@@ -44,20 +44,21 @@ button {
   hyphens: manual;
 }
 
-/* Titulares: sans de peso fuerte y apretado, como en las dos
-   referencias; el segundo tramo va en cursiva roja (el recurso de
-   «Seis productos. Una arquitectura.»). */
+/* Titulares: sans de peso fuerte y apretado en la tinta azul, con el
+   segundo tramo en cursiva roja: los dos colores del logo en una frase
+   (el recurso de «Seis productos. Una arquitectura.»). */
 h1,
 h2 {
   margin: 0;
   font-family: var(--font-sans);
   font-weight: var(--w-display);
+  color: var(--tinta);
   text-wrap: balance;
 
   em {
     font-style: italic;
     font-weight: 600;
-    color: var(--rojo-luz);
+    color: var(--rojo);
   }
 }
 
@@ -122,12 +123,12 @@ button {
 }
 
 :focus-visible {
-  outline: 2px solid var(--azul-luz);
+  outline: 2px solid var(--azul);
   outline-offset: 3px;
 }
 
 ::selection {
-  background: rgb(var(--rojo-rgb) / 0.55);
+  background: var(--azul);
   color: var(--blanco);
 }
 
@@ -153,7 +154,7 @@ section[id] {
 .lead {
   font-size: var(--fs-lead);
   line-height: 1.55;
-  color: var(--texto-2);
+  color: var(--tinta-2);
 }
 
 /* Metadato técnico: versales siempre con tracking ≥ 0.06em */
@@ -163,12 +164,12 @@ section[id] {
   font-weight: var(--w-emph);
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
-  color: var(--texto-3);
+  color: var(--tinta-2);
   font-variant-numeric: tabular-nums;
 }
 
 .mono--ink {
-  color: var(--texto-2);
+  color: var(--tinta);
 }
 
 /* Encabezado de capítulo: «01 — LA FÁBRICA» con un filete que
@@ -180,13 +181,14 @@ section[id] {
   margin-bottom: clamp(1.25rem, 1rem + 1vw, 2rem);
 
   &__num {
-    color: var(--rojo-luz);
+    color: var(--rojo);
   }
 
   &__regla {
     width: 2.5rem;
-    height: 1px;
-    background: var(--line-strong);
+    height: 2px;
+    border-radius: 2px;
+    background: linear-gradient(90deg, var(--rojo), var(--azul));
     transform-origin: left center;
   }
 }
@@ -241,44 +243,40 @@ section[id] {
   }
 }
 
-/* El único relleno rojo de la pantalla */
+/* Botón principal: rojo del logo con su filete blanco y contorno azul
+   (la «pegatina»). Es el único relleno rojo de la pantalla. */
 .btn--rojo {
   color: var(--blanco);
-  background: linear-gradient(180deg, var(--rojo), var(--rojo-hondo));
-  box-shadow: var(--shadow-rojo), inset 0 1px 0 rgb(255 255 255 / 0.22);
+  background: linear-gradient(180deg, var(--rojo-vivo), var(--rojo) 55%, var(--rojo-hondo));
+  box-shadow: var(--pegatina), var(--shadow-rojo);
 
   &:hover {
-    box-shadow:
-      0 20px 52px -18px rgb(var(--rojo-rgb) / 0.7),
-      inset 0 1px 0 rgb(255 255 255 / 0.3);
+    box-shadow: var(--pegatina), 0 20px 44px -16px rgb(var(--rojo-rgb) / 0.7);
   }
 }
 
-/* Vidrio: canto refractado, no un simple borde */
-.btn--vidrio {
-  color: var(--texto);
-  background: rgb(var(--blanco-rgb) / 0.06);
-  border: 1px solid var(--line);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  box-shadow: var(--edge);
+/* Secundario: contorno azul sobre blanco */
+.btn--linea {
+  color: var(--azul);
+  background: var(--blanco);
+  border: 1.5px solid var(--line-azul);
 
   &:hover {
-    background: rgb(var(--blanco-rgb) / 0.1);
-    border-color: var(--line-strong);
+    background: var(--azul-50);
+    border-color: var(--azul);
   }
 }
 
 .enlace {
-  color: var(--texto);
+  color: var(--tinta);
   border-bottom: 1px solid var(--line-strong);
   transition:
     border-color var(--dur-fast) var(--ease-out),
     color var(--dur-fast) var(--ease-out);
 
   &:hover {
-    color: var(--azul-luz);
-    border-bottom-color: var(--azul-luz);
+    color: var(--azul);
+    border-bottom-color: var(--azul);
   }
 }
 
@@ -303,14 +301,14 @@ html.menu-abierto {
 /* ---------- La trama del fondo ----------
    Iconos de línea de panadería (espiga, croissant, gorro, rodillo,
    batidor, pastel), el mismo recurso que Moofy usa detrás de su logo en
-   redes. Una capa fija y estática: cero repintado por fotograma. Muy
-   tenue: es textura, no ilustración. */
+   redes. Una capa fija y estática: cero repintado por fotograma. En azul
+   muy claro sobre blanco: es textura, no ilustración. */
 .trama {
   position: fixed;
   inset: 0;
   z-index: -1;
   background: url('/img/trama.svg') repeat;
   background-size: 360px;
-  opacity: 0.055;
+  opacity: 0.1;
   pointer-events: none;
 }

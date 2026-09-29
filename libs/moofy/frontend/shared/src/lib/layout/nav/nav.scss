@@ -5,8 +5,8 @@
   left: 0.75rem;
   z-index: 60;
   padding: 0.75rem 1rem;
-  color: var(--texto);
-  background: var(--surface-2);
+  color: var(--blanco);
+  background: var(--azul);
   border-radius: var(--r-sm);
   transform: translateY(-160%);
   transition: transform var(--dur-fast) var(--ease-out);
@@ -29,13 +29,14 @@
     backdrop-filter var(--dur-base) var(--ease-out);
 }
 
-/* Sólida: el mismo tostado del fondo, translúcido, para que la barra
-   no se lea como una franja pegada encima sino como el propio fondo. */
+/* Sólida: el mismo blanco del fondo, translúcido y con desenfoque,
+   para que la barra se lea como el propio fondo y no como una franja. */
 .nav--solida {
-  background: rgb(var(--noche-rgb) / 0.78);
-  border-bottom-color: var(--line-soft);
-  backdrop-filter: blur(14px) saturate(1.2);
-  -webkit-backdrop-filter: blur(14px) saturate(1.2);
+  background: rgb(var(--blanco-rgb) / 0.86);
+  border-bottom-color: var(--line);
+  box-shadow: var(--shadow-sm);
+  backdrop-filter: blur(14px) saturate(1.4);
+  -webkit-backdrop-filter: blur(14px) saturate(1.4);
 }
 
 .nav__shell {
@@ -67,7 +68,7 @@
   padding-block: 0.5rem;
   font-size: var(--fs-small);
   font-weight: var(--w-emph);
-  color: var(--texto-2);
+  color: var(--tinta-2);
   transition: color var(--dur-fast) var(--ease-out);
 
   &::after {
@@ -75,14 +76,14 @@
     position: absolute;
     inset: auto 0 0.25rem;
     height: 1px;
-    background: var(--texto);
+    background: var(--azul);
     transform: scaleX(0);
     transform-origin: right center;
     transition: transform var(--dur-base) var(--ease-fluid);
   }
 
   &:hover {
-    color: var(--texto);
+    color: var(--azul);
 
     &::after {
       transform: scaleX(1);
@@ -110,7 +111,7 @@
   left: 11px;
   width: 22px;
   height: 1.5px;
-  background: var(--texto);
+  background: var(--tinta);
   transition: transform var(--dur-base) var(--ease-fluid);
 
   &:nth-of-type(2) {
@@ -154,7 +155,7 @@
   z-index: 40;
   display: flex;
   padding-top: var(--nav-h);
-  background: var(--noche);
+  background: var(--fondo);
   opacity: 0;
   visibility: hidden;
   transition:
@@ -202,7 +203,7 @@
   line-height: 1.1;
 
   .mono {
-    color: var(--rojo-luz);
+    color: var(--rojo);
   }
 }
 
