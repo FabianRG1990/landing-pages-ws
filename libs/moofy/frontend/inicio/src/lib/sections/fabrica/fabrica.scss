@@ -153,9 +153,11 @@
   padding: clamp(2rem, 1.5rem + 2vw, 3.5rem) clamp(1.5rem, 1rem + 2vw, 3.5rem);
 }
 
+/* Tantas columnas como cifras haya, a partes iguales */
 .fabrica__cifras {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
 }
 
 .cifra {
@@ -226,7 +228,7 @@
 
 @media (max-width: 599.98px) {
   .fabrica__cifras {
-    grid-template-columns: 1fr;
+    grid-auto-flow: row;
   }
 
   .cifra {

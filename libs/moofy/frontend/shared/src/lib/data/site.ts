@@ -104,7 +104,6 @@ export const FABRICA = {
   cifras: [
     { valor: 1, titulo: 'Planta propia', detalle: 'San Roque de Grecia' },
     { valor: 7, titulo: 'Provincias', detalle: 'Despacho a todo el país' },
-    { valor: 3, titulo: 'Marcas', detalle: 'Moofy, Pan José y Panrico' },
   ],
 } as const;
 
