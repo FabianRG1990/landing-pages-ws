@@ -1,7 +1,7 @@
 <section id="contacto" class="contacto" aria-labelledby="contacto-titulo">
-  <div class="contacto__luz" aria-hidden="true"></div>
-
-  <div class="contacto__shell shell">
+  <div class="shell">
+  <!-- Panel con el matiz del logo: azul muy claro que vira a rosado -->
+  <div class="contacto__panel">
     <header class="contacto__cabeza">
       <app-capitulo [num]="k.num" [nombre]="k.nombre" appRevelar />
       <h2 id="contacto-titulo" class="titular" appRevelar [retraso]="80">
@@ -10,7 +10,7 @@
       <p class="lead" appRevelar [retraso]="220">{{ k.entrada }}</p>
     </header>
 
-    <div class="tarjeta" appRevelar [retraso]="160">
+    <div class="tarjeta carta" appRevelar [retraso]="160">
       <!-- Radios nativos con forma de chip: flechas, Tab y lector de
            pantalla funcionan sin una sola línea de JS. -->
       <fieldset class="tarjeta__canales">
@@ -26,12 +26,10 @@
       </fieldset>
 
       <a class="btn btn--rojo tarjeta__cta" [href]="whatsapp()" target="_blank" rel="noopener">
+        <app-icono nombre="whatsapp" />
         {{ k.cta }}
-        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
-          <path d="M3 8h10M9 4l4 4-4 4" />
-        </svg>
       </a>
-      <a class="btn btn--vidrio tarjeta__visita" [href]="visita" target="_blank" rel="noopener">{{ k.visita }}</a>
+      <a class="btn btn--linea tarjeta__visita" [href]="visita" target="_blank" rel="noopener">{{ k.visita }}</a>
 
       <dl class="tarjeta__datos">
         <div>
@@ -52,5 +50,6 @@
         </div>
       </dl>
     </div>
+  </div>
   </div>
 </section>

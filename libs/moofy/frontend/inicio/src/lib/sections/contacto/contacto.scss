@@ -8,22 +8,21 @@
   isolation: isolate;
 }
 
-/* Luz de horno detrás de la tarjeta: radial a 0.07 que se apaga antes
-   del borde de la sección, así no marca ninguna frontera. */
-.contacto__luz {
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  background: radial-gradient(50% 55% at 72% 50%, rgb(var(--corteza-rgb) / 0.07), transparent 72%);
-  pointer-events: none;
-}
-
-.contacto__shell {
+/* El panel del contacto: del azul muy claro al rosado muy claro, el
+   matiz entre los dos colores del logo. Con radio y dentro del ancho de
+   la página, para que sea un objeto y no una franja. */
+.contacto__panel {
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));
   column-gap: var(--gutter);
   row-gap: 3rem;
   align-items: start;
+  padding: clamp(2.5rem, 2rem + 3vw, 5rem) clamp(1.25rem, 0.5rem + 3vw, 4rem);
+  background:
+    radial-gradient(60% 80% at 0% 0%, var(--azul-100), transparent 70%),
+    linear-gradient(120deg, var(--azul-50) 0%, var(--blanco) 55%, var(--rojo-50) 100%);
+  border: 1px solid var(--azul-100);
+  border-radius: var(--r-xl);
 }
 
 .contacto__cabeza {
@@ -44,10 +43,6 @@
   display: grid;
   gap: 0.75rem;
   padding: clamp(1.5rem, 1rem + 2vw, 2.5rem);
-  background: linear-gradient(180deg, rgb(var(--crema-rgb) / 0.045), rgb(var(--crema-rgb) / 0.015));
-  border: 1px solid var(--line);
-  border-radius: var(--r-lg);
-  box-shadow: var(--shadow-lg), var(--edge);
 }
 
 .tarjeta__canales {
@@ -86,8 +81,9 @@
     min-height: 40px;
     padding: 0.5rem 0.95rem;
     font-size: var(--fs-small);
-    color: var(--crema-2);
-    border: 1px solid var(--line);
+    color: var(--tinta-2);
+    background: var(--blanco);
+    border: 1px solid var(--line-strong);
     border-radius: var(--r-pill);
     transition:
       color var(--dur-fast) var(--ease-out),
@@ -96,18 +92,19 @@
   }
 
   &:hover span {
-    color: var(--crema);
-    border-color: var(--line-strong);
+    color: var(--azul);
+    border-color: var(--azul);
   }
 
   input:checked + span {
-    color: var(--crema);
-    background: rgb(var(--rojo-rgb) / 0.16);
-    border-color: rgb(var(--rojo-rgb) / 0.7);
+    color: var(--blanco);
+    background: var(--rojo);
+    border-color: var(--rojo);
+    box-shadow: var(--pegatina-fina);
   }
 
   input:focus-visible + span {
-    outline: 2px solid var(--corteza);
+    outline: 2px solid var(--azul);
     outline-offset: 2px;
   }
 }
@@ -123,7 +120,7 @@
   gap: 1.25rem 1.5rem;
   margin-top: 1.5rem;
   padding-top: 1.5rem;
-  border-top: 1px solid var(--line-soft);
+  border-top: 1px solid var(--line);
 
   > div {
     display: grid;

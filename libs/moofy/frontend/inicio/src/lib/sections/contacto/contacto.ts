@@ -3,6 +3,7 @@ import { CANALES, CONTACTO, SITE, enlaceWhatsapp, mensajeCanal } from '@moofy-ui
 import { CapituloComponent } from '@moofy-ui-shared/tipografia/capitulo';
 import { RenglonesComponent } from '@moofy-ui-shared/tipografia/renglones';
 import { RevelarDirective } from '@moofy-ui-shared/motion/revelar.directive';
+import { IconoComponent } from '@moofy-ui-shared/marca/icono';
 
 /**
  * Capítulo 05: la conversión. Sin formulario (no hay backend y un
@@ -12,7 +13,7 @@ import { RevelarDirective } from '@moofy-ui-shared/motion/revelar.directive';
  */
 @Component({
   selector: 'app-contacto',
-  imports: [CapituloComponent, RenglonesComponent, RevelarDirective],
+  imports: [CapituloComponent, RenglonesComponent, RevelarDirective, IconoComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './contacto.html',
   styleUrl: './contacto.scss',
