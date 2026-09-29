@@ -57,19 +57,36 @@ export class SmoothScroll {
     if (!location.hash) window.scrollTo(0, 0);
   }
 
-  /** Scroll a una sección (selector CSS), descontando la barra fija. */
+  /**
+   * Scroll a una sección (selector CSS), descontando la barra fija.
+   * Lenis (1.3) ya resta el `scroll-margin-top` del destino, que en
+   * `section[id]` es la altura de la barra: restarla otra vez dejaba la
+   * sección 144 px por debajo del borde en lugar de 72.
+   */
   scrollTo(destino: string): void {
     if (!this.esNavegador) return;
     const navH = this.alturaNav();
+    const el = this.inicioDe(destino);
+    if (!el) return;
     if (this.lenis) {
-      this.lenis.scrollTo(destino, { offset: -navH, duration: 1.4 });
+      this.lenis.scrollTo(el, { duration: 1.4 });
       return;
     }
-    const el = document.querySelector(destino);
-    if (!el) return;
     const y = el.getBoundingClientRect().top + window.scrollY - navH;
     const suave = !matchMedia('(prefers-reduced-motion: reduce)').matches;
     window.scrollTo({ top: y, behavior: suave ? 'smooth' : 'instant' });
+  }
+
+  /**
+   * Una sección fijada con ScrollTrigger vive dentro de su `.pin-spacer`
+   * y, pasado el pin, se mide en su posición del FINAL del recorrido: ir
+   * a ella desde abajo aterrizaba con las líneas ya en 06. Se apunta al
+   * espaciador, que empieza donde empieza el pin.
+   */
+  private inicioDe(destino: string): HTMLElement | null {
+    const el = document.querySelector<HTMLElement>(destino);
+    const padre = el?.parentElement;
+    return padre?.classList.contains('pin-spacer') ? padre : el;
   }
 
   /** Congela el scroll (menú móvil abierto). */
