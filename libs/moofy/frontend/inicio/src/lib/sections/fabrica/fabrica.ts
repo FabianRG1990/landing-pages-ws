@@ -67,12 +67,25 @@ export class FabricaComponent {
     // pin para que mida ya con el alto de pantalla completa.
     seccion.classList.add('fabrica--escena');
 
+    // El ritmo, en unidades de la timeline. La foto se abre de 0 a 1 y
+    // los pilares se van formando DURANTE la apertura, escalonados, para
+    // estar completos justo cuando la foto llena la pantalla: entrando
+    // después, se esperaba media pantalla de scroll con la foto sola.
+    const APERTURA = 1;
+    const PILAR = [0.3, 0.45, 0.6]; // inicio de cada pilar
+    const DURACION_PILAR = APERTURA - PILAR[2]; // el último acaba con la foto
+    const RESPIRO = 0.5; // los tres a la vista antes de soltar
+    const TOTAL = 1.2 + RESPIRO; // el acercamiento de la imagen dura 1.2
+    // 0.78 pantallas de scroll por unidad: la misma velocidad de apertura
+    // que tenía el pin de 2.4 pantallas.
+    const PANTALLAS_POR_UNIDAD = 0.78;
+
     const tl = gsap.timeline({
       defaults: { ease: 'none' },
       scrollTrigger: {
         trigger: escenario,
         start: 'top top',
-        end: () => '+=' + window.innerHeight * 2.4,
+        end: () => '+=' + window.innerHeight * PANTALLAS_POR_UNIDAD * TOTAL,
         pin: true,
         scrub: true,
         invalidateOnRefresh: true,
@@ -82,23 +95,28 @@ export class FabricaComponent {
     tl.fromTo(
       foto,
       { clipPath: 'inset(14% 20% 14% 20% round 32px)' },
-      { clipPath: 'inset(0% 0% 0% 0% round 0px)', duration: 1, ease: 'power2.inOut' },
+      { clipPath: 'inset(0% 0% 0% 0% round 0px)', duration: APERTURA, ease: 'power2.inOut' },
       0,
     ).fromTo(img, { scale: 1.22 }, { scale: 1, duration: 1.2, ease: 'power1.out' }, 0);
 
     pilares.forEach((pilar, i) => {
-      const t = 1.05 + i * 0.55;
+      const t = PILAR[i] ?? PILAR[PILAR.length - 1];
       const trazos = pilar.querySelectorAll('.pilar__icono svg > *');
       tl.fromTo(
         pilar,
         { y: 80, opacity: 0, scale: 0.94 },
-        { y: 0, opacity: 1, scale: 1, duration: 0.5, ease: 'power3.out' },
+        { y: 0, opacity: 1, scale: 1, duration: DURACION_PILAR, ease: 'power3.out' },
         t,
-      ).fromTo(trazos, { drawSVG: '0%' }, { drawSVG: '100%', duration: 0.45, ease: 'power1.inOut' }, t + 0.1);
+      ).fromTo(
+        trazos,
+        { drawSVG: '0%' },
+        { drawSVG: '100%', duration: DURACION_PILAR - 0.08, ease: 'power1.inOut' },
+        t + 0.08,
+      );
     });
 
     // Un respiro al final con los tres pilares a la vista antes de soltar
-    tl.to({}, { duration: 0.4 });
+    tl.to({}, { duration: RESPIRO }, 1.2);
 
     return () => seccion.classList.remove('fabrica--escena');
   }
