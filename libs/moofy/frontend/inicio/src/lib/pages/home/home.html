@@ -6,8 +6,12 @@
   <app-lineas />
   <app-cinta />
   <app-canales />
-  <app-proceso />
-  <app-contacto />
+  <!-- El cierre: la franja del proceso se abre como las puertas del
+       camión y descubre el contacto (cierre.ts) -->
+  <app-cierre>
+    <app-proceso orquestado />
+    <app-contacto />
+  </app-cierre>
 </main>
 
 <app-pie />

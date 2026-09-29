@@ -1,6 +1,8 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  booleanAttribute,
+  input,
   DestroyRef,
   ElementRef,
   PLATFORM_ID,
@@ -38,6 +40,13 @@ import { montarEscena } from '@moofy-ui-shared/motion/escena';
 export class ProcesoComponent {
   protected readonly p = PROCESO;
 
+  /**
+   * En escritorio, otro componente fija la sección y lleva el camión con
+   * avanzar() (app-cierre, que la une al contacto). Entonces el proceso
+   * no crea su propio pin; en móvil se anima igual que siempre.
+   */
+  readonly orquestado = input(false, { transform: booleanAttribute });
+
   private readonly seccion = viewChild.required<ElementRef<HTMLElement>>('seccion');
   private readonly pista = viewChild.required<ElementRef<HTMLElement>>('pista');
 
@@ -58,6 +67,7 @@ export class ProcesoComponent {
         const seccion = this.seccion().nativeElement;
         const pista = this.pista().nativeElement;
         if (escritorio) seccion.classList.add('proceso--fijo');
+        if (escritorio && this.orquestado()) return () => seccion.classList.remove('proceso--fijo');
         ScrollTrigger.create({
           ...(escritorio
             ? {
