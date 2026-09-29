@@ -209,6 +209,12 @@
     right: -0.25rem;
   }
 
+  /* Al 70 % la tarjeta queda en ~245 px y las tres etiquetas mono se
+     tocan («PROVINCIASFLOTA»). Recupera el ancho de escritorio. */
+  .hero__tarjeta {
+    width: min(19rem, 94%);
+  }
+
   .hero__acciones .btn {
     flex: 1 1 100%;
   }
