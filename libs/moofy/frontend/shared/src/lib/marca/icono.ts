@@ -1,6 +1,17 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 
-export type NombreIcono = 'espiga' | 'gorro' | 'camion' | 'whatsapp' | 'flecha' | 'diagonal';
+export type NombreIcono =
+  | 'espiga'
+  | 'gorro'
+  | 'camion'
+  | 'whatsapp'
+  | 'flecha'
+  | 'diagonal'
+  | 'telefono'
+  | 'correo'
+  | 'ubicacion'
+  | 'facebook'
+  | 'instagram';
 
 /**
  * Iconos de línea de la casa, con el mismo trazo que la trama del fondo
@@ -47,6 +58,25 @@ export type NombreIcono = 'espiga' | 'gorro' | 'camion' | 'whatsapp' | 'flecha' 
         }
         @case ('diagonal') {
           <path d="M7 17L17 7M9 7h8v8" />
+        }
+        @case ('telefono') {
+          <path d="M5.5 4h3l1.5 4-2 1.3a11 11 0 0 0 6.7 6.7l1.3-2 4 1.5v3a2 2 0 0 1-2 2A15.5 15.5 0 0 1 3.5 6a2 2 0 0 1 2-2z" />
+        }
+        @case ('correo') {
+          <rect x="3" y="5" width="18" height="14" rx="2.5" />
+          <path d="M3.8 6.8L12 13l8.2-6.2" />
+        }
+        @case ('ubicacion') {
+          <path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z" />
+          <circle cx="12" cy="9.5" r="2.5" />
+        }
+        @case ('facebook') {
+          <path d="M14 21v-7h2.6l.4-3.2h-3V8.9c0-.9.3-1.5 1.6-1.5H17V4.5a21 21 0 0 0-2.4-.1c-2.4 0-4 1.4-4 4.1v2.3H8V14h2.6v7" />
+        }
+        @case ('instagram') {
+          <rect x="3.5" y="3.5" width="17" height="17" rx="5" />
+          <circle cx="12" cy="12" r="4" />
+          <circle cx="17.2" cy="6.8" r="0.6" />
         }
       }
     </svg>
