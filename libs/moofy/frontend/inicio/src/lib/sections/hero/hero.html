@@ -1,6 +1,6 @@
 <section class="hero" aria-labelledby="hero-titulo">
   <div class="hero__shell shell">
-    <div class="hero__texto">
+    <div #texto class="hero__texto">
       <p class="hero__eyebrow insignia" appRevelar>
         <span class="insignia__punto" aria-hidden="true"></span>
         {{ hero.eyebrow }}
@@ -21,28 +21,28 @@
       </div>
     </div>
 
-    <div class="hero__escena" appRevelar [retraso]="200">
+    <div #escena class="hero__escena">
       <!-- La forma azul del logo detrás de la foto: el color entra como
            una masa alegre, no como un fondo de página. -->
-      <div class="hero__forma" aria-hidden="true"></div>
+      <div #forma class="hero__forma" aria-hidden="true"></div>
 
-      <figure class="hero__foto" appParallax [recorrido]="5">
+      <figure #foto class="hero__foto" appParallax [recorrido]="5">
         <img [src]="hero.imagen" [alt]="hero.alt" width="1536" height="1024" fetchpriority="high" decoding="async" />
       </figure>
 
       <!-- Pegatina: rojo, filete blanco y contorno azul, como las letras
            del logo. Decorativa: el mismo dato ya está en la etiqueta. -->
-      <p class="hero__pegatina" aria-hidden="true">
+      <p #pegatina class="hero__pegatina" aria-hidden="true">
         <span>{{ hero.pegatina[0] }}</span>
         <strong>{{ hero.pegatina[1] }}</strong>
       </p>
 
-      <aside class="carta hero__tarjeta" aria-label="Moofy en cifras">
+      <aside #tarjeta class="carta hero__tarjeta" aria-label="Moofy en cifras">
         <p class="hero__tarjeta-cabeza mono">
           {{ t.etiqueta }}
           <span class="vivo" aria-hidden="true"></span>
         </p>
-        <p class="hero__cifra">{{ t.cifra }}</p>
+        <p #cifra class="hero__cifra">{{ t.cifra }}</p>
         <p class="hero__cifra-texto">{{ t.cifraTexto }}</p>
         <dl class="hero__tarjeta-datos">
           @for (d of t.datos; track d.k) {

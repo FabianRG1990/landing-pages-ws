@@ -52,6 +52,13 @@
   padding: 1.5rem 0 2.5rem 2.5rem;
 }
 
+/* Oculta hasta que la timeline de entrada ponga sus estados de partida
+   (hero.ts). La clase la pone index.html antes del primer pintado y la
+   retira a los 4 s si la app no arrancó. */
+:host-context(.con-movimiento) .hero__escena {
+  visibility: hidden;
+}
+
 /* La forma azul: un óvalo del azul del logo, ligeramente girado, que
    asoma por detrás de la foto arriba a la derecha. */
 .hero__forma {
@@ -105,6 +112,8 @@
   border-radius: 50%;
   box-shadow: 0 0 0 4px var(--blanco), 0 0 0 8px var(--azul), var(--shadow-rojo);
   transform: rotate(10deg);
+  /* El giro con el scroll va aparte del transform, que es de la entrada */
+  rotate: var(--giro, 0deg);
 
   span {
     font-size: 0.8125rem;
