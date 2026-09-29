@@ -19,7 +19,7 @@
       <ul class="lineas__lista shell">
         @for (item of l.items; track item.id; let i = $index) {
           <li class="linea" appRevelar [retraso]="(i % 3) * 110">
-            <article class="linea__tarjeta">
+            <article class="linea__tarjeta" appInclinar>
               <figure class="linea__foto">
                 <img [src]="item.imagen" [alt]="item.alt" width="1024" height="1536" loading="lazy" decoding="async" />
                 <div class="linea__marcas">

@@ -17,6 +17,7 @@ import { RenglonesComponent } from '@moofy-ui-shared/tipografia/renglones';
 import { RevelarDirective } from '@moofy-ui-shared/motion/revelar.directive';
 import { IconoComponent } from '@moofy-ui-shared/marca/icono';
 import { montarEscena } from '@moofy-ui-shared/motion/escena';
+import { InclinarDirective } from '@moofy-ui-shared/motion/inclinar.directive';
 
 type Ref = ElementRef<HTMLElement>;
 
@@ -34,7 +35,7 @@ type Ref = ElementRef<HTMLElement>;
  */
 @Component({
   selector: 'app-lineas',
-  imports: [CapituloComponent, RenglonesComponent, RevelarDirective, IconoComponent],
+  imports: [CapituloComponent, RenglonesComponent, RevelarDirective, IconoComponent, InclinarDirective],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './lineas.html',
   styleUrl: './lineas.scss',
