@@ -11,15 +11,21 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
  * Mientras Moofy no entregue el vector oficial, esta es la única
  * puerta de entrada del logo: reemplazar el archivo lo cambia en todo
  * el sitio.
+ *
+ * `troquel` usa la versión con un contorno blanco que sigue la silueta,
+ * como una pegatina troquelada, para ponerlo sobre fondos oscuros sin
+ * caja (su contorno azul se perdería en el azul). Sale del mismo archivo:
+ * la silueta dilatada 15 px con transformada de distancia (borde
+ * antialiasado) y los huecos interiores rellenos.
  */
 @Component({
   selector: 'app-logo',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <img
-      src="img/marca/moofy.webp"
-      width="720"
-      height="325"
+      [attr.src]="troquel() ? 'img/marca/moofy-troquel.webp' : 'img/marca/moofy.webp'"
+      [attr.width]="troquel() ? 758 : 720"
+      [attr.height]="troquel() ? 363 : 325"
       [attr.alt]="alt()"
       [attr.loading]="diferido() ? 'lazy' : null"
       decoding="async"
@@ -42,4 +48,6 @@ export class LogoComponent {
   readonly alt = input('Moofy');
   /** El del pie se carga diferido; el de la barra, no. */
   readonly diferido = input(false);
+  /** Con el contorno blanco troquelado, para fondos oscuros. */
+  readonly troquel = input(false);
 }
