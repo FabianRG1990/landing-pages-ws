@@ -2,47 +2,68 @@
   display: block;
 }
 
+/* Blanco con acento: un filete de rojo a azul arriba (el del capítulo,
+   a lo ancho) y la barra de lo legal en azul muy claro. Compacto: tres
+   franjas en vez de cuatro columnas sueltas. */
 .pie {
-  border-top: 1px solid var(--line);
+  position: relative;
+  background: var(--fondo);
+
+  &::before {
+    content: '';
+    display: block;
+    height: 3px;
+    background: linear-gradient(90deg, var(--rojo), var(--rojo-vivo) 30%, var(--azul-vivo) 70%, var(--azul));
+  }
 }
 
 .pie__shell {
   display: grid;
-  grid-template-columns: minmax(0, 2fr) repeat(3, minmax(0, 1fr));
-  gap: 2.5rem var(--gutter);
-  padding-block: clamp(3rem, 2rem + 4vw, 5rem);
+  gap: 2rem;
+  padding-block: clamp(2.5rem, 2rem + 2vw, 3.5rem) clamp(1.75rem, 1.5rem + 1vw, 2.25rem);
+}
+
+/* ---------- 1. Marca y cierre ---------- */
+
+.pie__cabeza {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem 2rem;
 }
 
 .pie__marca {
-  display: grid;
-  align-content: start;
-  gap: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
 }
 
 .pie__logo {
-  width: 140px;
-  margin-bottom: 0.5rem;
+  flex-shrink: 0;
+  width: 128px;
 }
 
 .pie__lema {
-  max-width: 30ch;
+  max-width: 26ch;
+  padding-left: 1.25rem;
+  font-weight: var(--w-emph);
   color: var(--tinta-2);
+  border-left: 1px solid var(--line);
 }
 
-.pie__col {
-  display: grid;
-  align-content: start;
-  gap: 1rem;
+/* ---------- 2. Secciones, contacto y redes ---------- */
 
-  ul {
-    display: grid;
-    gap: 0.625rem;
-  }
+.pie__cuerpo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.25rem 2rem;
+  padding-top: 1.75rem;
+  border-top: 1px solid var(--line);
 
   a {
-    font-size: var(--fs-small);
-    color: var(--tinta-2);
-    overflow-wrap: anywhere;
     transition: color var(--dur-fast) var(--ease-out);
 
     &:hover {
@@ -51,27 +72,151 @@
   }
 }
 
-.pie__base {
+.pie__nav ul {
   display: flex;
   flex-wrap: wrap;
-  justify-content: space-between;
-  gap: 0.75rem 2rem;
-  padding-block: 1.5rem max(1.5rem, env(safe-area-inset-bottom));
-  border-top: 1px solid var(--line);
+  gap: 0.5rem 1.5rem;
+
+  a {
+    font-weight: var(--w-emph);
+    color: var(--tinta);
+  }
 }
 
-@media (max-width: 899.98px) {
-  .pie__shell {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+.pie__contacto {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.5rem;
+
+  a,
+  span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: var(--fs-small);
+    color: var(--tinta-2);
+  }
+
+  app-icono {
+    color: var(--rojo);
+  }
+}
+
+.pie__redes {
+  display: flex;
+  gap: 0.625rem;
+
+  a {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    font-size: 1.125rem;
+    color: var(--azul);
+    background: var(--azul-50);
+    border: 1px solid var(--azul-100);
+    border-radius: 50%;
+    transition:
+      color var(--dur-fast) var(--ease-out),
+      background var(--dur-fast) var(--ease-out),
+      box-shadow var(--dur-fast) var(--ease-out);
+
+    &:hover,
+    &:focus-visible {
+      color: var(--blanco);
+      background: var(--azul);
+      box-shadow: var(--pegatina-fina);
+    }
+  }
+}
+
+/* ---------- 3. Lo legal y la firma ---------- */
+
+.pie__base {
+  background: var(--azul-50);
+  border-top: 1px solid var(--azul-100);
+}
+
+.pie__base-in {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 2rem;
+  padding-block: 1.125rem max(1.125rem, env(safe-area-inset-bottom));
+  font-size: 0.8125rem;
+  color: var(--tinta-2);
+}
+
+/* La firma envuelve por sus piezas enteras (en móvil no cabe en una
+   línea) y nunca parte una palabra. 44 px de alto para el dedo. */
+.pie__firma {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.5rem;
+  min-height: 44px;
+  color: var(--tinta-2);
+  transition: color var(--dur-fast) var(--ease-out);
+
+  &:hover {
+    color: var(--tinta);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--azul);
+    outline-offset: 4px;
+    border-radius: 4px;
+  }
+}
+
+.pie__firma-marca {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4375rem;
+
+  img {
+    flex: none;
+    width: 22px;
+    height: 22px;
+  }
+}
+
+.pie__firma-nombre {
+  font-weight: var(--w-announce);
+  color: var(--tinta);
+}
+
+/* ---------- Móvil ---------- */
+
+@media (max-width: 767.98px) {
+  .pie__cabeza,
+  .pie__cuerpo {
+    flex-direction: column;
+    align-items: flex-start;
   }
 
   .pie__marca {
-    grid-column: 1 / -1;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
   }
-}
 
-@media (max-width: 559.98px) {
-  .pie__shell {
-    grid-template-columns: 1fr 1fr;
+  .pie__lema {
+    padding-left: 0;
+    border-left: 0;
+  }
+
+  .pie__cta {
+    width: 100%;
+  }
+
+  .pie__contacto {
+    flex-direction: column;
+  }
+
+  .pie__contacto a,
+  .pie__contacto span {
+    min-height: 32px;
   }
 }
