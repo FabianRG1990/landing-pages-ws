@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, NgZone, PLATFORM_ID, computed, effect, inject, signal, viewChild } from '@angular/core';
 import { NgStyle, isPlatformBrowser } from '@angular/common';
-import { CONTACT, frenaMientrasSeVe, waDirectLink } from '@bolleria-v2-ui-shared';
+import { BolleriaStore, CONTACT, frenaMientrasSeVe, waDirectLink } from '@bolleria-v2-ui-shared';
 import { WarpGL } from './about-book-warp-gl';
 import { GestoHoja } from './gesto-hoja';
 
@@ -1684,7 +1684,24 @@ export class AboutBookComponent {
       this.arrancarCuandoSeAcerque();
       this.engancharPista();
       this.enganchaElFreno();
+      this.publicaCierre();
     }
+  }
+
+  private readonly store = inject(BolleriaStore);
+
+  /**
+   * Avisa de si el libro esta cerrado del todo tras la ultima pagina, que es lo
+   * que espera la despedida para entrar (ver `libroCerrado` en el store).
+   * `estado` solo llega a CERRADO_FINAL cuando `cerrar()` termina su cadena, y
+   * `busy` cubre cualquier otra animacion. Sin cargar, `null`: nadie controla y
+   * la despedida no se queda escondida para siempre.
+   */
+  private publicaCierre(): void {
+    effect(() => {
+      this.store.setLibroCerrado(this.ready() ? this.estado() === CERRADO_FINAL && !this.busy() : null);
+    });
+    this.sueltame.push(() => this.store.setLibroCerrado(null));
   }
 
   /**

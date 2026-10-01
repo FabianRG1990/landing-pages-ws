@@ -4,26 +4,18 @@
   "projectType": "application",
   "prefix": "bol",
   "sourceRoot": "apps/bolleria-v2/src",
-  "tags": [
-    "scope:bolleria-v2"
-  ],
+  "tags": ["scope:bolleria-v2"],
   "targets": {
     "build": {
       "executor": "@angular/build:application",
-      "dependsOn": [
-        "^build"
-      ],
-      "outputs": [
-        "{options.outputPath}"
-      ],
+      "dependsOn": ["^build"],
+      "outputs": ["{options.outputPath}"],
       "options": {
         "outputPath": "dist/apps/bolleria-v2",
         "browser": "apps/bolleria-v2/src/main.ts",
         "index": "apps/bolleria-v2/src/index.html",
         "tsConfig": "apps/bolleria-v2/tsconfig.app.json",
-        "polyfills": [
-          "zone.js"
-        ],
+        "polyfills": ["zone.js"],
         "inlineStyleLanguage": "scss",
         "assets": [
           {
@@ -32,9 +24,7 @@
             "ignore": ["assets/hero-capas/_fuente/**"]
           }
         ],
-        "styles": [
-          "apps/bolleria-v2/src/styles.scss"
-        ],
+        "styles": ["apps/bolleria-v2/src/styles.scss"],
         "server": "apps/bolleria-v2/src/main.server.ts",
         "outputMode": "static",
         "allowedCommonJsDependencies": [
@@ -106,6 +96,13 @@
         "port": 4212,
         "staticFilePath": "dist/apps/bolleria-v2/browser",
         "spa": true
+      }
+    },
+    "test": {
+      "executor": "@nx/vitest:test",
+      "outputs": ["{options.reportsDirectory}"],
+      "options": {
+        "reportsDirectory": "{workspaceRoot}/coverage/apps/bolleria-v2"
       }
     }
   }

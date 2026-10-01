@@ -7,7 +7,7 @@ import {
   inject,
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { BolleriaStore, waDirectLink } from '@bolleria-v2-ui-shared';
+import { BolleriaStore, waDirectLink, waEncargoLink } from '@bolleria-v2-ui-shared';
 
 /**
  * Hero de la v2: la escena de obrador, que además se LLENA paso a paso mientras
@@ -91,6 +91,7 @@ export class HeroCapasComponent implements OnDestroy {
   private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
   readonly store = inject(BolleriaStore);
   readonly waDirect = waDirectLink();
+  readonly waEncargo = waEncargoLink();
 
   /**
    * Los tres relevos de texto. El primero es el titular de la página y va en el
@@ -145,6 +146,16 @@ export class HeroCapasComponent implements OnDestroy {
    */
   private static readonly DUR = 400;
   private static readonly RETRASO = 220;
+  /** Gemelo de `--dur-txt`: lo que tarda en fundirse el juego que sale. */
+  private static readonly DUR_TXT = 180;
+  /**
+   * Los botones que entran suben 10px en este tiempo y el segundo llega
+   * `DESFASE` detrás del primero. El último termina a los 640 ms del paso: el
+   * desplazamiento se posa después de la frase, que es lo que da la sensación
+   * de que el botón llega en vez de encenderse.
+   */
+  private static readonly SUBIDA = 360;
+  private static readonly DESFASE = 60;
 
   /**
    * ── Un gesto, un paso
@@ -392,21 +403,26 @@ export class HeroCapasComponent implements OnDestroy {
       s.setProperty(`--td${i}`, dentro ? R : '0ms');
     }
 
-    const juego = n === 2 ? 1 : 0;
-    for (let i = 0; i < 2; i++) {
-      const dentro = i === juego;
+    // Un juego de botones por parada, como los textos: cada paso cambia pan,
+    // frase y botones a la vez.
+    for (let i = 0; i < 3; i++) {
+      const dentro = i === n;
       s.setProperty(`--a${i}`, dentro ? '1' : '0');
       s.setProperty(`--ta${i}`, dentro ? R : '0ms');
+      // El que entra sube mientras aparece; el que sale no se mueve hasta ser
+      // invisible y entonces vuelve abajo de golpe. Ver el «fade through» del SCSS.
+      s.setProperty(`--tx${i}`, dentro ? HeroCapasComponent.SUBIDA + 'ms' : '0ms');
+      s.setProperty(`--txd${i}`, dentro ? R : HeroCapasComponent.DUR_TXT + 'ms');
+      s.setProperty(`--te${i}`, dentro ? HeroCapasComponent.DESFASE + 'ms' : '0ms');
       // `visibility` no se funde: al aparecer se concede ya y al desaparecer se
       // retira cuando el fundido ha terminado. Un enlace a opacidad 0 sigue
       // siendo enfocable con el tabulador y sigue leyéndose en voz alta.
       if (dentro) s.setProperty(`--va${i}`, 'visible');
     }
     clearTimeout(this.relojOcultar);
-    this.relojOcultar = window.setTimeout(
-      () => s.setProperty(`--va${1 - juego}`, 'hidden'),
-      HeroCapasComponent.DUR,
-    );
+    this.relojOcultar = window.setTimeout(() => {
+      for (let i = 0; i < 3; i++) if (i !== n) s.setProperty(`--va${i}`, 'hidden');
+    }, HeroCapasComponent.DUR);
 
     /**
      * Mientras al hero le quede un paso hacia abajo, el dedo no puede arrastrar
@@ -421,5 +437,16 @@ export class HeroCapasComponent implements OnDestroy {
 
   irAlMenu(): void {
     this.store.go('menu');
+  }
+
+  /**
+   * Baja hasta donde acaba el hero, que es donde empieza el libro -el de
+   * escritorio o el del teléfono, el que esté montado-. Se mide el propio hero
+   * en vez de buscar el libro: así no hace falta saber cuál de los dos toca.
+   */
+  irALaHistoria(): void {
+    const reducido = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+    const fin = window.scrollY + this.host.nativeElement.getBoundingClientRect().bottom;
+    window.scrollTo({ top: fin, behavior: reducido ? 'auto' : 'smooth' });
   }
 }
