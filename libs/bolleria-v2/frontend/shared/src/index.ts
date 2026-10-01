@@ -7,6 +7,7 @@ export * from './lib/core/models';
 export * from './lib/core/bolleria.store';
 export * from './lib/core/whatsapp';
 export * from './lib/core/scroll-lock';
+export * from './lib/core/freno-de-pista';
 
 // data
 export * from './lib/data/menu-data';

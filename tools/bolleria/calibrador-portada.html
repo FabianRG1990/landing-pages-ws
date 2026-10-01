@@ -1,0 +1,1152 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Calibrador de la portada — libro 2026</title>
+<style>
+  :root{
+    --fondo:#14120f; --panel:#1d1a16; --borde:#332e26; --tinta:#e8e1d4;
+    --suave:#9b9184; --oro:#C8912A; --clave:#e0a33c; --sin:#5a3030; --auto:#3d4f5c;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0}
+  body{
+    background:var(--fondo); color:var(--tinta);
+    font:13px/1.45 ui-sans-serif,system-ui,"Segoe UI",sans-serif;
+    display:flex; flex-direction:column; overflow:hidden;
+  }
+  header{
+    display:flex; align-items:center; gap:14px; padding:8px 14px;
+    border-bottom:1px solid var(--borde); background:var(--panel); flex:0 0 auto;
+  }
+  header h1{font-size:14px;margin:0;font-weight:600;letter-spacing:.02em}
+  header h1 small{color:var(--suave);font-weight:400}
+  .crece{flex:1}
+  main{flex:1;display:flex;min-height:0}
+  #lienzo-caja{flex:1;position:relative;min-width:0;background:#0b0a09}
+  #lienzo{position:absolute;inset:0;width:100%;height:100%;cursor:crosshair;display:block}
+  #lupa{
+    position:absolute;right:12px;top:12px;width:240px;height:240px;
+    border:1px solid var(--borde);border-radius:4px;background:#000;
+    pointer-events:none;box-shadow:0 6px 24px #000a
+  }
+  aside{
+    flex:0 0 268px; border-left:1px solid var(--borde); background:var(--panel);
+    overflow-y:auto; padding:10px 12px 40px;
+  }
+  aside h2{
+    font-size:11px;text-transform:uppercase;letter-spacing:.09em;color:var(--suave);
+    margin:16px 0 7px;font-weight:600;
+  }
+  aside h2:first-child{margin-top:2px}
+  .fila{display:flex;align-items:center;gap:8px;margin:6px 0}
+  .fila label{flex:1;color:var(--suave)}
+  input[type=range]{width:100%;accent-color:var(--oro)}
+  button{
+    font:inherit;background:#2a2620;color:var(--tinta);border:1px solid var(--borde);
+    border-radius:4px;padding:5px 9px;cursor:pointer;
+  }
+  button:hover{background:#39332a}
+  button.on{background:var(--oro);border-color:var(--oro);color:#1a1509;font-weight:600}
+  button.ancho{width:100%;margin-top:6px}
+  button.peligro{border-color:#6b3a3a}
+  .rejilla2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+  .rejilla4{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}
+  table.coords{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;font-size:12px}
+  table.coords td{padding:2px 0;color:var(--suave)}
+  table.coords td.v{color:var(--tinta);text-align:right}
+  table.coords tr.sel td{color:var(--clave)}
+  footer{
+    flex:0 0 auto;border-top:1px solid var(--borde);background:var(--panel);
+    padding:6px 14px 9px;display:flex;flex-direction:column;gap:5px;
+  }
+  #tira{width:100%;height:30px;display:block;cursor:pointer}
+  .leyenda{display:flex;gap:14px;color:var(--suave);font-size:11px;align-items:center}
+  .pt{display:inline-block;width:9px;height:9px;border-radius:2px;vertical-align:-1px;margin-right:4px}
+  kbd{
+    background:#2a2620;border:1px solid var(--borde);border-bottom-width:2px;border-radius:3px;
+    padding:0 4px;font:11px ui-monospace,monospace
+  }
+  #cargando{
+    position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    flex-direction:column;gap:10px;background:#0b0a09;z-index:5;color:var(--suave)
+  }
+  #barra{width:260px;height:3px;background:#2a2620;border-radius:2px;overflow:hidden}
+  #barra i{display:block;height:100%;width:0;background:var(--oro)}
+  #aviso{color:var(--clave);font-size:11px;min-height:15px}
+  .ayuda{color:var(--suave);font-size:11px;line-height:1.7}
+  .ayuda b{color:var(--tinta);font-weight:500}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Calibrador de la portada <small>— la foto de la primera hoja, cuadro a cuadro</small></h1>
+  <span class="crece"></span>
+  <span id="aviso"></span>
+  <button id="bAyuda">Teclas</button>
+</header>
+
+<main>
+  <div id="lienzo-caja">
+    <canvas id="lienzo"></canvas>
+    <canvas id="lupa" width="240" height="240"></canvas>
+    <div id="cargando"><span id="txtCargando">Buscando los archivos…</span><div id="barra"><i></i></div></div>
+  </div>
+
+  <aside>
+    <h2>Cuadro</h2>
+    <div class="fila">
+      <button id="bAnt">◀</button>
+      <input id="numCuadro" type="number" style="width:64px;background:#2a2620;color:var(--tinta);border:1px solid var(--borde);border-radius:4px;padding:4px 6px">
+      <button id="bSig">▶</button>
+      <button id="bPlay" title="Reproducir el tramo">▶︎ ver</button>
+    </div>
+    <div class="fila">
+      <label>Sentido</label>
+      <select id="sentido" style="flex:2;background:#2a2620;color:var(--tinta);border:1px solid var(--borde);border-radius:4px;padding:3px">
+        <option value="-1" selected>abierto → cerrado</option>
+        <option value="1">cerrado → abierto</option>
+      </select>
+    </div>
+    <div class="fila">
+      <label>Velocidad</label>
+      <select id="fps" style="background:#2a2620;color:var(--tinta);border:1px solid var(--borde);border-radius:4px;padding:3px">
+        <option value="8">8 c/s</option>
+        <option value="15" selected>15 c/s</option>
+        <option value="30">30 c/s</option>
+        <option value="60">60 c/s (real)</option>
+      </select>
+    </div>
+
+    <h2>Este cuadro</h2>
+    <div class="rejilla2">
+      <button id="bCopiaAnt" title="Tecla A">⬅ Copiar del anterior</button>
+      <button id="bCopiaSig" title="Tecla S">Copiar del siguiente ➡</button>
+    </div>
+    <div class="rejilla2" style="margin-top:6px">
+      <button id="bClave">Fijar clave</button>
+      <button id="bSin">Sin foto</button>
+    </div>
+    <button id="bAuto" class="ancho">Soltar (interpolado)</button>
+    <div id="alerta" style="display:none;margin-top:6px;padding:5px 7px;border-radius:4px;
+      background:#4a1f1f;border:1px solid #7a3232;color:#ffc9c9;font-size:11px"></div>
+    <div class="fila" style="margin-top:8px">
+      <label>Esquina</label>
+      <div class="rejilla4" style="flex:2">
+        <button data-esq="0">1</button><button data-esq="1">2</button>
+        <button data-esq="3">4</button><button data-esq="2">3</button>
+      </div>
+    </div>
+    <table class="coords" id="tCoords"></table>
+
+    <h2>Vista</h2>
+    <div class="fila"><label>Opacidad de la foto</label><span id="vOpac">100%</span></div>
+    <input id="opac" type="range" min="0" max="100" value="100">
+    <div class="rejilla2" style="margin-top:6px">
+      <button id="bRejilla">Rejilla</button>
+      <button id="bCebolla" class="on">Piel de cebolla</button>
+    </div>
+    <div class="rejilla2" style="margin-top:6px">
+      <button id="bContorno" class="on">Contorno</button>
+      <button id="bAjustar">Encajar</button>
+    </div>
+
+    <h2>Entrega</h2>
+    <button id="bGuarda" class="ancho" style="background:#2f6b3a;border-color:#3d8a4c;font-weight:600">
+      Guardar en el proyecto
+    </button>
+    <div id="estadoGuarda" class="ayuda" style="margin:5px 0 8px">…</div>
+    <button id="bDescarga" class="ancho">Descargar el montaje</button>
+    <button id="bCopia" class="ancho">Copiar al portapapeles</button>
+    <button id="bImporta" class="ancho">Importar una calibración…</button>
+    <input id="fImporta" type="file" accept=".json" hidden>
+    <button id="bReinicia" class="ancho peligro">Reiniciar desde el montaje</button>
+
+    <h2>Teclas</h2>
+    <div class="ayuda" id="panelAyuda">
+      <b>← →</b> cuadro (con <kbd>Mayús</kbd>, de 10 en 10)<br>
+      <b>↑ ↓ ← →</b> con esquina elegida: mover 1&nbsp;px (<kbd>Mayús</kbd> 10)<br>
+      <b>A</b> copiar del cuadro anterior · <b>S</b> del siguiente<br>
+      <b>Ctrl + flechas</b> mover el cuadrilátero entero<br>
+      <b>1 2 3 4</b> elegir esquina · <b>0</b> soltarla<br>
+      <b>+ −</b> agrandar o encoger (<kbd>Mayús</kbd> de 5 en 5&nbsp;%)<br>
+      <b>K</b> fijar clave · <b>X</b> sin foto · <b>U</b> soltar<br>
+      <b>Espacio</b> reproducir · <b>G</b> rejilla · <b>C</b> cebolla<br>
+      <b>[ ]</b> opacidad · <b>rueda</b> acercar · <b>Alt+arrastrar</b> desplazar
+    </div>
+  </aside>
+</main>
+
+<footer>
+  <canvas id="tira"></canvas>
+  <div class="leyenda">
+    <span><i class="pt" style="background:var(--clave)"></i>clave (puesta a mano)</span>
+    <span><i class="pt" style="background:var(--auto)"></i>interpolado</span>
+    <span><i class="pt" style="background:var(--sin)"></i>sin foto</span>
+    <span class="crece"></span>
+    <span id="cuenta"></span>
+  </div>
+</footer>
+
+<script>
+'use strict';
+
+/* ───────────────────────────────────────────────────────────────────────────
+   Calibrador de la portada — libro 2026.
+
+   Coloca A MANO el cuadrilatero `izq` del montaje: las cuatro esquinas del
+   area de lectura de la pagina izquierda en cada cuadro de la apertura. Es lo
+   mismo que hacen los calibradores del libro anterior, pero para este tramo.
+
+   Lo que se ve encima del video es el MISMO panel que pinta la aplicacion
+   (`pintaFoto`) deformado por la MISMA homografia (`cuadHomografia`) con la
+   misma malla de 10x10. No es una aproximacion: si aqui cuadra, en el libro
+   cuadra.
+
+   Solo se tocan los cuadros DESDE..HASTA y solo la clave `izq`. Todo lo demas
+   del montaje -`der`, `ocuDer`, el cierre- se copia tal cual.
+   ─────────────────────────────────────────────────────────────────────────── */
+
+const VIDEO_W = 1920, VIDEO_H = 1080;
+
+/** Area de lectura de la pagina DERECHA en reposo, en pixeles del video. */
+const AREA_X0 = 1057, AREA_X1 = 1768, AREA_Y0 = 88, AREA_Y1 = 933;
+const PANEL_W = AREA_X1 - AREA_X0;   // 711
+const PANEL_H = AREA_Y1 - AREA_Y0;   // 845
+const LOMO = 962;
+const AREA_IZQ_X0 = 2 * LOMO - AREA_X1;  // 156, la izquierda es su espejo
+
+/** El cuadrilatero de reposo. El ultimo cuadro tiene que ser EXACTAMENTE este. */
+const REPOSO_IZQ = [
+  [AREA_IZQ_X0, AREA_Y0],
+  [AREA_IZQ_X0 + PANEL_W, AREA_Y0],
+  [AREA_IZQ_X0 + PANEL_W, AREA_Y1],
+  [AREA_IZQ_X0, AREA_Y1],
+];
+
+/**
+ * El tramo que se calibra. Empieza en f033 porque es donde la portada empieza a
+ * enseñar su cara: antes va de canto o de espaldas y ahi no hay nada que
+ * colocar. Termina en el reposo, que es donde arranca la geometria estatica.
+ */
+const DESDE = 33, HASTA = 102;
+const SUB = 10;                 // la malla del compositor
+const FOTO_BORDE = 0.05, FOTO_PAPEL = '#F7F0E2';
+const FOTO_URL = 'historia-1.webp';
+const LS = 'calib-portada-v1';
+
+/**
+ * Donde estan los assets. Se prueba en orden hasta que uno responda.
+ *
+ * Sirviendo la raiz del repositorio, esta pagina cuelga de /tools/bolleria/ y
+ * los assets estan dos niveles mas arriba; copiada a la raiz del servidor de
+ * desarrollo, estan en `assets/`. Se mira la ruta para probar primero la que
+ * toca y no dejar un 404 en la consola.
+ */
+const EN_TOOLS = location.pathname.includes('/tools/bolleria/');
+const CANDIDATOS = [
+  new URLSearchParams(location.search).get('base'),
+  ...(EN_TOOLS
+    ? ['../../apps/bolleria-v2/public/assets/', 'assets/']
+    : ['assets/', '../../apps/bolleria-v2/public/assets/']),
+  '/apps/bolleria-v2/public/assets/',
+].filter(Boolean);
+
+// ─── Estado ─────────────────────────────────────────────────────────────────
+let BASE = '';
+let montaje = null;
+const cuadros = {};        // f -> HTMLImageElement
+let panel = null;          // el canvas de la foto, PANEL_W x PANEL_H
+let cuadro = 44;
+let sel = -1;              // esquina elegida, -1 = ninguna
+/** f -> {t:'clave', q:[[x,y]x4]} | {t:'sin'}. Lo que no esta aqui, se interpola. */
+let marcas = {};
+let opac = 1, verRejilla = false, verCebolla = true, verContorno = true;
+let zoom = 1, vcx = VIDEO_W / 2, vcy = VIDEO_H / 2;
+let esc = 1, offX = 0, offY = 0, escFit = 1;
+let tocando = null;        // {tipo:'esq'|'todo'|'vista', ...}
+let raton = null;          // ultimo punto del raton, en coordenadas del video
+let tocado = false;        // si hay cambios sin exportar
+
+const lienzo = document.getElementById('lienzo');
+const ctx = lienzo.getContext('2d');
+const lupa = document.getElementById('lupa');
+const clupa = lupa.getContext('2d');
+const tira = document.getElementById('tira');
+const ctira = tira.getContext('2d');
+
+// ─── Geometria ──────────────────────────────────────────────────────────────
+
+/**
+ * La transformada que lleva el panel (u,v de 0 a 1) al cuadrilatero `d`.
+ * Copia literal de `cuadHomografia` en about-book-2026.component.ts: si aqui
+ * se aproximara con una afin, lo calibrado no valdria para el libro.
+ */
+function homografia(d) {
+  const [p0, p1, p2, p3] = d;
+  const sx = p0.x - p1.x + p2.x - p3.x;
+  const sy = p0.y - p1.y + p2.y - p3.y;
+  let g = 0, h = 0;
+  if (Math.abs(sx) > 1e-9 || Math.abs(sy) > 1e-9) {
+    const dx1 = p1.x - p2.x, dx2 = p3.x - p2.x;
+    const dy1 = p1.y - p2.y, dy2 = p3.y - p2.y;
+    const den = dx1 * dy2 - dy1 * dx2;
+    if (Math.abs(den) > 1e-9) {
+      g = (sx * dy2 - sy * dx2) / den;
+      h = (dx1 * sy - dy1 * sx) / den;
+    }
+  }
+  const a = p1.x - p0.x + g * p1.x, b = p3.x - p0.x + h * p3.x;
+  const e = p1.y - p0.y + g * p1.y, f = p3.y - p0.y + h * p3.y;
+  return (u, v) => {
+    const w = g * u + h * v + 1 || 1e-9;
+    return { x: (a * u + b * v + p0.x) / w, y: (e * u + f * v + p0.y) / w };
+  };
+}
+
+/** Malla celda a celda, igual que el camino sin GPU del compositor. */
+function estampaMalla(c, img, mapa) {
+  const n = SUB, m = 2;
+  for (let gy = 0; gy < n; gy++) {
+    for (let gx = 0; gx < n; gx++) {
+      const u0 = gx / n, v0 = gy / n, u1 = (gx + 1) / n, v1 = (gy + 1) / n;
+      const a = mapa(u0, v0), b = mapa(u1, v0), d = mapa(u0, v1), e = mapa(u1, v1);
+      const sw = (u1 - u0) * img.width, sh = (v1 - v0) * img.height;
+      const cx = (a.x + b.x + d.x + e.x) / 4, cy = (a.y + b.y + d.y + e.y) / 4;
+      c.save();
+      c.beginPath();
+      let primero = true;
+      for (const p of [a, b, e, d]) {
+        const dx = p.x - cx, dy = p.y - cy;
+        const l = Math.hypot(dx, dy) || 1;
+        const x = p.x + (dx / l) * 0.7, y = p.y + (dy / l) * 0.7;
+        if (primero) { c.moveTo(x, y); primero = false; } else { c.lineTo(x, y); }
+      }
+      c.closePath();
+      c.clip();
+      c.transform((b.x - a.x) / sw, (b.y - a.y) / sw, (d.x - a.x) / sh, (d.y - a.y) / sh, a.x, a.y);
+      c.drawImage(img, u0 * img.width - m, v0 * img.height - m, sw + m * 2, sh + m * 2,
+                  -m, -m, sw + m * 2, sh + m * 2);
+      c.restore();
+    }
+  }
+}
+
+// ─── Las marcas y la interpolacion ──────────────────────────────────────────
+
+function esClave(f) { return marcas[f] && marcas[f].t === 'clave'; }
+function esSin(f) { return marcas[f] && marcas[f].t === 'sin'; }
+
+function claveAntes(f) { for (let i = f - 1; i >= DESDE; i--) if (esClave(i)) return i; return -1; }
+function claveDespues(f) { for (let i = f + 1; i <= HASTA; i++) if (esClave(i)) return i; return -1; }
+
+/**
+ * El cuadrilatero de un cuadro, o null si ahi no hay foto.
+ *
+ * Entre dos claves se interpola esquina a esquina, que es exactamente lo que
+ * hace `esquinas()` en el componente entre dos cuadros del montaje. Antes de la
+ * primera clave no hay nada: la hoja aun va de canto y pintar ahi es inventar.
+ */
+function quadDe(f) {
+  if (esSin(f)) return null;
+  if (esClave(f)) return marcas[f].q;
+  const a = claveAntes(f), b = claveDespues(f);
+  if (a < 0 && b < 0) return null;
+  if (a < 0) return null;
+  if (b < 0) return marcas[a].q.map((p) => p.slice());
+  const t = (f - a) / (b - a);
+  return marcas[a].q.map((p, i) => [
+    p[0] + (marcas[b].q[i][0] - p[0]) * t,
+    p[1] + (marcas[b].q[i][1] - p[1]) * t,
+  ]);
+}
+
+/**
+ * Que le pasa a un cuadrilatero, si es que le pasa algo.
+ *
+ * Dos averias distintas y las dos invisibles a simple vista en un cuadro suelto:
+ * si el recorrido se invierte, la foto sale espejada; si deja de ser convexo
+ * -una esquina cruzada por delante de otra-, la homografia se pliega sobre si
+ * misma y la malla se rompe. Vale la pena pararlas aqui y no en el libro.
+ */
+function revisa(q) {
+  if (!q) return null;
+  for (const p of q) if (!Number.isFinite(p[0]) || !Number.isFinite(p[1])) return 'con valores imposibles';
+  let area = 0;
+  for (let i = 0; i < 4; i++) {
+    const a = q[i], b = q[(i + 1) % 4];
+    area += a[0] * b[1] - b[0] * a[1];
+  }
+  if (area <= 0) return 'del revés: la foto saldría espejada';
+  let pos = 0, neg = 0;
+  for (let i = 0; i < 4; i++) {
+    const a = q[i], b = q[(i + 1) % 4], c = q[(i + 2) % 4];
+    const z = (b[0] - a[0]) * (c[1] - b[1]) - (b[1] - a[1]) * (c[0] - b[0]);
+    if (z > 0) pos++; else if (z < 0) neg++;
+  }
+  if (pos && neg) return 'cruzado: una esquina pasó por delante de otra';
+  return null;
+}
+
+/** Todos los cuadros del tramo que tengan algo raro. */
+function revisaTodo() {
+  const malos = [];
+  for (let f = DESDE; f <= HASTA; f++) if (revisa(quadDe(f))) malos.push(f);
+  return malos;
+}
+
+/**
+ * El ultimo cuadro tiene que coincidir con el reposo.
+ *
+ * Al terminar la apertura el libro suelta la animacion y pasa a la geometria
+ * estatica. Si el ultimo cuadrilatero no es exactamente ese rectangulo, la foto
+ * pega un brinco en el momento del relevo, y es un brinco que no se ve
+ * calibrando cuadro a cuadro porque cada cuadro por separado esta bien.
+ */
+function reposoDesviado() {
+  const q = quadDe(HASTA);
+  if (!q) return 'el cuadro ' + HASTA + ' se quedó sin foto, y ahí empieza el libro abierto';
+  let d = 0;
+  q.forEach((p, i) => {
+    d = Math.max(d, Math.abs(p[0] - REPOSO_IZQ[i][0]), Math.abs(p[1] - REPOSO_IZQ[i][1]));
+  });
+  return d > 0.5
+    ? 'el cuadro ' + HASTA + ' está a ' + d.toFixed(0) + ' px del reposo: al soltar la animación habrá un brinco'
+    : null;
+}
+
+/**
+ * Convierte el cuadro actual en clave, partiendo de lo que ya se ve.
+ *
+ * Si ahi no se ve nada -antes de la primera clave, o marcado «sin foto»- se
+ * arranca de la clave mas cercana, no del reposo: el reposo pondria la foto
+ * plana en mitad del cuadro y habria que traerla desde el otro lado de la
+ * pantalla.
+ */
+function fijaClave(f) {
+  let q = quadDe(f);
+  if (!q) {
+    const a = claveAntes(f), b = claveDespues(f);
+    const cerca = a < 0 ? b : b < 0 ? a : (f - a <= b - f ? a : b);
+    q = cerca < 0 ? REPOSO_IZQ : marcas[cerca].q;
+  }
+  marcas[f] = { t: 'clave', q: q.map((p) => p.slice()) };
+}
+
+/** Escala el cuadrilatero alrededor de su centro. */
+function escala(k) {
+  fijaClave(cuadro);
+  const q = marcas[cuadro].q;
+  const cx = (q[0][0] + q[1][0] + q[2][0] + q[3][0]) / 4;
+  const cy = (q[0][1] + q[1][1] + q[2][1] + q[3][1]) / 4;
+  for (const p of q) { p[0] = cx + (p[0] - cx) * k; p[1] = cy + (p[1] - cy) * k; }
+  tocado = true; guarda(); pinta();
+}
+
+// ─── Carga ──────────────────────────────────────────────────────────────────
+
+async function buscaBase() {
+  for (const b of CANDIDATOS) {
+    try {
+      const r = await fetch(b + 'libro-2026-montaje.json', { cache: 'no-store' });
+      if (r.ok) return { b, m: await r.json() };
+    } catch (e) { /* se prueba el siguiente */ }
+  }
+  return null;
+}
+
+function cargaImagen(url) {
+  return new Promise((ok, mal) => {
+    const i = new Image();
+    i.onload = () => ok(i);
+    i.onerror = () => mal(new Error(url));
+    i.src = url;
+  });
+}
+
+/**
+ * La foto como la pinta la aplicacion: papel con borde, el negro levantado y
+ * algo menos de saturacion. Copia de `pintaFoto`.
+ */
+function pintaFoto(img) {
+  const c = document.createElement('canvas');
+  c.width = PANEL_W; c.height = PANEL_H;
+  const x = c.getContext('2d');
+  const borde = Math.round(Math.min(PANEL_W, PANEL_H) * FOTO_BORDE);
+  x.fillStyle = FOTO_PAPEL;
+  x.fillRect(0, 0, PANEL_W, PANEL_H);
+  const iw = PANEL_W - borde * 2, ih = PANEL_H - borde * 2;
+  const rel = iw / ih;
+  let sw = img.naturalWidth, sh = Math.round(sw / rel);
+  if (sh > img.naturalHeight) { sh = img.naturalHeight; sw = Math.round(sh * rel); }
+  x.drawImage(img, (img.naturalWidth - sw) / 2, (img.naturalHeight - sh) / 2, sw, sh, borde, borde, iw, ih);
+  x.save();
+  x.globalCompositeOperation = 'lighten';
+  x.fillStyle = 'rgb(28,24,20)';
+  x.fillRect(borde, borde, iw, ih);
+  x.globalCompositeOperation = 'saturation';
+  x.globalAlpha = 0.14;
+  x.fillStyle = '#808080';
+  x.fillRect(borde, borde, iw, ih);
+  x.restore();
+  return c;
+}
+
+async function arranca() {
+  const txt = document.getElementById('txtCargando');
+  const barra = document.querySelector('#barra i');
+
+  const enc = await buscaBase();
+  if (!enc) {
+    txt.textContent = 'No encuentro libro-2026-montaje.json. Sirve la raiz del repositorio '
+      + '(npx http-server . -p 4311) y abre /tools/bolleria/calibrador-portada.html';
+    return;
+  }
+  BASE = enc.b;
+  montaje = enc.m;
+
+  txt.textContent = 'Cargando la foto y ' + (HASTA - DESDE + 1) + ' cuadros…';
+  panel = pintaFoto(await cargaImagen(BASE + FOTO_URL));
+
+  let hechos = 0;
+  const total = HASTA - DESDE + 1;
+  await Promise.all(Array.from({ length: total }, (_, k) => {
+    const f = DESDE + k;
+    const n = String(f).padStart(3, '0');
+    return cargaImagen(BASE + 'libro-2026-frames/f' + n + '.webp').then((im) => {
+      cuadros[f] = im;
+      barra.style.width = (++hechos / total * 100) + '%';
+    }).catch(() => { hechos++; });
+  }));
+
+  if (!carga()) siembra();
+  await compruebaServidor();
+  document.getElementById('cargando').style.display = 'none';
+  redimensiona();
+  pinta();
+}
+
+/**
+ * Punto de partida: unas pocas claves sacadas del montaje que hay ahora, para
+ * no empezar con la pagina en blanco.
+ *
+ * Del 94 en adelante el libro ya esta quieto y abierto, asi que ahi se clava el
+ * reposo y no hay nada que decidir. Por debajo del 44 el montaje no trae nada,
+ * asi que se siembra con el cuadrilatero del 44: esta mal a proposito -la
+ * pagina todavia esta escorzada- pero da algo que arrastrar en vez de la nada.
+ */
+function siembra() {
+  marcas = {};
+  const conIzq = [];
+  for (let f = DESDE; f <= HASTA; f++) if (montaje[String(f)] && montaje[String(f)].izq) conIzq.push(f);
+  for (let k = 0; k < conIzq.length; k += 10) {
+    const f = conIzq[k];
+    marcas[f] = { t: 'clave', q: montaje[String(f)].izq.map((p) => p.slice()) };
+  }
+  const primero = conIzq.length ? montaje[String(conIzq[0])].izq : REPOSO_IZQ;
+  for (const f of [DESDE + 1, DESDE + 6]) {
+    if (f < (conIzq[0] ?? HASTA)) marcas[f] = { t: 'clave', q: primero.map((p) => p.slice()) };
+  }
+  // El primer cuadro del tramo arranca sin foto: el corte entre «no hay» y «ya
+  // se ve» es una decision que se toma mirando, no por omision.
+  marcas[DESDE] = { t: 'sin' };
+  // El reposo es innegociable: el ultimo cuadro tiene que caer clavado donde
+  // empieza la geometria estatica, o al soltar la animacion habria un salto.
+  marcas[HASTA] = { t: 'clave', q: REPOSO_IZQ.map((p) => p.slice()) };
+  marcas[HASTA - 8] = { t: 'clave', q: REPOSO_IZQ.map((p) => p.slice()) };
+  cuadro = DESDE + 1;
+}
+
+function guarda() {
+  try { localStorage.setItem(LS, JSON.stringify({ v: 1, marcas, cuadro })); } catch (e) { /* lleno */ }
+}
+function carga() {
+  try {
+    const s = JSON.parse(localStorage.getItem(LS) || 'null');
+    if (!s || !s.marcas) return false;
+    marcas = s.marcas;
+    cuadro = Math.min(HASTA, Math.max(DESDE, s.cuadro || DESDE));
+    return true;
+  } catch (e) { return false; }
+}
+
+// ─── Vista ──────────────────────────────────────────────────────────────────
+
+function redimensiona() {
+  const caja = document.getElementById('lienzo-caja');
+  const w = caja.clientWidth, h = caja.clientHeight;
+  const dpr = window.devicePixelRatio || 1;
+  lienzo.width = Math.round(w * dpr);
+  lienzo.height = Math.round(h * dpr);
+  escFit = Math.min(w / VIDEO_W, h / VIDEO_H);
+  actualizaVista();
+  tira.width = Math.round(tira.clientWidth * dpr);
+  tira.height = Math.round(30 * dpr);
+}
+
+function actualizaVista() {
+  const caja = document.getElementById('lienzo-caja');
+  esc = escFit * zoom;
+  offX = caja.clientWidth / 2 - vcx * esc;
+  offY = caja.clientHeight / 2 - vcy * esc;
+}
+
+function aVideo(ev) {
+  const r = lienzo.getBoundingClientRect();
+  return { x: (ev.clientX - r.left - offX) / esc, y: (ev.clientY - r.top - offY) / esc };
+}
+
+// ─── Pintado ────────────────────────────────────────────────────────────────
+
+function pinta() {
+  const dpr = window.devicePixelRatio || 1;
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.clearRect(0, 0, lienzo.width, lienzo.height);
+  ctx.setTransform(esc * dpr, 0, 0, esc * dpr, offX * dpr, offY * dpr);
+  ctx.imageSmoothingQuality = 'high';
+
+  const im = cuadros[cuadro];
+  if (im) ctx.drawImage(im, 0, 0, VIDEO_W, VIDEO_H);
+  else { ctx.fillStyle = '#000'; ctx.fillRect(0, 0, VIDEO_W, VIDEO_H); }
+
+  const q = quadDe(cuadro);
+  const lw = 1.6 / esc;
+
+  if (verCebolla) {
+    for (const [d, color] of [[-1, 'rgba(90,170,255,.55)'], [1, 'rgba(255,110,110,.55)']]) {
+      const f = cuadro + d;
+      if (f < DESDE || f > HASTA) continue;
+      const v = quadDe(f);
+      if (!v) continue;
+      contorno(v, color, lw * 0.8, [6 / esc, 5 / esc]);
+    }
+  }
+
+  if (q) {
+    if (opac > 0) {
+      ctx.save();
+      ctx.globalAlpha = opac;
+      estampaMalla(ctx, panel, homografia(q.map((p) => ({ x: p[0], y: p[1] }))));
+      ctx.restore();
+    }
+    if (verRejilla) {
+      const mapa = homografia(q.map((p) => ({ x: p[0], y: p[1] })));
+      ctx.save();
+      ctx.strokeStyle = 'rgba(0,255,190,.5)';
+      ctx.lineWidth = lw * 0.6;
+      for (let i = 1; i < SUB; i++) {
+        const t = i / SUB;
+        ctx.beginPath();
+        for (let j = 0; j <= SUB; j++) {
+          const p = mapa(j / SUB, t);
+          j ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y);
+        }
+        ctx.stroke();
+        ctx.beginPath();
+        for (let j = 0; j <= SUB; j++) {
+          const p = mapa(t, j / SUB);
+          j ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y);
+        }
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+    if (verContorno) {
+      contorno(q, esClave(cuadro) ? '#e0a33c' : '#7fd4ff', lw, null);
+      const r = 7 / esc;
+      q.forEach((p, i) => {
+        ctx.beginPath();
+        ctx.arc(p[0], p[1], i === sel ? r * 1.4 : r, 0, Math.PI * 2);
+        ctx.fillStyle = i === sel ? '#fff' : 'rgba(255,255,255,.75)';
+        ctx.fill();
+        ctx.lineWidth = lw;
+        ctx.strokeStyle = '#111';
+        ctx.stroke();
+        ctx.fillStyle = '#111';
+        ctx.font = (13 / esc) + 'px ui-sans-serif,sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(String(i + 1), p[0], p[1] + 0.5 / esc);
+      });
+    }
+  }
+
+  pintaLupa();
+  pintaTira();
+  refrescaMandos();
+}
+
+function contorno(q, color, lw, guion) {
+  ctx.save();
+  ctx.strokeStyle = color;
+  ctx.lineWidth = lw;
+  if (guion) ctx.setLineDash(guion);
+  ctx.beginPath();
+  ctx.moveTo(q[0][0], q[0][1]);
+  for (let i = 1; i < 4; i++) ctx.lineTo(q[i][0], q[i][1]);
+  ctx.closePath();
+  ctx.stroke();
+  ctx.restore();
+}
+
+/** Lupa: recorta del propio lienzo, asi que enseña exactamente lo que se ve. */
+function pintaLupa() {
+  const dpr = window.devicePixelRatio || 1;
+  const q = quadDe(cuadro);
+  const centro = sel >= 0 && q
+    ? { x: q[sel][0], y: q[sel][1] }
+    : raton || (q ? { x: q[0][0], y: q[0][1] } : null);
+  lupa.style.display = centro ? 'block' : 'none';
+  if (!centro) return;
+  clupa.setTransform(1, 0, 0, 1, 0, 0);
+  clupa.fillStyle = '#000';
+  clupa.fillRect(0, 0, 240, 240);
+  const Z = 5;
+  const lado = 240 / Z;
+  const sx = (offX + centro.x * esc) * dpr - (lado / 2) * dpr;
+  const sy = (offY + centro.y * esc) * dpr - (lado / 2) * dpr;
+  clupa.imageSmoothingEnabled = false;
+  clupa.drawImage(lienzo, sx, sy, lado * dpr, lado * dpr, 0, 0, 240, 240);
+  clupa.strokeStyle = 'rgba(255,255,255,.45)';
+  clupa.lineWidth = 1;
+  clupa.beginPath();
+  clupa.moveTo(120, 0); clupa.lineTo(120, 240);
+  clupa.moveTo(0, 120); clupa.lineTo(240, 120);
+  clupa.stroke();
+}
+
+function pintaTira() {
+  const dpr = window.devicePixelRatio || 1;
+  const w = tira.width, h = tira.height;
+  ctira.setTransform(1, 0, 0, 1, 0, 0);
+  ctira.clearRect(0, 0, w, h);
+  const n = HASTA - DESDE + 1;
+  const cw = w / n;
+  for (let k = 0; k < n; k++) {
+    const f = DESDE + k;
+    ctira.fillStyle = esClave(f) ? '#e0a33c' : esSin(f) ? '#5a3030' : quadDe(f) ? '#3d4f5c' : '#252220';
+    ctira.fillRect(k * cw + 0.5 * dpr, 6 * dpr, cw - 1 * dpr, h - 14 * dpr);
+    if (f % 10 === 0) {
+      ctira.fillStyle = '#9b9184';
+      ctira.font = (9 * dpr) + 'px ui-sans-serif,sans-serif';
+      ctira.textAlign = 'center';
+      ctira.fillText(String(f), k * cw + cw / 2, h - 2 * dpr);
+    }
+  }
+  const k = cuadro - DESDE;
+  ctira.strokeStyle = '#fff';
+  ctira.lineWidth = 2 * dpr;
+  ctira.strokeRect(k * cw, 5 * dpr, cw, h - 12 * dpr);
+}
+
+function refrescaMandos() {
+  document.getElementById('numCuadro').value = cuadro;
+  document.getElementById('bClave').classList.toggle('on', esClave(cuadro));
+  document.getElementById('bSin').classList.toggle('on', esSin(cuadro));
+  document.getElementById('vOpac').textContent = Math.round(opac * 100) + '%';
+  document.getElementById('bRejilla').classList.toggle('on', verRejilla);
+  document.getElementById('bCebolla').classList.toggle('on', verCebolla);
+  document.getElementById('bContorno').classList.toggle('on', verContorno);
+  document.querySelectorAll('[data-esq]').forEach((b) => {
+    b.classList.toggle('on', Number(b.dataset.esq) === sel);
+  });
+
+  const q = quadDe(cuadro);
+  const nombres = ['1 arriba-izq', '2 arriba-der', '3 abajo-der', '4 abajo-izq'];
+  document.getElementById('tCoords').innerHTML = q
+    ? q.map((p, i) => '<tr class="' + (i === sel ? 'sel' : '') + '"><td>' + nombres[i]
+        + '</td><td class="v">' + p[0].toFixed(1) + ', ' + p[1].toFixed(1) + '</td></tr>').join('')
+    : '<tr><td colspan="2">Aquí no se dibuja nada. Pulsa <b>K</b> para traer la foto.</td></tr>';
+
+  const mal = revisa(q);
+  const reposo = reposoDesviado();
+  const alerta = document.getElementById('alerta');
+  const partes = [];
+  if (mal) partes.push('Cuadrilátero ' + mal + '.');
+  if (reposo) partes.push('Cuidado: ' + reposo + '. <button id="bReposo" style="margin-top:5px">Clavar el reposo</button>');
+  alerta.style.display = partes.length ? 'block' : 'none';
+  if (partes.length) {
+    alerta.innerHTML = partes.join('<br>');
+    const br = document.getElementById('bReposo');
+    if (br) br.onclick = () => {
+      marcas[HASTA] = { t: 'clave', q: REPOSO_IZQ.map((p) => p.slice()) };
+      tocado = true; guarda(); pinta(); avisa('Reposo clavado en el ' + HASTA + '.');
+    };
+  }
+
+  let nc = 0, ns = 0;
+  for (let f = DESDE; f <= HASTA; f++) { if (esClave(f)) nc++; else if (esSin(f)) ns++; }
+  const malos = revisaTodo().length;
+  document.getElementById('cuenta').textContent =
+    nc + ' claves · ' + ns + ' sin foto · ' + (HASTA - DESDE + 1 - nc - ns) + ' interpolados'
+    + (malos ? ' · ⚠ ' + malos + ' con avería' : '')
+    + (tocado ? ' · sin guardar' : '');
+}
+
+function avisa(t) {
+  const e = document.getElementById('aviso');
+  e.textContent = t;
+  clearTimeout(avisa.tid);
+  avisa.tid = setTimeout(() => { e.textContent = ''; }, 2600);
+}
+
+// ─── Raton ──────────────────────────────────────────────────────────────────
+
+lienzo.addEventListener('pointerdown', (ev) => {
+  lienzo.setPointerCapture(ev.pointerId);
+  const p = aVideo(ev);
+  if (ev.altKey || ev.button === 1 || ev.button === 2) {
+    tocando = { tipo: 'vista', x: ev.clientX, y: ev.clientY, cx: vcx, cy: vcy };
+    return;
+  }
+  const q = quadDe(cuadro);
+  if (!q) return;
+  let mejor = -1, dm = 14 / esc;
+  q.forEach((c, i) => {
+    const d = Math.hypot(c[0] - p.x, c[1] - p.y);
+    if (d < dm) { dm = d; mejor = i; }
+  });
+  if (mejor >= 0) {
+    sel = mejor;
+    fijaClave(cuadro);
+    tocando = { tipo: 'esq', i: mejor, dx: q[mejor][0] - p.x, dy: q[mejor][1] - p.y };
+  } else if (dentro(q, p)) {
+    fijaClave(cuadro);
+    tocando = { tipo: 'todo', x: p.x, y: p.y, q: marcas[cuadro].q.map((c) => c.slice()) };
+  }
+  pinta();
+});
+
+lienzo.addEventListener('pointermove', (ev) => {
+  raton = aVideo(ev);
+  if (!tocando) { pintaLupa(); return; }
+  if (tocando.tipo === 'vista') {
+    vcx = tocando.cx - (ev.clientX - tocando.x) / esc;
+    vcy = tocando.cy - (ev.clientY - tocando.y) / esc;
+    actualizaVista();
+    pinta();
+    return;
+  }
+  const p = raton;
+  const q = marcas[cuadro].q;
+  if (tocando.tipo === 'esq') {
+    q[tocando.i][0] = p.x + tocando.dx;
+    q[tocando.i][1] = p.y + tocando.dy;
+  } else {
+    const dx = p.x - tocando.x, dy = p.y - tocando.y;
+    for (let i = 0; i < 4; i++) {
+      q[i][0] = tocando.q[i][0] + dx;
+      q[i][1] = tocando.q[i][1] + dy;
+    }
+  }
+  tocado = true;
+  pinta();
+});
+
+lienzo.addEventListener('pointerup', () => { if (tocando) { tocando = null; guarda(); } });
+lienzo.addEventListener('contextmenu', (ev) => ev.preventDefault());
+
+lienzo.addEventListener('wheel', (ev) => {
+  ev.preventDefault();
+  const antes = aVideo(ev);
+  zoom = Math.min(10, Math.max(1, zoom * (ev.deltaY < 0 ? 1.15 : 1 / 1.15)));
+  actualizaVista();
+  const despues = aVideo(ev);
+  vcx += antes.x - despues.x;
+  vcy += antes.y - despues.y;
+  actualizaVista();
+  pinta();
+}, { passive: false });
+
+function dentro(q, p) {
+  let d = false;
+  for (let i = 0, j = 3; i < 4; j = i++) {
+    const a = q[i], b = q[j];
+    if ((a[1] > p.y) !== (b[1] > p.y)
+        && p.x < ((b[0] - a[0]) * (p.y - a[1])) / (b[1] - a[1]) + a[0]) d = !d;
+  }
+  return d;
+}
+
+tira.addEventListener('pointerdown', scrub);
+tira.addEventListener('pointermove', (ev) => { if (ev.buttons) scrub(ev); });
+function scrub(ev) {
+  const r = tira.getBoundingClientRect();
+  const k = Math.floor(((ev.clientX - r.left) / r.width) * (HASTA - DESDE + 1));
+  vaA(DESDE + Math.min(HASTA - DESDE, Math.max(0, k)));
+}
+
+// ─── Mandos ─────────────────────────────────────────────────────────────────
+
+function vaA(f) {
+  cuadro = Math.min(HASTA, Math.max(DESDE, f));
+  guarda();
+  pinta();
+}
+
+document.getElementById('bAnt').onclick = () => vaA(cuadro - 1);
+document.getElementById('bSig').onclick = () => vaA(cuadro + 1);
+document.getElementById('numCuadro').onchange = (e) => vaA(Number(e.target.value));
+document.getElementById('opac').oninput = (e) => { opac = Number(e.target.value) / 100; pinta(); };
+document.getElementById('bRejilla').onclick = () => { verRejilla = !verRejilla; pinta(); };
+document.getElementById('bCebolla').onclick = () => { verCebolla = !verCebolla; pinta(); };
+document.getElementById('bContorno').onclick = () => { verContorno = !verContorno; pinta(); };
+document.getElementById('bAjustar').onclick = () => {
+  zoom = 1; vcx = VIDEO_W / 2; vcy = VIDEO_H / 2; actualizaVista(); pinta();
+};
+document.querySelectorAll('[data-esq]').forEach((b) => {
+  b.onclick = () => { const i = Number(b.dataset.esq); sel = sel === i ? -1 : i; pinta(); };
+});
+
+document.getElementById('bClave').onclick = () => {
+  if (esClave(cuadro)) { delete marcas[cuadro]; } else { fijaClave(cuadro); }
+  tocado = true; guarda(); pinta();
+};
+document.getElementById('bSin').onclick = () => {
+  if (esSin(cuadro)) delete marcas[cuadro]; else marcas[cuadro] = { t: 'sin' };
+  tocado = true; guarda(); pinta();
+};
+document.getElementById('bAuto').onclick = () => {
+  delete marcas[cuadro]; tocado = true; guarda(); pinta();
+};
+
+/**
+ * Copia la posicion del cuadro vecino y la fija aqui como clave.
+ *
+ * Es la forma rapida de trabajar hacia atras: se parte de un cuadro que ya esta
+ * bien, se trae tal cual al de al lado y solo se corrige lo que haya cambiado,
+ * en vez de recolocar las cuatro esquinas desde cero.
+ */
+function copiaVecino(d) {
+  const v = cuadro + d;
+  if (v < DESDE || v > HASTA) { avisa('No hay cuadro ' + (d < 0 ? 'anterior' : 'siguiente') + '.'); return; }
+  const q = quadDe(v);
+  if (!q) { avisa('En el ' + v + ' no hay foto que copiar.'); return; }
+  // Antes de copiar, el cuadro de origen se clava donde esta.
+  //
+  // Si no, al volverse clave este, el tramo interpolado se parte y el vecino se
+  // recalcula entre otras dos claves: se movia justo el cuadro del que se acaba
+  // de copiar. Clavandolo con el valor que ya tenia no cambia nada -ese valor
+  // esta sobre la misma recta- y lo copiado se queda quieto de verdad.
+  if (!esClave(v)) marcas[v] = { t: 'clave', q: q.map((p) => p.slice()) };
+  marcas[cuadro] = { t: 'clave', q: q.map((p) => p.slice()) };
+  tocado = true; guarda(); pinta();
+  avisa('Copiado del cuadro ' + v + '.');
+}
+document.getElementById('bCopiaAnt').onclick = () => copiaVecino(-1);
+document.getElementById('bCopiaSig').onclick = () => copiaVecino(1);
+
+document.getElementById('bReinicia').onclick = () => {
+  if (!confirm('Se pierde todo lo calibrado y se vuelve al montaje que hay en el repositorio. ¿Seguro?')) return;
+  siembra(); tocado = false; guarda(); pinta();
+};
+
+document.getElementById('bImporta').onclick = () => document.getElementById('fImporta').click();
+document.getElementById('fImporta').onchange = async (e) => {
+  const f = e.target.files[0];
+  if (!f) return;
+  try {
+    const j = JSON.parse(await f.text());
+    if (j.marcas) { marcas = j.marcas; }
+    else {
+      // Un montaje completo: se toman sus `izq` del tramo como claves.
+      marcas = {};
+      for (let k = DESDE; k <= HASTA; k++) {
+        if (j[String(k)] && j[String(k)].izq) marcas[k] = { t: 'clave', q: j[String(k)].izq.map((p) => p.slice()) };
+        else marcas[k] = { t: 'sin' };
+      }
+    }
+    tocado = true; guarda(); pinta(); avisa('Importado.');
+  } catch (err) { avisa('Ese archivo no se puede leer.'); }
+  e.target.value = '';
+};
+
+/**
+ * El montaje entero con SOLO la clave `izq` del tramo reemplazada. Todo lo
+ * demas -`der`, `ocuDer`, el cierre, los cuadros fuera del tramo- se copia sin
+ * tocarlo, que es la condicion del encargo.
+ */
+function montajeSalida() {
+  const out = JSON.parse(JSON.stringify(montaje));
+  for (let f = DESDE; f <= HASTA; f++) {
+    const k = String(f);
+    const q = quadDe(f);
+    if (!q) { if (out[k]) delete out[k].izq; continue; }
+    if (!out[k]) out[k] = {};
+    out[k].izq = q.map((p) => [Math.round(p[0] * 100) / 100, Math.round(p[1] * 100) / 100]);
+  }
+  return out;
+}
+
+document.getElementById('bDescarga').onclick = () => {
+  const b = new Blob([JSON.stringify(montajeSalida())], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(b);
+  a.download = 'libro-2026-montaje.json';
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  tocado = false; refrescaMandos();
+  avisa('Descargado.');
+};
+/**
+ * Guardar directamente en el repositorio.
+ *
+ * Lo hace el servidorcillo de `servidor-calibrador.mjs`, que ademas comprueba
+ * antes de escribir que lo que llega NO toca nada mas que `izq` del tramo. Si
+ * se esta sirviendo con un estatico cualquiera, el boton se apaga y quedan la
+ * descarga y el portapapeles.
+ */
+let hayServidor = false;
+async function compruebaServidor() {
+  const e = document.getElementById('estadoGuarda');
+  try {
+    const r = await fetch('/calibrador/estado', { cache: 'no-store' });
+    if (!r.ok) throw new Error();
+    const j = await r.json();
+    hayServidor = true;
+    e.innerHTML = 'Escribe en <b>' + j.montaje + '</b>. No hay que pasar nada a mano.';
+  } catch (err) {
+    hayServidor = false;
+    document.getElementById('bGuarda').disabled = true;
+    document.getElementById('bGuarda').style.opacity = '.45';
+    e.textContent = 'Sin servidor de guardado: arranca «node tools/bolleria/servidor-calibrador.mjs» '
+      + 'y recarga. Mientras tanto, usa la descarga.';
+  }
+}
+
+document.getElementById('bGuarda').onclick = async () => {
+  const b = document.getElementById('bGuarda');
+  const e = document.getElementById('estadoGuarda');
+  const pegas = [];
+  const malos = revisaTodo();
+  if (malos.length) {
+    pegas.push(malos.length + ' cuadro(s) con el cuadrilátero cruzado o del revés: '
+      + malos.slice(0, 8).join(', ') + (malos.length > 8 ? '…' : ''));
+  }
+  const reposo = reposoDesviado();
+  if (reposo) pegas.push(reposo.charAt(0).toUpperCase() + reposo.slice(1));
+  if (pegas.length && !confirm(pegas.join('\n\n') + '\n\n¿Guardar igual?')) return;
+  b.disabled = true;
+  const antes = b.textContent;
+  b.textContent = 'Guardando…';
+  try {
+    const r = await fetch('/calibrador/guardar', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ montaje: montajeSalida(), marcas, desde: DESDE, hasta: HASTA }),
+    });
+    const j = await r.json();
+    if (!r.ok || !j.ok) throw new Error(j.error || ('HTTP ' + r.status));
+    tocado = false; refrescaMandos();
+    e.innerHTML = '<b style="color:#8fd39c">Guardado.</b> ' + j.cambiados + ' cuadros escritos en el montaje'
+      + (j.copia ? ', copia de seguridad en <b>' + j.copia + '</b>' : '') + '.';
+    avisa('Guardado en el proyecto.');
+  } catch (err) {
+    e.innerHTML = '<b style="color:#ffb0b0">No se guardó:</b> ' + String(err.message || err);
+    avisa('No se pudo guardar.');
+  } finally {
+    b.disabled = false;
+    b.textContent = antes;
+  }
+};
+
+document.getElementById('bCopia').onclick = async () => {
+  try {
+    await navigator.clipboard.writeText(JSON.stringify(montajeSalida()));
+    tocado = false; refrescaMandos();
+    avisa('Copiado al portapapeles.');
+  } catch (e) { avisa('El navegador no deja copiar; usa la descarga.'); }
+};
+
+// ─── Reproduccion ───────────────────────────────────────────────────────────
+let tocandoPlay = null;
+document.getElementById('bPlay').onclick = play;
+function play() {
+  const b = document.getElementById('bPlay');
+  if (tocandoPlay) {
+    clearInterval(tocandoPlay); tocandoPlay = null;
+    b.classList.remove('on'); b.textContent = '▶︎ ver';
+    return;
+  }
+  b.classList.add('on'); b.textContent = '■ parar';
+  const fps = Number(document.getElementById('fps').value);
+  // El sentido importa: la portada se cierra al hacer scroll hacia arriba, y un
+  // tiron solo se nota yendo en la direccion en la que se va a ver.
+  const d = Number(document.getElementById('sentido').value);
+  tocandoPlay = setInterval(() => {
+    if (d < 0) cuadro = cuadro <= DESDE ? HASTA : cuadro - 1;
+    else cuadro = cuadro >= HASTA ? DESDE : cuadro + 1;
+    pinta();
+  }, 1000 / fps);
+}
+document.getElementById('sentido').onchange = () => { if (tocandoPlay) { play(); play(); } };
+
+// ─── Teclado ────────────────────────────────────────────────────────────────
+addEventListener('keydown', (ev) => {
+  if (ev.target.tagName === 'INPUT' || ev.target.tagName === 'SELECT') return;
+  const paso = ev.shiftKey ? 10 : 1;
+  const q = marcas[cuadro] && marcas[cuadro].t === 'clave' ? marcas[cuadro].q : null;
+  const flecha = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[ev.key];
+
+  if (flecha) {
+    ev.preventDefault();
+    // Con Control, las cuatro flechas mueven el cuadrilatero entero.
+    if (ev.ctrlKey) { mueveTodo(flecha[0] * paso, flecha[1] * paso); return; }
+    // Horizontal sin esquina elegida = moverse por los cuadros. Con esquina
+    // elegida, las cuatro flechas empujan esa esquina.
+    if (sel < 0 && flecha[1] === 0) { vaA(cuadro + flecha[0] * paso); return; }
+    if (sel < 0) { mueveTodo(0, flecha[1] * paso); return; }
+    fijaClave(cuadro);
+    marcas[cuadro].q[sel][0] += flecha[0] * paso;
+    marcas[cuadro].q[sel][1] += flecha[1] * paso;
+    tocado = true; guarda(); pinta();
+    return;
+  }
+  const k = ev.key.toLowerCase();
+  if (k >= '1' && k <= '4') { sel = Number(k) - 1; pinta(); }
+  else if (k === '0') { sel = -1; pinta(); }
+  else if (k === 'a') { copiaVecino(-1); }
+  else if (k === 's') { copiaVecino(1); }
+  else if (k === 'k') { document.getElementById('bClave').click(); }
+  else if (k === 'x') { document.getElementById('bSin').click(); }
+  else if (k === 'u') { document.getElementById('bAuto').click(); }
+  else if (k === 'g') { verRejilla = !verRejilla; pinta(); }
+  else if (k === 'c') { verCebolla = !verCebolla; pinta(); }
+  else if (k === '+' || k === '=') { escala(ev.shiftKey ? 1.05 : 1.01); }
+  else if (k === '-') { escala(ev.shiftKey ? 1 / 1.05 : 1 / 1.01); }
+  else if (k === '[') { opac = Math.max(0, opac - 0.1); document.getElementById('opac').value = opac * 100; pinta(); }
+  else if (k === ']') { opac = Math.min(1, opac + 0.1); document.getElementById('opac').value = opac * 100; pinta(); }
+  else if (ev.code === 'Space') { ev.preventDefault(); play(); }
+});
+
+function mueveTodo(dx, dy) {
+  fijaClave(cuadro);
+  for (const c of marcas[cuadro].q) { c[0] += dx; c[1] += dy; }
+  tocado = true; guarda(); pinta();
+}
+
+document.getElementById('bAyuda').onclick = () => {
+  document.getElementById('panelAyuda').scrollIntoView({ behavior: 'smooth' });
+};
+
+addEventListener('resize', () => { redimensiona(); pinta(); });
+addEventListener('beforeunload', (e) => {
+  if (!tocado) return;
+  e.preventDefault();
+  e.returnValue = '';
+});
+
+// Para conducirlo desde Playwright.
+window.__cp = {
+  get cuadro() { return cuadro; },
+  get marcas() { return marcas; },
+  vaA, quadDe, montajeSalida, pinta,
+  pon(f, q) { marcas[f] = { t: 'clave', q: q.map((p) => p.slice()) }; guarda(); pinta(); },
+};
+
+arranca();
+</script>
+</body>
+</html>

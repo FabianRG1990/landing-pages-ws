@@ -1,7 +1,8 @@
-import { ChangeDetectionStrategy, Component, ElementRef, NgZone, PLATFORM_ID, computed, inject, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, NgZone, PLATFORM_ID, computed, effect, inject, signal, viewChild } from '@angular/core';
 import { NgStyle, isPlatformBrowser } from '@angular/common';
-import { CONTACT, waDirectLink } from '@bolleria-v2-ui-shared';
+import { CONTACT, frenaMientrasSeVe, waDirectLink } from '@bolleria-v2-ui-shared';
 import { WarpGL } from './about-book-warp-gl';
+import { GestoHoja } from './gesto-hoja';
 
 const FRAME_COUNT = 169;
 const FRAMES_DIR = 'assets/about-book-frames';
@@ -59,6 +60,133 @@ const HD_H = 1396;
  */
 const VIDEO_W = 860;
 const VIDEO_H = 698;
+
+// ─── La camara ───────────────────────────────────────────────────────────────
+//
+// El video encuadra SIEMPRE lo mismo: un plano fijo de 860x698 en el que el
+// libro abierto ocupa 703 px de ancho y el cerrado solo 395. Dibujarlo tal cual
+// -que es lo que se hacia- deja al libro cerrado en el 54 % del ancho de un
+// telefono y al abierto en el 96 %: medido en el sitio publicado, con ~37 % de
+// mesa vacia por arriba y otro tanto por abajo en todos los estados.
+//
+// Aqui se le pone al plano fijo una CAMARA: para cada cuadro, un acercamiento y
+// un punto de mira propios, de modo que el libro ocupe siempre el mismo ancho
+// de pantalla. Es lo que haria un operador real -se acerca al libro cerrado
+// para que se lea la tapa y se aleja al abrirse para que quepan las dos
+// paginas-, y no cuesta un solo cuadro nuevo: es el mismo video.
+//
+// Las tres tablas salen de MEDIR los 169 cuadros, no de tantear: se barrio la
+// silueta de cada uno -alfa > 24, con al menos 3 pixeles por fila o columna
+// para no morder por una mota- y de ahi salen su ancho y su base.
+//
+//   · CAM_Z   acercamiento, relativo al encuadre del libro ABIERTO, que es el
+//             que ya habia y no se toca (de ahi que su valor sea ~1). Va de
+//             0,986 a 1,677.
+//   · CAM_CX  centro del libro, en px de video.
+//   · CAM_CY  BASE del libro. Se mira la base y no el centro a proposito: al
+//             pasar una pagina la silueta crece hacia ARRIBA -la hoja se
+//             levanta- y seguir su centro haria cabecear la camara. La base no
+//             se mueve: recorre 36 px en toda la secuencia.
+//
+// Las tres van suavizadas con una gaussiana de 12 cuadros. Sin ella el
+// acercamiento pega saltos de 0,120 entre cuadros vecinos -la tapa abriendose
+// hace crecer y encoger la silueta-; con ella el salto maximo es 0,0265, y
+// ademas se evalua en el cuadro FRACCIONARIO, no en el redondeado: lo unico que
+// se cuantiza es el bitmap, nunca la posicion ni la escala.
+//
+// Comprobado que el libro cabe siempre: con estas constantes el hueco que queda
+// sobre el libro en el peor cuadro es de 43 px de video.
+const CAM_Z: readonly number[] = [
+  1.6765, 1.6681, 1.6589, 1.6489, 1.6380, 1.6261, 1.6133, 1.5996, 1.5848, 1.5691,
+  1.5524, 1.5348, 1.5163, 1.4970, 1.4770, 1.4562, 1.4350, 1.4132, 1.3912, 1.3690,
+  1.3468, 1.3246, 1.3026, 1.2810, 1.2599, 1.2393, 1.2194, 1.2003, 1.1820, 1.1645,
+  1.1480, 1.1325, 1.1179, 1.1043, 1.0917, 1.0801, 1.0694, 1.0596, 1.0507, 1.0426,
+  1.0353, 1.0288, 1.0230, 1.0178, 1.0133, 1.0092, 1.0057, 1.0027, 1.0000, 0.9977,
+  0.9958, 0.9941, 0.9927, 0.9915, 0.9905, 0.9897, 0.9890, 0.9884, 0.9880, 0.9876,
+  0.9873, 0.9870, 0.9868, 0.9867, 0.9866, 0.9865, 0.9864, 0.9863, 0.9863, 0.9863,
+  0.9862, 0.9862, 0.9862, 0.9862, 0.9862, 0.9862, 0.9862, 0.9862, 0.9862, 0.9862,
+  0.9862, 0.9862, 0.9862, 0.9862, 0.9862, 0.9862, 0.9862, 0.9861, 0.9861, 0.9861,
+  0.9861, 0.9861, 0.9861, 0.9861, 0.9861, 0.9861, 0.9861, 0.9861, 0.9861, 0.9861,
+  0.9860, 0.9860, 0.9860, 0.9860, 0.9860, 0.9860, 0.9859, 0.9859, 0.9859, 0.9859,
+  0.9858, 0.9858, 0.9858, 0.9858, 0.9858, 0.9858, 0.9857, 0.9857, 0.9857, 0.9857,
+  0.9857, 0.9857, 0.9857, 0.9857, 0.9858, 0.9858, 0.9858, 0.9858, 0.9858, 0.9858,
+  0.9859, 0.9859, 0.9859, 0.9859, 0.9860, 0.9860, 0.9860, 0.9860, 0.9860, 0.9861,
+  0.9861, 0.9861, 0.9861, 0.9861, 0.9861, 0.9862, 0.9862, 0.9862, 0.9862, 0.9862,
+  0.9862, 0.9862, 0.9862, 0.9862, 0.9862, 0.9862, 0.9862, 0.9862, 0.9862, 0.9862,
+  0.9862, 0.9862, 0.9862, 0.9862, 0.9862, 0.9862, 0.9862, 0.9862, 0.9862,
+];
+const CAM_CX: readonly number[] = [
+  484.0, 484.1, 484.1, 484.1, 484.0, 483.9, 483.7, 483.5, 483.2, 482.8,
+  482.3, 481.8, 481.2, 480.4, 479.6, 478.7, 477.7, 476.6, 475.5, 474.2,
+  472.9, 471.5, 470.1, 468.6, 467.1, 465.6, 464.1, 462.7, 461.3, 460.0,
+  458.7, 457.6, 456.5, 455.6, 454.8, 454.1, 453.5, 453.0, 452.7, 452.5,
+  452.4, 452.4, 452.5, 452.7, 452.9, 453.3, 453.6, 454.0, 454.5, 454.9,
+  455.4, 455.9, 456.3, 456.8, 457.2, 457.6, 458.0, 458.4, 458.7, 459.0,
+  459.3, 459.5, 459.7, 459.9, 460.1, 460.2, 460.4, 460.5, 460.6, 460.7,
+  460.7, 460.8, 460.8, 460.9, 460.9, 460.9, 460.9, 461.0, 461.0, 461.0,
+  461.0, 461.0, 461.0, 461.0, 461.0, 461.0, 461.0, 461.0, 461.0, 461.0,
+  461.0, 461.0, 461.0, 461.0, 461.0, 461.0, 461.0, 461.0, 461.0, 461.0,
+  461.0, 461.0, 460.9, 460.9, 460.9, 460.9, 460.9, 460.9, 460.9, 460.9,
+  460.9, 460.9, 460.9, 460.9, 460.8, 460.8, 460.8, 460.8, 460.8, 460.8,
+  460.8, 460.8, 460.8, 460.8, 460.8, 460.8, 460.8, 460.9, 460.9, 460.9,
+  460.9, 460.9, 460.9, 460.9, 460.9, 460.9, 460.9, 460.9, 460.9, 460.9,
+  461.0, 461.0, 461.0, 461.0, 461.0, 461.0, 461.0, 461.0, 461.0, 461.0,
+  461.0, 461.0, 461.0, 461.0, 461.0, 461.0, 461.0, 461.0, 461.0, 461.0,
+  461.0, 461.0, 461.0, 461.0, 461.0, 461.0, 461.0, 461.0, 461.0,
+];
+const CAM_CY: readonly number[] = [
+  560.1, 559.8, 559.5, 559.1, 558.8, 558.4, 558.0, 557.5, 557.1, 556.6,
+  556.1, 555.6, 555.1, 554.6, 554.1, 553.6, 553.1, 552.6, 552.2, 551.8,
+  551.5, 551.2, 551.0, 550.8, 550.8, 550.8, 551.0, 551.2, 551.5, 552.0,
+  552.6, 553.2, 554.0, 554.9, 555.9, 556.9, 558.1, 559.3, 560.6, 561.9,
+  563.2, 564.6, 566.0, 567.4, 568.8, 570.2, 571.5, 572.8, 574.0, 575.2,
+  576.3, 577.4, 578.4, 579.3, 580.2, 581.0, 581.7, 582.4, 583.0, 583.5,
+  584.0, 584.4, 584.8, 585.2, 585.4, 585.7, 585.9, 586.1, 586.2, 586.4,
+  586.5, 586.6, 586.7, 586.7, 586.8, 586.8, 586.9, 586.9, 586.9, 586.9,
+  586.9, 587.0, 587.0, 587.0, 587.0, 587.0, 587.0, 587.0, 587.0, 587.0,
+  587.0, 587.0, 587.0, 587.0, 587.0, 587.0, 587.0, 587.0, 587.0, 587.0,
+  587.0, 587.0, 587.0, 587.0, 587.0, 587.0, 587.0, 587.0, 587.0, 587.0,
+  587.0, 587.0, 587.0, 587.0, 587.0, 587.0, 587.0, 587.0, 587.0, 587.0,
+  587.0, 587.0, 587.0, 587.0, 587.0, 587.0, 587.0, 587.0, 587.0, 587.0,
+  587.0, 587.0, 587.0, 587.0, 587.0, 587.0, 587.0, 587.0, 587.0, 587.0,
+  587.0, 587.0, 587.0, 587.0, 587.0, 587.0, 587.0, 587.0, 587.0, 587.0,
+  587.0, 587.0, 587.0, 587.0, 587.0, 587.0, 587.0, 587.0, 587.0, 587.0,
+  587.0, 587.0, 587.0, 587.0, 587.0, 587.0, 587.0, 587.0, 587.0,
+];
+/**
+ * Acercamiento del encuadre de referencia -el del libro abierto- respecto a
+ * "el video ocupa justo el ancho del lienzo". Con el lienzo a 100vw, el video
+ * se dibuja a 119 % de esa anchura, que es lo que deja al libro abierto en el
+ * 97 % de la pantalla: el mismo tamano que tenia con los 117vw de antes.
+ */
+const CAM_Z_REF = 1.1925;
+/** Donde se apoya la BASE del libro dentro del lienzo. Con `aspect-ratio: 100/155` cae en 543 px de una pantalla de 844, que es donde estaba. */
+const CAM_P_Y = 0.7;
+
+/**
+ * El encuadre con la camara APAGADA (telefono de pie; quien decide donde es
+ * `--camara` en el SCSS, y alli esta el porque completo).
+ *
+ * No son tres numeros elegidos: son los que las tres tablas ya dan en el tramo
+ * del libro abierto -del cuadro ~70 en adelante, que cubre los ocho reposos y
+ * las vueltas de hoja enteras, porque el giro va del 81 al 139-. Congelar aqui
+ * deja todo ese tramo IDENTICO al pixel; lo unico que cambia son los cuadros
+ * 1..50, la tapa abriendose y cerrandose.
+ *
+ * Y ahi el cambio es justo el que se pedia: en vez de que la camara se retire
+ * mientras la tapa se abre -y el libro parezca encoger un 38 %-, la tapa mide lo
+ * que mide en el video y el libro CRECE al abrirse, de 212 a 377 px, porque pasa
+ * de una hoja a dos. Que es lo que hace un libro.
+ *
+ * De regalo se arregla la sombra: va multiplicada por `--cam-k` para crecer con
+ * el acercamiento, y en la tapa eso la hinchaba 1,68 veces -los 68 px de
+ * difuminado calibrados se dibujaban a 114-. Con el encuadre fijo vuelve sola a
+ * su medida.
+ */
+const CAM_FIJO_Z = 0.9862;
+const CAM_FIJO_CX = 461.0;
+const CAM_FIJO_CY = 587.0;
+
 const LAST = 8; // 1..7 = historias con foto+texto, 8 = cierre (foto + horario, ubicacion y mensaje)
 /**
  * Estado de la pista con el libro CERRADO DESPUES de la ultima pagina: seguir
@@ -1266,7 +1394,29 @@ const SOCIAL_LABEL: Readonly<Record<SocialKind, string>> = { ubicacion: 'UBICACI
 })
 export class AboutBookComponent {
   private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
+
+  /**
+   * Lo que hay que soltar al desmontar.
+   *
+   * Este componente nacio para vivir lo que vive la pagina y por eso no soltaba
+   * nada. Ya no es cierto: al girar el telefono se destruye y se construye el
+   * otro libro, asi que sin esto cada giro dejaria atras un juego de
+   * escuchadores de scroll y de resize apuntando a un componente muerto -que
+   * seguirian midiendo y dibujando sobre un lienzo que ya no esta en la pagina-
+   * y se irian acumulando giro tras giro.
+   */
+  private readonly sueltame: Array<() => void> = [];
   private readonly zone = inject(NgZone);
+  private readonly limpieza = inject(DestroyRef).onDestroy(() => {
+    this.sueltame.forEach((f) => f());
+    this.sueltame.length = 0;
+    if (this.rafPista) cancelAnimationFrame(this.rafPista);
+    if (this.rafMedida) cancelAnimationFrame(this.rafMedida);
+  });
+  // Por aqui sale `--cam-k` hacia el SCSS: el acercamiento de la camara, que la
+  // sombra necesita para crecer con el libro. Va en el anfitrion y no en el pin
+  // para no depender de que la sombra siga colgando de la misma rama.
+  private readonly host = inject(ElementRef<HTMLElement>);
   private readonly canvasRef = viewChild.required<ElementRef<HTMLCanvasElement>>('canvas');
   // Opcionales a proposito -no `required`-: `leerPista` puede llegar a
   // consultarlas antes de que la vista exista y `required` lanzaria.
@@ -1533,6 +1683,7 @@ export class AboutBookComponent {
     if (this.isBrowser) {
       this.arrancarCuandoSeAcerque();
       this.engancharPista();
+      this.enganchaElFreno();
     }
   }
 
@@ -1626,6 +1777,11 @@ export class AboutBookComponent {
     this.leerPista(true);
     void this.conducir();
     window.addEventListener('resize', this.onResize, { passive: true });
+    window.visualViewport?.addEventListener('resize', this.onResize, { passive: true });
+    this.sueltame.push(() => {
+      window.removeEventListener('resize', this.onResize);
+      window.visualViewport?.removeEventListener('resize', this.onResize);
+    });
   }
 
   private async prepareFonts(): Promise<void> {
@@ -2230,16 +2386,49 @@ export class AboutBookComponent {
     ctx.restore();
   }
 
+  /**
+   * Re-encuadrar cuando cambia lo que se ve, agrupado en un fotograma.
+   *
+   * El `resize` de la ventana no se dispara cuando la barra del navegador se
+   * retrae: la ventana de disposicion no cambia, solo lo hace el area VISIBLE, y
+   * de eso avisa `visualViewport`. Como el pin mide `100dvh`, ese aviso es justo
+   * el momento en que el lienzo tiene que volver a medirse. Llega muchas veces
+   * seguidas mientras la barra se desliza, asi que se agrupan: `sizeCanvas`
+   * reasigna `canvas.width` y eso tira el bitmap.
+   */
+  private rafMedida = 0;
   private readonly onResize = (): void => {
-    this.sizeCanvas();
-    this.draw(this.lastDrawn);
+    if (this.rafMedida) return;
+    this.rafMedida = requestAnimationFrame(() => {
+      this.rafMedida = 0;
+      this.sizeCanvas();
+      this.draw(this.lastDrawn);
+    });
   };
+
+  /**
+   * Si la camara esta viva. Lo decide el SCSS con `--camara` para que el umbral
+   * de pantalla viva en un solo sitio -al lado del de la mesa y el del ritmo- en
+   * vez de repetir aqui un `matchMedia` que habria que acordarse de mantener.
+   *
+   * Se lee de `box` -el escenario- y NO del host: la variable se declara en
+   * `.bol-book`, que es la seccion de dentro, y las variables CSS heredan hacia
+   * abajo, nunca hacia arriba. Preguntandole al host volvia siempre vacia y la
+   * camara no se apagaba nunca.
+   *
+   * Se lee en `sizeCanvas`, que es justo donde hace falta: corre al arrancar y
+   * en cada redimension -incluido el giro del aparato, que es lo unico que puede
+   * cambiar la respuesta- y ya va agrupado en un fotograma, asi que el
+   * `getComputedStyle` no cae dentro de ninguna animacion.
+   */
+  private camaraViva = true;
 
   private sizeCanvas(): void {
     const c = this.canvasRef()?.nativeElement;
     if (!c) return;
     const box = c.parentElement;
     if (!box) return;
+    this.camaraViva = getComputedStyle(box).getPropertyValue('--camara').trim() !== '0';
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     const w = box.clientWidth || box.offsetWidth;
     const h = box.clientHeight || box.offsetHeight;
@@ -2372,11 +2561,12 @@ export class AboutBookComponent {
     if (!ctx || !c || !bmp) return;
     this.lastDrawn = frame;
     ctx.clearRect(0, 0, c.width, c.height);
-    const scale = Math.min(c.width / VIDEO_W, c.height / VIDEO_H);
+    // Con el cuadro CRUDO, no con el redondeado: el bitmap se cuantiza porque no
+    // hay mas remedio, pero la camara no tiene por que hacerlo.
+    const { ox, oy, scale, k } = this.encuadre(frameCrudo, c);
+    this.escalaLaSombra(k);
     const dw = VIDEO_W * scale;
     const dh = VIDEO_H * scale;
-    const ox = (c.width - dw) / 2;
-    const oy = (c.height - dh) / 2;
     this.pintaCuadro(ctx, frame, ox, oy, dw, dh, 1);
     // Cruce de poses: encima del cuadro de destino se desvanece el de origen.
     // Solo el LIBRO -el contenido va despues, una sola vez y a opacidad plena-.
@@ -2389,6 +2579,73 @@ export class AboutBookComponent {
     // nada mientras la tapa todavia esta cubriendo la pagina.
     this.drawContent(ctx, frame, ox, oy, scale);
   }
+
+  /**
+   * La camara en un cuadro dado. Ver el bloque de CAM_* arriba.
+   *
+   * Devuelve lo mismo que calculaba antes `draw()` a mano -origen y escala del
+   * dibujo- mas el acercamiento `k`, que es lo unico que necesita saber el
+   * SCSS para mover la mesa con el libro.
+   *
+   * Interpola LINEALMENTE entre los dos cuadros vecinos. Las tablas ya vienen
+   * suavizadas, asi que interpolar de mas no aporta nada y una recta entre dos
+   * puntos que ya estan en una curva suave no introduce ningun quiebro.
+   */
+  private encuadre(
+    frameCrudo: number,
+    c: HTMLCanvasElement,
+  ): { ox: number; oy: number; scale: number; k: number } {
+    // Camara apagada: un encuadre y ya, el mismo para los 169 cuadros. Ver
+    // CAM_FIJO_*.
+    if (!this.camaraViva) {
+      const escala = (c.width / VIDEO_W) * CAM_Z_REF * CAM_FIJO_Z;
+      return {
+        ox: c.width * 0.5 - CAM_FIJO_CX * escala,
+        oy: c.height * CAM_P_Y - CAM_FIJO_CY * escala,
+        scale: escala,
+        k: CAM_FIJO_Z,
+      };
+    }
+    const n = CAM_Z.length;
+    // Los cuadros van de 1 a 169 y las tablas de 0 a 168.
+    const t = Math.max(0, Math.min(n - 1, frameCrudo - 1));
+    const i = Math.min(n - 1, Math.floor(t));
+    const j = Math.min(n - 1, i + 1);
+    const f = t - i;
+    const mez = (v: readonly number[]): number => v[i] + (v[j] - v[i]) * f;
+
+    const k = mez(CAM_Z);
+    const scale = (c.width / VIDEO_W) * CAM_Z_REF * k;
+    // El punto de mira se lleva al centro horizontal del lienzo y a CAM_P_Y de
+    // su altura. Esa altura es donde se APOYA el libro, asi que la mesa y el
+    // libro giran alrededor del mismo punto y el libro no patina sobre ella.
+    const ox = c.width * 0.5 - mez(CAM_CX) * scale;
+    const oy = c.height * CAM_P_Y - mez(CAM_CY) * scale;
+    return { ox, oy, scale, k };
+  }
+
+  /**
+   * Le pasa el acercamiento al SCSS.
+   *
+   * La mesa NO se mueve con ella, y es una decision del cliente: la foto de la
+   * encimera esta compuesta a proposito en vertical -bol, pano, tarro, espigas
+   * y el canto de la piedra- y tiene que verse entera junto al libro. Acercarla
+   * con la camara dejaba en cuadro un 17 % de la foto en el primer plano y se
+   * perdia todo lo que la hace una mesa. Ver el bloque de la mesa en el SCSS.
+   *
+   * Lo unico que sigue a la camara es la SOMBRA del libro, que es suya y tiene
+   * que crecer con el.
+   *
+   * Se escribe solo cuando cambia de verdad: escribir una variable CSS invalida
+   * el estilo aunque el valor sea el mismo.
+   */
+  private escalaLaSombra(k: number): void {
+    const v = Math.round(k * 1000) / 1000;
+    if (v === this.camK) return;
+    this.camK = v;
+    this.host.nativeElement.style.setProperty('--cam-k', String(v));
+  }
+  private camK = -1;
 
   /** Punto en coords de video -> coords reales del canvas (offset + escala del drawImage). */
   private toCanvas(p: Point, ox: number, oy: number, scale: number): Point {
@@ -4301,6 +4558,28 @@ export class AboutBookComponent {
   private conduciendo = false;
   private rafPista = 0;
 
+  /**
+   * El freno de la inercia, encendido solo mientras la pista se ve. Los topes
+   * los declara el SCSS; esto es el interruptor. Ver `freno-de-pista.ts`.
+   *
+   * Va en un `effect` y no en el constructor como `engancharPista`: aquel solo
+   * engancha oyentes de la ventana y lee la pista mas tarde, cuando ya existe,
+   * pero esto necesita el ELEMENTO en la mano para observarlo, y en el
+   * constructor la vista todavia no se ha creado. Registrado alli, `trackRef()`
+   * venia vacio y el freno no se encendia nunca -medido: la clase no llegaba a
+   * ponerse ni con el libro a media pantalla-.
+   */
+  private enganchaElFreno(): void {
+    let puesto = false;
+    const ref = effect(() => {
+      const pista = this.trackRef()?.nativeElement;
+      if (!pista || puesto) return;
+      puesto = true;
+      this.sueltame.push(frenaMientrasSeVe(pista));
+      ref.destroy();
+    });
+  }
+
   private engancharPista(): void {
     // Fuera de la zona: esto corre en cada fotograma de scroll y no toca ningun
     // signal salvo cuando de verdad cambia la pagina.
@@ -4314,6 +4593,14 @@ export class AboutBookComponent {
       };
       window.addEventListener('scroll', alMover, { passive: true });
       window.addEventListener('resize', alMover, { passive: true });
+      // La barra retrayendose cambia el alto del pin, o sea el divisor del
+      // progreso: hay que releer la pista tambien con ese aviso.
+      window.visualViewport?.addEventListener('resize', alMover, { passive: true });
+      this.sueltame.push(() => {
+        window.removeEventListener('scroll', alMover);
+        window.removeEventListener('resize', alMover);
+        window.visualViewport?.removeEventListener('resize', alMover);
+      });
     });
   }
 
@@ -4434,6 +4721,40 @@ export class AboutBookComponent {
         : (recorrido.offsetHeight * destino) / LAST;
     const y = window.scrollY + pista.getBoundingClientRect().top + tramo;
     window.scrollTo({ top: y, behavior: this.reduced() ? 'auto' : 'smooth' });
+  }
+
+  /**
+   * Cuando se ensena la invitacion a girar el telefono.
+   *
+   * Dos condiciones, y las dos importan. `ready()` porque prometer "lo vas a ver
+   * en grande" mientras el lienzo todavia esta en blanco no invita a nada. Y
+   * hasta la primera pagina nada mas: quien ya paso de ahi decidio quedarse de
+   * pie, y repetirselo el resto del recorrido es insistir.
+   *
+   * Que sea un telefono DE PIE y con dedo lo decide el SCSS, no esto: es una
+   * condicion de la pantalla, no del estado del libro.
+   */
+  readonly sugiereGirar = computed(() => this.ready() && this.estado() <= 1);
+
+  // ─── El dedo ───────────────────────────────────────────────────────────────
+  /**
+   * Pasar hoja arrastrando. Como las flechas y como los botones que no se ven,
+   * no anima nada por su cuenta: mueve el SCROLL a la pagina pedida, que es de
+   * donde cuelga todo el recorrido. Los umbrales y su porque, en `GestoHoja`.
+   */
+  private readonly gesto = new GestoHoja();
+
+  alEmpezarToque(ev: TouchEvent): void {
+    this.gesto.empieza(ev);
+  }
+
+  alCancelarToque(): void {
+    this.gesto.cancela();
+  }
+
+  alSoltarToque(ev: TouchEvent): void {
+    const paso = this.gesto.termina(ev);
+    if (paso) this.irAIndice(this.estado() + paso);
   }
 
   alTeclado(e: KeyboardEvent): void {
@@ -4669,9 +4990,10 @@ export class AboutBookComponent {
     if (!c) return { display: 'none' };
     const bmp = this.frames[Math.round(PAGE_REST) - 1];
     if (!bmp) return { display: 'none' };
-    const scale = Math.min(c.width / VIDEO_W, c.height / VIDEO_H);
-    const ox = (c.width - VIDEO_W * scale) / 2;
-    const oy = (c.height - VIDEO_H * scale) / 2;
+    // La MISMA camara que usa `draw`, y en el cuadro en el que la pagina de
+    // cierre esta quieta: si el area pulsable se calculara con el encuadre fijo
+    // de antes quedaria desplazada respecto al boton dibujado.
+    const { ox, oy, scale } = this.encuadre(PAGE_REST, c);
     const pos = SOCIAL_POS[kind];
     // Va por la MISMA superficie por la que se dibuja el panel -la hoja en
     // reposo con SHEET_TEXT_UV-, no por CONTENT_RIGHT_QUAD, que es otra zona

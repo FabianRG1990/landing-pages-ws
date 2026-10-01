@@ -1,0 +1,309 @@
+/* ============================================================
+   CONTACTO Y PIE
+   ============================================================ */
+
+.cont {
+  position: relative;
+  /* el radial se queda —es de esta seccion y viaja con ella—; el --void
+     sale para no tapar la trama fija */
+  background: radial-gradient(65% 55% at 78% 30%, rgba(92, 160, 180, 0.07), transparent 70%);
+}
+
+.cont__shell {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+  gap: clamp(2.5rem, 6vw, 6rem);
+  padding-block: clamp(4.5rem, 12vh, 8rem);
+}
+
+/* Solo la etiqueta de seccion: hijo directo. Dentro de .cont__texto
+   hay mas .mono (las garantias) y no deben heredarlo. */
+.cont__texto > .mono {
+  color: var(--warm);
+}
+
+.cont__texto h2 {
+  margin-top: 1.25rem;
+  max-width: 17ch;
+}
+
+.cont__entrada {
+  margin-top: 1.5rem;
+  color: var(--text-2);
+}
+
+.cont__garantias {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 2rem;
+}
+
+/* Las garantias son la promesa concreta —lo que el cliente se lleva
+   de esta seccion—, asi que entran en el ambar como las cifras. */
+.cont__garantias li {
+  padding: 0.45rem 0.8rem;
+  color: var(--warm);
+  background: var(--warm-fill);
+  border: 1px solid var(--warm-line);
+  border-radius: 999px;
+}
+
+.cont__directo {
+  margin-top: 2.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--line);
+  color: var(--text-2);
+  font-size: var(--fs-small);
+}
+
+.cont__wa {
+  color: var(--text);
+  font-weight: var(--w-emph);
+  border-bottom: 1px solid var(--line);
+
+  &:hover {
+    border-bottom-color: var(--text);
+  }
+}
+
+/* ---------------- Formulario ---------------- */
+.cont__caja {
+  padding: clamp(1.5rem, 3vw, 2.25rem);
+  background: linear-gradient(
+    155deg,
+    rgba(255, 255, 255, 0.055),
+    rgba(255, 255, 255, 0.014) 58%
+  );
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  box-shadow: var(--edge), var(--shadow-lg);
+  backdrop-filter: blur(14px);
+}
+
+.form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.25rem;
+}
+
+.campo {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.campo--ancho {
+  grid-column: 1 / -1;
+}
+
+.campo input[type='text'],
+.campo input[type='email'],
+.campo input[type='tel'],
+.campo select {
+  width: 100%;
+  height: 46px;
+  padding-inline: 0.875rem;
+  font: inherit;
+  font-size: var(--fs-small);
+  color: var(--text);
+  /* un punto por debajo de --void para que el campo se lea como un
+     hueco en el vidrio, no como otra tarjeta. Baja con el fondo: la
+     razon de luminancia contra --void se mantiene en 0.43. */
+  background: rgba(2, 5, 9, 0.55);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  transition: border-color var(--dur-fast) var(--ease-out);
+
+  &::placeholder {
+    color: var(--text-3);
+  }
+
+  &:hover {
+    border-color: var(--text-3);
+  }
+
+  &:focus {
+    outline: none;
+    border-color: var(--brand-light);
+    box-shadow:
+      inset 0 0 0 1px var(--brand-light),
+      0 0 0 4px rgba(127, 212, 236, 0.12);
+  }
+}
+
+.campo select {
+  appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, var(--brand-light) 50%),
+    linear-gradient(135deg, var(--brand-light) 50%, transparent 50%);
+  background-position:
+    calc(100% - 18px) 21px,
+    calc(100% - 13px) 21px;
+  background-size:
+    5px 5px,
+    5px 5px;
+  background-repeat: no-repeat;
+  padding-right: 2.5rem;
+}
+
+.campo__error {
+  font-size: var(--fs-caption);
+  color: #ff9b8a; /* 8.16:1 sobre el vidrio del formulario */
+}
+
+/* Consentimiento: obligatorio por Ley 29733 */
+.consent__linea {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.625rem;
+  align-items: start;
+  font-size: var(--fs-caption);
+  line-height: 1.55;
+  color: var(--text-2);
+  cursor: pointer;
+}
+
+/* La etiqueta envuelve al input, asi que el objetivo tactil real es la
+   linea entera —300x56— y WCAG 2.5.8 se cumplia ya. Lo que fallaba era
+   verla: 17px de casilla es un control que hay que buscar en el paso
+   donde se cierra una venta. Con `color-scheme: dark` en la raiz, ademas,
+   deja de pintarse en blanco de sistema. */
+.consent__linea input {
+  width: 22px;
+  height: 22px;
+  margin-top: -1px;
+  accent-color: var(--brand);
+}
+
+.form__enviar {
+  grid-column: 1 / -1;
+  justify-content: space-between;
+  height: 50px;
+  margin-top: 0.25rem;
+
+  &:disabled {
+    opacity: 0.6;
+    cursor: progress;
+  }
+}
+
+/* Estado de exito */
+.cont__ok {
+  display: grid;
+  gap: 0.75rem;
+  align-content: center;
+  min-height: 320px;
+}
+
+.cont__ok-titulo {
+  color: var(--text);
+  font-size: var(--fs-h3);
+  font-weight: var(--w-announce);
+  max-width: 24ch;
+}
+
+.cont__ok-nota {
+  color: var(--text-2);
+  font-size: var(--fs-small);
+  max-width: 40ch;
+}
+
+.cont__ok .btn {
+  justify-self: start;
+  margin-top: 0.75rem;
+}
+
+/* ---------------- Pie ---------------- */
+.pie {
+  padding-top: clamp(3rem, 8vh, 5rem);
+}
+
+.pie__shell {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+  gap: clamp(2rem, 5vw, 4rem);
+  padding-bottom: clamp(2.5rem, 6vh, 4rem);
+}
+
+.pie__lockup {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+/* el isotipo es mas alto que ancho: se fija el ancho y la altura sigue */
+.pie__isotipo {
+  width: 28px;
+  color: var(--brand);
+}
+
+.pie__nombre {
+  font-size: var(--fs-h3);
+  font-weight: var(--w-announce);
+  letter-spacing: -0.01em;
+
+  span {
+    font-weight: var(--w-read);
+    color: var(--text-2);
+  }
+}
+
+.pie__datos {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.5rem;
+  margin: 0;
+
+  dt {
+    margin-bottom: 0.375rem;
+  }
+
+  dd {
+    margin: 0;
+    font-size: var(--fs-small);
+    font-weight: var(--w-emph);
+  }
+}
+
+.pie__enlace {
+  border-bottom: 1px solid var(--line);
+
+  &:hover {
+    border-bottom-color: var(--text);
+  }
+}
+
+.pie__legal {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-block: 1.25rem;
+  border-top: 1px solid var(--line);
+}
+
+.pie__demo {
+  color: var(--brand-light);
+}
+
+@media (max-width: 900px) {
+  .cont__shell,
+  .pie__shell {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .form {
+    grid-template-columns: 1fr;
+  }
+
+  .pie__datos {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .pie__legal {
+    flex-direction: column;
+    gap: 0.375rem;
+  }
+}

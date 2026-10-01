@@ -1,0 +1,34 @@
+<app-nav />
+
+<p class="banda mono">
+  Demostración · esta página es un esquema preliminar, no contenido definitivo
+</p>
+
+<main id="main" class="pg">
+  <div class="shell">
+    <a class="pg__volver mono" routerLink="/">← Volver a la portada</a>
+
+    <header class="pg__cab">
+      <p class="mono pg__eje">{{ columna().eje }}</p>
+      <h1 class="pg__titulo">{{ columna().nombre }}</h1>
+      <p class="pg__frase">{{ eje().frase }}</p>
+      <p class="pg__detalle measure">{{ eje().detalle }}</p>
+    </header>
+
+    <dl class="pg__ficha">
+      @for (f of filas(); track f.etiqueta) {
+        <div class="pg__fila">
+          <dt class="mono">{{ f.etiqueta }}</dt>
+          <dd>{{ f.valor }}</dd>
+        </div>
+      }
+    </dl>
+
+    <a class="btn btn--solido pg__cta" [href]="site.whatsapp" target="_blank" rel="noopener">
+      Consultar {{ columna().nombre }}
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+        <path d="M3 8h10M9 4l4 4-4 4" />
+      </svg>
+    </a>
+  </div>
+</main>

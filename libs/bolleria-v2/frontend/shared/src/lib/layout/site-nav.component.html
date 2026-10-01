@@ -1,4 +1,4 @@
-<header class="bol-nav" [class.bol-nav--compact]="scrolled()" [attr.data-tono]="tono()">
+<header class="bol-nav" [class.bol-nav--compact]="scrolled()" [class.bol-nav--oculta]="oculta()" [attr.data-tono]="tono()">
   <a href="#" (click)="$event.preventDefault(); go('inicio')" class="bol-nav__brand" aria-label="Bollería Panadería · Inicio">
     <img src="assets/mark.webp" alt="Bollería Panadería" class="bol-nav__logo" />
   </a>

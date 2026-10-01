@@ -1,0 +1,116 @@
+<section class="bol-libro" data-nav-tono="papel">
+  <!-- El libro se recorre con el scroll. El scroll NO se intercepta en ningun
+       momento: esta pista solo aporta RECORRIDO, y el componente lee en que
+       punto de ella esta la ventana para derivar la pagina.
+
+       Cinco piezas, y las que se leen MIDEN lo que dicen para que el componente
+       no repita ninguna constante de este archivo:
+         · __pin        la escena anclada, una pantalla de alto;
+         · __recorrido  el scroll que se reparte entre las ocho vueltas (abrir
+                        la tapa y las siete hojas);
+         · __remate     permanencia extra en la pagina de cierre; hoy vale 0,
+                        para que esa pagina dure lo mismo que la portada;
+         · __cierre     seguir bajando baja la tapa;
+         · __portada    el libro cerrado se queda un momento antes de la despedida. -->
+  <div class="bol-libro__pista" #track>
+    <div class="bol-libro__pin">
+      <!-- El titulo sigue aqui, invisible pero leido por buscadores y lectores
+           de pantalla: sin el, esta seccion se queda sin nombre y el documento
+           sin su encabezado de nivel 2. -->
+      <h2 class="bol-libro__sr">Nuestra historia, página a página</h2>
+
+      <div
+        class="bol-libro__escena"
+        tabindex="0"
+        role="group"
+        aria-roledescription="libro"
+        [attr.aria-label]="etiqueta()"
+        aria-describedby="bol-libro-ayuda"
+        (keydown)="alTeclado($event)"
+        (touchstart)="alEmpezarToque($event)"
+        (touchend)="alSoltarToque($event)"
+        (touchcancel)="alCancelarToque()"
+      >
+        <canvas #canvas class="bol-libro__lienzo" [class.esta-listo]="listo()"></canvas>
+
+        <!-- TODO se dibuja sobre el lienzo, incluidos estos dos botones, que son
+             tinta de la pagina de cierre. Estos <a> son solo el area pulsable:
+             van vacios, colocados encima del cajetin dibujado con las medidas
+             que da socialEstilo. -->
+        @if (muestraSocial()) {
+          <a
+            [href]="contact.mapsUrl"
+            target="_blank"
+            rel="noopener"
+            class="bol-libro__social"
+            [ngStyle]="socialEstilo('ubicacion')"
+            aria-label="Ver la ubicación en Google Maps"
+            (mouseenter)="marcaSocial('ubicacion')"
+            (mouseleave)="marcaSocial(null)"
+            (focus)="marcaSocial('ubicacion')"
+            (blur)="marcaSocial(null)"
+          ></a>
+          <a
+            [href]="mensajeUrl"
+            target="_blank"
+            rel="noopener"
+            class="bol-libro__social"
+            [ngStyle]="socialEstilo('mensaje')"
+            aria-label="Enviar un mensaje por WhatsApp"
+            (mouseenter)="marcaSocial('mensaje')"
+            (mouseleave)="marcaSocial(null)"
+            (focus)="marcaSocial('mensaje')"
+            (blur)="marcaSocial(null)"
+          ></a>
+        }
+
+        <!-- El sello de la contraportada: el logotipo y la frase van DIBUJADOS
+             sobre el cuero, con su perspectiva. Esto es solo el area pulsable,
+             colocada sobre el mismo cuadrilatero que se estampa. -->
+        @if (muestraSello()) {
+          <a
+            [href]="mensajeUrl"
+            target="_blank"
+            rel="noopener"
+            class="bol-libro__sello"
+            [ngStyle]="selloEstilo()"
+            aria-label="Escribinos por WhatsApp: el horno siempre está encendido"
+          ></a>
+        }
+      </div>
+
+      <!-- Sin nada a la vista: quitar los botones deja sin manejo a quien no
+           puede usar el scroll con precision. Estos controles no se ven pero si
+           se enfocan y los anuncia un lector de pantalla; no animan el libro
+           directamente sino que MUEVEN EL SCROLL, para que la posicion de la
+           ventana siga siendo la unica fuente de verdad. -->
+      <p id="bol-libro-ayuda" class="bol-libro__sr">
+        Ocho páginas. Se pasan bajando y subiendo con el scroll, deslizando el dedo hacia los lados, o con las flechas
+        del teclado.
+      </p>
+      <div class="bol-libro__sr">
+        <button type="button" (click)="vaA(estado() - 1)" [disabled]="estado() <= 0">Página anterior</button>
+        <button type="button" (click)="vaA(estado() + 1)" [disabled]="estado() >= cerradoFinal">Página siguiente</button>
+      </div>
+    </div>
+
+    <!-- Las ocho vueltas, una por pieza: cada una pone un TOPE de scroll donde
+         reposa una hoja, para que un deslizamiento con inercia no se lleve la
+         pista entera. Ver `.bol-libro__paso` en el SCSS y `freno-de-pista.ts`.
+         El recorrido sigue midiendo ocho vueltas, asi que `progresoPista` no se
+         entera de que ahora tiene hijos. -->
+    <div class="bol-libro__recorrido" #recorrido>
+      <div class="bol-libro__paso"></div>
+      <div class="bol-libro__paso"></div>
+      <div class="bol-libro__paso"></div>
+      <div class="bol-libro__paso"></div>
+      <div class="bol-libro__paso"></div>
+      <div class="bol-libro__paso"></div>
+      <div class="bol-libro__paso"></div>
+      <div class="bol-libro__paso"></div>
+    </div>
+    <div class="bol-libro__remate" #remate></div>
+    <div class="bol-libro__cierre" #cierre></div>
+    <div class="bol-libro__portada"></div>
+  </div>
+</section>

@@ -5,6 +5,7 @@ import {
   ElementRef,
   PLATFORM_ID,
   afterNextRender,
+  computed,
   inject,
   signal,
 } from '@angular/core';
@@ -36,8 +37,26 @@ export class SiteNavComponent {
   readonly screen = this.store.screen;
   readonly mobileOpen = this.store.mobileOpen;
   readonly scrolled = signal(false);
-  /** Sin JavaScript (SSR) se queda en `foto`: la barra de siempre. */
+  /**
+   * Sin JavaScript (SSR) se queda en `foto`, que es el hero: la barra arranca
+   * escondida, que es como tiene que verse la portada al entrar.
+   */
   readonly tono = signal<NavTono>('foto');
+
+  /**
+   * Sobre el HERO la barra no se pinta: la portada va limpia y la barra APARECE
+   * con el segmento siguiente.
+   *
+   * Cuelga del mismo tono que ya decide el color, y no de un observador aparte,
+   * para que la aparicion caiga exactamente en el mismo instante que el cambio
+   * de color y con el mismo fundido: un solo mecanismo, imposible de
+   * desincronizar. `foto` lo lleva solo el hero (ver `data-nav-tono`).
+   *
+   * En los huecos entre secciones el tono conserva el ultimo, asi que entre el
+   * hero y el libro la barra sigue escondida hasta que el libro llega de
+   * verdad, que es lo que se pide.
+   */
+  readonly oculta = computed(() => this.tono() === 'foto');
 
   constructor() {
     if (this.isBrowser) {

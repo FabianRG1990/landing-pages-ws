@@ -1,0 +1,257 @@
+// El libro de 2026: a sangre, ocupando la ventana entera.
+//
+// La diferencia de fondo con `about-book.component.scss` es el encuadre. Aquel
+// libro flota con aire alrededor y su tamano se despeja de la altura de la
+// ventana; este llena el cuadro de 1920x1080 y se sale por los cuatro bordes,
+// asi que la escena ES la ventana y no hay ancho que calcular: el lienzo se
+// estira al 100 % y el encuadre lo resuelve el componente con un "cover".
+.bol-libro {
+  // Sin `padding` lateral: cualquier margen aqui deja ver el borde del lienzo y
+  // el libro dejaria de ir a sangre.
+  padding: 0;
+  margin: 0;
+
+  // El lienzo mide exactamente la ventana, asi que nada se sale en horizontal;
+  // `clip` esta igualmente por si un navegador redondea el ancho hacia arriba.
+  // No puede ser `hidden`: eso convertiria la seccion en un contenedor de
+  // scroll y arrastraria `overflow-y` a `auto`.
+  overflow-x: clip;
+  overflow-y: visible;
+}
+
+.bol-libro__pista {
+  position: relative;
+}
+
+.bol-libro__pin {
+  position: sticky;
+  top: 0;
+  // Lo que MIDE es constante; lo que PINTA sigue a la pantalla. Esta separacion
+  // es la clave de toda la seccion.
+  //
+  // El pin forma parte de la pista, o sea de la GEOMETRIA de la pagina: su alto
+  // entra en la altura del documento y en el divisor del progreso. Medido con
+  // `dvh`, cada vez que la barra del navegador se desliza la pagina cambia de
+  // tamano bajo el dedo y el navegador compensa moviendo el scroll -medido en
+  // Chrome: 56 px, el equivalente a 0,29 paginas-. En el telefono la barra no se
+  // va de golpe sino animada, asi que eso no es un salto: es un empujon
+  // sostenido justo al levantar el dedo. Reportado como "el scroll continua solo
+  // y muy fuerte", y en Safari es peor, porque rehace la disposicion en cada
+  // fotograma de esa animacion.
+  //
+  // Por eso aqui manda `svh`, que es una CONSTANTE -el viewport pequeno, el de
+  // la barra puesta-: la geometria no se mueve nunca. Lo que llena la pantalla
+  // es el LIENZO, que va en absoluto -no cuenta para la altura de nada- y ese si
+  // mide lo visible (ver `.bol-libro__lienzo`).
+  //
+  // Los tramos de la pista -recorrido, cierre, portada- van en `svh` por la
+  // misma razon, y con mas motivo: son distancias de SCROLL.
+  height: 100vh;
+  height: 100svh;
+}
+
+.bol-libro__escena {
+  position: relative;
+  width: 100%;
+  height: 100%;
+
+  // El dedo pasa hoja arrastrando a los lados, y el navegador no tiene que
+  // hacer nada con ese arrastre: `pan-y` le deja el scroll vertical -que es como
+  // se recorre el libro- y le quita el horizontal, que aqui no lleva a ninguna
+  // parte y en algunos navegadores dispara el "atras" del historial.
+  //
+  // `pinch-zoom` se conserva a proposito: quitarlo impediria acercar la pagina,
+  // y eso es accesibilidad, no un adorno. Lo que NO se pone es `pan-x`: en
+  // Safari autoriza la deriva lateral y el arrastre sale en diagonal.
+  touch-action: pan-y pinch-zoom;
+
+  // El foco tiene que verse: es una pieza enfocable que se maneja con el
+  // teclado, y sin anillo no hay forma de saber donde esta.
+  &:focus-visible {
+    outline: 2px solid var(--olive);
+    outline-offset: -4px;
+  }
+}
+
+.bol-libro__lienzo {
+  // El dibujo, y solo el dibujo. Va en absoluto y mide lo VISIBLE, asi que llena
+  // la pantalla aunque el pin -que es quien cuenta para la geometria- mida el
+  // viewport pequeno. Cuando la barra se retrae, lo unico que cambia es este
+  // rectangulo: ni la altura del documento, ni el progreso, ni el scroll.
+  //
+  // El alto real lo escribe el componente con `visualViewport.height` (ver
+  // `dimensiona`); `100dvh` es el respaldo hasta que JS mide.
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100dvh;
+  // No es una superficie tactil: quien escucha el dedo es la escena, que es su
+  // padre y se queda dentro del pin. Sin esto, el trozo de lienzo que sobresale
+  // por abajo se quedaria con toques que no son suyos.
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.45s ease;
+
+  &.esta-listo {
+    opacity: 1;
+  }
+}
+
+// ─── La pista ────────────────────────────────────────────────────────────────
+// `--vuelta` es EL numero del ritmo: lo que cuesta pasar una hoja. Lo usan el
+// recorrido y el cierre, que tiene que seguir siendo una fraccion de la vuelta
+// (ver mas abajo), asi que vive en un solo sitio.
+//
+// 25svh viene del libro anterior, donde se ajusto a base de uso -a 60svh eran
+// "literalmente diez clics antes de pasar la hoja"-. En vertical y en escritorio
+// eso son 211 y 225 px por hoja.
+.bol-libro {
+  --vuelta: 25svh;
+
+  /**
+   * En el TELEFONO una hoja cuesta media pantalla larga, y esto no es afinar un
+   * gusto: es la fisica del dedo.
+   *
+   * Con 25svh una hoja cuesta 218 px de pie y con 40svh 157 px acostado. Un
+   * deslizamiento con impulso recorre 700-900 px, asi que un solo gesto pasaba
+   * tres o cuatro hojas de golpe -reportado tal cual-. El numero corto venia de
+   * una queja de ESCRITORIO ("literalmente diez clics antes de pasar la hoja"),
+   * donde la unidad es la muesca de la rueda; en el telefono la unidad es el
+   * impulso, y no se parecen en nada.
+   *
+   * `svmax` y no `svh`: es el lado LARGO de la pantalla, que es el mismo trozo
+   * de cristal antes y despues de girar el aparato. Asi una hoja cuesta lo mismo
+   * en las dos posiciones -436 px en un 393x873- en vez de abaratarse justo
+   * donde la pantalla es baja. Con `svh` habria que escribir 50 en vertical y
+   * 112 en horizontal para decir lo mismo.
+   *
+   * El escritorio NO entra: alli manda la rueda, el ritmo esta aprobado y 25svh
+   * se queda. La tableta tampoco se toca, que no estaba en el encargo.
+   */
+  // Con el FRENO puesto la hoja vuelve a costar lo que costaba. El 50svmax
+  // existia para domar la inercia del dedo, y el precio era que un
+  // deslizamiento suave pedia 284 px y no movia nada. La inercia la para ahora
+  // `scroll-snap-stop` (ver `.bol-libro__paso`), asi que aqui manda el dedo
+  // tranquilo: 25svmax son 218 px y basta con recorrer la mitad.
+  @media (pointer: coarse) and (orientation: landscape) and (max-height: 600px) {
+    --vuelta: 25svmax;
+  }
+}
+
+// ─── Los topes de la pista ───────────────────────────────────────────────────
+//
+// Una pieza por vuelta; su borde superior es donde reposa una hoja. El
+// `scroll-margin-top` vale lo que mide el PIN porque el progreso se cuenta desde
+// el borde de la pista y estas piezas viven una pantalla mas abajo, detras del
+// pin. Y `scroll-snap-stop: always` en una de cada dos impide que un solo gesto
+// atraviese mas de dos hojas.
+//
+// La explicacion larga esta en el libro vertical, que es donde se reporto;
+// aqui va igual porque el mismo dedazo se llevaba la pista entera acostado.
+// Solo en el TELEFONO acostado: la misma consulta que decide el ritmo.
+.bol-libro__paso {
+  height: var(--vuelta);
+
+  @media (pointer: coarse) and (orientation: landscape) and (max-height: 600px) {
+    scroll-snap-align: start;
+    scroll-margin-top: 100svh;
+
+    &:nth-child(odd) {
+      scroll-snap-stop: always;
+    }
+  }
+}
+
+// Ocho vueltas: abrir la tapa y las siete hojas que separan las ocho paginas.
+.bol-libro__recorrido {
+  height: calc(8 * var(--vuelta));
+}
+
+// Sin permanencia: la pagina de cierre dura lo mismo que la portada.
+//
+// Este hueco existia para que los botones de ubicacion y mensaje no pasaran de
+// largo antes de poder pulsarlos, y llego a valer 65svh. Se sentia atascado: con
+// la histeresis a los dos lados salian 90svh de bajar sin que pasara nada, casi
+// una pantalla entera, cuando cualquier otra pagina cuesta 25svh.
+//
+// La referencia ahora es la portada, el otro extremo del libro, que no hay que
+// calibrar porque ya se siente bien: el libro cerrado aguanta (0,5 + PISTA_BANDA)
+// de vuelta -16,25svh- y se abre. Los botones siguen dibujados y pulsables todo
+// ese rato; lo que se pierde es el colchon para pararse encima bajando de
+// seguido. Si hiciera falta recuperarlo, este es el numero que hay que subir, y
+// solo este.
+.bol-libro__remate {
+  height: 0;
+}
+
+// La tapa se dispara antes, y esa es la otra mitad de igualar la portada: lo que
+// dura la pagina de cierre es 0,35 de vuelta -lo que le queda a la vuelta
+// octava- mas el remate mas 0,65 de este tramo. Con el remate a cero, para que
+// la suma de los mismos 16,25svh de la portada, este tramo vale 0,3/0,65 de
+// vuelta.
+//
+// Cambia CUANDO empieza a bajar la tapa, no como baja: se cierra en 140 cuadros
+// por tiempo, no por scroll, asi que se ve exactamente igual que antes. El
+// `calc` deja la cuenta a la vista; si se tocara PISTA_BANDA en el componente,
+// aqui hay que rehacerla.
+.bol-libro__cierre {
+  height: calc(var(--vuelta) * 0.3 / 0.65); // ~11,5svh con la vuelta en 25
+}
+
+// Aqui no hay nada que pulsar: solo dejar que la contraportada se asiente antes
+// de la despedida. Es lo unico largo que queda en la cola, y a proposito.
+.bol-libro__portada {
+  height: 50svh;
+
+  // El ultimo tope, y con freno: cerrar la tapa es un paso mas y un dedazo no
+  // puede saltarselo.
+  @media (pointer: coarse) and (orientation: landscape) and (max-height: 600px) {
+    scroll-snap-align: start;
+    scroll-margin-top: 100svh;
+    scroll-snap-stop: always;
+  }
+}
+
+// ─── Accesibilidad ───────────────────────────────────────────────────────────
+.bol-libro__sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+// Area pulsable del sello de la contraportada. Como los botones de la pagina de
+// cierre, no pinta nada: el logotipo y la frase estan estampados en el cuero.
+.bol-libro__sello {
+  position: absolute;
+  cursor: pointer;
+
+  &:focus-visible {
+    outline: 2px solid var(--olive);
+    outline-offset: 6px;
+    border-radius: 12px;
+  }
+}
+
+// Area pulsable de los dos botones de la pagina de cierre. No pinta nada: el
+// boton ya esta dibujado en el papel, con su perspectiva y su luz, y la
+// respuesta al puntero ocurre DENTRO de la hoja (ver marcaSocial).
+.bol-libro__social {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+
+  // El foco si lleva anillo propio: el navegador tiene que poder senalar donde
+  // esta el teclado, y marcar la tinta no lo deja claro.
+  &:focus-visible {
+    outline: 2px solid var(--olive);
+    outline-offset: 4px;
+    border-radius: 999px;
+  }
+}

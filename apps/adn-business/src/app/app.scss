@@ -1,0 +1,38 @@
+/* ============================================================
+   La malla del fondo — capa unica y fija
+   ------------------------------------------------------------
+   NO se usa `background-attachment: fixed`: en iOS Safari se ignora
+   desde hace anos y donde funciona obliga a repintar el fondo en cada
+   fotograma de scroll. Una capa `position: fixed` la compone el
+   navegador una sola vez y el scroll no la toca.
+
+   Lenis 1.3 mueve el scroll nativo de la ventana (no transforma un
+   contenedor), asi que `fixed` se comporta con normalidad.
+
+   Va por debajo de todo con z-index -1: el fondo de <body> pinta el
+   color y esta capa solo aporta la trama, de modo que si la capa
+   fallara el sitio seguiria teniendo su fondo.
+   ============================================================ */
+
+.malla {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    repeating-linear-gradient(
+      0deg,
+      var(--malla-tinta) 0 1px,
+      transparent 1px var(--malla-paso)
+    ),
+    repeating-linear-gradient(
+      60deg,
+      var(--malla-tinta-2) 0 1px,
+      transparent 1px var(--malla-paso)
+    ),
+    repeating-linear-gradient(
+      120deg,
+      var(--malla-tinta-2) 0 1px,
+      transparent 1px var(--malla-paso)
+    );
+}
