@@ -436,10 +436,14 @@ export class PasarelaComponent {
     piezas.forEach((p) => ro.observe(p.harina));
 
     // `decode()` y no `onload`: la harina llega ya descodificada, fuera del hilo
-    // principal, y el primer `drawImage` no la descodifica de golpe.
+    // principal, y el primer `drawImage` no la descodifica de golpe. Donde no
+    // existe (navegadores viejos, el entorno de tests) se espera a `onload`.
+    const llega =
+      typeof harina.decode === 'function'
+        ? () => harina.decode()
+        : () => new Promise<void>((res) => (harina.onload = harina.onerror = () => res()));
     harina.src = 'assets/pasarela/harina.webp';
-    harina
-      .decode()
+    llega()
       .catch(() => undefined)
       .then(() => {
         harinaLista = harina.naturalWidth > 0;
