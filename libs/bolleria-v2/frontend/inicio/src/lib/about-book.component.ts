@@ -1407,7 +1407,15 @@ export class AboutBookComponent {
    */
   private readonly sueltame: Array<() => void> = [];
   private readonly zone = inject(NgZone);
+  /**
+   * Desmontado: al girar el teléfono el otro libro ocupa su sitio. Las colas de
+   * descarga lo miran para no seguir bajando cuadros que ya nadie va a ver
+   * -medido en 4G: 154 en los doce segundos tras el giro, quitándole la línea al
+   * libro que entra-.
+   */
+  private desmontado = false;
   private readonly limpieza = inject(DestroyRef).onDestroy(() => {
+    this.desmontado = true;
     this.sueltame.forEach((f) => f());
     this.sueltame.length = 0;
     if (this.rafPista) cancelAnimationFrame(this.rafPista);
@@ -1539,7 +1547,7 @@ export class AboutBookComponent {
     const pendientes = Object.entries(recortes);
     let siguiente = 0;
     const obrero = async (): Promise<void> => {
-      while (siguiente < pendientes.length) {
+      while (!this.desmontado && siguiente < pendientes.length) {
         const [n, [x, y, w, h]] = pendientes[siguiente++];
         try {
           const res = await fetch(`${FRAMES_DIR_HD}/frame_${n.padStart(4, '0')}.webp`);
@@ -1851,7 +1859,7 @@ export class AboutBookComponent {
   private async loadFramesAcotado(): Promise<void> {
     let siguiente = 0;
     const obrero = async (): Promise<void> => {
-      while (siguiente < FRAME_COUNT) await this.loadFrame(siguiente++);
+      while (!this.desmontado && siguiente < FRAME_COUNT) await this.loadFrame(siguiente++);
     };
     await Promise.all(Array.from({ length: 12 }, () => obrero()));
   }

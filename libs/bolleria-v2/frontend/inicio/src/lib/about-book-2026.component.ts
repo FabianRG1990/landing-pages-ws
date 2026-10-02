@@ -506,10 +506,13 @@ export class AboutBook2026Component {
    * vivas pidiendo cuadros de un lienzo que ya no existe.
    */
   private readonly sueltame: (() => void)[] = [];
+  /** Desmontado: la cola de descarga lo mira para no seguir bajando cuadros. */
+  private desmontado = false;
 
   constructor() {
     if (!this.isBrowser) return;
     inject(DestroyRef).onDestroy(() => {
+      this.desmontado = true;
       cancelAnimationFrame(this.raf);
       cancelAnimationFrame(this.rafPista);
       for (const f of this.sueltame) f();
@@ -697,7 +700,7 @@ export class AboutBook2026Component {
     const HILOS = 6;
     let i = 0;
     const obrero = async (): Promise<void> => {
-      while (i < orden.length) {
+      while (!this.desmontado && i < orden.length) {
         await this.cargaCuadro(orden[i++]);
       }
     };
