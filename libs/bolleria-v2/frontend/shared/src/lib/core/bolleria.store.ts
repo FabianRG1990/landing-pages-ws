@@ -89,7 +89,10 @@ export const BolleriaStore = signalStore(
       patchState(store, { curtain: true, mobileOpen: false });
       setTimeout(() => {
         patchState(store, { screen });
-        if (typeof window !== 'undefined') window.scrollTo(0, 0);
+        // `instant`: el html declara `scroll-behavior: smooth`, y volver arriba
+        // en suave desde el pie de Inicio cruzaba el libro hoja a hoja bajo la
+        // cortina. Tapado, un salto es lo que se queria.
+        if (typeof window !== 'undefined') window.scrollTo({ top: 0, behavior: 'instant' });
         patchState(store, { settleTick: store.settleTick() + 1 });
       }, swapDelay);
       setTimeout(() => patchState(store, { curtain: false }), resetDelay);
