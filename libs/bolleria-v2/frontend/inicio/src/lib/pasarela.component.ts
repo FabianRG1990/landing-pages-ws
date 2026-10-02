@@ -62,17 +62,28 @@ interface Tramo {
 }
 
 /** Lo que dura la secuencia de un tramo, en segundos. */
-const DURACION = 1.8;
+const DURACION = 1.2;
 
 /**
- * Cuándo pasa cada cosa, en segundos, pasado a fracción de `DURACION`.
+ * La pauta sobre la que se escribieron los tiempos de `FASES`, en segundos.
+ *
+ * La secuencia se ajustó a 1,8 s y luego se pidió más rápida («el zigzag tiene
+ * que ir más rápido»). Se aceleró ENTERA, sin tocar sus proporciones: el sello y
+ * lo escrito siguen arrancando juntos y cada fase dura la misma fracción. Por eso
+ * los tiempos se dejan en la pauta en que se pensaron y se dividen por ella, no
+ * por `DURACION`: a 1,2 s, cada número de abajo dura dos tercios de lo escrito.
+ */
+const PAUTA = 1.8;
+
+/**
+ * Cuándo pasa cada cosa, en segundos de la `PAUTA`, pasado a fracción.
  *
  * Son DOS animaciones que arrancan juntas, y ninguna espera a la otra:
  *
- *   - el sello: baja en 0,65 s -un objeto grande que se posa; por debajo de
- *     medio segundo entraba como un golpe, «agresivo, como puesto a la
- *     fuerza»-, aprieta, se despega recto y se aparta;
- *   - lo escrito: la hora aparece al momento, el dedo escribe 1,5 s a velocidad
+ *   - el sello: baja, aprieta, se despega recto y se aparta. Lo que lo hacía
+ *     «agresivo, como puesto a la fuerza» era que el scroll lo arrastraba; ya
+ *     corre a su ritmo;
+ *   - lo escrito: la hora aparece al momento, el dedo escribe a velocidad
  *     constante y el texto entra cuando la palabra está acabando.
  *
  * Antes la escritura esperaba a que el sello se fuera, y bajando a buen ritmo
@@ -80,17 +91,17 @@ const DURACION = 1.8;
  * escrito.
  */
 const FASES = {
-  bajaDesde: 0 / DURACION,
-  apoya: 0.65 / DURACION,
-  levanta: 0.8 / DURACION,
+  bajaDesde: 0 / PAUTA,
+  apoya: 0.65 / PAUTA,
+  levanta: 0.8 / PAUTA,
   /** Se levanta recto hasta aquí y desde aquí se aparta hacia fuera. */
-  aparta: 1.0 / DURACION,
-  fuera: 1.45 / DURACION,
-  horaHasta: 0.35 / DURACION,
-  escribeDesde: 0.1 / DURACION,
-  escribeHasta: 1.6 / DURACION,
-  textoDesde: 1.3 / DURACION,
-  textoHasta: 1.8 / DURACION,
+  aparta: 1.0 / PAUTA,
+  fuera: 1.45 / PAUTA,
+  horaHasta: 0.35 / PAUTA,
+  escribeDesde: 0.1 / PAUTA,
+  escribeHasta: 1.6 / PAUTA,
+  textoDesde: 1.3 / PAUTA,
+  textoHasta: 1.8 / PAUTA,
 };
 
 /**
