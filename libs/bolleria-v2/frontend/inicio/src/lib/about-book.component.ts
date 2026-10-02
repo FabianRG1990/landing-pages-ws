@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, NgZone, PLATFORM_ID, computed, effect, inject, signal, viewChild } from '@angular/core';
 import { NgStyle, isPlatformBrowser } from '@angular/common';
-import { BolleriaStore, CONTACT, frenaMientrasSeVe, waDirectLink } from '@bolleria-v2-ui-shared';
+import { BolleriaStore, CONTACT, CerrojoDeHoja, frenaMientrasSeVe, waDirectLink } from '@bolleria-v2-ui-shared';
 import { WarpGL } from './about-book-warp-gl';
 import { GestoHoja } from './gesto-hoja';
 
@@ -4565,14 +4565,15 @@ export class AboutBookComponent {
   // ────────────────────────── Conduccion por scroll ──────────────────────────
   //
   // El libro tenia cuatro botones -abrir, anterior, siguiente y volver a la
-  // portada- y ahora lo mueve el scroll. La regla de diseño es que el scroll NO
-  // se toca: ni un `preventDefault`, ni arrastrar la ventana a una parada. El
-  // hero ya tiene su controlador de paradas y dos secciones secuestrando la
-  // rueda en la misma pagina se sentirian como una pagina que no obedece.
+  // portada- y ahora lo mueve el scroll. Se LEE en que punto de la pista esta la
+  // ventana y se deriva de ahi la pagina, llamando a los mismos
+  // open()/next()/prev() de siempre. Toda la calibracion de la vuelta sigue
+  // intacta.
   //
-  // Lo unico que se hace aqui es LEER en que punto de la pista esta la ventana
-  // y derivar de ahi la pagina, llamando a los mismos open()/next()/prev() de
-  // siempre. Toda la calibracion de la vuelta sigue intacta.
+  // La regla era que el scroll no se tocaba nunca. Desde el 2026-10-02 hay una
+  // excepcion, pedida en las pruebas: mientras pasa UNA hoja el scroll se
+  // bloquea, y al terminar la ventana vuelve al reposo de esa hoja. Un gesto,
+  // una hoja (ver `CerrojoDeHoja`). Fuera de esa vuelta el scroll sigue libre.
   //
   // Fuente de verdad unica: la posicion del scroll. Por eso el teclado y los
   // controles ocultos NO llaman a next() -moverian el libro sin mover la pagina
@@ -4582,6 +4583,7 @@ export class AboutBookComponent {
   private objetivo = 0;
   private conduciendo = false;
   private rafPista = 0;
+  private cerrojo: CerrojoDeHoja | null = null;
 
   /**
    * El freno de la inercia, encendido solo mientras la pista se ve. Los topes
@@ -4606,6 +4608,9 @@ export class AboutBookComponent {
   }
 
   private engancharPista(): void {
+    const cerrojo = new CerrojoDeHoja((terminada) => this.trasLaHoja(terminada));
+    this.cerrojo = cerrojo;
+    this.sueltame.push(() => cerrojo.destruye());
     // Fuera de la zona: esto corre en cada fotograma de scroll y no toca ningun
     // signal salvo cuando de verdad cambia la pagina.
     this.zone.runOutsideAngular(() => {
@@ -4663,6 +4668,8 @@ export class AboutBookComponent {
    * que alguien volviera a moverlo.
    */
   private leerPista(forzar = false): void {
+    // Con el cerrojo echado, lo que el gesto siga recorriendo no pide nada.
+    if (this.cerrojo?.puesto) return;
     const bruto = this.progresoPista();
     if (bruto === null) return;
     const previo = this.objetivo;
@@ -4683,6 +4690,10 @@ export class AboutBookComponent {
    * en cada paso: si mientras tanto el visitante cambia de idea y sube, la
    * cadena se da la vuelta sola en vez de terminar un recorrido que ya nadie
    * pide.
+   *
+   * Eso ya solo pasa en los saltos de varias hojas que no son un gesto. Un
+   * gesto pide una hoja y echa el cerrojo, asi que el destino no cambia hasta
+   * que la hoja termina (ver `CerrojoDeHoja`).
    *
    * Una vuelta dura unos 810 ms, asi que con la cola larga la vuelta se ACELERA.
    * Sin eso, medido: saltar de la portada al final de la pista tardaba 8,5 s en
@@ -4707,6 +4718,11 @@ export class AboutBookComponent {
   private async conducir(): Promise<void> {
     if (this.conduciendo) return;
     this.conduciendo = true;
+    // UNA hoja de distancia es un gesto: se echa el cerrojo. Mas de una no lo
+    // es -un ancla, el teclado en Inicio/Fin, el arranque con la ventana ya
+    // dentro de la pista-, y ahi se recorre como antes, acelerando.
+    const gesto = this.ready() && !this.reduced() && Math.abs(this.objetivo - this.estado()) === 1 && !!this.cerrojo?.hayGesto;
+    if (gesto) this.cerrojo?.echa();
     try {
       while (this.ready() && this.estado() !== this.objetivo) {
         const desde = this.estado();
@@ -4723,7 +4739,24 @@ export class AboutBookComponent {
       // vuelve a su ritmo calibrado.
       this.msPorCuadro = MS_PER_FRAME;
       this.conduciendo = false;
+      if (gesto) this.cerrojo?.hojaHecha();
     }
+  }
+
+  /**
+   * Al soltarse el cerrojo: la ventana vuelve al reposo de la hoja en la que
+   * quedo el libro, y lo que el gesto alcanzara a recorrer se descarta. La
+   * escena esta fija, asi que el salto no se ve. Si lo solto el tope con la hoja
+   * aun en marcha, no hay reposo: se relee la pista y el libro sigue al scroll.
+   */
+  private trasLaHoja(terminada: boolean): void {
+    if (terminada) {
+      const y = this.yDeIndice(this.estado());
+      if (y !== null) window.scrollTo({ top: y, behavior: 'instant' });
+    }
+    // Ya sin cerrojo: el aviso de scroll de la recolocacion puede no llegar si
+    // la ventana ya estaba en su sitio.
+    requestAnimationFrame(() => this.leerPista());
   }
 
   /**
@@ -4732,11 +4765,23 @@ export class AboutBookComponent {
    * despues `leerPista`, igual que con cualquier otro scroll.
    */
   irAIndice(indice: number): void {
+    // Una hoja por gesto tambien con el teclado y con el dedo de lado.
+    if (this.cerrojo?.puesto) return;
+    const y = this.yDeIndice(indice);
+    if (y === null) return;
+    // Mas de una hoja de golpe -Inicio, Fin- va de un salto: suave, el libro
+    // pasaria las de en medio una a una y el cerrojo lo pararia en la primera.
+    const lejos = Math.abs(indice - this.estado()) > 1;
+    window.scrollTo({ top: y, behavior: this.reduced() || lejos ? 'instant' : 'smooth' });
+  }
+
+  /** El scroll en el que reposa esa pagina, o null si la pista no se puede medir. */
+  private yDeIndice(indice: number): number | null {
     const pista = this.trackRef()?.nativeElement;
     const recorrido = this.recorridoRef()?.nativeElement;
     const remate = this.remateRef()?.nativeElement;
     const cierre = this.cierreRef()?.nativeElement;
-    if (!pista || !recorrido || !remate || !cierre) return;
+    if (!pista || !recorrido || !remate || !cierre) return null;
     const destino = Math.min(CERRADO_FINAL, Math.max(0, indice));
     // CERRADO_FINAL no vive en el recorrido: esta al final del tramo de cierre,
     // pasado el remate (ver `progresoPista`).
@@ -4744,8 +4789,7 @@ export class AboutBookComponent {
       destino === CERRADO_FINAL
         ? recorrido.offsetHeight + remate.offsetHeight + cierre.offsetHeight
         : (recorrido.offsetHeight * destino) / LAST;
-    const y = window.scrollY + pista.getBoundingClientRect().top + tramo;
-    window.scrollTo({ top: y, behavior: this.reduced() ? 'auto' : 'smooth' });
+    return window.scrollY + pista.getBoundingClientRect().top + tramo;
   }
 
   /**

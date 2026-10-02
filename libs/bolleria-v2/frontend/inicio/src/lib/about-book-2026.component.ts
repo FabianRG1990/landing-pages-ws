@@ -12,7 +12,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { NgStyle, isPlatformBrowser } from '@angular/common';
-import { BolleriaStore, CONTACT, frenaMientrasSeVe, waDirectLink } from '@bolleria-v2-ui-shared';
+import { BolleriaStore, CONTACT, CerrojoDeHoja, frenaMientrasSeVe, waDirectLink } from '@bolleria-v2-ui-shared';
 import { HISTORIAS } from './libro-historias';
 import { PuntoPx, WarpGL } from './about-book-warp-gl';
 import { GestoHoja } from './gesto-hoja';
@@ -1567,14 +1567,19 @@ export class AboutBook2026Component {
   }
 
   // ─── La pista de scroll ────────────────────────────────────────────────────
-  // El scroll NO se intercepta en ningun momento -eso es cosa del hero y su
-  // controlador de paradas-. Esto es solo RECORRIDO: el componente lee en que
-  // punto de la pista esta la ventana y deriva de ahi la pagina. La posicion del
-  // scroll es la unica fuente de verdad, y por eso el teclado y los controles
-  // ocultos no llaman a las transiciones: mueven la ventana.
+  // El componente lee en que punto de la pista esta la ventana y deriva de ahi
+  // la pagina. La posicion del scroll es la unica fuente de verdad, y por eso el
+  // teclado y los controles ocultos no llaman a las transiciones: mueven la
+  // ventana.
+  //
+  // La unica vez que se toca el scroll es mientras pasa UNA hoja: se bloquea y
+  // al terminar la ventana vuelve al reposo de esa hoja. Un gesto, una hoja (ver
+  // `CerrojoDeHoja`); antes los gestos se acumulaban y el libro pasaba todas las
+  // paginas a toda prisa con la ventana ya en otra parte.
   private objetivo = 0;
   private conduciendo = false;
   private rafPista = 0;
+  private cerrojo: CerrojoDeHoja | null = null;
 
   /**
    * El freno de la inercia, encendido solo mientras la pista se ve. Los topes
@@ -1587,6 +1592,9 @@ export class AboutBook2026Component {
 
   private enganchaPista(): void {
     this.enganchaElFreno();
+    const cerrojo = new CerrojoDeHoja((terminada) => this.trasLaHoja(terminada));
+    this.cerrojo = cerrojo;
+    this.sueltame.push(() => cerrojo.destruye());
     this.zone.runOutsideAngular(() => {
       const alMover = (): void => {
         if (this.rafPista) return;
@@ -1630,6 +1638,8 @@ export class AboutBook2026Component {
    * muerta dejaria el libro en la portada hasta que alguien volviera a moverlo.
    */
   private leePista(forzar = false): void {
+    // Con el cerrojo echado, lo que el gesto siga recorriendo no pide nada.
+    if (this.cerrojo?.puesto) return;
     const bruto = this.progresoPista();
     if (bruto === null) return;
     const previo = this.objetivo;
@@ -1649,11 +1659,17 @@ export class AboutBook2026Component {
    * cada vuelta: si mientras tanto quien mira cambia de idea y sube, la cadena se
    * da la vuelta sola en vez de terminar un recorrido que ya nadie pide. Con
    * cola larga la vuelta se acelera hasta ACELERA_MAX.
+   *
+   * Eso ya solo pasa en los saltos de varias hojas que no son un gesto -un
+   * ancla, Inicio/Fin, el relevo al girar-. Un gesto pide UNA hoja y echa el
+   * cerrojo, asi que el destino no cambia hasta que la hoja termina.
    */
   private async conduce(): Promise<void> {
     if (this.conduciendo) return;
     this.conduciendo = true;
     this.ocupado.set(true);
+    const gesto = this.listo() && !this.reducido() && Math.abs(this.objetivo - this.estado()) === 1 && !!this.cerrojo?.hayGesto;
+    if (gesto) this.cerrojo?.echa();
     try {
       while (this.listo() && this.estado() !== this.objetivo) {
         const desde = this.estado();
@@ -1668,7 +1684,25 @@ export class AboutBook2026Component {
       this.transicion = null;
       this.cuadroActual = this.cuadroDe(this.estado());
       this.pinta();
+      if (gesto) this.cerrojo?.hojaHecha();
     }
+  }
+
+  /**
+   * Al soltarse el cerrojo: la ventana vuelve al reposo de la hoja en la que
+   * quedo el libro, y lo que el gesto alcanzara a recorrer se descarta. La
+   * escena esta fija, asi que el salto no se ve. Si lo solto el tope con la hoja
+   * aun en marcha -en 4G puede esperar a sus cuadros-, no hay reposo: se relee
+   * la pista y el libro sigue al scroll.
+   */
+  private trasLaHoja(terminada: boolean): void {
+    if (terminada) {
+      const y = this.yDe(this.estado());
+      if (y !== null) window.scrollTo({ top: y, behavior: 'instant' });
+    }
+    // Ya sin cerrojo: el aviso de scroll de la recolocacion puede no llegar si
+    // la ventana ya estaba en su sitio.
+    requestAnimationFrame(() => this.leePista());
   }
 
   private cuadroDe(estado: number): number {
@@ -1767,18 +1801,30 @@ export class AboutBook2026Component {
    * sin moverse la pagina y el siguiente evento de scroll lo desharia.
    */
   vaA(indice: number): void {
+    // Una hoja por gesto tambien con el teclado y con el dedo de lado.
+    if (this.cerrojo?.puesto) return;
+    const y = this.yDe(indice);
+    if (y === null) return;
+    // Mas de una hoja de golpe -Inicio, Fin- va de un salto: suave, el libro
+    // pasaria las de en medio una a una y el cerrojo lo pararia en la primera.
+    const lejos = Math.abs(indice - this.estado()) > 1;
+    window.scrollTo({ top: y, behavior: this.reducido() || lejos ? 'instant' : 'smooth' });
+  }
+
+  /** El scroll en el que reposa esa pagina, o null si la pista no se puede medir. */
+  private yDe(indice: number): number | null {
     const pista = this.trackRef()?.nativeElement;
     const recorrido = this.recorridoRef()?.nativeElement;
     const remate = this.remateRef()?.nativeElement;
     const cierre = this.cierreRef()?.nativeElement;
-    if (!pista || !recorrido || !remate || !cierre) return;
+    if (!pista || !recorrido || !remate || !cierre) return null;
     const i = Math.min(CERRADO_FINAL, Math.max(0, indice));
     const arriba = window.scrollY + pista.getBoundingClientRect().top;
     const dentro =
       i <= LAST
         ? (i / LAST) * recorrido.offsetHeight
         : recorrido.offsetHeight + remate.offsetHeight + (i - LAST) * cierre.offsetHeight;
-    window.scrollTo({ top: arriba + dentro, behavior: this.reducido() ? 'auto' : 'smooth' });
+    return arriba + dentro;
   }
 
   // ─── El dedo ───────────────────────────────────────────────────────────────

@@ -8,6 +8,7 @@ export * from './lib/core/bolleria.store';
 export * from './lib/core/whatsapp';
 export * from './lib/core/scroll-lock';
 export * from './lib/core/freno-de-pista';
+export * from './lib/core/cerrojo-de-hoja';
 
 // data
 export * from './lib/data/menu-data';

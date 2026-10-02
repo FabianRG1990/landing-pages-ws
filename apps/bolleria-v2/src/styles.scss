@@ -36,6 +36,16 @@ html {
       scroll-snap-type: y proximity;
     }
   }
+
+  // El cerrojo de la hoja: mientras el libro pasa una hoja, en tactil la raiz se
+  // queda sin scroll. Es lo unico que para un deslizamiento que ya va en marcha.
+  // Solo donde hay dedo: con raton esconder la barra a medida estrecharia la
+  // pagina 15 px, y ahi el cerrojo cancela la rueda. Ver `cerrojo-de-hoja.ts`.
+  @media (pointer: coarse) {
+    &.bol-cerrojo {
+      overflow: hidden;
+    }
+  }
   background: #faf6ec;
 }
 
