@@ -1,3 +1,5 @@
+@use 'sass:list';
+
 // Cierre de la portada, en el sitio que ocupaba el pie de página.
 //
 // NO lleva fondo propio. El pie es un bloque verde oscuro que corta contra el
@@ -237,8 +239,13 @@
     padding-bottom: 24px;
   }
 
+  // Sin © ni firma en el telefono de pie. Quedaban en el ultimo trozo de la
+  // pagina y, al soltar el dedo, el navegador devolvia el scroll hasta el tope
+  // del libro: se veian un instante y se escondian sin dar tiempo a pulsarlos.
+  // La portada cierra con la frase y el versiculo; el pie completo, con los dos,
+  // sigue en Menu y Contacto. En escritorio y acostado se quedan: ahi se ven.
   .bol-despedida__legal {
-    margin-top: 20px;
+    display: none;
   }
 
   // El texto deja de leerse sobre papel liso y pasa a leerse sobre la foto de la
@@ -315,5 +322,65 @@
   .bol-despedida__versiculo cite {
     font-size: 13px;
     color: #3d382b;
+  }
+}
+
+// ─── La entrada, coordinada con el libro ─────────────────────────────────────
+//
+// La despedida no entra con el scroll sino cuando el libro se ha cerrado (ver
+// `fase` en el componente). Mientras espera, sus piezas estan puestas pero
+// invisibles, asi que la pagina no cambia de alto ni brinca al aparecer.
+//
+// La entrada va pieza a pieza, de arriba abajo, que es el orden de lectura:
+// rotulo, filete, versiculo, cita y, donde lo hay, el credito. 150 ms de pausa
+// para que la tapa asiente, 700 ms por pieza y 120 ms entre una y otra, con
+// una curva que frena al final (ease-out quint). La salida, si el libro se
+// reabre, es corta y de golpe: una salida no se contempla, se quita de enmedio.
+$piezas: '.bol-despedida__rotulo', '.bol-despedida__filete', '.bol-despedida__versiculo p',
+  '.bol-despedida__versiculo cite', '.bol-despedida__legal';
+$frena: cubic-bezier(0.22, 1, 0.36, 1);
+
+:host(.es-espera) {
+  @each $p in $piezas {
+    #{$p} {
+      opacity: 0;
+      transform: translateY(12px);
+      pointer-events: none;
+      transition:
+        opacity 200ms ease,
+        transform 200ms ease;
+    }
+  }
+
+  // El filete no sube: se dibuja desde el centro, como una linea que se traza.
+  .bol-despedida__filete {
+    transform: scaleX(0.15);
+  }
+}
+
+:host(.es-dentro) {
+  @each $p in $piezas {
+    $i: list.index($piezas, $p) - 1;
+    #{$p} {
+      opacity: 1;
+      transform: none;
+      transition:
+        opacity 700ms $frena (150ms + $i * 120ms),
+        transform 700ms $frena (150ms + $i * 120ms);
+    }
+  }
+}
+
+// Sin desplazamiento ni escalonado para quien pide menos movimiento: solo un
+// fundido corto. La espera se respeta igual: eso es orden, no adorno.
+@media (prefers-reduced-motion: reduce) {
+  :host(.es-espera),
+  :host(.es-dentro) {
+    @each $p in $piezas {
+      #{$p} {
+        transform: none;
+        transition: opacity 200ms ease;
+      }
+    }
   }
 }

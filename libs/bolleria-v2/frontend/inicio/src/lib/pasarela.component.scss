@@ -1,0 +1,270 @@
+// «Escrito en harina». Ver el componente.
+//
+// Sin fondo propio: va sobre la mesa fija del sitio (`body::before`), la misma
+// que tiene el hero al fundirse y el libro debajo. Una caja de color aquí
+// dejaría dos costuras.
+
+// La tinta del sello: el sepia de los propios grabados, medido en sus trazos.
+$tinta: #6b4224;
+
+:host {
+  display: block;
+}
+
+.bol-pas {
+  position: relative;
+  padding: clamp(56px, 10vh, 120px) 0 clamp(40px, 6vh, 80px);
+  // El sello entra y sale desde fuera de su columna y crece al acercarse: sin
+  // esto, en los bordes asomaría una barra de scroll lateral. `clip` y no
+  // `hidden`: no convierte la sección en un contenedor de scroll.
+  overflow-x: clip;
+}
+
+// Mismo rótulo que la despedida y el menú: Cinzel en versalitas y oliva.
+.bol-pas__rotulo {
+  margin: 0 auto clamp(8px, 2vh, 24px);
+  padding: 0 24px;
+  text-align: center;
+  font: 600 13px 'Cinzel', serif;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: var(--olive, #5e6a34);
+}
+
+// El tramo es el recorrido de scroll: 135 de alto para una escena de 100, así
+// que la escena se queda fija un tercio de pantalla, dos o tres golpes de rueda.
+// La secuencia arranca cuando la escena todavía va subiendo (ver el componente)
+// y ese tercio basta para que termine. Con 180 y arrancando ya quieta, la escena
+// se sentaba siete golpes y se sentía a baches; con 250, más aún.
+// En `vh` -el alto grande en el teléfono- para que el recorrido no cambie cuando
+// la barra del navegador se esconde.
+.bol-pas__tramo {
+  height: 135vh;
+}
+
+// La escena, fija mientras dura su tramo. Mide lo VISIBLE (`svh`): en el
+// teléfono con la barra a la vista, `vh` dejaría el texto debajo de ella.
+.bol-pas__escena {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  gap: clamp(24px, 5vw, 96px);
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 clamp(24px, 5vw, 64px);
+}
+
+// Sin movimiento no hay nada que coreografiar: cada tramo es su escena, ya
+// estampada y escrita, una debajo de otra.
+@media (prefers-reduced-motion: reduce) {
+  .bol-pas__tramo {
+    height: auto;
+  }
+
+  .bol-pas__escena {
+    position: static;
+    height: auto;
+    padding-block: clamp(40px, 9vh, 110px);
+  }
+}
+
+// El zigzag: en los tramos pares el sello se pasa a la derecha.
+.bol-pas__tramo--rev .bol-pas__sello {
+  order: 2;
+}
+
+// ── El sello ───────────────────────────────────────────────────────────────
+
+.bol-pas__sello {
+  position: relative;
+  justify-self: center;
+  width: min(36vw, 420px);
+  aspect-ratio: 1;
+}
+
+.bol-pas__huella {
+  position: absolute;
+  inset: 0;
+  // La tinta no cubre parejo: el grano del papel se queda sin ella en puntitos
+  // y la presión no es igual en todo el sello.
+  -webkit-mask: url('/assets/pasarela/tinta.webp') center / 70% repeat;
+  mask: url('/assets/pasarela/tinta.webp') center / 70% repeat;
+  // Sin `will-change`: como capa propia Chrome la rasteriza una vez y luego la
+  // gira como bitmap, y el grabado sale borroso. Medido: así queda nítida.
+
+  svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+
+  circle {
+    stroke: $tinta;
+  }
+}
+
+// En el hueco del anillo interior del SVG: 84/400 y 232/400.
+.bol-pas__grabado {
+  position: absolute;
+  left: 21%;
+  top: 21%;
+  width: 58%;
+  height: 58%;
+}
+
+.bol-pas__orla {
+  font: 600 19px 'Cinzel', serif;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  fill: $tinta;
+}
+
+.bol-pas__estrella {
+  font-size: 14px;
+  fill: $tinta;
+}
+
+.bol-pas__sombra {
+  position: absolute;
+  inset: 4%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(58, 36, 14, 0.7) 55%, rgba(58, 36, 14, 0) 100%);
+  opacity: 0;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+// La sombra del sello en lo alto: la misma, difuminada de antemano en el propio
+// degradado en vez de con un `blur(20px)` animado. Medidas sacadas comparando
+// las dos renderizadas: difieren 1,5 niveles de 255 de media.
+.bol-pas__sombra--blanda {
+  inset: 2.2%;
+  background: radial-gradient(closest-side, rgba(58, 36, 14, 0.7) 45%, rgba(58, 36, 14, 0) 100%);
+}
+
+// Sin JavaScript no hay sello en el aire: solo la huella, ya estampada.
+.bol-pas__estampa {
+  position: absolute;
+  inset: -3%;
+  width: 106%;
+  height: 106%;
+  opacity: 0;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+// ── El texto ───────────────────────────────────────────────────────────────
+
+.bol-pas__texto {
+  position: relative;
+  // Sin esto el lienzo, que va por debajo, se iría detrás de la mesa.
+  isolation: isolate;
+  max-width: 540px;
+  justify-self: center;
+  text-align: center;
+}
+
+// Por encima de la nube de harina, no dentro: el lienzo desborda la caja y el
+// polvo empieza a verse un 7 % del ancho por encima de ella (medido: 33 px en
+// escritorio). El margen la deja sobre el crema liso con aire de por medio.
+.bol-pas__hora {
+  margin: 0 0 calc(7% + 14px);
+  font: 600 12.5px 'Cinzel', serif;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--olive, #5e6a34);
+}
+
+.bol-pas__harina {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 2.1;
+
+  // Desborda la caja por los cuatro lados: ahí se deshace el puñado en polvo.
+  // Por debajo del rótulo y del texto, que pueden quedar sobre su borde.
+  canvas {
+    position: absolute;
+    inset: -36% -14%;
+    width: 128%;
+    height: 172%;
+    z-index: -1;
+    pointer-events: none;
+  }
+}
+
+// Lo lee el lector de pantalla; a la vista va pintado en la harina.
+.bol-pas__titulo {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+// El color ya daba 12:1 contra el fondo; lo que no se leía era el trazo.
+// Cormorant es una serifa de alto contraste y a 500 y 21 px sus astas miden un
+// píxel: en pantallas de densidad 1 el píxel que de verdad se ve se quedaba en
+// 4,2:1 de mediana. Mismo remedio que la despedida:
+//   · PESO 600, que ya está cargado en el index.html (uno que no lo estuviera
+//     lo fabricaría el navegador engordando el trazo a mano, y emborrona).
+//   · HALO del crema del sitio en dos anillos: uno cerrado que despega el asta
+//     del polvo y de las vetas de la madera, y otro ancho y tenue. No es una
+//     caja ni un borde: solo separa la letra de la textura.
+.bol-pas__cuerpo {
+  margin: 0 auto;
+  max-width: 30em;
+  font: 600 22px/1.5 var(--hf), Georgia, serif;
+  color: var(--ink, #2e2a1c);
+  text-shadow:
+    0 0 3px rgba(252, 246, 233, 0.95),
+    0 0 9px rgba(252, 246, 233, 0.72);
+}
+
+// ── Teléfono ───────────────────────────────────────────────────────────────
+// Una columna. El zigzag lo sigue marcando el sello, que se arrima a un borde
+// y al otro en cada tramo.
+
+@media (max-width: 720px) {
+  // La escena entera -sello, título y texto- tiene que caber en una pantalla:
+  // el sello se limita también por el alto.
+  .bol-pas__escena {
+    grid-template-columns: 1fr;
+    align-content: center;
+    gap: 8px;
+    padding: 0 20px;
+  }
+
+  .bol-pas__tramo--rev .bol-pas__sello {
+    order: 0;
+  }
+
+  .bol-pas__sello {
+    width: min(62vw, 34svh, 300px);
+    justify-self: start;
+    margin-left: 2vw;
+  }
+
+  .bol-pas__tramo--rev .bol-pas__sello {
+    justify-self: end;
+    margin: 0 2vw 0 0;
+  }
+
+  .bol-pas__harina {
+    aspect-ratio: 1.9;
+  }
+
+  // Más alta respecto a su ancho, la harina asoma algo más por arriba.
+  .bol-pas__hora {
+    margin-bottom: calc(8% + 14px);
+  }
+
+  .bol-pas__cuerpo {
+    font-size: 20px;
+  }
+}

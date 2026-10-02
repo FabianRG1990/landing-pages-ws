@@ -14,7 +14,7 @@ import {
   SiteNavComponent,
   installScrollLock,
 } from '@bolleria-v2-ui-shared';
-import { HeroCapasComponent, HomeComponent } from '@bolleria-v2-ui-inicio';
+import { HeroCapasComponent, HomeComponent, PasarelaComponent } from '@bolleria-v2-ui-inicio';
 import { MenuPageComponent } from '@bolleria-v2-ui-menu';
 import { ContactPageComponent } from '@bolleria-v2-ui-contacto';
 
@@ -28,6 +28,7 @@ import { ContactPageComponent } from '@bolleria-v2-ui-contacto';
     SiteNavComponent,
     SiteFooterComponent,
     HeroCapasComponent,
+    PasarelaComponent,
     HomeComponent,
     MenuPageComponent,
     ContactPageComponent,

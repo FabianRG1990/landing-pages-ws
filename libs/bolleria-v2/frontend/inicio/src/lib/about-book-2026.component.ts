@@ -6,12 +6,13 @@ import {
   NgZone,
   PLATFORM_ID,
   computed,
+  effect,
   inject,
   signal,
   viewChild,
 } from '@angular/core';
 import { NgStyle, isPlatformBrowser } from '@angular/common';
-import { CONTACT, frenaMientrasSeVe, waDirectLink } from '@bolleria-v2-ui-shared';
+import { BolleriaStore, CONTACT, frenaMientrasSeVe, waDirectLink } from '@bolleria-v2-ui-shared';
 import { HISTORIAS } from './libro-historias';
 import { PuntoPx, WarpGL } from './about-book-warp-gl';
 import { GestoHoja } from './gesto-hoja';
@@ -35,7 +36,13 @@ import { GestoHoja } from './gesto-hoja';
 // ─── El metraje ───────────────────────────────────────────────────────────────
 const FRAMES_DIR = 'assets/libro-2026-frames';
 const FRAME_COUNT = 292;
-const MALLA_URL = 'assets/libro-2026-malla.json';
+/**
+ * El `?v=` es la version de los DATOS, no adorno: la malla no lleva hash en el
+ * nombre, y un navegador que la guardo con la cache vieja de una hora seguia
+ * usando la orilla mal medida despues de corregirla. Hay que subirlo cada vez
+ * que cambie el archivo.
+ */
+const MALLA_URL = 'assets/libro-2026-malla.json?v=2';
 
 /**
  * Tamano LOGICO del video. Toda la calibracion -lomo, paginas, malla del giro-
@@ -113,6 +120,12 @@ const PISTA_BANDA = 0.15;
 const MS_POR_CUADRO = 1000 / 60;
 /** Tope de aceleracion cuando el scroll encadena varias vueltas seguidas. */
 const ACELERA_MAX = 3;
+/**
+ * Lo más que una transición espera a sus cuadros sin avanzar. Pasado esto sigue
+ * con los que haya, como hacía antes: un libro que no se mueve nunca es peor que
+ * uno que salta.
+ */
+const ESPERA_MAX = 6000;
 
 // ─── Geometria del libro, medida sobre el cuadro de reposo ────────────────────
 /** El lomo, en pixeles del video. */
@@ -167,9 +180,9 @@ const PANEL_H = AREA_Y1 - AREA_Y0;
  *
  * Girar la hoja alrededor del lomo -un eje vertical- no cambia la ALTURA de sus
  * puntos, asi que cada fila del panel cae en una fila del lienzo y basta con
- * escalarla en horizontal: no hace falta ni cizalla ni WebGL. Con 64 tiras cada
- * una cubre 13 px de los 845 del area, y en 13 px el borde libre -que es casi
- * vertical- se mueve menos de un pixel.
+ * escalarla en horizontal: no hace falta ni cizalla ni WebGL. Esto es el MINIMO:
+ * `estampaHoja` pone una tira cada 2 px de pantalla, porque con 64 -13 px del
+ * video cada una- el borde libre combado salia en escalones.
  */
 const TIRAS = 64;
 
@@ -465,6 +478,8 @@ export class AboutBook2026Component {
 
   // ─── Recursos ──────────────────────────────────────────────────────────────
   private cuadros: HTMLImageElement[] = [];
+  /** Cuadros que no se pudieron descargar: no se esperan. */
+  private readonly fallidos = new Set<number>();
   private malla: Malla | null = null;
   private montaje: Montaje = {};
   /**
@@ -491,16 +506,36 @@ export class AboutBook2026Component {
    * vivas pidiendo cuadros de un lienzo que ya no existe.
    */
   private readonly sueltame: (() => void)[] = [];
+  /** Desmontado: la cola de descarga lo mira para no seguir bajando cuadros. */
+  private desmontado = false;
 
   constructor() {
     if (!this.isBrowser) return;
     inject(DestroyRef).onDestroy(() => {
+      this.desmontado = true;
       cancelAnimationFrame(this.raf);
       cancelAnimationFrame(this.rafPista);
       for (const f of this.sueltame) f();
       this.cuadros = [];
     });
     queueMicrotask(() => this.arrancarCuandoSeAcerque());
+    this.publicaCierre();
+  }
+
+  private readonly store = inject(BolleriaStore);
+
+  /**
+   * Avisa de si el libro esta cerrado del todo tras la ultima pagina, que es lo
+   * que espera la despedida para entrar (ver `libroCerrado` en el store).
+   * `estado` solo cambia cuando la animacion de la tapa ha terminado, y
+   * `ocupado` cubre la cadena entera. Sin cargar, `null`: nadie controla y la
+   * despedida no se queda escondida para siempre.
+   */
+  private publicaCierre(): void {
+    effect(() => {
+      this.store.setLibroCerrado(this.listo() ? this.estado() >= CERRADO_FINAL && !this.ocupado() : null);
+    });
+    this.sueltame.push(() => this.store.setLibroCerrado(null));
   }
 
   // ─── Arranque ──────────────────────────────────────────────────────────────
@@ -635,22 +670,37 @@ export class AboutBook2026Component {
         this.cuadros[i] = img;
         res();
       };
-      img.onerror = () => res();
+      img.onerror = () => {
+        this.fallidos.add(i);
+        res();
+      };
       img.src = `${FRAMES_DIR}/f${String(i).padStart(3, '0')}.webp`;
     });
   }
 
-  /** Primero el ciclo de la vuelta -que es lo que mas se mira- y luego el resto. */
+  /**
+   * Primero la APERTURA, que es lo primero que se ve: el libro se abre y se
+   * acerca nada más empezar a bajar. Y dentro de ella, primero uno de cada dos
+   * cuadros: con la mitad ya se puede reproducir entera, y llega en la mitad de
+   * tiempo. Luego los que faltan, la vuelta de página y el cierre.
+   *
+   * Antes iba primero la vuelta. En 4G, al girar el teléfono y empezar a bajar,
+   * de los cien cuadros de la apertura había llegado uno: se veía la tapa con el
+   * texto de la página uno encima y luego el libro abierto de golpe, sin
+   * acercarse. Reportado como «el libro no se hace grande».
+   */
   private async cargaResto(): Promise<void> {
+    const apertura = this.rango(PORTADA, REPOSO);
     const orden = [
-      ...this.rango(REPOSO, GIRO_HI),
-      ...this.rango(PORTADA, REPOSO - 1),
+      ...apertura.filter((i) => (i - PORTADA) % 2 === 0),
+      ...apertura.filter((i) => (i - PORTADA) % 2 === 1),
+      ...this.rango(REPOSO + 1, GIRO_HI),
       ...this.rango(GIRO_HI + 1, FRAME_COUNT),
     ];
     const HILOS = 6;
     let i = 0;
     const obrero = async (): Promise<void> => {
-      while (i < orden.length) {
+      while (!this.desmontado && i < orden.length) {
         await this.cargaCuadro(orden[i++]);
       }
     };
@@ -712,20 +762,24 @@ export class AboutBook2026Component {
     canvas.style.height = `${h}px`;
     const W = w * this.dpr;
     const H = h * this.dpr;
-    // El libro va A SANGRE salvo en el telefono acostado, que es la unica
-    // pantalla donde eso no cabe.
+    // El libro va A SANGRE salvo en las pantallas mas anchas que el metraje,
+    // donde eso no cabe.
     //
     // `cover` ajusta por el lado que le sobra. En una ventana de 16:9 o mas alta
-    // -cualquier escritorio, la tableta- ajusta por el ALTO y el libro llena el
-    // cuadro, que es como esta disenado. En un telefono tumbado, que ronda
-    // 2,2:1, ajusta por el ANCHO y se come el 18 % del alto: el libro abierto
-    // salia sin orillas -ni marco, ni canto de hojas- y el cerrado pegado al
-    // borde de arriba.
+    // -la tableta, un 1920x1080- ajusta por el ALTO y el libro llena el cuadro,
+    // que es como esta disenado. En una mas ancha ajusta por el ANCHO y se come
+    // alto: en un telefono tumbado, que ronda 2,2:1, el 18 %, y el libro abierto
+    // salia sin orillas -ni marco, ni canto de hojas-. En los dos casos el
+    // cerrado quedaba pegado al borde de arriba: en un monitor de 1911x906, a
+    // 4 px, y visto al bajar parecia la misma imagen que el pie del hero.
     //
     // Ahi se ajusta por alto: entra el cuadro entero, el libro cerrado queda con
-    // 33 px de aire arriba y 31 abajo en un 873x393 y el abierto ensena el
-    // pliego completo. Cuesta que el libro se vea un 14-20 % mas pequeno y que
-    // aparezca papel a los lados, y es el precio de que quepa.
+    // 33 px de aire arriba y 31 abajo en un 873x393 -76 y 71 en el 1911x906- y
+    // el abierto ensena el pliego completo. Cuesta que el libro se vea un
+    // 14-20 % mas pequeno y que aparezca papel a los lados, y es el precio de
+    // que respire. Bajarlo sin achicarlo no vale: el pie del libro se sale por
+    // abajo, y el abierto -que sangra por arriba en el propio metraje- ensenaria
+    // el corte recto del cuadro.
     //
     // Quien decide no es un tamano, es la FORMA de la caja comparada con la del
     // metraje. `w * VIDEO_H > h * VIDEO_W` es `w/h > 16/9` sin dividir: la caja
@@ -734,14 +788,10 @@ export class AboutBook2026Component {
     //
     // Antes esto era `h <= 600`, un numero fijo que no dice nada de ninguna
     // pantalla: un aparato mas grande con la misma proporcion se quedaba fuera
-    // por un pixel. La forma, en cambio, se cumple sola en cualquier medida.
-    //
-    // El puntero grueso es lo que protege al escritorio: un 1911x906 tambien es
-    // mas ancho que 16:9, pero ahi el libro a sangre cabe, esta aprobado y no se
-    // toca. Y la tableta acostada -1024x768, 1,33:1- es mas ESTRECHA que el
-    // metraje, asi que tampoco entra por aqui.
-    const esTactil = typeof matchMedia === 'function' && matchMedia('(pointer: coarse)').matches;
-    const cabeSoloPorAlto = esTactil && w * VIDEO_H > h * VIDEO_W;
+    // por un pixel. La forma, en cambio, se cumple sola en cualquier medida. La
+    // tableta acostada -1024x768, 1,33:1- es mas ESTRECHA que el metraje, asi
+    // que no entra por aqui.
+    const cabeSoloPorAlto = w * VIDEO_H > h * VIDEO_W;
     this.esc = cabeSoloPorAlto ? H / VIDEO_H : Math.max(W / VIDEO_W, H / VIDEO_H);
     this.offX = (W - VIDEO_W * this.esc) / 2;
     // Con el libro a sangre el recorte vertical se centra en la CAJA DE REPOSO
@@ -1476,9 +1526,19 @@ export class AboutBook2026Component {
   private estampaHoja(ctx: CanvasRenderingContext2D, panel: HTMLCanvasElement, g: CuadroGiro): void {
     const rep = this.malla?.giro[String(REPOSO)];
     if (!rep) return;
-    for (let i = 0; i < TIRAS; i++) {
-      const v0 = i / TIRAS;
-      const v1 = (i + 1) / TIRAS;
+    // Una tira cada 2 px CSS de alto, y nunca menos de TIRAS. Con 64 tiras cada
+    // una media 13 px del video, y el borde libre -que a media vuelta se comba
+    // mucho- salia en escalones de ese alto, y la foto con el: se veia
+    // cuadriculada. La cuenta de cada tira no cambia: solo hay mas.
+    //
+    // 2 px y no 1, medido con GPU real en 1911x906: con una por pixel (~710
+    // `drawImage` por cuadro) se perdian 1-2 cuadros cada seis vueltas y con
+    // las 64 de antes ninguno; con 2 px (~355) vuelve a ninguno y el escalon ya
+    // no se ve ni al 300 %.
+    const n = Math.max(TIRAS, Math.ceil((PANEL_H * this.esc) / this.dpr / 2));
+    for (let i = 0; i < n; i++) {
+      const v0 = i / n;
+      const v1 = (i + 1) / n;
       const y = AREA_Y0 + ((v0 + v1) / 2) * PANEL_H;
       // uA y uB se sacan del borde libre EN ESA FILA, no en el centro: el borde
       // de la pagina se comba, asi que con un solo valor el contenido no caia
@@ -1492,9 +1552,13 @@ export class AboutBook2026Component {
       const xb = LOMO + uB * l;
       const sy = v0 * PANEL_H;
       const sh = Math.max(1, (v1 - v0) * PANEL_H);
-      const dy = this.py(AREA_Y0 + v0 * PANEL_H);
-      // +1 px de solape: sin el, entre tira y tira se ve una costura de fondo.
-      const dh = this.py(AREA_Y0 + v1 * PANEL_H) - dy + 1;
+      // Filas en pixeles ENTEROS del lienzo: asi cada tira empieza justo donde
+      // acaba la anterior y no queda costura. El solape de +1 px que la tapaba
+      // antes no vale con tiras tan finas: pintaria media tira dos veces y el
+      // texto, que es semitransparente en sus bordes, saldria mas grueso.
+      const dy = Math.round(this.py(AREA_Y0 + v0 * PANEL_H));
+      const dh = Math.round(this.py(AREA_Y0 + v1 * PANEL_H)) - dy;
+      if (dh <= 0) continue;
       const dx = Math.min(this.px(xa), this.px(xb));
       const dw = Math.abs(this.px(xb) - this.px(xa));
       if (dw < 0.5) continue;
@@ -1633,13 +1697,24 @@ export class AboutBook2026Component {
       this.pinta();
       return Promise.resolve();
     }
+    // Como un vídeo que carga: el reloj solo avanza hasta el último cuadro que
+    // ya ha llegado, y si el siguiente falta, espera ahí y sigue cuando llega.
+    // Nunca se pinta un cuadro que no está -se pintaba el más cercano, que podía
+    // ser la tapa con el texto de dentro encima o el libro ya abierto-.
     return new Promise((res) => {
-      const t0 = performance.now();
+      let hecho = 0;
+      let previo = performance.now();
+      let quieto = previo;
       const paso = (ahora: number): void => {
-        const t = Math.min(1, (ahora - t0) / dur);
-        this.cuadroActual = haciaDelante ? a + t * cuadros : b - t * cuadros;
+        const quiere = Math.min(cuadros, hecho + ((ahora - previo) / dur) * cuadros);
+        previo = ahora;
+        const tope = ahora - quieto > ESPERA_MAX ? cuadros : this.disponibles(a, b, haciaDelante);
+        const nuevo = Math.min(quiere, tope);
+        if (nuevo > hecho) quieto = ahora;
+        hecho = Math.max(hecho, nuevo);
+        this.cuadroActual = this.cuadroPintable(haciaDelante ? a + hecho : b - hecho, haciaDelante);
         this.pinta();
-        if (t < 1) {
+        if (hecho < cuadros) {
           this.raf = requestAnimationFrame(paso);
         } else {
           res();
@@ -1647,6 +1722,37 @@ export class AboutBook2026Component {
       };
       this.raf = requestAnimationFrame(paso);
     });
+  }
+
+  private tiene(i: number): boolean {
+    return !!this.cuadros[i] || this.fallidos.has(i);
+  }
+
+  /**
+   * Cuántos cuadros de la transición se pueden reproducir ya, desde su
+   * principio: los que han llegado, admitiendo que falte uno de cada dos -la
+   * apertura llega primero a cuadros alternos-.
+   */
+  private disponibles(a: number, b: number, haciaDelante: boolean): number {
+    const n = b - a;
+    for (let k = 1; k <= n; k++) {
+      const i = haciaDelante ? a + k : b - k;
+      const antes = haciaDelante ? i - 1 : i + 1;
+      if (!this.tiene(i) && !(this.tiene(antes) && k < n)) return k - 1;
+    }
+    return n;
+  }
+
+  /**
+   * El cuadro que de verdad se pinta, y no uno cercano: si el de la posición no
+   * ha llegado, el anterior en el sentido de la marcha. Así lo que se estampa
+   * encima -textos y fotos, medidos cuadro a cuadro- va con su cuadro.
+   */
+  private cuadroPintable(pos: number, haciaDelante: boolean): number {
+    const i = Math.round(pos);
+    if (this.cuadros[i]) return i;
+    const antes = haciaDelante ? i - 1 : i + 1;
+    return this.cuadros[antes] ? antes : i;
   }
 
   private reducido(): boolean {

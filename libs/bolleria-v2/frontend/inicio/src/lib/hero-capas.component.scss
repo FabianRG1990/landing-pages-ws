@@ -36,6 +36,22 @@
   --td2: 0ms;
   --ta0: 0ms;
   --ta1: 0ms;
+  --ta2: 0ms;
+  // Y los del desplazamiento de los botones: duración, retraso y el desfase
+  // del segundo. En reposo, quietos.
+  --tx0: 0ms;
+  --tx1: 0ms;
+  --tx2: 0ms;
+  --txd0: 0ms;
+  --txd1: 0ms;
+  --txd2: 0ms;
+  --te0: 0ms;
+  --te1: 0ms;
+  --te2: 0ms;
+  // Desaceleración estándar de Material. NO la enfática (0.05, 0.7, 0.1, 1):
+  // con ella el botón hacía la mitad del recorrido a opacidad 0,03 y, cuando ya
+  // se veía, le quedaban 1,8px. Con esta le quedan unos 6 de los 10.
+  --frena: cubic-bezier(0, 0, 0.2, 1);
   --pista: 1;
   /**
    * Valores en reposo: primer estado, primer texto. Los escribe el componente
@@ -47,13 +63,15 @@
   --t0: 1;
   --t1: 0;
   --t2: 0;
-  // Y los botones: en reposo mandan los dos de siempre. `visibility` va como
-  // palabra porque un enlace transparente sigue siendo enfocable y sigue
+  // Y los botones: en reposo manda el juego de la primera parada. `visibility`
+  // va como palabra porque un enlace transparente sigue siendo enfocable y sigue
   // leyéndose en voz alta; escondido de verdad, no.
   --a0: 1;
   --a1: 0;
+  --a2: 0;
   --va0: visible;
   --va1: hidden;
+  --va2: hidden;
   /**
    * Eje del bloque de texto, atado a la geometría de la foto.
    *
@@ -415,7 +433,7 @@
 }
 
 /**
- * Los dos juegos de botones comparten celda, como los tres textos: el bloque
+ * Los tres juegos de botones comparten celda, como los tres textos: el bloque
  * reserva el alto del más alto -en móvil, el de las dos píldoras partidas en dos
  * filas- y al relevarse no se mueve nada de lo que hay arriba ni abajo. La
  * columna es `1fr` para que cada juego mida el ancho entero y decida por su
@@ -440,6 +458,22 @@
   animation: heroc-entra 1s cubic-bezier(0.2, 0.75, 0.2, 1) 0.56s forwards;
 }
 
+/**
+ * Fuera del teléfono cada juego va en UNA fila. Si uno se parte en dos, el
+ * bloque crece de 50 a 111px y el titular sube 31px en las tres paradas. El de
+ * la segunda parada mide 574px y en bandera, hacia los 1024px, la columna se
+ * queda en 549: ahí se deja desbordar a la derecha en vez de partirse.
+ *
+ * Por eso el rótulo es «Nuestra historia» y no «Conocer nuestra historia»: con
+ * 637px, centrado sobre el eje del muro entre 1100 y 1280px, el juego quedaba a
+ * 17px del borde izquierdo y tocaba el pan por la derecha.
+ */
+@media (min-width: 721px) {
+  .bol-heroc__acciones {
+    width: max-content;
+  }
+}
+
 .bol-heroc__grupo {
   grid-area: 1 / 1;
   // Centrado en la celda común: el juego de un solo botón queda a la altura
@@ -450,21 +484,78 @@
   gap: 0.7rem;
 }
 
+// Cada juego traduce sus propiedades del host a nombres comunes, y los botones
+// leen sólo esos: así la regla del relevo se escribe una vez para los tres.
 .bol-heroc__grupo:nth-child(1) {
-  opacity: var(--a0);
   visibility: var(--va0);
-  transition: opacity var(--dur-txt) var(--curva) var(--ta0);
+  --a: var(--a0);
+  --ta: var(--ta0);
+  --tx: var(--tx0);
+  --txd: var(--txd0);
+  --te: var(--te0);
 }
 .bol-heroc__grupo:nth-child(2) {
-  opacity: var(--a1);
   visibility: var(--va1);
-  transition: opacity var(--dur-txt) var(--curva) var(--ta1);
+  --a: var(--a1);
+  --ta: var(--ta1);
+  --tx: var(--tx1);
+  --txd: var(--txd1);
+  --te: var(--te1);
+}
+.bol-heroc__grupo:nth-child(3) {
+  visibility: var(--va2);
+  --a: var(--a2);
+  --ta: var(--ta2);
+  --tx: var(--tx2);
+  --txd: var(--txd2);
+  --te: var(--te2);
 }
 
 // El aspecto vive en `.bol-btn` (styles.scss); aquí solo queda que el rótulo
 // del botón se centre en su caja, que es lo único propio del hero.
 .bol-heroc__cta {
   justify-content: center;
+}
+
+/**
+ * El relevo de los botones: un «fade through». El juego que sale se funde en
+ * `--dur-txt` sin moverse -si bajara mientras el otro sube se leerían dos
+ * movimientos encontrados- y sólo cuando ya es invisible vuelve a su sitio de
+ * salida, de golpe. El que entra espera lo mismo que la frase y sube 10px
+ * mientras aparece, frenando al final; el segundo botón, 60ms detrás del
+ * primero. Sin el desplazamiento el cambio de juego se leía como un parpadeo.
+ *
+ * La opacidad va en cada botón y no en el juego precisamente por ese desfase.
+ * Las dos primeras transiciones repiten las de `.bol-btn`: esta lista la
+ * sustituye entera, y sin ellas el hover se encendería de golpe.
+ */
+.bol-heroc__grupo .bol-heroc__cta {
+  opacity: var(--a);
+  transform: translateY(calc((1 - var(--a)) * 10px));
+  transition:
+    background 0.3s,
+    box-shadow 0.3s,
+    opacity var(--dur-txt) var(--curva) var(--ta),
+    transform var(--tx) var(--frena) var(--txd);
+}
+
+.bol-heroc__grupo .bol-heroc__cta + .bol-heroc__cta {
+  transition-delay: 0s, 0s, calc(var(--ta) + var(--te)), calc(var(--txd) + var(--te));
+}
+
+// El libro de «Conocer nuestra historia» ocupa la casilla del croissant y se
+// tiñe con los mismos oros, en reposo y encendido.
+.bol-heroc__libro {
+  flex: none;
+  display: block;
+  stroke: #e9c77c;
+  transition: stroke 0.3s;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .bol-heroc__cta:hover .bol-heroc__libro {
+    stroke: #f7dd9e;
+  }
 }
 
 // El secundario es ahora `.bol-btn--claro`: la misma pieza en papel claro, no
@@ -731,7 +822,8 @@
     }
   }
 
-  .bol-heroc__cta {
+  .bol-heroc__cta,
+  .bol-heroc__grupo .bol-heroc__cta {
     transition: none;
   }
 }

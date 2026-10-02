@@ -14,6 +14,17 @@ interface BolleriaState {
   mobileOpen: boolean;
   // preloader
   loaded: boolean;
+  /**
+   * Si el libro de la portada esta cerrado del todo tras la ultima pagina: la
+   * tapa bajada y ninguna animacion en marcha. `null` cuando ningun libro lo
+   * controla -no esta montado o no llego a cargar-.
+   *
+   * Existe porque el libro no avanza CON el scroll: lo persigue, una vuelta de
+   * ~0,8 s detras de otra. Bajando deprisa la pagina llega a la despedida antes
+   * de que el libro termine de cerrarse, y la despedida espera a esto para
+   * entrar. Lo escribe el libro que este montado, el vertical o el de 2026.
+   */
+  libroCerrado: boolean | null;
 }
 
 const initialState: BolleriaState = {
@@ -22,6 +33,7 @@ const initialState: BolleriaState = {
   settleTick: 0,
   mobileOpen: false,
   loaded: false,
+  libroCerrado: null,
 };
 
 export const BolleriaStore = signalStore(
@@ -87,5 +99,7 @@ export const BolleriaStore = signalStore(
     closeMobileMenu: () => patchState(store, { mobileOpen: false }),
 
     markLoaded: () => patchState(store, { loaded: true }),
+
+    setLibroCerrado: (libroCerrado: boolean | null) => patchState(store, { libroCerrado }),
   })),
 );
