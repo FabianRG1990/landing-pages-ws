@@ -1,0 +1,12 @@
+satisfy-trazo.json
+  La letra Satisfy en TRAZO ÚNICO: cada letra es el camino del centro del trazo,
+  en el orden en que se escribe. Con ella el dedo escribe los títulos en la
+  harina letra a letra (ver pasarela.component.ts).
+
+  Origen: Vara.js 1.4.0, fonts/Satisfy/SatisfySL.json
+    https://github.com/akzhy/Vara  -  licencia MIT, (c) 2019 Akshay
+  La letra Satisfy es de Sideshow, licencia Apache 2.0:
+    https://github.com/google/fonts/blob/main/apache/satisfy/LICENSE.txt
+
+  Solo trae ASCII: sin tildes ni eñe. Un título con «ñ» o «á» necesita esas
+  letras trazadas aparte.

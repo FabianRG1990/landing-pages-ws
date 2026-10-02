@@ -1,0 +1,94 @@
+<!-- «Escrito en harina». Sección propia entre el hero y el libro: no es parte
+     de ninguno de los dos. Sin fondo: va sobre la misma mesa fija del sitio,
+     así que no hay costura arriba ni abajo. -->
+<section class="bol-pas" aria-label="Así empieza el día en el obrador">
+  <p class="bol-pas__rotulo">Así empieza el día en el obrador</p>
+
+  @for (t of tramos; track t.n; let i = $index) {
+    <!-- El tramo es el recorrido de scroll; la escena se queda fija dentro
+         mientras el sello estampa y el dedo escribe. -->
+    <article class="bol-pas__tramo" [class.bol-pas__tramo--rev]="i % 2 === 1">
+      <div class="bol-pas__escena">
+        <!-- El sello y su huella. Decorativo: lo que cuenta lo dice el texto. -->
+        <div class="bol-pas__sello" aria-hidden="true">
+          <div class="bol-pas__huella">
+            <svg viewBox="0 0 400 400">
+              <defs>
+                <path
+                  [attr.id]="'bol-pas-arco-a-' + t.n"
+                  d="M 52 200 A 148 148 0 0 1 348 200"
+                />
+                <path
+                  [attr.id]="'bol-pas-arco-b-' + t.n"
+                  d="M 40 200 A 160 160 0 0 0 360 200"
+                />
+              </defs>
+              <circle cx="200" cy="200" r="188" fill="none" stroke-width="3" />
+              <circle
+                cx="200"
+                cy="200"
+                r="178"
+                fill="none"
+                stroke-width="1.2"
+              />
+              <circle
+                cx="200"
+                cy="200"
+                r="126"
+                fill="none"
+                stroke-width="1.2"
+              />
+              <text class="bol-pas__orla">
+                <textPath
+                  [attr.href]="'#bol-pas-arco-a-' + t.n"
+                  startOffset="50%"
+                  text-anchor="middle"
+                >
+                  Bollería · Panadería artesanal
+                </textPath>
+              </text>
+              <text class="bol-pas__orla">
+                <textPath
+                  [attr.href]="'#bol-pas-arco-b-' + t.n"
+                  startOffset="50%"
+                  text-anchor="middle"
+                >
+                  {{ t.orla }}
+                </textPath>
+              </text>
+              <text class="bol-pas__estrella" x="34" y="207">✦</text>
+              <text class="bol-pas__estrella" x="352" y="207">✦</text>
+            </svg>
+            <!-- El grabado va en un <img> y no en un <image> del SVG: ahí se
+               descodificaba en el hilo principal en el momento de aparecer. -->
+            <img
+              class="bol-pas__grabado"
+              [src]="t.sello"
+              alt=""
+              decoding="async"
+            />
+          </div>
+          <span class="bol-pas__sombra"></span>
+          <span class="bol-pas__sombra bol-pas__sombra--blanda"></span>
+          <img
+            class="bol-pas__estampa"
+            src="assets/pasarela/estampa.webp"
+            alt=""
+            decoding="async"
+          />
+        </div>
+
+        <div class="bol-pas__texto">
+          <p class="bol-pas__hora">{{ t.hora }}</p>
+          <div class="bol-pas__harina">
+            <!-- El título se PINTA en el lienzo; este es el que leen los lectores
+               de pantalla y el buscador. -->
+            <h2 class="bol-pas__titulo">{{ t.titulo }}</h2>
+            <canvas aria-hidden="true"></canvas>
+          </div>
+          <p class="bol-pas__cuerpo">{{ t.texto }}</p>
+        </div>
+      </div>
+    </article>
+  }
+</section>
