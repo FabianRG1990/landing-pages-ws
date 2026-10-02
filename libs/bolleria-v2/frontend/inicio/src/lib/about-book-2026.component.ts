@@ -120,6 +120,12 @@ const PISTA_BANDA = 0.15;
 const MS_POR_CUADRO = 1000 / 60;
 /** Tope de aceleracion cuando el scroll encadena varias vueltas seguidas. */
 const ACELERA_MAX = 3;
+/**
+ * Lo más que una transición espera a sus cuadros sin avanzar. Pasado esto sigue
+ * con los que haya, como hacía antes: un libro que no se mueve nunca es peor que
+ * uno que salta.
+ */
+const ESPERA_MAX = 6000;
 
 // ─── Geometria del libro, medida sobre el cuadro de reposo ────────────────────
 /** El lomo, en pixeles del video. */
@@ -472,6 +478,8 @@ export class AboutBook2026Component {
 
   // ─── Recursos ──────────────────────────────────────────────────────────────
   private cuadros: HTMLImageElement[] = [];
+  /** Cuadros que no se pudieron descargar: no se esperan. */
+  private readonly fallidos = new Set<number>();
   private malla: Malla | null = null;
   private montaje: Montaje = {};
   /**
@@ -659,16 +667,31 @@ export class AboutBook2026Component {
         this.cuadros[i] = img;
         res();
       };
-      img.onerror = () => res();
+      img.onerror = () => {
+        this.fallidos.add(i);
+        res();
+      };
       img.src = `${FRAMES_DIR}/f${String(i).padStart(3, '0')}.webp`;
     });
   }
 
-  /** Primero el ciclo de la vuelta -que es lo que mas se mira- y luego el resto. */
+  /**
+   * Primero la APERTURA, que es lo primero que se ve: el libro se abre y se
+   * acerca nada más empezar a bajar. Y dentro de ella, primero uno de cada dos
+   * cuadros: con la mitad ya se puede reproducir entera, y llega en la mitad de
+   * tiempo. Luego los que faltan, la vuelta de página y el cierre.
+   *
+   * Antes iba primero la vuelta. En 4G, al girar el teléfono y empezar a bajar,
+   * de los cien cuadros de la apertura había llegado uno: se veía la tapa con el
+   * texto de la página uno encima y luego el libro abierto de golpe, sin
+   * acercarse. Reportado como «el libro no se hace grande».
+   */
   private async cargaResto(): Promise<void> {
+    const apertura = this.rango(PORTADA, REPOSO);
     const orden = [
-      ...this.rango(REPOSO, GIRO_HI),
-      ...this.rango(PORTADA, REPOSO - 1),
+      ...apertura.filter((i) => (i - PORTADA) % 2 === 0),
+      ...apertura.filter((i) => (i - PORTADA) % 2 === 1),
+      ...this.rango(REPOSO + 1, GIRO_HI),
       ...this.rango(GIRO_HI + 1, FRAME_COUNT),
     ];
     const HILOS = 6;
@@ -1671,13 +1694,24 @@ export class AboutBook2026Component {
       this.pinta();
       return Promise.resolve();
     }
+    // Como un vídeo que carga: el reloj solo avanza hasta el último cuadro que
+    // ya ha llegado, y si el siguiente falta, espera ahí y sigue cuando llega.
+    // Nunca se pinta un cuadro que no está -se pintaba el más cercano, que podía
+    // ser la tapa con el texto de dentro encima o el libro ya abierto-.
     return new Promise((res) => {
-      const t0 = performance.now();
+      let hecho = 0;
+      let previo = performance.now();
+      let quieto = previo;
       const paso = (ahora: number): void => {
-        const t = Math.min(1, (ahora - t0) / dur);
-        this.cuadroActual = haciaDelante ? a + t * cuadros : b - t * cuadros;
+        const quiere = Math.min(cuadros, hecho + ((ahora - previo) / dur) * cuadros);
+        previo = ahora;
+        const tope = ahora - quieto > ESPERA_MAX ? cuadros : this.disponibles(a, b, haciaDelante);
+        const nuevo = Math.min(quiere, tope);
+        if (nuevo > hecho) quieto = ahora;
+        hecho = Math.max(hecho, nuevo);
+        this.cuadroActual = this.cuadroPintable(haciaDelante ? a + hecho : b - hecho, haciaDelante);
         this.pinta();
-        if (t < 1) {
+        if (hecho < cuadros) {
           this.raf = requestAnimationFrame(paso);
         } else {
           res();
@@ -1685,6 +1719,37 @@ export class AboutBook2026Component {
       };
       this.raf = requestAnimationFrame(paso);
     });
+  }
+
+  private tiene(i: number): boolean {
+    return !!this.cuadros[i] || this.fallidos.has(i);
+  }
+
+  /**
+   * Cuántos cuadros de la transición se pueden reproducir ya, desde su
+   * principio: los que han llegado, admitiendo que falte uno de cada dos -la
+   * apertura llega primero a cuadros alternos-.
+   */
+  private disponibles(a: number, b: number, haciaDelante: boolean): number {
+    const n = b - a;
+    for (let k = 1; k <= n; k++) {
+      const i = haciaDelante ? a + k : b - k;
+      const antes = haciaDelante ? i - 1 : i + 1;
+      if (!this.tiene(i) && !(this.tiene(antes) && k < n)) return k - 1;
+    }
+    return n;
+  }
+
+  /**
+   * El cuadro que de verdad se pinta, y no uno cercano: si el de la posición no
+   * ha llegado, el anterior en el sentido de la marcha. Así lo que se estampa
+   * encima -textos y fotos, medidos cuadro a cuadro- va con su cuadro.
+   */
+  private cuadroPintable(pos: number, haciaDelante: boolean): number {
+    const i = Math.round(pos);
+    if (this.cuadros[i]) return i;
+    const antes = haciaDelante ? i - 1 : i + 1;
+    return this.cuadros[antes] ? antes : i;
   }
 
   private reducido(): boolean {
