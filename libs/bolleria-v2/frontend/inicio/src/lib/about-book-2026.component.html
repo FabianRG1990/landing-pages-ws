@@ -31,6 +31,10 @@
         (touchend)="alSoltarToque($event)"
         (touchcancel)="alCancelarToque()"
       >
+        <!-- El cuadro del video, debajo del lienzo: lo pinta el navegador ya
+             decodificado. Las imagenes las pone y las quita el componente (ver
+             `pideCapa`). -->
+        <div #cuadros class="bol-libro__cuadros" [class.esta-listo]="listo()" aria-hidden="true"></div>
         <canvas #canvas class="bol-libro__lienzo" [class.esta-listo]="listo()"></canvas>
 
         <!-- TODO se dibuja sobre el lienzo, incluidos estos dos botones, que son
