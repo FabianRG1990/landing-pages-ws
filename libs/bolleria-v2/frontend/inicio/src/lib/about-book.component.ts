@@ -4807,16 +4807,19 @@ export class AboutBookComponent {
   /**
    * Cuando se ensena la invitacion a girar el telefono.
    *
-   * Solo espera a `ready()`: prometer "lo vas a ver en grande" mientras el
-   * lienzo todavia esta en blanco no invita a nada. Despues se queda en TODAS las
+   * Espera a `ready()`: prometer "lo vas a ver en grande" mientras el lienzo
+   * todavia esta en blanco no invita a nada. Despues se queda en TODAS las
    * paginas. Antes se retiraba al pasar la primera, con la idea de no insistir,
    * y en las pruebas no se llego a ver a tiempo: se pidio que estuviera siempre
    * mientras el telefono siga de pie.
    *
+   * Y se retira cuando el libro se cierra al final: ahi sube la despedida por
+   * la misma franja de la pantalla y el aviso se le cruzaba encima del texto.
+   *
    * Que sea un telefono DE PIE y con dedo lo decide el SCSS, no esto: es una
    * condicion de la pantalla, no del estado del libro.
    */
-  readonly sugiereGirar = computed(() => this.ready());
+  readonly sugiereGirar = computed(() => this.ready() && this.estado() < CERRADO_FINAL);
 
   // ─── El dedo ───────────────────────────────────────────────────────────────
   /**
