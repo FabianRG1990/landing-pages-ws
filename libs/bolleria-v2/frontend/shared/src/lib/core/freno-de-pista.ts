@@ -33,9 +33,9 @@
  * pararse y el libro pasaba cuatro hojas de un tiron. Un tope solo frena los
  * gestos que nacen con el ya puesto.
  *
- * Que este siempre no molesta fuera: `proximity` solo tira de la ventana cuando
- * se suelta cerca de un tope, y los unicos topes son los tramos de la pasarela y
- * las hojas del libro. En el hero y en la despedida no hay ninguno.
+ * En el telefono el freno es `mandatory` y la pagina entera es una fila de
+ * estaciones, del hero a la despedida; el porque esta en `styles.scss`, junto a
+ * la regla.
  */
 
 /** La clase que enciende el freno. La regla vive en `styles.scss`. */

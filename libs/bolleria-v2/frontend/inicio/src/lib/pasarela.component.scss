@@ -53,8 +53,11 @@ $tinta: #6b4224;
   // puede parar: medido, hacian falta dos gestos por tramo y el segundo dejaba
   // la escena tal cual, sin que se moviera nada.
   //
-  // Con movimiento reducido no hay escena fija ni secuencia que esperar.
-  @media (pointer: coarse) and (prefers-reduced-motion: no-preference) {
+  // Solo en el TELEFONO -de pie o acostado-, las mismas consultas con las que
+  // la raiz pasa a `mandatory` (ver `styles.scss`), y solo con movimiento: sin
+  // el no hay escena fija ni secuencia que esperar.
+  @media (pointer: coarse) and (max-width: 600px) and (prefers-reduced-motion: no-preference),
+    (pointer: coarse) and (orientation: landscape) and (max-height: 600px) and (prefers-reduced-motion: no-preference) {
     &::before {
       content: '';
       display: block;
@@ -63,6 +66,17 @@ $tinta: #6b4224;
       scroll-snap-align: start;
       scroll-snap-stop: always;
     }
+  }
+}
+
+// Con movimiento reducido los tramos van uno debajo de otro, sin escena fija y
+// sin topes. Pero la raiz es `mandatory` en el telefono, y un trecho sin tope
+// es un trecho donde no se puede parar: la pasarela entera se declara como una
+// sola zona, mas alta que la pantalla, dentro de la que se descansa donde sea.
+@media (pointer: coarse) and (max-width: 600px) and (prefers-reduced-motion: reduce),
+  (pointer: coarse) and (orientation: landscape) and (max-height: 600px) and (prefers-reduced-motion: reduce) {
+  .bol-pas {
+    scroll-snap-align: start;
   }
 }
 
