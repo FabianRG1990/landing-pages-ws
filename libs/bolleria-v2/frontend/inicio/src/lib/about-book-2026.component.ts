@@ -12,7 +12,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { NgStyle, isPlatformBrowser } from '@angular/common';
-import { BolleriaStore, CONTACT, CerrojoDeHoja, frenaMientrasSeVe, waDirectLink } from '@bolleria-v2-ui-shared';
+import { BolleriaStore, CONTACT, CerrojoDeHoja, frenaLaPagina, waDirectLink } from '@bolleria-v2-ui-shared';
 import { HISTORIAS } from './libro-historias';
 import { PuntoPx, WarpGL } from './about-book-warp-gl';
 import { GestoHoja } from './gesto-hoja';
@@ -546,6 +546,9 @@ export class AboutBook2026Component {
       this.capaVista = null;
       this.cuadros = [];
     });
+    // Desde que el libro existe, no desde que carga: el freno tiene que estar
+    // puesto antes de que nazca el gesto que va a llegar hasta aqui.
+    this.enganchaElFreno();
     queueMicrotask(() => this.arrancarCuandoSeAcerque());
     this.publicaCierre();
   }
@@ -1780,12 +1783,10 @@ export class AboutBook2026Component {
    * los declara el SCSS; esto es el interruptor. Ver `freno-de-pista.ts`.
    */
   private enganchaElFreno(): void {
-    const pista = this.trackRef()?.nativeElement;
-    if (pista) this.sueltame.push(frenaMientrasSeVe(pista));
+    this.sueltame.push(frenaLaPagina());
   }
 
   private enganchaPista(): void {
-    this.enganchaElFreno();
     const cerrojo = new CerrojoDeHoja((terminada) => this.trasLaHoja(terminada));
     this.cerrojo = cerrojo;
     this.sueltame.push(() => cerrojo.destruye());
@@ -1869,7 +1870,9 @@ export class AboutBook2026Component {
         const desde = this.estado();
         const hacia = desde + Math.sign(this.objetivo - desde);
         const cola = Math.abs(this.objetivo - desde);
-        await this.anima(desde, hacia, Math.min(ACELERA_MAX, Math.max(1, cola)));
+        // Solo los saltos largos corren: dos hojas pendientes van una detras de
+        // otra a su ritmo, no al doble de velocidad.
+        await this.anima(desde, hacia, cola >= 3 ? ACELERA_MAX : 1);
         this.estado.set(hacia);
       }
     } finally {
@@ -1890,7 +1893,9 @@ export class AboutBook2026Component {
    * la pista y el libro sigue al scroll.
    */
   private trasLaHoja(terminada: boolean): void {
-    if (terminada) {
+    // Solo con la escena FIJA, que es cuando el salto no se ve. Si la ventana ya
+    // salio de la pista, traerla de vuelta seria un brinco de pantalla entera.
+    if (terminada && this.pinFijo()) {
       const y = this.yDe(this.estado());
       if (y !== null) window.scrollTo({ top: y, behavior: 'instant' });
     }
@@ -2003,6 +2008,12 @@ export class AboutBook2026Component {
     // pasaria las de en medio una a una y el cerrojo lo pararia en la primera.
     const lejos = Math.abs(indice - this.estado()) > 1;
     window.scrollTo({ top: y, behavior: this.reducido() || lejos ? 'instant' : 'smooth' });
+  }
+
+  /** Si la escena esta fija ahora mismo: la pista cruza la ventana de arriba abajo. */
+  private pinFijo(): boolean {
+    const r = this.trackRef()?.nativeElement.getBoundingClientRect();
+    return !!r && r.top <= 0 && r.bottom >= window.innerHeight;
   }
 
   /** El scroll en el que reposa esa pagina, o null si la pista no se puede medir. */

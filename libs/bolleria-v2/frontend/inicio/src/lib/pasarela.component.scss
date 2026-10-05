@@ -40,6 +40,30 @@ $tinta: #6b4224;
 // la barra del navegador se esconde.
 .bol-pas__tramo {
   height: 135vh;
+
+  // Un TOPE por tramo, donde hay dedo. Esta en el borde superior, que es justo
+  // donde la escena se queda fija, y `always` hace que un deslizamiento no pueda
+  // pasarlo de largo por fuerte que venga: se para ahi, con la secuencia recien
+  // disparada. Sin el, un gesto fuerte cruzaba los tres tramos seguidos y no se
+  // llegaba a ver ni el sello ni lo escrito (reportado y reproducido). El
+  // interruptor esta en la raiz: ver `freno-de-pista.ts`.
+  //
+  // Va en una pieza de UN pixel y no en el tramo. El tramo es mas alto que la
+  // pantalla, y un tope asi el navegador lo trata como una zona entera donde se
+  // puede parar: medido, hacian falta dos gestos por tramo y el segundo dejaba
+  // la escena tal cual, sin que se moviera nada.
+  //
+  // Con movimiento reducido no hay escena fija ni secuencia que esperar.
+  @media (pointer: coarse) and (prefers-reduced-motion: no-preference) {
+    &::before {
+      content: '';
+      display: block;
+      height: 1px;
+      margin-bottom: -1px;
+      scroll-snap-align: start;
+      scroll-snap-stop: always;
+    }
+  }
 }
 
 // La escena, fija mientras dura su tramo. Mide lo VISIBLE (`svh`): en el

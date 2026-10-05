@@ -19,8 +19,8 @@ html {
   // El freno de la pista del libro. Va aqui y no en el componente porque
   // `scroll-snap-type` tiene que estar en el elemento que hace scroll -la raiz
   // del documento- y los estilos de un componente van encapsulados. La clase la
-  // pone y la quita `frenaMientrasSeVe`, y los topes los declara cada libro en
-  // su SCSS con `scroll-snap-align`, solo en el telefono.
+  // pone y la quita `frenaLaPagina`, y los topes los declaran la pasarela y cada
+  // libro en su SCSS con `scroll-snap-align`, solo donde hay dedo.
   //
   // `proximity` y no `mandatory`: el estricto obliga a estar siempre pegado a
   // un tope, y al final del libro eso puede tirar de vuelta hacia el ultimo y
@@ -34,16 +34,6 @@ html {
   @media (pointer: coarse) {
     &.bol-frena {
       scroll-snap-type: y proximity;
-    }
-  }
-
-  // El cerrojo de la hoja: mientras el libro pasa una hoja, en tactil la raiz se
-  // queda sin scroll. Es lo unico que para un deslizamiento que ya va en marcha.
-  // Solo donde hay dedo: con raton esconder la barra a medida estrecharia la
-  // pagina 15 px, y ahi el cerrojo cancela la rueda. Ver `cerrojo-de-hoja.ts`.
-  @media (pointer: coarse) {
-    &.bol-cerrojo {
-      overflow: hidden;
     }
   }
   background: #faf6ec;

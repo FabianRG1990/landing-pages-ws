@@ -1,39 +1,40 @@
 /**
- * El cerrojo de la hoja: una hoja por gesto.
+ * El cerrojo de la hoja: con RUEDA, una hoja por gesto.
  *
  * Lo pidieron las pruebas del 2026-10-02: «mientras se esta animando el libro
  * deberia de bloquear el scroll, porque si no acumula los scrolls y pasa todas
  * las paginas rapidisimo, y mientras se estan pasando ya se hizo scroll hasta
  * abajo». El libro leia la posicion del scroll y encadenaba vueltas hasta
- * alcanzarla, acelerando hasta 3x: un gesto largo eran cinco hojas a toda prisa
- * y la ventana ya en otra parte.
+ * alcanzarla, acelerando hasta 3x: un gesto largo de trackpad eran ocho hojas a
+ * toda prisa y la ventana ya en otra parte (medido).
  *
- * Ahora, en cuanto un gesto pide UNA hoja:
+ * Ahora, en cuanto la rueda pide UNA hoja:
  *
- *   1. se echa el cerrojo y el resto del gesto ya no mueve la pagina;
+ *   1. se echa el cerrojo y el resto del gesto ya no mueve la pagina: se
+ *      cancelan rueda y teclas;
  *   2. la hoja se pasa a su ritmo;
- *   3. el cerrojo se suelta cuando la hoja ha terminado Y el gesto tambien -sin
- *      dedo en el cristal y `SILENCIO` ms sin rueda-. Sin esa espera, la inercia
- *      del trackpad, que sigue mandando rueda casi un segundo despues de soltar,
- *      pasaria la hoja siguiente en cuanto acabara la anterior;
+ *   3. el cerrojo se suelta cuando la hoja ha terminado Y el gesto tambien
+ *      -`SILENCIO` ms sin rueda-. Sin esa espera, la inercia del trackpad, que
+ *      sigue mandando rueda casi un segundo despues de soltar, pasaria la hoja
+ *      siguiente en cuanto acabara la anterior;
  *   4. al soltarse, el libro recoloca la ventana en el reposo de su hoja (ver
- *      `alSoltar`): lo que el gesto alcanzara a recorrer se descarta.
+ *      `alSoltar`): lo que Chrome no dejo cancelar a mitad de gesto se descarta.
  *
- * COMO SE BLOQUEA depende del puntero, y no es un capricho:
+ * EL DEDO NO PASA POR AQUI, y costo un fallo aprenderlo. La primera version
+ * tambien bloqueaba en tactil, con `overflow: hidden` en la raiz -lo unico que
+ * corta una inercia ya en marcha- y recolocando al soltar. Reportado el
+ * 2026-10-05 y reproducido: subiendo desde la despedida el libro se abria y se
+ * volvia a cerrar, una y otra vez, y al salir por arriba la pagina brincaba de
+ * vuelta al libro. La causa es del navegador: al quitarle y devolverle el scroll
+ * a la raiz vuelve a cuadrar en el tope de `scroll-snap` en el que estaba ANTES,
+ * por encima de donde el codigo acababa de dejar la ventana.
  *
- *   · TACTIL: `overflow: hidden` en la raiz (clase `bol-cerrojo`, la regla vive
- *     en `styles.scss`). Es lo unico que corta un deslizamiento que YA va en
- *     marcha: Chrome deja de poder cancelar `touchmove` en cuanto el scroll
- *     arranca, y la inercia de iOS no se cancela desde JS. Ahi la barra es
- *     superpuesta y no ocupa sitio, asi que esconderla no mueve nada.
- *   · RATON: se cancelan rueda y teclas, sin tocar `overflow`. Esconder la barra
- *     a medida del sitio estrecha la pagina 15 px y la hace brincar, que es
- *     justo lo que `installScrollLock` evita (ver `scroll-lock.ts`). Lo que
- *     Chrome ya no deje cancelar a mitad de un gesto del trackpad lo absorbe la
- *     recolocacion del paso 4: la escena esta fija y no se ve.
+ * En tactil el freno es nativo y no se le lleva la contraria: un tope con
+ * `scroll-snap-stop: always` en cada hoja (ver `freno-de-pista.ts`). El dedo no
+ * puede atravesarlo por fuerte que venga, y nadie mueve la ventana por su cuenta.
  *
- * Solo cuenta como gesto lo que viene DE LA MANO -rueda, dedo, flechas- y hace
- * poco (`RECIENTE`). Un scroll programado que cruza el libro -Inicio/Fin, volver
+ * Solo cuenta como gesto lo que viene DE LA MANO -rueda, flechas- y hace poco
+ * (`RECIENTE`). Un scroll programado que cruza el libro -Inicio/Fin, volver
  * arriba desde el menu- pasaba hoja a hoja, se tomaba por un gesto y se quedaba
  * clavado en la primera (medido con Fin).
  *
@@ -48,14 +49,7 @@
 const SILENCIO = 150;
 /** Lo mas que el cerrojo espera a que la hoja termine de pasar. */
 const TOPE = 3000;
-/** La clase que, en tactil, quita el scroll a la raiz. */
-export const CLASE_CERROJO = 'bol-cerrojo';
-
-/**
- * Cuanto vale una entrada de la mano para dar por gesto la hoja que pide. Un
- * segundo: la inercia del dedo sigue moviendo la pagina mucho despues del
- * ultimo `touchmove`, sin mandar ningun evento.
- */
+/** Cuanto vale una entrada de la mano para dar por gesto la hoja que pide. */
 const RECIENTE = 1000;
 
 const TECLAS = new Set([' ', 'Spacebar', 'PageUp', 'PageDown', 'End', 'Home', 'ArrowUp', 'ArrowDown']);
@@ -65,8 +59,8 @@ const TECLAS_DE_PASO = new Set([' ', 'Spacebar', 'PageUp', 'PageDown', 'ArrowUp'
 export class CerrojoDeHoja {
   private echado = false;
   private hojaEnMarcha = false;
-  private dedos = 0;
   private ultimo = 0;
+  /** Cuando llego la ultima rueda o tecla; el dedo la borra. */
   private entrada = -Infinity;
   private reloj: ReturnType<typeof setTimeout> | undefined;
   private tope: ReturnType<typeof setTimeout> | undefined;
@@ -86,45 +80,38 @@ export class CerrojoDeHoja {
     const tecla = (e: KeyboardEvent): void => {
       if (TECLAS.has(e.key)) e.preventDefault();
     };
-    // Los dedos y la mano se vigilan siempre, en pasivo: el gesto que echa el
-    // cerrojo empezo antes que el.
-    const toca = (e: TouchEvent): void => {
-      this.dedos = e.touches.length;
-      this.ultimo = this.entrada = performance.now();
-    };
+    // La mano se vigila siempre, en pasivo: el gesto que echa el cerrojo empezo
+    // antes que el.
     const mano = (): void => {
       this.entrada = performance.now();
     };
     const pulsa = (e: KeyboardEvent): void => {
       if (TECLAS_DE_PASO.has(e.key)) mano();
     };
-    window.addEventListener('touchstart', toca, { passive: true });
-    window.addEventListener('touchend', toca, { passive: true });
-    window.addEventListener('touchcancel', toca, { passive: true });
-    window.addEventListener('touchmove', mano, { passive: true });
+    // Un dedo en el cristal: lo que venga ahora no es un gesto de rueda, aunque
+    // haya habido una hace un momento (un portatil con pantalla tactil).
+    const dedo = (): void => {
+      this.entrada = -Infinity;
+    };
     window.addEventListener('wheel', mano, { passive: true });
     window.addEventListener('keydown', pulsa);
-    // Rueda y dedo NO pasivos solo mientras el cerrojo esta echado: puestos
-    // siempre, el navegador tendria que esperar al hilo principal en cada
-    // muesca de rueda de toda la pagina.
+    window.addEventListener('touchstart', dedo, { passive: true });
+    // Rueda NO pasiva solo mientras el cerrojo esta echado: puesta siempre, el
+    // navegador tendria que esperar al hilo principal en cada muesca de rueda de
+    // toda la pagina.
     this.bloquea = (si) => {
       if (si) {
         window.addEventListener('wheel', rueda, { passive: false });
-        window.addEventListener('touchmove', rueda, { passive: false });
         window.addEventListener('keydown', tecla);
       } else {
         window.removeEventListener('wheel', rueda);
-        window.removeEventListener('touchmove', rueda);
         window.removeEventListener('keydown', tecla);
       }
     };
     this.quitar = () => {
-      window.removeEventListener('touchstart', toca);
-      window.removeEventListener('touchend', toca);
-      window.removeEventListener('touchcancel', toca);
-      window.removeEventListener('touchmove', mano);
       window.removeEventListener('wheel', mano);
       window.removeEventListener('keydown', pulsa);
+      window.removeEventListener('touchstart', dedo);
     };
   }
 
@@ -133,7 +120,7 @@ export class CerrojoDeHoja {
     return this.echado;
   }
 
-  /** Si la hoja que se pide ahora viene de un gesto de la mano. */
+  /** Si la hoja que se pide ahora viene de un gesto de rueda o de teclado. */
   get hayGesto(): boolean {
     return performance.now() - this.entrada < RECIENTE;
   }
@@ -145,7 +132,6 @@ export class CerrojoDeHoja {
     this.echado = true;
     this.hojaEnMarcha = true;
     this.ultimo = performance.now();
-    document.documentElement.classList.add(CLASE_CERROJO);
     this.tope = setTimeout(() => this.suelta(), TOPE);
   }
 
@@ -163,18 +149,15 @@ export class CerrojoDeHoja {
     this.quitar();
     if (this.echado) this.bloquea(false);
     this.echado = false;
-    document.documentElement.classList.remove(CLASE_CERROJO);
   }
 
   private esperaAlGesto(): void {
     clearTimeout(this.reloj);
     const callado = performance.now() - this.ultimo;
-    if (this.dedos === 0 && callado >= SILENCIO) {
+    if (callado >= SILENCIO) {
       this.suelta();
       return;
     }
-    // Con un dedo en el cristal no hay fin de gesto que medir: se vuelve a mirar
-    // en `SILENCIO`, que es tambien lo que se espera tras levantarlo.
     this.reloj = setTimeout(() => this.esperaAlGesto(), Math.max(16, SILENCIO - callado));
   }
 
@@ -182,12 +165,9 @@ export class CerrojoDeHoja {
     if (!this.echado) return;
     this.limpiaRelojes();
     const terminada = !this.hojaEnMarcha;
-    // Primero se recoloca, con la raiz todavia sin scroll en tactil: asi el
-    // reposo se fija antes de que el dedo pueda volver a mover nada.
     this.alSoltar(terminada);
     this.bloquea(false);
     this.echado = false;
-    document.documentElement.classList.remove(CLASE_CERROJO);
   }
 
   private limpiaRelojes(): void {

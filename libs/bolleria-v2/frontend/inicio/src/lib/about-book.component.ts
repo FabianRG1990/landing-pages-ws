@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, NgZone, PLATFORM_ID, computed, effect, inject, signal, viewChild } from '@angular/core';
 import { NgStyle, isPlatformBrowser } from '@angular/common';
-import { BolleriaStore, CONTACT, CerrojoDeHoja, frenaMientrasSeVe, waDirectLink } from '@bolleria-v2-ui-shared';
+import { BolleriaStore, CONTACT, CerrojoDeHoja, frenaLaPagina, waDirectLink } from '@bolleria-v2-ui-shared';
 import { WarpGL } from './about-book-warp-gl';
 import { GestoHoja } from './gesto-hoja';
 
@@ -4597,14 +4597,7 @@ export class AboutBookComponent {
    * ponerse ni con el libro a media pantalla-.
    */
   private enganchaElFreno(): void {
-    let puesto = false;
-    const ref = effect(() => {
-      const pista = this.trackRef()?.nativeElement;
-      if (!pista || puesto) return;
-      puesto = true;
-      this.sueltame.push(frenaMientrasSeVe(pista));
-      ref.destroy();
-    });
+    this.sueltame.push(frenaLaPagina());
   }
 
   private engancharPista(): void {
@@ -4727,7 +4720,10 @@ export class AboutBookComponent {
       while (this.ready() && this.estado() !== this.objetivo) {
         const desde = this.estado();
         const pendientes = Math.abs(this.objetivo - desde);
-        this.msPorCuadro = MS_PER_FRAME / Math.min(3, pendientes);
+        // Solo los saltos largos corren. Dos hojas pendientes son un dedo que
+        // arrastro de mas, y pasadas al doble de velocidad es justo el "pasan
+        // rapidisimo" que se reporto: van una detras de otra, a su ritmo.
+        this.msPorCuadro = pendientes >= 3 ? MS_PER_FRAME / 3 : MS_PER_FRAME;
         if (this.objetivo > desde) await (desde === 0 ? this.open() : desde === LAST ? this.cerrar() : this.next());
         else await (desde === 1 ? this.cerrar() : desde === CERRADO_FINAL ? this.open() : this.prev());
         // Si el paso no movio nada -algun guard lo rechazo- no insistir: seria
@@ -4750,7 +4746,10 @@ export class AboutBookComponent {
    * aun en marcha, no hay reposo: se relee la pista y el libro sigue al scroll.
    */
   private trasLaHoja(terminada: boolean): void {
-    if (terminada) {
+    // Solo con la escena FIJA, que es cuando el salto no se ve. Si la ventana ya
+    // salio de la pista -se siguio de largo hacia la pasarela o la despedida-,
+    // traerla de vuelta seria un brinco de pantalla entera.
+    if (terminada && this.pinFijo()) {
       const y = this.yDeIndice(this.estado());
       if (y !== null) window.scrollTo({ top: y, behavior: 'instant' });
     }
@@ -4773,6 +4772,12 @@ export class AboutBookComponent {
     // pasaria las de en medio una a una y el cerrojo lo pararia en la primera.
     const lejos = Math.abs(indice - this.estado()) > 1;
     window.scrollTo({ top: y, behavior: this.reduced() || lejos ? 'instant' : 'smooth' });
+  }
+
+  /** Si la escena esta fija ahora mismo: la pista cruza la ventana de arriba abajo. */
+  private pinFijo(): boolean {
+    const r = this.trackRef()?.nativeElement.getBoundingClientRect();
+    return !!r && r.top <= 0 && r.bottom >= window.innerHeight;
   }
 
   /** El scroll en el que reposa esa pagina, o null si la pista no se puede medir. */

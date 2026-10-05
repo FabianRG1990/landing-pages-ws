@@ -386,10 +386,7 @@
   @media (pointer: coarse) and (max-width: 600px) {
     scroll-snap-align: start;
     scroll-margin-top: 100svh;
-
-    &:nth-child(odd) {
-      scroll-snap-stop: always;
-    }
+    scroll-snap-stop: always;
   }
 }
 
@@ -458,6 +455,15 @@
 // dura por tiempo, no por scroll, asi que se ve exactamente igual que antes.
 .bol-book__cierre {
   height: calc(var(--vuelta) * 0.3 / 0.65);
+
+  // El tope de la ULTIMA hoja: su borde superior es donde reposa la pagina 8.
+  // Faltaba, y subiendo desde la despedida el dedo no tenia donde pararse entre
+  // el libro cerrado y la pagina 7.
+  @media (pointer: coarse) and (max-width: 600px) {
+    scroll-snap-align: start;
+    scroll-margin-top: 100svh;
+    scroll-snap-stop: always;
+  }
 }
 // Algo menos que el remate: aqui no hay nada que pulsar, solo dejar que la
 // tapa termine de bajar y el libro cerrado se asiente antes del footer.

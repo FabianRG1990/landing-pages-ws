@@ -174,10 +174,7 @@
   @media (pointer: coarse) and (orientation: landscape) and (max-height: 600px) {
     scroll-snap-align: start;
     scroll-margin-top: 100svh;
-
-    &:nth-child(odd) {
-      scroll-snap-stop: always;
-    }
+    scroll-snap-stop: always;
   }
 }
 
@@ -215,6 +212,13 @@
 // aqui hay que rehacerla.
 .bol-libro__cierre {
   height: calc(var(--vuelta) * 0.3 / 0.65); // ~11,5svh con la vuelta en 25
+
+  // El tope de la ultima hoja: su borde superior es donde reposa la pagina 8.
+  @media (pointer: coarse) and (orientation: landscape) and (max-height: 600px) {
+    scroll-snap-align: start;
+    scroll-margin-top: 100svh;
+    scroll-snap-stop: always;
+  }
 }
 
 // Aqui no hay nada que pulsar: solo dejar que la contraportada se asiente antes
