@@ -9,6 +9,7 @@ export * from './lib/core/whatsapp';
 export * from './lib/core/scroll-lock';
 export * from './lib/core/freno-de-pista';
 export * from './lib/core/cerrojo-de-hoja';
+export * from './lib/core/dedo-de-hoja';
 
 // data
 export * from './lib/data/menu-data';

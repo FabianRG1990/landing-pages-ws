@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, NgZone, PLATFORM_ID, computed, effect, inject, signal, viewChild } from '@angular/core';
 import { NgStyle, isPlatformBrowser } from '@angular/common';
-import { BolleriaStore, CONTACT, CerrojoDeHoja, frenaLaPagina, waDirectLink } from '@bolleria-v2-ui-shared';
+import { BolleriaStore, CONTACT, CerrojoDeHoja, DedoDeHoja, frenaLaPagina, waDirectLink } from '@bolleria-v2-ui-shared';
 import { WarpGL } from './about-book-warp-gl';
 import { GestoHoja } from './gesto-hoja';
 
@@ -4584,6 +4584,7 @@ export class AboutBookComponent {
   private conduciendo = false;
   private rafPista = 0;
   private cerrojo: CerrojoDeHoja | null = null;
+  private dedo: DedoDeHoja | null = null;
 
   /**
    * El freno de la inercia, encendido solo mientras la pista se ve. Los topes
@@ -4604,6 +4605,9 @@ export class AboutBookComponent {
     const cerrojo = new CerrojoDeHoja((terminada) => this.trasLaHoja(terminada));
     this.cerrojo = cerrojo;
     this.sueltame.push(() => cerrojo.destruye());
+    const dedo = new DedoDeHoja({ fijo: () => this.pinFijo(), reposo: (i) => this.yDeIndice(i) });
+    this.dedo = dedo;
+    this.sueltame.push(() => dedo.destruye());
     // Fuera de la zona: esto corre en cada fotograma de scroll y no toca ningun
     // signal salvo cuando de verdad cambia la pagina.
     this.zone.runOutsideAngular(() => {
@@ -4668,7 +4672,10 @@ export class AboutBookComponent {
     const previo = this.objetivo;
     const hueco = Math.round(bruto);
     if (forzar || Math.abs(bruto - hueco) < 0.5 - PISTA_BANDA) {
-      this.objetivo = Math.min(CERRADO_FINAL, Math.max(0, hueco));
+      const pedida = Math.min(CERRADO_FINAL, Math.max(0, hueco));
+      // Con el dedo, una hoja por gesto: lo que el scroll pida de mas se recorta
+      // (ver `DedoDeHoja`). El arranque no pasa por ahi: no es un gesto.
+      this.objetivo = forzar || !this.dedo ? pedida : this.dedo.recorta(pedida, this.objetivo);
     }
     if (this.objetivo === previo) return;
     // open()/next()/prev() escriben signals, asi que tienen que correr DENTRO de
