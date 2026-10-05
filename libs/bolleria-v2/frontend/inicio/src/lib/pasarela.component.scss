@@ -292,3 +292,67 @@ $tinta: #6b4224;
     font-size: 20px;
   }
 }
+
+// ── Teléfono acostado ──────────────────────────────────────────────────────
+// Pantalla ancha y BAJA: unos 330-430 px de alto. Las medidas de arriba están
+// pensadas para una pantalla alta y aquí la escena no cabía -reportado con
+// captura: el rótulo de la hora pegado arriba y partido en dos renglones, y el
+// texto cortado por abajo; medido en un 800x360, el texto acababa en 366-.
+//
+// Todo lo que mide alto pasa a depender del alto visible (`svh`): el sello, la
+// harina -que arrastra el título, pintado dentro- y la letra. Las dos columnas
+// se quedan: a lo ancho sobra sitio.
+@media (orientation: landscape) and (max-height: 520px) {
+  // La escena fija dura lo que tarda la secuencia, no una fracción de la
+  // pantalla. Con 135vh, en una pantalla de 360 se quedaba fija 126 px: un
+  // gesto normal se la llevaba a medio escribir. Estos 320 son lo mismo que
+  // dura en un teléfono de pie (el 35 % de 873 son 305).
+  .bol-pas__tramo {
+    height: calc(100vh + 320px);
+  }
+
+  // Las dos columnas se imponen también por debajo de 720 px de ancho, donde
+  // la regla del teléfono de pie apila la escena: un teléfono pequeño acostado
+  // mide 640-720 de ancho y apilado no cabía nada (medido en un 720x320).
+  .bol-pas__escena {
+    grid-template-columns: 1fr 1fr;
+    align-content: normal;
+    gap: clamp(16px, 4vw, 56px);
+    padding: 0 clamp(20px, 5vw, 64px);
+  }
+
+  .bol-pas__sello,
+  .bol-pas__tramo--rev .bol-pas__sello {
+    width: min(36vw, 72svh, 420px);
+    justify-self: center;
+    margin: 0;
+  }
+
+  .bol-pas__tramo--rev .bol-pas__sello {
+    order: 2;
+  }
+
+  .bol-pas__harina {
+    aspect-ratio: 2.1;
+  }
+
+  .bol-pas__texto {
+    // La harina mide 2,1 de ancho por 1 de alto: con este tope ocupa como mucho
+    // un 36 % del alto, y deja sitio a la hora por encima y al texto por debajo.
+    width: min(100%, 76svh);
+  }
+
+  // En un solo renglón: partida en dos se comía el aire de arriba.
+  .bol-pas__hora {
+    margin-bottom: calc(7% + 8px);
+    font-size: 10.5px;
+    letter-spacing: 0.22em;
+    white-space: nowrap;
+  }
+
+  .bol-pas__cuerpo {
+    max-width: none;
+    font-size: clamp(13.5px, 4.3svh, 18px);
+    line-height: 1.38;
+  }
+}
