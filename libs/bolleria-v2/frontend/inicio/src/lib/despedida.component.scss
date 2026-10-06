@@ -371,6 +371,29 @@ $frena: cubic-bezier(0.22, 1, 0.36, 1);
   }
 }
 
+// ─── Con el teléfono acostado, no hay página bajo un libro sin cerrar ────────
+//
+// Reportado el 2026-10-05: «el libro se está cerrando y ya bajó», con la tapa a
+// medio caer arriba y aquí abajo nada escrito todavía. Medido con el dedo:
+// la tapa tarda 2,4 s en bajar y un segundo gesto en ese rato se llevaba la
+// ventana hasta el final de la página, con el libro fuera de la pantalla 1,8 s.
+//
+// Los topes no lo impiden -paran un gesto, no el siguiente- y al dedo no se le
+// puede quitar el scroll a mitad (ver `cerrojo-de-hoja.ts`). Lo que sí se puede
+// es que no haya adónde ir: mientras el libro no ha cerrado este bloque no
+// ocupa sitio, la página termina donde termina la pista del libro y ahí la
+// escena sigue fija. Al cerrar vuelve a estar, invisible como siempre, y entra
+// cuando se llega a él. Crece por debajo de lo que se ve, así que nada brinca.
+//
+// Solo acostado, la misma consulta que pone los topes de ese libro: de pie la
+// tapa baja en la mitad de tiempo con la escena fija mucho más rato, y este
+// bloque sube a meterse bajo el libro; medido, ahí no pasaba.
+@media (pointer: coarse) and (orientation: landscape) and (max-height: 600px) {
+  :host(.es-plegada) .bol-despedida {
+    display: none;
+  }
+}
+
 // Sin desplazamiento ni escalonado para quien pide menos movimiento: solo un
 // fundido corto. La espera se respeta igual: eso es orden, no adorno.
 @media (prefers-reduced-motion: reduce) {
