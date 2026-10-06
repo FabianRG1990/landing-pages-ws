@@ -496,6 +496,7 @@ export class AboutBook2026Component {
   private readonly zone = inject(NgZone);
   private readonly canvasRef = viewChild.required<ElementRef<HTMLCanvasElement>>('canvas');
   private readonly cuadrosRef = viewChild.required<ElementRef<HTMLDivElement>>('cuadros');
+  private readonly tintaRef = viewChild.required<ElementRef<HTMLCanvasElement>>('tinta');
   private readonly trackRef = viewChild<ElementRef<HTMLElement>>('track');
   private readonly recorridoRef = viewChild<ElementRef<HTMLElement>>('recorrido');
   private readonly remateRef = viewChild<ElementRef<HTMLElement>>('remate');
@@ -538,6 +539,9 @@ export class AboutBook2026Component {
   private fotos: (HTMLCanvasElement | null)[] = [];
   private textos: HTMLCanvasElement[] = [];
   private ctx: CanvasRenderingContext2D | null = null;
+  private ctxTinta: CanvasRenderingContext2D | null = null;
+  /** Si el lienzo de la tinta tiene algo dibujado y esta a la vista. */
+  private tintaVista = false;
   private dpr = 1;
   /** Escala y desplazamiento del video dentro del lienzo (encuadre "cover"). */
   private esc = 1;
@@ -638,6 +642,7 @@ export class AboutBook2026Component {
     const canvas = this.canvasRef().nativeElement;
     this.ctx = canvas.getContext('2d');
     if (!this.ctx) return;
+    this.ctxTinta = this.tintaRef().nativeElement.getContext('2d');
 
     await Promise.all([this.cargaMalla(), this.cargaMontaje(), this.cargaFuentes()]);
     await this.cargaCuadro(PORTADA);
@@ -833,6 +838,13 @@ export class AboutBook2026Component {
     canvas.style.width = `${w}px`;
     canvas.style.height = `${h}px`;
     this.cuadrosRef().nativeElement.style.height = `${h}px`;
+    const tinta = this.tintaRef().nativeElement;
+    tinta.width = canvas.width;
+    tinta.height = canvas.height;
+    tinta.style.width = canvas.style.width;
+    tinta.style.height = canvas.style.height;
+    this.tintaVista = false;
+    tinta.classList.remove('se-ve');
     const W = w * this.dpr;
     const H = h * this.dpr;
     // El libro va A SANGRE salvo en las pantallas mas anchas que el metraje,
@@ -1280,15 +1292,20 @@ export class AboutBook2026Component {
     // se queda el anterior CON SU CONTENIDO: se pierde un fotograma, no se
     // descuadra nada. Cuanto se adelanta lo decide `adelanta`.
     //
-    // Dos casos siguen en el lienzo, igual que antes: el sello de la
-    // contraportada, que es tinta MULTIPLICADA sobre el cuero y necesita el
-    // cuadro debajo en el mismo lienzo, y el primer pintado, antes de que haya
-    // ninguna capa lista.
+    // Un caso sigue en el lienzo, igual que antes: el primer pintado, antes de
+    // que haya ninguna capa lista.
+    //
+    // El cierre tambien iba aqui -del cuadro 203 al 292-, porque el sello de la
+    // contraportada es tinta MULTIPLICADA sobre el cuero y necesitaba el cuadro
+    // debajo en el mismo lienzo. Eran 90 cuadros decodificados en el hilo
+    // principal: medido con la CPU x4, de los 139 del cierre se veian 62, con
+    // paradas de 150 ms, y 25 al reabrir, con una de 567. La tinta va ahora en
+    // su propio lienzo, mezclada por CSS (ver `pintaSello`).
     const pedido = this.cuadroActual;
     const quiere = this.indiceMasCercano(Math.round(pedido));
     this.cuadroPrevio = quiere;
     let capa: Capa | null = null;
-    if (quiere > 0 && !this.esquinasSello()) {
+    if (quiere > 0) {
       capa = this.capaLista(quiere);
       // Se ensena ANTES de adelantar: adelantar hace sitio retirando capas, y la
       // que esta a la vista es la unica que no se toca.
@@ -1308,10 +1325,11 @@ export class AboutBook2026Component {
       if (img) ctx.drawImage(img, this.offX, this.offY, VIDEO_W * this.esc, VIDEO_H * this.esc);
     }
     this.pintaContenido(ctx);
+    this.pintaSello(ctx, !!capa);
     this.cuadroActual = pedido;
   }
 
-  /** Lo que va ENCIMA del cuadro: las paginas, la hoja en vuelo y el sello. */
+  /** Lo que va ENCIMA del cuadro: las paginas y la hoja en vuelo. */
   private pintaContenido(ctx: CanvasRenderingContext2D): void {
     const s = this.escena();
     ctx.save();
@@ -1337,26 +1355,44 @@ export class AboutBook2026Component {
       if (panel) this.estampaHoja(ctx, panel, g);
     }
     ctx.restore();
+  }
 
-    // El sello de la contraportada. Va IMPRESO en el cuero, asi que se dibuja
-    // siempre que haya tapa a la vista -desde que asoma en el cierre, por el
-    // cuadro 203, hasta el final- y acompana a la tapa mientras baja. No entra
-    // con un fundido: un logotipo impreso no aparece ni desaparece, igual que no
-    // lo hacen los florones de las esquinas.
+  /**
+   * El sello de la contraportada. Va IMPRESO en el cuero, asi que se dibuja
+   * siempre que haya tapa a la vista -desde que asoma en el cierre, por el
+   * cuadro 203, hasta el final- y acompana a la tapa mientras baja. No entra
+   * con un fundido: un logotipo impreso no aparece ni desaparece, igual que no
+   * lo hacen los florones de las esquinas.
+   *
+   * MULTIPLICADO, que es como se comporta la tinta: deja pasar la veta del cuero
+   * y su sombreado en vez de taparlos con un color plano. Es la diferencia entre
+   * una tinta impresa y una calcomania pegada encima.
+   *
+   * Quien multiplica depende de donde este el cuadro. Si va `enCapa` -en una
+   * imagen debajo del lienzo-, la tinta se dibuja tal cual en su propio lienzo y
+   * la mezcla la hace el CSS con lo que tiene debajo. Si el cuadro esta dibujado
+   * en el lienzo -solo antes de que haya una capa lista-, la mezcla la hace el
+   * lienzo, como siempre. La cuenta es la misma en los dos casos.
+   */
+  private pintaSello(ctx: CanvasRenderingContext2D, enCapa: boolean): void {
     const tapa = this.esquinasSello();
-    if (tapa) {
-      ctx.save();
-      // MULTIPLICAR, que es como se comporta la tinta: deja pasar la veta del
-      // cuero y su sombreado en vez de taparlos con un color plano. Es la
-      // diferencia entre una tinta impresa y una calcomania pegada encima.
-      // `globalAlpha` y el modo de mezcla valen para los dos caminos de
-      // estampado: WarpGL termina con un `drawImage` sobre este mismo contexto,
-      // y la malla sin GPU tambien.
-      ctx.globalCompositeOperation = 'multiply';
-      ctx.globalAlpha = SELLO_TINTA;
-      this.estampaCuad(ctx, this.panelSello(), tapa, null);
-      ctx.restore();
+    const tinta = this.ctxTinta;
+    const usaTinta = !!tapa && enCapa && !!tinta;
+    if (tinta && (this.tintaVista || usaTinta)) tinta.clearRect(0, 0, tinta.canvas.width, tinta.canvas.height);
+    if (tinta && usaTinta !== this.tintaVista) {
+      tinta.canvas.classList.toggle('se-ve', usaTinta);
+      this.tintaVista = usaTinta;
     }
+    if (!tapa) return;
+    const destino = usaTinta && tinta ? tinta : ctx;
+    destino.save();
+    // `globalAlpha` y el modo de mezcla valen para los dos caminos de
+    // estampado: WarpGL termina con un `drawImage` sobre este mismo contexto, y
+    // la malla sin GPU tambien.
+    if (destino === ctx) destino.globalCompositeOperation = 'multiply';
+    destino.globalAlpha = SELLO_TINTA;
+    this.estampaCuad(destino, this.panelSello(), tapa, null);
+    destino.restore();
   }
 
   /**
@@ -1608,10 +1644,14 @@ export class AboutBook2026Component {
   private arranques(quiere: number): number[] {
     const e = this.estado();
     const lista = [quiere];
-    if (this.transicion || e >= CERRADO_FINAL) return lista;
+    if (this.transicion) return lista;
     const desde = (primero: number, sentido: number): void => {
       for (let k = 0; k < ADELANTO; k++) lista.push(primero + k * sentido);
     };
+    if (e >= CERRADO_FINAL) {
+      desde(CERRADO - 1, -1);
+      return lista;
+    }
     if (e <= 0) {
       desde(PORTADA + 1, 1);
       return lista;
@@ -2055,7 +2095,7 @@ export class AboutBook2026Component {
         this.pinta();
         if (hecho >= cuadros && !alFinal) alFinal = ahora;
         // Con el reloj al final, un momento mas si el ultimo cuadro todavia no
-        // se ve -y va en capa, no en el lienzo-: es lo que evita el salto.
+        // se ve: es lo que evita el salto.
         const falta = !!this.capaVista && (this.marcha?.vista ?? cuadros) < cuadros && ahora - alFinal < REMATE_MAX;
         if (hecho < cuadros || falta) {
           this.raf = requestAnimationFrame(paso);

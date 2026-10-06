@@ -236,6 +236,24 @@
 }
 
 // ─── Accesibilidad ───────────────────────────────────────────────────────────
+// La tinta del sello. Va MULTIPLICADA sobre lo que tiene debajo -el cuadro y
+// las paginas-, que es la misma cuenta que hacia el lienzo cuando el cuadro se
+// dibujaba dentro de el. Solo esta en la pagina mientras hay tapa a la vista.
+.bol-libro__tinta {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100dvh;
+  pointer-events: none;
+  mix-blend-mode: multiply;
+  display: none;
+
+  &.se-ve {
+    display: block;
+  }
+}
+
 .bol-libro__sr {
   position: absolute;
   width: 1px;

@@ -36,6 +36,9 @@
              `pideCapa`). -->
         <div #cuadros class="bol-libro__cuadros" [class.esta-listo]="listo()" aria-hidden="true"></div>
         <canvas #canvas class="bol-libro__lienzo" [class.esta-listo]="listo()"></canvas>
+        <!-- La tinta del sello de la contraportada, mezclada sobre el cuero por
+             CSS mientras el cuadro va en una imagen (ver `pintaSello`). -->
+        <canvas #tinta class="bol-libro__tinta" aria-hidden="true"></canvas>
 
         <!-- TODO se dibuja sobre el lienzo, incluidos estos dos botones, que son
              tinta de la pagina de cierre. Estos <a> son solo el area pulsable:
