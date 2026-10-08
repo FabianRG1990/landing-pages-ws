@@ -246,11 +246,11 @@ section[id] {
   }
 }
 
-/* Botón principal: el rojo del logo, plano. Sin degradado, sin anillos
-   y sin brillo: un relleno firme, un filo de luz arriba y una sombra
-   corta que lo asienta. Al pasar el ratón se oscurece un tono, que es
-   la respuesta sobria de un botón de empresa. Es el único relleno rojo
-   de la pantalla. */
+/* Botón principal: el logo de Moofy dicho en voz baja. Rojo plano, y
+   alrededor el filete blanco y la línea azul de sus letras, en fino
+   (--shadow-btn). Sin degradado, sin resplandor y sin brillo: al pasar
+   el ratón solo se oscurece un tono, que es la respuesta sobria de un
+   botón de empresa. Es el único relleno rojo de la pantalla. */
 .btn--rojo {
   font-weight: var(--w-announce);
   color: var(--blanco);

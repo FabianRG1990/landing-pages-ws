@@ -62,10 +62,12 @@
   --shadow-lg: 0 28px 70px -30px rgb(var(--azul-rgb) / 0.32);
   --shadow-xl: 0 44px 80px -32px rgb(var(--azul-rgb) / 0.48); /* tarjeta levantada */
   --shadow-rojo: 0 14px 34px -14px rgb(var(--rojo-rgb) / 0.55);
-  /* Botón principal: filo de luz arriba y sombra corta, sin resplandor */
+  /* Botón principal: las tres capas del logo en fino. Filo de luz
+     arriba, filete blanco de 1,5 px, una línea azul de 1,5 px y una
+     sombra azul corta. Es la «pegatina» a la mitad de grosor. */
   --shadow-btn:
-    inset 0 1px 0 rgb(var(--blanco-rgb) / 0.18), 0 1px 2px rgb(var(--tinta-rgb) / 0.2),
-    0 8px 18px -10px rgb(var(--rojo-rgb) / 0.5);
+    inset 0 1px 0 rgb(var(--blanco-rgb) / 0.18), 0 0 0 1.5px var(--blanco), 0 0 0 3px var(--azul),
+    0 10px 20px -12px rgb(var(--azul-rgb) / 0.55);
 
   /* --- Tipografía --- */
   --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
