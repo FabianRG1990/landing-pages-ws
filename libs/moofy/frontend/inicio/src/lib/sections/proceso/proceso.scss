@@ -5,8 +5,7 @@
 /* ---------- La franja azul ----------
    La única sección a sangre en azul profundo: el contraste fuerte de la
    página, entre dos tramos blancos. Texto en blanco; las cursivas pasan
-   a blanco con el marcador en rojo (el rojo como texto no contrasta
-   sobre este azul: 1.9:1). */
+   a blanco (el rojo como texto no contrasta sobre este azul: 1.9:1). */
 .proceso {
   position: relative;
   isolation: isolate;
@@ -18,7 +17,6 @@
     linear-gradient(160deg, #04284f, var(--azul-hondo) 45%, var(--azul));
 
   /* Lo que pintan <app-capitulo> y <app-renglones>, vía sus variables */
-  --marcador: var(--rojo);
   --cursiva: var(--blanco);
   --capitulo-num: #ff9aa8;
   --capitulo-regla: linear-gradient(90deg, #ff9aa8, var(--blanco));

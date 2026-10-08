@@ -196,7 +196,7 @@
   }
 
   /* Ancho del contenido: un ancho fijo cortaba «Un mismo estándar.»,
-     que no se parte (la cursiva lleva el marcador y va en nowrap). */
+     que no se parte (la cursiva va en nowrap). */
   .lineas__intro {
     flex: 0 0 auto;
     width: auto;
