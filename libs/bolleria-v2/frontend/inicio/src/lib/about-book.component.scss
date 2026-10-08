@@ -920,17 +920,20 @@
 
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 14px;
     margin: 0;
-    padding: 9px 16px 9px 13px;
+    padding: 13px 26px 13px 20px;
     border-radius: 999px;
 
     // La misma cápsula de papel que la barra de navegación: crema translúcido,
     // filete dorado muy bajo y una sombra difusa. Sobre la encimera desenfocada
-    // necesita cuerpo propio o el texto se pierde.
-    background: rgba(252, 246, 233, 0.9);
-    border: 1px solid rgba(200, 145, 42, 0.28);
-    box-shadow: 0 6px 18px rgba(92, 56, 22, 0.13);
+    // necesita cuerpo propio o el texto se pierde. Casi opaca y con el filete
+    // marcado: a 0,9 y 0,28 se fundía con la encimera y no llamaba.
+    background: rgba(253, 248, 238, 0.96);
+    border: 1px solid rgba(200, 145, 42, 0.55);
+    box-shadow:
+      0 10px 28px rgba(92, 56, 22, 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.7);
     backdrop-filter: blur(3px);
     -webkit-backdrop-filter: blur(3px);
 
@@ -942,8 +945,8 @@
   // ornamentos. Va como máscara y no como `<img>` para que herede el color.
   .bol-book__girar-icono {
     flex: none;
-    width: 22px;
-    height: 22px;
+    width: 32px;
+    height: 32px;
     background: var(--acc, #c8912a);
     $tel: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect x='8.5' y='2.5' width='11' height='19' rx='2.2' fill='none' stroke='%23000' stroke-width='1.5'/%3E%3Cpath d='M12.6 19h2.8' stroke='%23000' stroke-width='1.5' stroke-linecap='round'/%3E%3Cpath d='M6.2 8.6A7.2 7.2 0 0 0 3.2 14' fill='none' stroke='%23000' stroke-width='1.5' stroke-linecap='round'/%3E%3Cpath d='M3 11.2 3.2 14.4 6.3 13.6' fill='none' stroke='%23000' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
     -webkit-mask: $tel center / contain no-repeat;
@@ -954,22 +957,28 @@
 
   .bol-book__girar-texto {
     // Cinzel en versalitas, el mismo rótulo que encabeza Menú, Contacto y la
-    // despedida. El oliva da 5,4:1 sobre este crema; el dorado no llegaría.
-    font: 600 11px 'Cinzel', serif;
-    letter-spacing: 0.2em;
+    // despedida, en un oliva más hondo que el de la página; el dorado no daría
+    // contraste sobre este crema.
+    //
+    // El tamaño sale del ancho de la pantalla: a 11 y 12 px fijos «no se lee
+    // muy bien» (reportado el 2026-10-08). Con esto son 13 y 15 px en un
+    // teléfono de 320 y 15,5 y 18 en uno de 430, y la cápsula cabe en todos
+    // (medido en 320, 360, 393 y 430).
+    font: 700 clamp(13px, 3.9vw, 15.5px) 'Cinzel', serif;
+    letter-spacing: 0.16em;
     text-transform: uppercase;
     line-height: 1.25;
-    color: var(--olive, #5e6a34);
+    color: #4a5527;
     white-space: nowrap;
 
     em {
       display: block;
-      font: 400 12px 'Cormorant Garamond', serif;
+      font: 500 clamp(15px, 4.5vw, 18px) 'Cormorant Garamond', serif;
       font-style: italic;
       letter-spacing: 0.01em;
       text-transform: none;
-      color: #6b6552;
-      margin-top: 1px;
+      color: #4f4a3a;
+      margin-top: 2px;
     }
   }
 }
