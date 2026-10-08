@@ -38,7 +38,7 @@
   --rojo-rgb: 208 0 32;
   --rojo: #d00020; /* 5.67 · 5.22 · 4.78 — y blanco sobre él, 5.67 */
   --rojo-hondo: #a30019;
-  --rojo-vivo: #ec2340; /* extremo luminoso del botón */
+  --rojo-vivo: #ec2340; /* extremo luminoso de los degradados rojos */
 
   --blanco-rgb: 255 255 255;
   --blanco: #ffffff;
@@ -51,8 +51,8 @@
 
   /* --- La «pegatina» del logo: filete blanco y contorno azul ---
          Un anillo blanco y otro azul por fuera, como las letras de
-         Moofy. Se usa en el botón principal, las insignias y los
-         nodos del proceso: la página habla el idioma del logo. */
+         Moofy. Se usa en las insignias y los nodos del proceso: la
+         página habla el idioma del logo. */
   --pegatina: 0 0 0 2px var(--blanco), 0 0 0 4px var(--azul);
   --pegatina-fina: 0 0 0 1.5px var(--blanco), 0 0 0 3px var(--azul);
 
@@ -62,6 +62,10 @@
   --shadow-lg: 0 28px 70px -30px rgb(var(--azul-rgb) / 0.32);
   --shadow-xl: 0 44px 80px -32px rgb(var(--azul-rgb) / 0.48); /* tarjeta levantada */
   --shadow-rojo: 0 14px 34px -14px rgb(var(--rojo-rgb) / 0.55);
+  /* Botón principal: filo de luz arriba y sombra corta, sin resplandor */
+  --shadow-btn:
+    inset 0 1px 0 rgb(var(--blanco-rgb) / 0.18), 0 1px 2px rgb(var(--tinta-rgb) / 0.2),
+    0 8px 18px -10px rgb(var(--rojo-rgb) / 0.5);
 
   /* --- Tipografía --- */
   --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
@@ -104,6 +108,7 @@
   --r-lg: 22px;
   --r-xl: 32px;
   --r-pill: 999px;
+  --r-btn: 12px; /* botones: esquina firme, no píldora */
 
   /* --- Movimiento --- */
   --ease-fluid: cubic-bezier(0.16, 1, 0.3, 1);

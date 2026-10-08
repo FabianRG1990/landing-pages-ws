@@ -223,7 +223,7 @@ section[id] {
   font-size: var(--fs-small);
   font-weight: var(--w-emph);
   letter-spacing: var(--tracking-label);
-  border-radius: var(--r-pill);
+  border-radius: var(--r-btn);
   white-space: nowrap;
   transition:
     transform var(--dur-fast) var(--ease-out),
@@ -246,37 +246,19 @@ section[id] {
   }
 }
 
-/* Botón principal: rojo del logo con su filete blanco y contorno azul
-   (la «pegatina»). Es el único relleno rojo de la pantalla. */
+/* Botón principal: el rojo del logo, plano. Sin degradado, sin anillos
+   y sin brillo: un relleno firme, un filo de luz arriba y una sombra
+   corta que lo asienta. Al pasar el ratón se oscurece un tono, que es
+   la respuesta sobria de un botón de empresa. Es el único relleno rojo
+   de la pantalla. */
 .btn--rojo {
-  overflow: clip;
+  font-weight: var(--w-announce);
   color: var(--blanco);
-  background: linear-gradient(180deg, var(--rojo-vivo), var(--rojo) 55%, var(--rojo-hondo));
-  box-shadow: var(--pegatina), var(--shadow-rojo);
+  background: var(--rojo);
+  box-shadow: var(--shadow-btn);
 
   &:hover {
-    box-shadow: var(--pegatina), 0 20px 44px -16px rgb(var(--rojo-rgb) / 0.7);
-  }
-
-  /* Brillo que cruza el botón al pasar el ratón, como luz sobre una
-     pegatina. Solo con puntero fino; al salir vuelve sin transición.
-     (overflow: clip recorta el brillo, no el anillo de --pegatina,
-     que es sombra del propio botón.) */
-  &::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(100deg, transparent 30%, rgb(255 255 255 / 0.42) 50%, transparent 70%);
-    transform: translateX(-110%);
-    pointer-events: none;
-  }
-
-  @media (hover: hover) and (pointer: fine) {
-    &:hover::after {
-      transform: translateX(110%);
-      /* Curva pareja: con --ease-fluid cruzaba en 120 ms y no se veía */
-      transition: transform 0.9s cubic-bezier(0.4, 0, 0.2, 1);
-    }
+    background: var(--rojo-hondo);
   }
 }
 
