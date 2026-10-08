@@ -7,6 +7,10 @@ name: Deploy automotivo to Firebase Hosting on merge
 on:
   push:
     branches: [main]
+    # Solo cuando cambia esta app: un PR de otra landing no la toca.
+    paths:
+      - 'apps/automotivo/**'
+      - 'libs/automotivo/**'
 
 jobs:
   build_and_deploy:

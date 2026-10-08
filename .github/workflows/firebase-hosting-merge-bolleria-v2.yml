@@ -7,6 +7,10 @@ name: Deploy bolleria-v2 to Firebase Hosting on merge
 on:
   push:
     branches: [main]
+    # Solo cuando cambia esta app: un PR de otra landing no la toca.
+    paths:
+      - 'apps/bolleria-v2/**'
+      - 'libs/bolleria-v2/**'
 
 jobs:
   build_and_deploy:

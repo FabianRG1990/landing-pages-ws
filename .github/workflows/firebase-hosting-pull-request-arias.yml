@@ -10,6 +10,10 @@ on:
   pull_request:
     branches: [main]
     types: [opened, synchronize, reopened]
+    # Solo cuando cambia esta app: un PR de otra landing no la toca.
+    paths:
+      - 'apps/arias/**'
+      - 'libs/arias/**'
 
 jobs:
   build_and_preview:
