@@ -1,0 +1,70 @@
+<section class="hero" aria-labelledby="hero-titulo">
+  <div class="hero__shell shell">
+    <div #texto class="hero__texto">
+      <p class="hero__eyebrow insignia" appRevelar>
+        <span class="insignia__punto" aria-hidden="true"></span>
+        {{ hero.eyebrow }}
+      </p>
+
+      <h1 id="hero-titulo" class="hero__titulo titular" appRevelar [retraso]="120">
+        <app-renglones [renglones]="hero.titulo" />
+      </h1>
+
+      <p class="hero__entrada lead" appRevelar [retraso]="420">{{ hero.entrada }}</p>
+
+      <div class="hero__acciones" appRevelar [retraso]="560">
+        <a class="btn btn--rojo" [href]="whatsapp" target="_blank" rel="noopener">
+          {{ hero.ctaPrimario }}
+          <app-icono nombre="flecha" />
+        </a>
+        <a class="btn btn--linea" href="#lineas" (click)="ir($event, '#lineas')">{{ hero.ctaSecundario }}</a>
+      </div>
+    </div>
+
+    <div #escena class="hero__escena">
+      <!-- La forma azul del logo detrás de la foto: el color entra como
+           una masa alegre, no como un fondo de página. -->
+      <div #forma class="hero__forma" aria-hidden="true"></div>
+
+      <figure #foto class="hero__foto" appParallax [recorrido]="5">
+        <picture>
+          <source media="(max-width: 899.98px)" [attr.srcset]="foto800(hero.imagen)" />
+          <img
+            [src]="hero.imagen"
+            [attr.srcset]="foto800(hero.imagen) + ' 800w, ' + hero.imagen + ' 1536w'"
+            sizes="(max-width: 1439px) 46vw, 670px"
+            [alt]="hero.alt"
+            width="1536"
+            height="1024"
+            fetchpriority="high"
+            decoding="async"
+          />
+        </picture>
+      </figure>
+
+      <!-- Pegatina: rojo, filete blanco y contorno azul, como las letras
+           del logo. Decorativa: el mismo dato ya está en la etiqueta. -->
+      <p #pegatina class="hero__pegatina" aria-hidden="true">
+        <span>{{ hero.pegatina[0] }}</span>
+        <strong>{{ hero.pegatina[1] }}</strong>
+      </p>
+
+      <aside #tarjeta class="carta hero__tarjeta" aria-label="Moofy en cifras">
+        <p class="hero__tarjeta-cabeza mono">
+          {{ t.etiqueta }}
+          <span class="vivo" aria-hidden="true"></span>
+        </p>
+        <p #cifra class="hero__cifra">{{ t.cifra }}</p>
+        <p class="hero__cifra-texto">{{ t.cifraTexto }}</p>
+        <dl class="hero__tarjeta-datos">
+          @for (d of t.datos; track d.k) {
+            <div>
+              <dt class="mono">{{ d.k }}</dt>
+              <dd>{{ d.v }}</dd>
+            </div>
+          }
+        </dl>
+      </aside>
+    </div>
+  </div>
+</section>

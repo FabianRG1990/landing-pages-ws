@@ -1,0 +1,91 @@
+<section id="canales" class="canales" aria-labelledby="canales-titulo">
+  <div class="shell">
+    <header class="canales__cabeza">
+      <app-capitulo [num]="c.num" [nombre]="c.nombre" appRevelar />
+      <h2 id="canales-titulo" class="titular" appRevelar [retraso]="80">
+        <app-renglones [renglones]="c.titulo" />
+      </h2>
+      <p class="lead" appRevelar [retraso]="220">{{ c.entrada }}</p>
+    </header>
+
+    <div class="canales__cuerpo" appRevelar [retraso]="120">
+      <div class="canales__pestanas" role="tablist" aria-label="Canales">
+        @for (canal of c.items; track canal.id; let i = $index) {
+          <button
+            #pestana
+            type="button"
+            role="tab"
+            class="pestana"
+            [id]="'canal-' + canal.id"
+            [attr.aria-selected]="i === indice()"
+            [attr.aria-controls]="'panel-canales'"
+            [attr.tabindex]="i === indice() ? 0 : -1"
+            (click)="elegir(i)"
+            (keydown)="teclado($event)"
+          >
+            <span class="pestana__num mono">{{ (i + 1).toString().padStart(2, '0') }}</span>
+            <span class="pestana__nombre">{{ canal.nombre }}</span>
+          </button>
+        }
+      </div>
+
+      <div
+        id="panel-canales"
+        class="panel"
+        role="tabpanel"
+        tabindex="0"
+        [attr.aria-labelledby]="'canal-' + activo().id"
+      >
+        <div class="panel__foto">
+          @for (img of imagenes; track img.src) {
+            <picture>
+              <source media="(max-width: 899.98px)" [attr.srcset]="foto800(img.src)" />
+              <img
+                #capa
+                [src]="img.src"
+                [attr.srcset]="foto800(img.src) + ' 800w, ' + img.src + ' 1536w'"
+                sizes="(max-width: 1439px) 53vw, 770px"
+                alt=""
+                width="1536"
+                height="1024"
+                loading="lazy"
+                decoding="async"
+                [class.visible]="img.src === foto()"
+              />
+            </picture>
+          }
+          <span class="solo-lectores">{{ activo().alt }}</span>
+        </div>
+
+        <!-- Todas las tarjetas en la misma celda y solo se ve la activa: la
+             sección mide siempre lo que la más alta y no brinca al cambiar
+             de canal (en móvil la tarjeta va debajo de la foto). Las ocultas
+             quedan fuera del lector de pantalla y del Tab. -->
+        <div class="panel__tarjetas">
+          @for (a of c.items; track a.id; let i = $index) {
+            <div
+              class="panel__info carta"
+              [class.activa]="i === indice()"
+              [attr.aria-hidden]="i === indice() ? null : 'true'"
+              [inert]="i !== indice()"
+            >
+              <p class="panel__frase">{{ a.frase }}</p>
+              <dl class="panel__datos">
+                @for (d of a.datos; track d.k) {
+                  <div>
+                    <dt class="mono">{{ d.k }}</dt>
+                    <dd>{{ d.v }}</dd>
+                  </div>
+                }
+              </dl>
+              <a class="btn btn--rojo panel__cta" [href]="enlaces[i]" target="_blank" rel="noopener">
+                <app-icono nombre="whatsapp" />
+                Escribir como {{ a.nombre.toLowerCase() }}
+              </a>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,66 @@
+<a class="saltar mono" href="#main">Ir al contenido</a>
+
+<header class="nav" [class.nav--solida]="solida() || abierto()">
+  <div class="nav__shell shell">
+    <a class="nav__marca" href="/" aria-label="Moofy, inicio">
+      <app-logo class="nav__logo" alt="" />
+    </a>
+
+    <nav class="nav__links" aria-label="Secciones">
+      @for (item of nav; track item.ancla) {
+        <a class="nav__link" [href]="item.ancla" (click)="ir($event, item.ancla)">{{ item.etiqueta }}</a>
+      }
+    </nav>
+
+    <a class="nav__cta btn btn--rojo" [href]="whatsapp" target="_blank" rel="noopener">
+      Agendar reunión
+      <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+        <path d="M3 8h10M9 4l4 4-4 4" />
+      </svg>
+    </a>
+
+    <button
+      #boton
+      type="button"
+      class="nav__boton"
+      [attr.aria-expanded]="abierto()"
+      aria-controls="menu-movil"
+      (click)="alternar()"
+    >
+      <span class="solo-lectores">{{ abierto() ? 'Cerrar menú' : 'Abrir menú' }}</span>
+      <span class="nav__barra" aria-hidden="true"></span>
+      <span class="nav__barra" aria-hidden="true"></span>
+    </button>
+  </div>
+</header>
+
+<div
+  #menu
+  id="menu-movil"
+  class="menu"
+  [class.menu--abierto]="abierto()"
+  role="dialog"
+  aria-modal="true"
+  aria-label="Menú"
+  [attr.inert]="abierto() ? null : ''"
+>
+  <nav class="menu__shell shell" aria-label="Secciones">
+    <ol class="menu__lista">
+      @for (item of nav; track item.ancla; let i = $index) {
+        <li class="menu__item" [style.--i]="i">
+          <a class="menu__link" [href]="item.ancla" (click)="ir($event, item.ancla)">
+            <span class="mono">0{{ i + 1 }}</span>
+            {{ item.etiqueta }}
+          </a>
+        </li>
+      }
+    </ol>
+
+    <div class="menu__pie">
+      <a class="btn btn--rojo menu__cta" [href]="whatsapp" target="_blank" rel="noopener">
+        Agendar reunión comercial
+      </a>
+      <a class="menu__tel mono mono--ink" [href]="site.telefonoHref">{{ site.telefono }}</a>
+    </div>
+  </nav>
+</div>

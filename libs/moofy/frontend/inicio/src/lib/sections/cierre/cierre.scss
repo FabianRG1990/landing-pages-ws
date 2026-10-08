@@ -1,0 +1,78 @@
+/* Sin encapsulación (ver cierre.ts): todo cuelga de .cierre. */
+
+.cierre {
+  display: block;
+}
+
+.cierre__rendija {
+  display: none;
+}
+
+/* ---------- Las puertas (escritorio, lo activa cierre.ts) ----------
+   Proceso y contacto en la misma celda: el contacto debajo, la franja
+   encima. El bloque recorta las hojas cuando salen por arriba y abajo. */
+.cierre--puertas {
+  position: relative;
+  display: grid;
+  overflow: clip;
+
+  > app-proceso,
+  > app-contacto {
+    grid-area: 1 / 1;
+    align-self: start;
+  }
+
+  > app-proceso {
+    position: relative;
+    z-index: 2;
+  }
+
+  > app-contacto {
+    z-index: 1;
+  }
+
+  /* Con la franja ya abierta, el contacto empieza justo bajo la barra */
+  .contacto {
+    padding-top: calc(var(--nav-h) + 2rem);
+  }
+
+  /* Sin sticky: al soltar el pin, GSAP deja el bloque desplazado con
+     transform y el sticky, que calcula sin él, empujaba el titular
+     365 px hacia abajo. */
+  .contacto .contacto__cabeza {
+    position: static;
+  }
+
+  /* La hoja de abajo: la copia, encima de la real en el mismo sitio.
+     Con .proceso en el selector: la regla del componente
+     (.proceso { position: relative }) tiene la misma especificidad y,
+     por orden de carga, ganaba. */
+  .proceso.cierre__hoja {
+    position: absolute;
+    inset: 0 0 auto;
+  }
+
+  /* La rendija: una línea de luz roja y blanca en el corte */
+  .cierre__rendija {
+    position: absolute;
+    left: 0;
+    right: 0;
+    z-index: 3;
+    display: block;
+    height: 3px;
+    margin-top: -1.5px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      var(--rojo-vivo) 18%,
+      var(--blanco) 50%,
+      var(--rojo-vivo) 82%,
+      transparent
+    );
+    box-shadow:
+      0 0 18px 4px rgb(255 255 255 / 0.55),
+      0 0 50px 10px rgb(var(--rojo-rgb) / 0.45);
+    visibility: hidden;
+    pointer-events: none;
+  }
+}

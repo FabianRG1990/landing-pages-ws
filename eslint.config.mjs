@@ -45,6 +45,10 @@ export default [
               onlyDependOnLibsWithTags: ['scope:adn-business', 'scope:shared'],
             },
             {
+              sourceTag: 'scope:moofy',
+              onlyDependOnLibsWithTags: ['scope:moofy', 'scope:shared'],
+            },
+            {
               sourceTag: 'scope:interiorismo',
               onlyDependOnLibsWithTags: [
                 'scope:interiorismo',

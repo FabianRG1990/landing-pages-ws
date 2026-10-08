@@ -138,7 +138,10 @@
       "@bolleria-v2-ui-menu": ["./libs/bolleria-v2/frontend/menu/src/index.ts"],
       "@bolleria-v2-ui-contacto": [
         "./libs/bolleria-v2/frontend/contacto/src/index.ts"
-      ]
+      ],
+      "@moofy-ui-shared": ["./libs/moofy/frontend/shared/src/index.ts"],
+      "@moofy-ui-shared/*": ["./libs/moofy/frontend/shared/src/lib/*"],
+      "@moofy-ui-inicio": ["./libs/moofy/frontend/inicio/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]

@@ -1,0 +1,116 @@
+name: Limpiar versiones viejas de Firebase Hosting
+
+# Hosting guarda por defecto TODAS las versiones publicadas de cada sitio, y
+# eso agota la cuota de almacenamiento del proyecto (HTTP 429 al desplegar).
+# Este flujo deja cada sitio con una sola versión guardada en producción y
+# borra las anteriores. No toca lo que está publicado ni las vistas previas
+# vigentes.
+#
+# Se puede lanzar a mano desde la pestaña Actions.
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/firebase-hosting-limpieza.yml'
+
+jobs:
+  limpiar:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Dejar una sola versión por sitio
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_LANDING_PAGES_79AFC }}
+        run: |
+          set -euo pipefail
+
+          gac_file="$(mktemp)"
+          trap 'rm -f "$gac_file"' EXIT
+          printf '%s' "$FIREBASE_SERVICE_ACCOUNT" > "$gac_file"
+
+          gcloud auth activate-service-account --key-file="$gac_file" --quiet
+          ACCESS_TOKEN="$(gcloud auth print-access-token)"
+          echo "::add-mask::$ACCESS_TOKEN"
+          export ACCESS_TOKEN
+
+          python - <<'PY'
+          import json
+          import os
+          import urllib.error
+          import urllib.parse
+          import urllib.request
+
+          API = "https://firebasehosting.googleapis.com/v1beta1"
+          TOKEN = os.environ["ACCESS_TOKEN"]
+
+
+          def llamar(metodo, ruta, cuerpo=None):
+              datos = json.dumps(cuerpo).encode() if cuerpo is not None else None
+              peticion = urllib.request.Request(f"{API}/{ruta}", data=datos, method=metodo)
+              peticion.add_header("Authorization", f"Bearer {TOKEN}")
+              peticion.add_header("Content-Type", "application/json")
+              with urllib.request.urlopen(peticion, timeout=60) as respuesta:
+                  texto = respuesta.read().decode()
+              return json.loads(texto) if texto else {}
+
+
+          def paginar(ruta, clave):
+              elementos, pagina = [], ""
+              while True:
+                  separador = "&" if "?" in ruta else "?"
+                  cola = f"{separador}pageSize=100" + (f"&pageToken={pagina}" if pagina else "")
+                  parte = llamar("GET", ruta + cola)
+                  elementos += parte.get(clave, [])
+                  pagina = parte.get("nextPageToken", "")
+                  if not pagina:
+                      return elementos
+
+
+          with open(".firebaserc", encoding="utf-8") as fh:
+              destinos = json.load(fh)["targets"]["landing-pages-79afc"]["hosting"]
+          sitios = sorted({sitio for lista in destinos.values() for sitio in lista})
+
+          total_borradas = total_bytes = 0
+          for sitio in sitios:
+              try:
+                  llamar(
+                      "PATCH",
+                      f"sites/{sitio}/channels/live?updateMask=retainedReleaseCount",
+                      {"retainedReleaseCount": 1},
+                  )
+                  canales = paginar(f"sites/{sitio}/channels", "channels")
+                  en_uso = {
+                      canal["release"]["version"]["name"]
+                      for canal in canales
+                      if canal.get("release", {}).get("version")
+                  }
+                  filtro = urllib.parse.quote('status="FINALIZED"')
+                  versiones = paginar(f"sites/{sitio}/versions?filter={filtro}", "versions")
+                  borradas = liberado = 0
+                  for version in versiones:
+                      if version["name"] in en_uso:
+                          continue
+                      try:
+                          llamar("DELETE", version["name"])
+                          borradas += 1
+                          liberado += int(version.get("versionBytes", 0))
+                      except urllib.error.HTTPError as error:
+                          print(f"  no se pudo borrar {version['name']}: {error.code}")
+                  total_borradas += borradas
+                  total_bytes += liberado
+                  print(
+                      f"{sitio}: {len(versiones)} versiones, {len(en_uso)} en uso, "
+                      f"{borradas} borradas ({liberado / 1e6:.0f} MB)"
+                  )
+              except urllib.error.HTTPError as error:
+                  print(f"{sitio}: ERROR {error.code} {error.read().decode()[:300]}")
+                  raise
+
+          print(f"TOTAL: {total_borradas} versiones borradas, {total_bytes / 1e6:.0f} MB")
+          PY

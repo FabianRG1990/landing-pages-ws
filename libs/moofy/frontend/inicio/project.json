@@ -1,0 +1,13 @@
+{
+  "name": "moofy-ui-inicio",
+  "$schema": "../../../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/moofy/frontend/inicio/src",
+  "prefix": "app",
+  "projectType": "library",
+  "tags": ["scope:moofy"],
+  "targets": {
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    }
+  }
+}

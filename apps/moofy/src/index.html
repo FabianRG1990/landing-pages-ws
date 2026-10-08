@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="es-CR">
+  <head>
+    <meta charset="utf-8" />
+    <title>Moofy — Repostería fina empacada, fabricada en Costa Rica</title>
+    <base href="/" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta
+      name="description"
+      content="Fábrica de repostería fina empacada en Grecia, Costa Rica. Hojaldres, queques, empanadas, galletas y snacks horneados para hoteles, cafeterías, supermercados, catering y distribuidores."
+    />
+    <meta name="theme-color" content="#ffffff" />
+    <link rel="icon" type="image/x-icon" href="favicon.ico" />
+    <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="es_CR" />
+    <meta property="og:site_name" content="Moofy" />
+    <meta property="og:title" content="Moofy — Repostería fina empacada, fabricada en Costa Rica" />
+    <meta
+      property="og:description"
+      content="Producimos en planta propia y despachamos a todo el país. Repostería para empresas que no negocian la calidad."
+    />
+
+    <!-- El estado inicial de las animaciones de entrada tiene que existir
+         ANTES del primer pintado; si lo pone Angular al hidratar, el hero
+         se ve completo, desaparece y vuelve a entrar. Si la app no arranca
+         en 4 s, la clase se retira y todo el contenido queda visible. -->
+    <script>
+      (function () {
+        if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        var html = document.documentElement;
+        html.classList.add('con-movimiento');
+        setTimeout(function () {
+          if (!html.classList.contains('movimiento-listo')) html.classList.remove('con-movimiento');
+        }, 4000);
+      })();
+    </script>
+
+    <!-- Instrument Sans con cursiva real (el énfasis de los titulares) y
+         el eje de anchura; Geist Mono para el metadato técnico. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wdth,wght@0,75..100,400..700;1,75..100,400..700&family=Geist+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <app-root></app-root>
+  </body>
+</html>

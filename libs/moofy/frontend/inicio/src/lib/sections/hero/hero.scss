@@ -1,0 +1,266 @@
+:host {
+  display: block;
+}
+
+.hero {
+  position: relative;
+  overflow: clip;
+}
+
+.hero__shell {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: var(--gutter);
+  row-gap: 3.5rem;
+  align-items: center;
+  min-height: min(100svh, 980px);
+  padding-top: calc(var(--nav-h) + clamp(1.5rem, 1rem + 2vw, 3rem));
+  padding-bottom: clamp(2.5rem, 2rem + 2vw, 4rem);
+}
+
+/* ---------- Texto ---------- */
+
+.hero__texto {
+  grid-column: 1 / span 6;
+}
+
+.hero__eyebrow {
+  margin-bottom: clamp(1.25rem, 1rem + 1vw, 1.75rem);
+}
+
+.hero__titulo {
+  max-width: 11ch;
+}
+
+.hero__entrada {
+  max-width: 42ch;
+  margin-top: clamp(1.25rem, 1rem + 1vw, 2rem);
+}
+
+.hero__acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-top: clamp(1.75rem, 1.4rem + 1.4vw, 2.5rem);
+}
+
+/* ---------- Escena: forma azul, foto, pegatina y tarjeta ---------- */
+
+.hero__escena {
+  grid-column: 7 / -1;
+  position: relative;
+  padding: 1.5rem 0 2.5rem 2.5rem;
+}
+
+/* Oculta hasta que la timeline de entrada ponga sus estados de partida
+   (hero.ts). La clase la pone index.html antes del primer pintado y la
+   retira a los 4 s si la app no arrancó. */
+:host-context(.con-movimiento) .hero__escena {
+  visibility: hidden;
+}
+
+/* La forma azul: un óvalo del azul del logo, ligeramente girado, que
+   asoma por detrás de la foto arriba a la derecha. */
+.hero__forma {
+  position: absolute;
+  inset: 0 -12% 18% 18%;
+  z-index: 0;
+  background:
+    radial-gradient(60% 60% at 70% 20%, rgb(255 255 255 / 0.22), transparent 60%),
+    linear-gradient(140deg, var(--azul-vivo), var(--azul) 55%, var(--azul-hondo));
+  border-radius: 46% 54% 42% 58% / 52% 44% 56% 48%;
+  transform: rotate(-6deg);
+}
+
+.hero__foto {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  aspect-ratio: 1;
+  overflow: clip;
+  border-radius: var(--r-xl);
+  background: var(--azul-50);
+  /* El marco blanco grueso es el filete del logo alrededor de la foto */
+  box-shadow: 0 0 0 6px var(--blanco), var(--shadow-lg);
+
+  img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 60% 50%;
+    will-change: transform;
+  }
+}
+
+/* Pegatina roja: rojo con filete blanco y contorno azul, girada como si
+   estuviera pegada a mano. */
+.hero__pegatina {
+  position: absolute;
+  top: 0.5rem;
+  right: -0.75rem;
+  z-index: 3;
+  display: grid;
+  place-content: center;
+  width: clamp(6.5rem, 5rem + 4vw, 8.25rem);
+  aspect-ratio: 1;
+  text-align: center;
+  line-height: 1.05;
+  color: var(--blanco);
+  background: radial-gradient(circle at 35% 30%, var(--rojo-vivo), var(--rojo) 55%, var(--rojo-hondo));
+  border-radius: 50%;
+  box-shadow: 0 0 0 4px var(--blanco), 0 0 0 8px var(--azul), var(--shadow-rojo);
+  transform: rotate(10deg);
+  /* El giro con el scroll va aparte del transform, que es de la entrada */
+  rotate: var(--giro, 0deg);
+
+  span {
+    font-size: 0.8125rem;
+    font-weight: var(--w-emph);
+  }
+
+  strong {
+    font-size: clamp(1rem, 0.85rem + 0.5vw, 1.25rem);
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+}
+
+/* Tarjeta de datos, montada sobre la esquina inferior izquierda */
+.hero__tarjeta {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  z-index: 2;
+  width: min(19rem, 70%);
+  padding: 1.25rem 1.375rem;
+}
+
+.hero__tarjeta-cabeza {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.hero__cifra {
+  margin-top: 0.75rem;
+  font-size: clamp(2.75rem, 2.2rem + 2vw, 3.75rem);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.045em;
+  color: var(--azul);
+  font-variant-numeric: tabular-nums;
+}
+
+.hero__cifra-texto {
+  margin-top: 0.25rem;
+  font-weight: var(--w-announce);
+}
+
+.hero__tarjeta-datos {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-top: 1rem;
+  padding-top: 0.875rem;
+  border-top: 1px solid var(--line);
+
+  > div {
+    display: grid;
+    gap: 0.2rem;
+  }
+
+  dt {
+    font-size: 0.625rem;
+  }
+
+  dd {
+    font-weight: 700;
+    color: var(--rojo);
+  }
+}
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 1023.98px) {
+  .hero__shell {
+    min-height: 0;
+  }
+
+  .hero__texto,
+  .hero__escena {
+    grid-column: 1 / -1;
+  }
+
+  .hero__titulo {
+    max-width: 13ch;
+  }
+
+  .hero__escena {
+    max-width: 38rem;
+    width: 100%;
+    justify-self: center;
+  }
+}
+
+/* ---------- Móvil: un solo borde ----------
+   Foto y tarjeta ocupan exactamente el ancho del texto (el margen de
+   la página): antes la foto entraba 16 px, el óvalo azul asomaba por
+   la derecha cortado y la pegatina chocaba con el borde. La tarjeta
+   deja de flotar en una esquina y se monta bajo la foto, con los
+   mismos bordes. */
+@media (max-width: 599.98px) {
+  .hero__shell {
+    row-gap: var(--esp-6);
+  }
+
+  .hero__escena {
+    display: grid;
+    padding: 0;
+  }
+
+  /* El óvalo solo funciona con aire alrededor; en móvil cortaba la
+     composición por la derecha. */
+  .hero__forma {
+    display: none;
+  }
+
+  .hero__foto {
+    aspect-ratio: 4 / 3.4;
+    border-radius: var(--r-lg);
+    box-shadow: var(--shadow-lg);
+  }
+
+  /* Dentro de la foto, en su esquina: no se sale del borde común */
+  .hero__pegatina {
+    top: var(--esp-3);
+    right: var(--esp-3);
+    width: 5.25rem;
+    box-shadow: 0 0 0 3px var(--blanco), 0 0 0 6px var(--azul), var(--shadow-rojo);
+
+    span {
+      font-size: 0.6875rem;
+    }
+
+    strong {
+      font-size: 0.9375rem;
+    }
+  }
+
+  .hero__tarjeta {
+    position: relative;
+    z-index: 2;
+    width: auto;
+    margin: calc(var(--esp-6) * -1) var(--esp-3) 0;
+  }
+
+  .hero__acciones {
+    gap: var(--esp-2);
+  }
+
+  .hero__acciones .btn {
+    flex: 1 1 100%;
+  }
+}

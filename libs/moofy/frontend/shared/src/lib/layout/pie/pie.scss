@@ -1,0 +1,354 @@
+:host {
+  display: block;
+}
+
+/* El pie en azul profundo de la marca: la página aterriza en un bloque
+   con peso en vez de acabarse en blanco sobre blanco. El mismo esquema
+   que el pie de bollería: columnas con título, divisores finos y lo
+   legal dentro del mismo color. Los textos van en blanco con alfa; el
+   más tenue (0.62) da 4.9:1 sobre el punto más claro del degradado. */
+.pie {
+  --pie-texto: rgb(255 255 255 / 0.78);
+  --pie-tenue: rgb(255 255 255 / 0.62);
+  --pie-linea: rgb(255 255 255 / 0.13);
+  --pie-titulo: #b3d6f8;
+
+  position: relative;
+  color: var(--blanco);
+  background: linear-gradient(165deg, #0a4987 0%, var(--azul-hondo) 50%, #042a52 100%);
+
+  /* Remate: un hilo rojo que se desvanece hacia los bordes. Rojo solo,
+     sin mezclar con el azul (la mezcla daba un morado sucio). */
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--rojo-vivo) 22%, #ff5a70 50%, var(--rojo-vivo) 78%, transparent);
+  }
+
+  a {
+    transition: color var(--dur-fast) var(--ease-out);
+  }
+
+  a:focus-visible {
+    outline: 2px solid var(--blanco);
+    outline-offset: 4px;
+    border-radius: 4px;
+  }
+}
+
+/* ---------- Las cuatro columnas ---------- */
+
+.pie__rejilla {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto auto;
+  grid-template-areas: 'marca nav contacto pedidos';
+  padding-block: clamp(3rem, 2.5rem + 2vw, 4rem) clamp(2rem, 1.75rem + 1vw, 2.75rem);
+}
+
+.pie__col {
+  padding-inline: clamp(1.75rem, 0.5rem + 2.4vw, 3.5rem);
+  border-left: 1px solid var(--pie-linea);
+
+  &:first-child {
+    padding-left: 0;
+    border-left: 0;
+  }
+
+  &:last-child {
+    padding-right: 0;
+  }
+}
+
+.pie__marca {
+  grid-area: marca;
+}
+
+nav.pie__col {
+  grid-area: nav;
+}
+
+.pie__col:nth-child(3) {
+  grid-area: contacto;
+}
+
+.pie__pedidos {
+  grid-area: pedidos;
+}
+
+/* Logo troquelado: el contorno blanco sigue la silueta y una sombra
+   corta lo levanta del azul, como una pegatina. Sin caja. */
+.pie__logo {
+  display: block;
+  width: 140px;
+  filter: drop-shadow(0 8px 12px rgb(0 0 0 / 0.32));
+}
+
+.pie__lema {
+  max-width: 26ch;
+  margin-top: 1.125rem;
+  line-height: 1.6;
+  color: var(--pie-texto);
+}
+
+.pie__titulo {
+  margin-bottom: 1rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--pie-titulo);
+}
+
+.pie__lista {
+  display: grid;
+  gap: 0.625rem;
+  font-size: var(--fs-small);
+
+  a {
+    color: var(--blanco);
+
+    &:hover {
+      color: var(--pie-titulo);
+    }
+  }
+}
+
+.pie__datos {
+  white-space: nowrap;
+  font-variant-numeric: lining-nums tabular-nums;
+  color: var(--pie-texto);
+
+  a {
+    color: var(--pie-texto);
+  }
+}
+
+/* El botón de la casa; sobre azul, el filete blanco de la pegatina
+   es lo que lo despega del fondo. */
+.pie__cta {
+  gap: 0.75rem;
+  padding-left: 1.125rem;
+
+  app-icono {
+    width: 20px;
+    height: 20px;
+  }
+
+  /* El glifo de WhatsApp no se desliza al pasar el ratón como la flecha */
+  &:hover svg {
+    transform: none;
+  }
+
+  svg {
+    width: 100%;
+  }
+}
+
+.pie__cta-sep {
+  width: 1px;
+  height: 18px;
+  background: rgb(255 255 255 / 0.4);
+}
+
+.pie__redes {
+  display: flex;
+  gap: 0.625rem;
+  margin-top: 1.375rem;
+
+  a {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    font-size: 1.125rem;
+    color: var(--blanco);
+    border: 1px solid rgb(255 255 255 / 0.24);
+    border-radius: 50%;
+    transition:
+      color var(--dur-fast) var(--ease-out),
+      background var(--dur-fast) var(--ease-out),
+      border-color var(--dur-fast) var(--ease-out);
+
+    &:hover {
+      color: var(--azul-hondo);
+      background: var(--blanco);
+      border-color: var(--blanco);
+    }
+  }
+}
+
+/* ---------- Lo legal y la firma ---------- */
+
+.pie__base {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 2rem;
+  padding-block: 1.125rem max(1.25rem, env(safe-area-inset-bottom));
+  font-size: 0.8125rem;
+  color: var(--pie-tenue);
+  /* El hilo va por dentro del contenido, no a sangre: así los dos
+     extremos caen sobre la primera y la última columna. */
+  background: linear-gradient(var(--pie-linea), var(--pie-linea)) top / calc(100% - 2 * var(--gutter)) 1px no-repeat;
+}
+
+/* La firma envuelve por sus piezas enteras y nunca parte una palabra.
+   44 px de alto para el dedo. */
+.pie__firma {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.5rem;
+  min-height: 44px;
+  color: var(--pie-tenue);
+
+  &:hover {
+    color: var(--blanco);
+
+    .pie__firma-nombre {
+      color: var(--blanco);
+    }
+  }
+}
+
+.pie__firma-marca {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+}
+
+/* El emblema es oscuro: sobre el azul hondo desaparecía. Un disco claro
+   lo devuelve sin cambiarle el color. */
+.pie__firma-disco {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  background: rgb(255 255 255 / 0.92);
+  border-radius: 50%;
+
+  img {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+.pie__firma-nombre {
+  font-weight: var(--w-announce);
+  color: rgb(255 255 255 / 0.88);
+  transition: color var(--dur-fast) var(--ease-out);
+}
+
+/* ---------- Tableta: marca y pedidos arriba, las listas debajo ---------- */
+
+@media (max-width: 1099.98px) {
+  .pie__rejilla {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-areas:
+      'marca pedidos'
+      'nav contacto';
+    row-gap: 2.5rem;
+  }
+
+  .pie__col {
+    padding-inline: 0;
+    border-left: 0;
+  }
+
+  .pie__col:nth-child(3) {
+    padding-left: 2rem;
+    border-left: 1px solid var(--pie-linea);
+  }
+
+  nav.pie__col,
+  .pie__col:nth-child(3) {
+    padding-top: 2.25rem;
+    border-top: 1px solid var(--pie-linea);
+  }
+
+  .pie__pedidos {
+    justify-self: end;
+  }
+}
+
+/* ---------- Móvil: navegación y contacto lado a lado ----------
+   La navegación toma lo que mide su palabra más larga y el contacto el
+   resto: así el correo cabe entero incluso a 320 px. */
+
+@media (max-width: 599.98px) {
+  .pie__rejilla {
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-areas:
+      'marca marca'
+      'nav contacto'
+      'pedidos pedidos';
+    column-gap: 1.75rem;
+    row-gap: 1.75rem;
+    padding-top: 2.5rem;
+  }
+
+  /* Un solo divisor a lo ancho, bajo la marca: sobre cada columna salía
+     partido por el hueco entre ellas. */
+  .pie__marca {
+    padding-bottom: 1.75rem;
+    border-bottom: 1px solid var(--pie-linea);
+  }
+
+  nav.pie__col,
+  .pie__col:nth-child(3) {
+    padding: 0;
+    border: 0;
+  }
+
+  .pie__pedidos {
+    justify-self: stretch;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--pie-linea);
+  }
+
+  /* Encima de las listas el título va pegado: el alto táctil de cada
+     enlace ya pone el aire */
+  .pie__titulo {
+    margin-bottom: 0.25rem;
+  }
+
+  .pie__pedidos .pie__titulo {
+    margin-bottom: 1rem;
+  }
+
+  /* 44 px de alto para el dedo; el hueco sale del propio enlace */
+  .pie__lista {
+    gap: 0;
+  }
+
+  .pie__lista li,
+  .pie__lista a {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+  }
+
+  /* La dirección puede partir en dos renglones; el teléfono y el correo no */
+  .pie__datos {
+    white-space: normal;
+
+    a {
+      white-space: nowrap;
+    }
+  }
+
+  .pie__cta {
+    width: 100%;
+    min-height: 52px;
+  }
+
+  .pie__base {
+    flex-direction: column;
+    align-items: flex-start;
+    padding-top: 1.25rem;
+  }
+}

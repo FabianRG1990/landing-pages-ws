@@ -1,0 +1,300 @@
+:host {
+  display: block;
+}
+
+.lineas {
+  padding-block: var(--section-y);
+}
+
+.lineas__cabeza {
+  max-width: 46rem;
+  margin-bottom: clamp(2.5rem, 2rem + 3vw, 4.5rem);
+
+  .lead {
+    margin-top: 1.25rem;
+    max-width: 44ch;
+  }
+}
+
+.lineas__pista:focus-visible {
+  outline-offset: -2px;
+}
+
+.lineas__lista {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(1.25rem, 1rem + 1vw, 2rem);
+}
+
+.linea {
+  display: flex;
+}
+
+/* ---------- Tarjeta ----------
+   Blanca, con la foto arriba, insignia y metadato sobre la foto, y un
+   pie con el canal ideal y la acción. Al pasar el ratón se levanta, se
+   inclina hacia el puntero (--rx/--ry de appInclinar), el contorno pasa
+   a azul y la foto se acerca: la tarjeta tiene una acción, así que
+   responde. */
+.linea__tarjeta {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  overflow: clip;
+  background: var(--blanco);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-md);
+  transform: perspective(1000px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg))
+    translateY(var(--alza, 0px));
+  transition:
+    box-shadow var(--dur-base) var(--ease-out),
+    border-color var(--dur-base) var(--ease-out),
+    transform 0.45s var(--ease-fluid);
+
+  &:hover,
+  &:focus-within {
+    --alza: -8px;
+
+    border-color: var(--azul);
+    box-shadow: var(--shadow-xl);
+
+    .linea__foto img {
+      transform: scale(1.045);
+    }
+  }
+}
+
+.linea__foto {
+  position: relative;
+  margin: 0;
+  aspect-ratio: 4 / 3.4;
+  overflow: clip;
+  background: var(--azul-50);
+
+  /* En absoluto: con la imagen en el flujo, su alto intrínseco (vertical,
+     2:3) gana al aspect-ratio del marco, porque overflow: clip no anula
+     el min-height: auto. */
+  img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 1.2s var(--ease-fluid);
+  }
+}
+
+.linea__marcas {
+  position: absolute;
+  inset: 1rem 1rem auto;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.linea__cuenta {
+  padding: 0.3rem 0.6rem;
+  color: var(--tinta);
+  background: rgb(255 255 255 / 0.9);
+  border-radius: var(--r-pill);
+}
+
+.linea__cuerpo {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  padding: 1.25rem 1.5rem 1.5rem;
+}
+
+.linea__nombre {
+  font-size: clamp(1.375rem, 1.2rem + 0.6vw, 1.75rem);
+  font-weight: var(--w-display);
+  letter-spacing: -0.02em;
+}
+
+.linea__productos {
+  margin-top: 0.375rem;
+  color: var(--tinta-2);
+}
+
+.linea__pie {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: auto;
+  padding-top: 1.25rem;
+}
+
+.linea__ideal {
+  display: grid;
+  gap: 0.25rem;
+  padding-top: 1rem;
+  font-size: var(--fs-small);
+  font-weight: var(--w-emph);
+  border-top: 1px solid var(--line-soft);
+  flex: 1;
+}
+
+/* Acción circular: la flecha diagonal de las referencias. 44 px para el
+   dedo, rojo al pasar por encima. */
+.linea__boton {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  font-size: 1.125rem;
+  color: var(--azul);
+  background: var(--azul-50);
+  border: 1px solid var(--azul-100);
+  border-radius: 50%;
+  transition:
+    background var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out);
+
+  &:hover,
+  &:focus-visible {
+    color: var(--blanco);
+    background: var(--rojo);
+    border-color: var(--rojo);
+    box-shadow: var(--pegatina-fina);
+  }
+}
+
+/* ---------- Indicador (solo en modo horizontal) ---------- */
+
+.lineas__hud {
+  display: none;
+}
+
+/* ---------- Modo horizontal (escritorio, lo activa lineas.ts) ----------
+   La sección ocupa la pantalla y se fija; el carril pone cabecera y
+   tarjetas en una fila y GSAP lo desplaza con transform. El ancho de la
+   tarjeta sale del alto disponible: foto (0.85 del ancho) más ~190 px de
+   cuerpo tienen que caber bajo la barra y sobre el indicador. */
+.lineas--horizontal {
+  --tarjeta-w: clamp(16rem, calc((100svh - 25rem) / 0.85), 25rem);
+
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 100svh;
+  padding-block: calc(var(--nav-h) + 1rem) 5.5rem;
+  overflow: clip;
+
+  .lineas__carril {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: max-content;
+    will-change: transform;
+  }
+
+  /* Ancho del contenido: un ancho fijo cortaba «Un mismo estándar.»,
+     que no se parte (la cursiva lleva el marcador y va en nowrap). */
+  .lineas__intro {
+    flex: 0 0 auto;
+    width: auto;
+    max-width: none;
+    margin: 0;
+    padding-right: clamp(2rem, 4vw, 5rem);
+  }
+
+  .lineas__cabeza {
+    margin-bottom: 0;
+  }
+
+  .lineas__lista {
+    display: flex;
+    gap: clamp(1.25rem, 1rem + 1vw, 2rem);
+    width: max-content;
+    max-width: none;
+    margin: 0;
+    padding-left: 0;
+  }
+
+  .linea {
+    flex: 0 0 var(--tarjeta-w);
+  }
+
+  .lineas__hud {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 1.75rem;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+  }
+
+  .lineas__cuenta-grande {
+    flex-shrink: 0;
+    font-size: 0.875rem;
+    color: var(--tinta-2);
+    font-variant-numeric: tabular-nums;
+
+    span {
+      font-size: 1.5rem;
+      font-weight: 500;
+      color: var(--rojo);
+    }
+  }
+
+  .lineas__barra {
+    flex: 1;
+    height: 3px;
+    overflow: clip;
+    background: var(--line);
+    border-radius: 3px;
+  }
+
+  .lineas__barra-in {
+    height: 100%;
+    background: linear-gradient(90deg, var(--rojo), var(--azul));
+    transform: scaleX(0);
+    transform-origin: left center;
+  }
+}
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 1023.98px) {
+  .lineas__lista {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Móvil: fila horizontal con encaje. La tarjeta siguiente asoma: es la
+   pista de que hay más, sin flechas ni puntos. */
+@media (max-width: 599.98px) {
+  .lineas__pista {
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: var(--gutter);
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+
+  .lineas__lista {
+    grid-template-columns: none;
+    grid-auto-flow: column;
+    grid-auto-columns: 80vw;
+    gap: 0.875rem;
+    width: max-content;
+    max-width: none;
+    padding-bottom: 1.5rem;
+  }
+
+  .linea {
+    scroll-snap-align: start;
+  }
+}

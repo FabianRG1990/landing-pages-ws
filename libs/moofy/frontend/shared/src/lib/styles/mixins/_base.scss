@@ -1,0 +1,438 @@
+/* ============================================================
+   MOOFY — Base, tipografía y componentes globales
+   ============================================================ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* El fondo va en <html> y el body es transparente: la trama fija del
+   fondo (z-index -1) se pinta encima del fondo raíz pero debajo del
+   contenido. Con el fondo en el body, el body la taparía. */
+html {
+  -webkit-text-size-adjust: 100%;
+  background: var(--fondo);
+}
+
+body {
+  margin: 0;
+  background: transparent;
+  color: var(--tinta);
+  font-family: var(--font-sans);
+  font-size: var(--fs-body);
+  font-weight: var(--w-read);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-synthesis-weight: none;
+  overflow-x: clip;
+}
+
+/* Nada de cortes dentro de una palabra */
+h1,
+h2,
+h3,
+h4,
+p,
+li,
+a,
+button {
+  overflow-wrap: normal;
+  word-break: normal;
+  hyphens: manual;
+}
+
+/* Titulares: sans de peso fuerte y apretado en la tinta azul, con el
+   segundo tramo en cursiva roja: los dos colores del logo en una frase
+   (el recurso de «Seis productos. Una arquitectura.»). */
+h1,
+h2 {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-weight: var(--w-display);
+  color: var(--tinta);
+  text-wrap: balance;
+
+  /* --cursiva: las secciones sobre fondo de color la redefinen */
+  em {
+    font-style: italic;
+    font-weight: 600;
+    color: var(--cursiva, var(--rojo));
+  }
+}
+
+h1 {
+  font-size: var(--fs-display);
+  line-height: 0.98;
+  letter-spacing: var(--tracking-display);
+}
+
+h2 {
+  font-size: var(--fs-h2);
+  line-height: 1.02;
+  letter-spacing: var(--tracking-h2);
+}
+
+h3,
+h4 {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-weight: var(--w-announce);
+  font-size: var(--fs-h3);
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+
+p {
+  margin: 0;
+  text-wrap: pretty;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+ul,
+ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+dl,
+dd {
+  margin: 0;
+}
+
+img,
+svg,
+picture {
+  display: block;
+  max-width: 100%;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+:focus-visible {
+  outline: 2px solid var(--azul);
+  outline-offset: 3px;
+}
+
+::selection {
+  background: var(--azul);
+  color: var(--blanco);
+}
+
+/* ---------- Composición ---------- */
+
+/* Los saltos de ancla nativos (enlaces del pie) no deben dejar el
+   titular debajo de la barra fija. */
+section[id] {
+  scroll-margin-top: var(--nav-h);
+}
+
+.shell {
+  width: 100%;
+  max-width: var(--maxw);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+.measure {
+  max-width: var(--measure);
+}
+
+.lead {
+  font-size: var(--fs-lead);
+  line-height: 1.55;
+  color: var(--tinta-2);
+}
+
+/* Metadato técnico: versales siempre con tracking ≥ 0.06em */
+.mono {
+  font-family: var(--font-mono);
+  font-size: var(--fs-caption);
+  font-weight: var(--w-emph);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--tinta-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.mono--ink {
+  color: var(--mono-ink, var(--tinta));
+}
+
+/* Encabezado de capítulo: «01 — LA FÁBRICA» con un filete que
+   separa el número del nombre. Es el hilo que ordena la página.
+   Sus colores son variables para que una sección sobre fondo de color
+   los cambie sin salirse de su encapsulación. */
+.capitulo {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  margin-bottom: clamp(1.25rem, 1rem + 1vw, 2rem);
+
+  &__num {
+    color: var(--capitulo-num, var(--rojo));
+  }
+
+  &__regla {
+    width: 2.5rem;
+    height: 2px;
+    border-radius: 2px;
+    background: var(--capitulo-regla, linear-gradient(90deg, var(--rojo), var(--azul)));
+    transform-origin: left center;
+  }
+}
+
+.solo-lectores {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------- Botones y enlaces (globales) ----------
+   Viven aquí y no en un componente porque Angular encapsula los
+   estilos, y los usan el hero, la navegación y el contacto. */
+
+.btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.625rem;
+  min-height: 48px;
+  padding-inline: 1.5rem;
+  font-size: var(--fs-small);
+  font-weight: var(--w-emph);
+  letter-spacing: var(--tracking-label);
+  border-radius: var(--r-pill);
+  white-space: nowrap;
+  transition:
+    transform var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-base) var(--ease-out),
+    border-color var(--dur-base) var(--ease-out),
+    background var(--dur-base) var(--ease-out);
+
+  svg {
+    width: 15px;
+    flex-shrink: 0;
+    transition: transform var(--dur-base) var(--ease-fluid);
+  }
+
+  &:hover svg {
+    transform: translateX(3px);
+  }
+
+  &:active {
+    transform: translateY(1px);
+  }
+}
+
+/* Botón principal: rojo del logo con su filete blanco y contorno azul
+   (la «pegatina»). Es el único relleno rojo de la pantalla. */
+.btn--rojo {
+  overflow: clip;
+  color: var(--blanco);
+  background: linear-gradient(180deg, var(--rojo-vivo), var(--rojo) 55%, var(--rojo-hondo));
+  box-shadow: var(--pegatina), var(--shadow-rojo);
+
+  &:hover {
+    box-shadow: var(--pegatina), 0 20px 44px -16px rgb(var(--rojo-rgb) / 0.7);
+  }
+
+  /* Brillo que cruza el botón al pasar el ratón, como luz sobre una
+     pegatina. Solo con puntero fino; al salir vuelve sin transición.
+     (overflow: clip recorta el brillo, no el anillo de --pegatina,
+     que es sombra del propio botón.) */
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(100deg, transparent 30%, rgb(255 255 255 / 0.42) 50%, transparent 70%);
+    transform: translateX(-110%);
+    pointer-events: none;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    &:hover::after {
+      transform: translateX(110%);
+      /* Curva pareja: con --ease-fluid cruzaba en 120 ms y no se veía */
+      transition: transform 0.9s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+  }
+}
+
+/* Secundario: contorno azul sobre blanco */
+.btn--linea {
+  color: var(--azul);
+  background: var(--blanco);
+  border: 1.5px solid var(--line-azul);
+
+  &:hover {
+    background: var(--azul-50);
+    border-color: var(--azul);
+  }
+}
+
+.enlace {
+  color: var(--tinta);
+  border-bottom: 1px solid var(--line-strong);
+  transition:
+    border-color var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out);
+
+  &:hover {
+    color: var(--azul);
+    border-bottom-color: var(--azul);
+  }
+}
+
+/* ---------- Movimiento reducido ---------- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Con el menú móvil abierto el documento no se desplaza por debajo.
+   Lenis se detiene aparte; esto cubre el scroll nativo (movimiento
+   reducido) y el táctil. */
+html.menu-abierto {
+  overflow: hidden;
+}
+
+/* ---------- La trama del fondo ----------
+   Iconos de línea de panadería (espiga, croissant, gorro, rodillo,
+   batidor, pastel), el mismo recurso que Moofy usa detrás de su logo en
+   redes. Una capa fija y estática: cero repintado por fotograma. En azul
+   muy claro sobre blanco: es textura, no ilustración. */
+.trama {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: url('/img/trama.svg') repeat;
+  background-size: 360px;
+  opacity: 0.055;
+  pointer-events: none;
+}
+
+/* ---------- Piezas globales ----------
+   El vocabulario de claudioandrade.solutions (insignia con punto,
+   tarjeta, punto vivo) traducido a Moofy de día, más el bloque azul:
+   el panel a todo color que da el contraste alegre sobre el blanco.
+   Globales porque las usan el hero, la fábrica, las líneas y los canales. */
+
+/* Insignia: píldora blanca con punto rojo y contorno azul suave */
+.insignia {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.375rem 0.8rem;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: var(--w-emph);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--azul);
+  background: var(--blanco);
+  border: 1px solid var(--line-azul);
+  border-radius: var(--r-pill);
+  box-shadow: var(--shadow-sm);
+}
+
+/* El punto de la insignia es una pegatina en miniatura: rojo, filete
+   blanco, contorno azul. */
+.insignia__punto {
+  flex-shrink: 0;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--rojo);
+  box-shadow: var(--pegatina-fina);
+  margin-inline: 2px;
+}
+
+/* Carta: la tarjeta blanca de la página, con sombra azulada */
+.carta {
+  position: relative;
+  background: var(--blanco);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Bloque azul: el azul del logo a todo color, con luz arriba a la
+   derecha. El texto encima va en blanco (7.48:1 sobre --azul). */
+.bloque-azul {
+  position: relative;
+  color: var(--blanco);
+  background:
+    radial-gradient(70% 90% at 85% 0%, rgb(255 255 255 / 0.16), transparent 60%),
+    linear-gradient(135deg, var(--azul-hondo) 0%, var(--azul) 55%, var(--azul-vivo) 100%);
+  border-radius: var(--r-xl);
+  overflow: clip;
+  isolation: isolate;
+
+  h2,
+  h3 {
+    color: var(--blanco);
+  }
+
+  .mono {
+    color: rgb(255 255 255 / 0.82);
+  }
+}
+
+/* Punto «en marcha»: late despacio, sin llamar la atención */
+.vivo {
+  position: relative;
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--rojo);
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border-radius: 50%;
+    border: 1.5px solid var(--rojo);
+    opacity: 0;
+    animation: latir 2.4s var(--ease-out) infinite;
+  }
+}
+
+@keyframes latir {
+  0% {
+    opacity: 0.7;
+    transform: scale(0.6);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(1.8);
+  }
+}

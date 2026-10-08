@@ -3,6 +3,31 @@
 <a alt="Nx logo" href="https://nx.dev" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/nrwl/nx/master/images/nx-logo.png" width="45"></a>
 
 ✨ A repository showcasing key [Nx](https://nx.dev) features for Angular monorepos ✨
+
+## 🔗 Demos publicadas
+
+Cada landing tiene su propio sitio en Firebase Hosting. Estos son los enlaces
+públicos, los que se envían o se usan para una demostración:
+
+| Aplicación     | Landing                                | Enlace                                           |
+| -------------- | -------------------------------------- | ------------------------------------------------ |
+| `acuario`      | Acuario                                | <https://landing-pages-79afc.web.app>            |
+| `adn-business` | ADN Business                           | <https://adn-business.web.app>                   |
+| `arias`        | Dra. Mónica Arias · Psicología         | <https://dra-monica-arias.web.app>               |
+| `aros-alex`    | Aros Alex                              | <https://aros-alex.web.app>                      |
+| `automotivo`   | Automotivo                             | <https://automotivo.web.app>                     |
+| `bolleria`     | Bollería Panadería                     | <https://bolleria.web.app>                       |
+| `bolleria-v2`  | Bollería Panadería (V2)                | <https://bolleria-cr.web.app>                    |
+| `cafe-rosa`    | Rosa Café                              | <https://cafe-rosa.web.app>                      |
+| `interiorismo` | Atelier Solano · Estudio de Interiorismo | <https://decoracion-interiores-studio.web.app> |
+| `velox`        | VELOX · Luxury Automobiles             | <https://velox-luxury.web.app>                   |
+| `vindas`       | Dra. Valeria Vindas · Psicóloga Clínica | <https://dra-valeria-vindas.web.app>            |
+| `moofy`        | Moofy                                  | Sin enlace público: solo vista previa en su PR   |
+
+El enlace público se actualiza al hacer merge a `main`, y solo el de la app
+que cambió. Un Pull Request genera además un enlace de vista previa (dura 7
+días) únicamente para la app cuyas carpetas `apps/<app>` o `libs/<app>` toca.
+
 ## Finish your Nx platform setup
 
 🚀 [Finish setting up your workspace](https://cloud.nx.app/connect/0RjiijXiYe) to get faster builds with remote caching, distributed task execution, and self-healing CI. [Learn more about Nx Cloud](https://nx.dev/ci/intro/why-nx-cloud).

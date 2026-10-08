@@ -1,0 +1,69 @@
+<footer class="pie">
+  <div class="pie__rejilla shell">
+    <!-- 1. La marca: el logo troquelado (con su contorno blanco, sin caja)
+         y el lema -->
+    <div class="pie__col pie__marca">
+      <app-logo class="pie__logo" alt="Moofy" [diferido]="true" [troquel]="true" />
+      <p class="pie__lema">Repostería fina empacada, hecha en planta propia.</p>
+    </div>
+
+    <nav class="pie__col" aria-labelledby="pie-nav">
+      <p class="pie__titulo" id="pie-nav">Navegación</p>
+      <ul class="pie__lista">
+        @for (item of nav; track item.ancla) {
+          <li><a [href]="item.ancla">{{ item.etiqueta }}</a></li>
+        }
+        <li><a href="#contacto">Contacto</a></li>
+      </ul>
+    </nav>
+
+    <div class="pie__col">
+      <p class="pie__titulo" id="pie-contacto">Contacto</p>
+      <ul class="pie__lista pie__datos" aria-labelledby="pie-contacto">
+        <li><a [href]="site.telefonoHref">{{ site.telefono }}</a></li>
+        <li><a [href]="'mailto:' + site.correo">{{ site.correo }}</a></li>
+        <li>{{ site.planta }}</li>
+      </ul>
+    </div>
+
+    <!-- 4. El cierre de conversión: el botón de la casa, con el glifo
+         oficial de WhatsApp, y las redes -->
+    <div class="pie__col pie__pedidos">
+      <p class="pie__titulo">Pedidos</p>
+      <a class="btn btn--rojo pie__cta" [href]="whatsapp" target="_blank" rel="noopener">
+        <app-icono nombre="whatsapp" />
+        <span class="pie__cta-sep" aria-hidden="true"></span>
+        Escribir por WhatsApp
+      </a>
+      <ul class="pie__redes" aria-label="Redes sociales">
+        <li>
+          <a [href]="site.facebook" target="_blank" rel="noopener" aria-label="Moofy en Facebook">
+            <app-icono nombre="facebook" />
+          </a>
+        </li>
+        <li>
+          <a [href]="site.instagram" target="_blank" rel="noopener" aria-label="Moofy en Instagram">
+            <app-icono nombre="instagram" />
+          </a>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Lo legal y la firma del estudio, dentro del mismo azul -->
+  <div class="pie__base shell">
+    <p>{{ pie.legal }} <span aria-hidden="true">·</span> {{ pie.nota }}</p>
+    <!-- Firma del estudio, a la derecha y en voz baja: la marca del cliente
+         manda a la izquierda (la misma convención que en bollería). -->
+    <a class="pie__firma" href="https://claudioandrade.solutions/" target="_blank" rel="noopener">
+      <span>Diseño y desarrollo por</span>
+      <!-- Emblema y nombre juntos: al envolver en móvil bajan a la vez -->
+      <span class="pie__firma-marca">
+        <span class="pie__firma-disco">
+          <img src="img/marca/cas-mark.webp" alt="" width="22" height="22" loading="lazy" decoding="async" />
+        </span>
+        <span class="pie__firma-nombre">Claudio Andrade Solutions</span>
+      </span>
+    </a>
+  </div>
+</footer>

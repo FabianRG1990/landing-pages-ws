@@ -7,6 +7,10 @@ name: Deploy vindas to Firebase Hosting on merge
 on:
   push:
     branches: [main]
+    # Solo cuando cambia esta app: un PR de otra landing no la toca.
+    paths:
+      - 'apps/vindas/**'
+      - 'libs/vindas/**'
 
 jobs:
   build_and_deploy:

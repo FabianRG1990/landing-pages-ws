@@ -1,0 +1,288 @@
+:host {
+  display: block;
+}
+
+.canales {
+  padding-block: var(--section-y);
+}
+
+.canales__cabeza {
+  max-width: 46rem;
+  margin-bottom: clamp(2.5rem, 2rem + 3vw, 4.5rem);
+
+  .lead {
+    margin-top: 1.25rem;
+  }
+}
+
+.canales__cuerpo {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: var(--gutter);
+  align-items: start;
+}
+
+/* ---------- Pestañas (lista vertical en escritorio) ---------- */
+
+.canales__pestanas {
+  grid-column: 1 / span 4;
+  display: flex;
+  flex-direction: column;
+  border-bottom: 1px solid var(--line);
+}
+
+.pestana {
+  position: relative;
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  width: 100%;
+  padding: 0.95rem 0 0.95rem 1rem;
+  text-align: left;
+  border-top: 1px solid var(--line);
+  color: var(--tinta-2);
+  transition: color var(--dur-fast) var(--ease-out);
+
+  /* Indicador: un filete rojo que crece desde el centro */
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.85rem;
+    bottom: 0.85rem;
+    width: 2px;
+    background: var(--rojo);
+    transform: scaleY(0);
+    transition: transform var(--dur-base) var(--ease-fluid);
+  }
+
+  &:hover {
+    color: var(--tinta);
+    background: var(--azul-50);
+  }
+
+  &[aria-selected='true'] {
+    color: var(--tinta);
+    background: var(--rojo-50);
+
+    &::before {
+      transform: scaleY(1);
+    }
+
+    .pestana__num {
+      color: var(--rojo);
+    }
+  }
+
+  &:focus-visible {
+    outline-offset: -2px;
+  }
+}
+
+.pestana__num {
+  flex-shrink: 0;
+}
+
+.pestana__nombre {
+  font-weight: var(--w-emph);
+}
+
+/* ---------- Panel ---------- */
+
+.panel {
+  grid-column: 6 / -1;
+  position: relative;
+
+  &:focus-visible {
+    outline-offset: 6px;
+    border-radius: var(--r-lg);
+  }
+}
+
+.panel__foto {
+  position: relative;
+  aspect-ratio: 16 / 12;
+  overflow: clip;
+  border-radius: var(--r-lg);
+  background: var(--azul-50);
+  box-shadow: 0 0 0 6px var(--blanco), var(--shadow-lg);
+
+  /* Cortina diagonal al cambiar de canal: la foto nueva entra por la
+     izquierda con el borde inclinado y la anterior se queda debajo,
+     entera, hasta que la cubre; entonces se recoge sin transición.
+     Oculta = el polígono colapsado a la izquierda del marco (mismo
+     número de vértices que el visible, para que interpole). */
+  img {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    clip-path: polygon(0 0, 0 0, -30% 100%, 0 100%);
+    transform: scale(1.06);
+    transition:
+      clip-path 0s linear 0.95s,
+      transform 0s linear 0.95s;
+  }
+
+  img.visible {
+    z-index: 2;
+    clip-path: polygon(0 0, 130% 0, 100% 100%, 0 100%);
+    transform: none;
+    /* Curva simétrica: con --ease-fluid el 80 % del barrido ocurre en
+       los primeros 150 ms y la cortina no llega a verse. */
+    transition:
+      clip-path 0.85s cubic-bezier(0.65, 0, 0.35, 1),
+      transform 1.4s var(--ease-fluid);
+  }
+}
+
+/* Las tarjetas blancas de información flotan sobre la foto, abajo. Van
+   todas en la misma celda (la rejilla toma el alto de la más alta) y
+   solo se ve la activa, que entra con un fundido corto al cambiar de
+   canal; con movimiento reducido la regla global lo anula. */
+.panel__tarjetas {
+  position: absolute;
+  inset: auto 1.25rem 1.25rem;
+  z-index: 2;
+  display: grid;
+  /* Sin esto la columna toma el ancho de la tarjeta más ancha (su botón
+     no parte) y desbordaba la página 54 px a 390. */
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.panel__info {
+  grid-area: 1 / 1;
+  align-self: end;
+  display: grid;
+  gap: 1.25rem;
+  padding: 1.5rem;
+  visibility: hidden;
+
+  &.activa {
+    visibility: visible;
+    animation: entrar 0.6s var(--ease-fluid) both;
+  }
+}
+
+@keyframes entrar {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
+.panel__frase {
+  font-size: clamp(1.375rem, 1.1rem + 1vw, 1.875rem);
+  font-weight: var(--w-display);
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+.panel__datos {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem 1.5rem;
+
+  > div {
+    display: grid;
+    align-content: start;
+    gap: 0.375rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--line);
+  }
+
+  dd {
+    font-size: var(--fs-small);
+    color: var(--tinta-2);
+  }
+}
+
+.panel__cta {
+  justify-self: start;
+}
+
+/* ---------- Responsive: la lista pasa a una fila de chips ---------- */
+
+@media (max-width: 899.98px) {
+  .canales__cuerpo {
+    display: block;
+  }
+
+  .canales__pestanas {
+    flex-direction: row;
+    gap: 0.5rem;
+    margin-inline: calc(var(--gutter) * -1);
+    padding: 0.25rem var(--gutter) 1.25rem;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    border-bottom: 0;
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+
+  .pestana {
+    flex-shrink: 0;
+    width: auto;
+    min-height: 44px;
+    padding: 0.625rem 1rem;
+    border: 1px solid var(--line);
+    border-radius: var(--r-pill);
+    white-space: nowrap;
+
+    &::before,
+    .pestana__num {
+      display: none;
+    }
+
+    &[aria-selected='true'] {
+      color: var(--blanco);
+      background: var(--rojo);
+      border-color: var(--rojo);
+      box-shadow: var(--pegatina-fina);
+    }
+  }
+
+  .panel {
+    margin-top: 0.5rem;
+  }
+
+  /* Sin el filete blanco: caía 6 px fuera del margen común */
+  .panel__foto {
+    aspect-ratio: 4 / 3;
+    box-shadow: var(--shadow-lg);
+  }
+
+  /* En móvil la tarjeta va debajo de la foto, no encima: sobre una foto
+     de 350 px taparía el producto entero. Arriba de su celda: la más
+     corta deja el hueco abajo, no entre la foto y la tarjeta. */
+  .panel__tarjetas {
+    position: relative;
+    inset: auto;
+    margin: calc(var(--esp-6) * -1) var(--esp-3) 0;
+  }
+
+  .panel__info {
+    align-self: start;
+  }
+
+  .panel__datos {
+    grid-template-columns: 1fr;
+  }
+
+  /* «Escribir como conveniencia y estaciones» no cabe en una línea a
+     390: el botón parte el texto en vez de salirse de la tarjeta. */
+  .panel__cta {
+    justify-self: stretch;
+    white-space: normal;
+    text-align: center;
+    text-wrap: balance;
+    line-height: 1.25;
+    padding-block: 0.75rem;
+  }
+}

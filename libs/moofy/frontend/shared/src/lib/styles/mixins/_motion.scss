@@ -1,0 +1,88 @@
+/* ============================================================
+   MOOFY — Revelado al entrar en pantalla
+   Solo bajo html.con-movimiento (lo pone RevelarDirective en el
+   navegador y sin movimiento reducido). Sin esa clase, todo está
+   en su sitio: SSR, sin JS o con reduce-motion se lee igual.
+   ============================================================ */
+
+/* Renglón de titular (lo pinta <app-renglones>). La máscara es el
+   propio renglón: overflow clip con un respiro abajo para que los
+   descendentes (g, p, y) no queden cortados. */
+.renglon {
+  display: block;
+  overflow: clip;
+  padding-bottom: 0.1em;
+  margin-bottom: -0.1em;
+}
+
+.renglon__in {
+  display: block;
+  transform-origin: 0 100%;
+}
+
+/* Trazo de marcador detrás de las cursivas: el azul del logo bajo la
+   letra roja. Va por la mitad baja de la palabra, dentro del renglón:
+   un subrayado por debajo de la línea base chocaba con el renglón
+   siguiente (interlineado 0.98) y lo cortaba la máscara.
+   `isolation` para que el z-index negativo quede detrás de la letra y
+   no detrás del fondo de la sección. Visible por defecto; solo se
+   esconde para pasarse bajo .con-movimiento. */
+.titular em {
+  position: relative;
+  isolation: isolate;
+  white-space: nowrap;
+
+  &::before {
+    content: '';
+    position: absolute;
+    z-index: -1;
+    left: -0.05em;
+    right: -0.08em;
+    bottom: 0.05em;
+    height: 0.36em;
+    background: var(--marcador, rgb(var(--azul-rgb) / 0.16));
+    border-radius: 0.12em 0.2em 0.16em 0.1em;
+    transform: skewX(-10deg);
+    transform-origin: 0 50%;
+  }
+}
+
+.con-movimiento {
+  /* Elementos sueltos: suben 18 px y aparecen */
+  [appRevelar]:not(.titular) {
+    opacity: 0;
+    transform: translateY(18px);
+    transition:
+      opacity 0.8s var(--ease-out) var(--retraso, 0ms),
+      transform 1s var(--ease-fluid) var(--retraso, 0ms);
+  }
+
+  [appRevelar].revelado:not(.titular) {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* Titulares: cada renglón sale de debajo de su máscara con un leve
+     giro que se endereza al llegar, como una hoja que se asienta. */
+  .titular[appRevelar] .renglon__in {
+    transform: translateY(118%) rotate(4deg);
+    transition: transform 1.25s var(--ease-fluid);
+    transition-delay: calc(var(--retraso, 0ms) + var(--r) * 120ms);
+  }
+
+  .titular[appRevelar].revelado .renglon__in {
+    transform: none;
+  }
+
+  /* El marcador se pasa de izquierda a derecha cuando su renglón ya
+     está en su sitio */
+  .titular[appRevelar] em::before {
+    transform: skewX(-10deg) scaleX(0);
+    transition: transform 0.8s var(--ease-fluid);
+    transition-delay: calc(var(--retraso, 0ms) + var(--r) * 120ms + 650ms);
+  }
+
+  .titular[appRevelar].revelado em::before {
+    transform: skewX(-10deg);
+  }
+}
