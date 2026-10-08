@@ -73,6 +73,24 @@
   }
 }
 
+// El cuadro del video, debajo del lienzo. Misma caja y misma entrada que el: los
+// dos se ven como una sola imagen. El alto lo escribe `dimensiona`.
+.bol-libro__cuadros {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100dvh;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.45s ease;
+
+  &.esta-listo {
+    opacity: 1;
+  }
+}
+
 .bol-libro__lienzo {
   // El dibujo, y solo el dibujo. Va en absoluto y mide lo VISIBLE, asi que llena
   // la pantalla aunque el pin -que es quien cuenta para la geometria- mida el
@@ -156,10 +174,7 @@
   @media (pointer: coarse) and (orientation: landscape) and (max-height: 600px) {
     scroll-snap-align: start;
     scroll-margin-top: 100svh;
-
-    &:nth-child(odd) {
-      scroll-snap-stop: always;
-    }
+    scroll-snap-stop: always;
   }
 }
 
@@ -197,6 +212,13 @@
 // aqui hay que rehacerla.
 .bol-libro__cierre {
   height: calc(var(--vuelta) * 0.3 / 0.65); // ~11,5svh con la vuelta en 25
+
+  // El tope de la ultima hoja: su borde superior es donde reposa la pagina 8.
+  @media (pointer: coarse) and (orientation: landscape) and (max-height: 600px) {
+    scroll-snap-align: start;
+    scroll-margin-top: 100svh;
+    scroll-snap-stop: always;
+  }
 }
 
 // Aqui no hay nada que pulsar: solo dejar que la contraportada se asiente antes
@@ -214,6 +236,24 @@
 }
 
 // ─── Accesibilidad ───────────────────────────────────────────────────────────
+// La tinta del sello. Va MULTIPLICADA sobre lo que tiene debajo -el cuadro y
+// las paginas-, que es la misma cuenta que hacia el lienzo cuando el cuadro se
+// dibujaba dentro de el. Solo esta en la pagina mientras hay tapa a la vista.
+.bol-libro__tinta {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100dvh;
+  pointer-events: none;
+  mix-blend-mode: multiply;
+  display: none;
+
+  &.se-ve {
+    display: block;
+  }
+}
+
 .bol-libro__sr {
   position: absolute;
   width: 1px;

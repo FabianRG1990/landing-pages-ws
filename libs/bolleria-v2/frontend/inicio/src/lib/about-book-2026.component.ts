@@ -12,7 +12,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { NgStyle, isPlatformBrowser } from '@angular/common';
-import { BolleriaStore, CONTACT, frenaMientrasSeVe, waDirectLink } from '@bolleria-v2-ui-shared';
+import { BolleriaStore, CONTACT, CerrojoDeHoja, DedoDeHoja, frenaLaPagina, waDirectLink } from '@bolleria-v2-ui-shared';
 import { HISTORIAS } from './libro-historias';
 import { PuntoPx, WarpGL } from './about-book-warp-gl';
 import { GestoHoja } from './gesto-hoja';
@@ -126,6 +126,53 @@ const ACELERA_MAX = 3;
  * uno que salta.
  */
 const ESPERA_MAX = 6000;
+/** Cuantas imagenes del cuadro hay a la vez en la pagina. Ver `pideCapa`. */
+const CAPAS = 10;
+/**
+ * En reposo, cuantos cuadros del principio de cada transicion posible -la de
+ * bajar y la de subir- se dejan ya decodificados. Con la que se ve y el cuadro
+ * de reposo caben justos en `CAPAS`.
+ */
+const ADELANTO = 4;
+/** Cuantos cuadros se decodifican a la vez. */
+const PARALELO = 4;
+/** Lo que se supone que cuesta decodificar un cuadro hasta que se mide el primero. */
+const SERVICIO_INICIAL = 20;
+/**
+ * Lo mas que una transicion espera, ya con el reloj al final, a que su ultimo
+ * cuadro este a la vista. Sin esto el libro daba la hoja por pasada con un
+ * cuadro intermedio en pantalla y saltaba al reposo.
+ */
+const REMATE_MAX = 250;
+
+/** Un cuadro del video puesto en la pagina, debajo del lienzo. */
+interface Capa {
+  el: HTMLImageElement;
+  cuadro: number;
+  /** Ya decodificada: ensenarla no cuesta nada. */
+  lista: boolean;
+  /** Cuando se mando decodificar, para medir lo que tarda. */
+  pedida: number;
+}
+
+/**
+ * La transicion en curso vista desde las capas. Todo va en PROGRESO -cuadros
+ * recorridos desde `inicio` en el sentido de la marcha- y no en numero de
+ * cuadro: pasar hoja hacia atras arranca en GIRO_HI con el libro parado en
+ * REPOSO, que es la misma imagen con otro numero, y comparando numeros la capa
+ * que se ve quedaba «por delante» de toda la vuelta.
+ */
+interface Marcha {
+  inicio: number;
+  fin: number;
+  sentido: number;
+  /** Milisegundos por cuadro a los que corre el reloj. */
+  ritmo: number;
+  /** Progreso del cuadro que esta a la vista. */
+  vista: number;
+  /** Progreso del ultimo cuadro mandado decodificar. */
+  pedido: number;
+}
 
 // ─── Geometria del libro, medida sobre el cuadro de reposo ────────────────────
 /** El lomo, en pixeles del video. */
@@ -448,6 +495,8 @@ export class AboutBook2026Component {
   private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
   private readonly zone = inject(NgZone);
   private readonly canvasRef = viewChild.required<ElementRef<HTMLCanvasElement>>('canvas');
+  private readonly cuadrosRef = viewChild.required<ElementRef<HTMLDivElement>>('cuadros');
+  private readonly tintaRef = viewChild.required<ElementRef<HTMLCanvasElement>>('tinta');
   private readonly trackRef = viewChild<ElementRef<HTMLElement>>('track');
   private readonly recorridoRef = viewChild<ElementRef<HTMLElement>>('recorrido');
   private readonly remateRef = viewChild<ElementRef<HTMLElement>>('remate');
@@ -490,6 +539,9 @@ export class AboutBook2026Component {
   private fotos: (HTMLCanvasElement | null)[] = [];
   private textos: HTMLCanvasElement[] = [];
   private ctx: CanvasRenderingContext2D | null = null;
+  private ctxTinta: CanvasRenderingContext2D | null = null;
+  /** Si el lienzo de la tinta tiene algo dibujado y esta a la vista. */
+  private tintaVista = false;
   private dpr = 1;
   /** Escala y desplazamiento del video dentro del lienzo (encuadre "cover"). */
   private esc = 1;
@@ -497,6 +549,24 @@ export class AboutBook2026Component {
   private offY = 0;
   private raf = 0;
   private cuadroActual = PORTADA;
+  /**
+   * Las capas del cuadro: las imagenes del video que estan puestas en la pagina,
+   * debajo del lienzo, ya decodificadas o decodificandose. Ver `pinta`.
+   */
+  private readonly capas = new Map<number, Capa>();
+  private capaVista: Capa | null = null;
+  /** El ultimo cuadro pedido: la capa que lo trae repinta al llegar. */
+  private cuadroPrevio = PORTADA;
+  private marcha: Marcha | null = null;
+  /**
+   * Lo que el navegador tarda en entregar un cuadro mas, media movil en ms: el
+   * tiempo entre una entrega y la siguiente mientras hay cola. No es lo que
+   * tarda un cuadro desde que se pide -eso incluye la cola que tenia delante-,
+   * y la diferencia importa: el decodificador puede atenderlos de uno en uno, y
+   * entonces cuatro pedidos a la vez tardan cuatro veces esto.
+   */
+  private servicio = SERVICIO_INICIAL;
+  private ultimaEntrega = 0;
   /** Lienzo del sello, dibujado una sola vez. */
   private sello: HTMLCanvasElement | null = null;
 
@@ -516,8 +586,14 @@ export class AboutBook2026Component {
       cancelAnimationFrame(this.raf);
       cancelAnimationFrame(this.rafPista);
       for (const f of this.sueltame) f();
+      for (const c of this.capas.values()) c.el.remove();
+      this.capas.clear();
+      this.capaVista = null;
       this.cuadros = [];
     });
+    // Desde que el libro existe, no desde que carga: el freno tiene que estar
+    // puesto antes de que nazca el gesto que va a llegar hasta aqui.
+    this.enganchaElFreno();
     queueMicrotask(() => this.arrancarCuandoSeAcerque());
     this.publicaCierre();
   }
@@ -566,6 +642,7 @@ export class AboutBook2026Component {
     const canvas = this.canvasRef().nativeElement;
     this.ctx = canvas.getContext('2d');
     if (!this.ctx) return;
+    this.ctxTinta = this.tintaRef().nativeElement.getContext('2d');
 
     await Promise.all([this.cargaMalla(), this.cargaMontaje(), this.cargaFuentes()]);
     await this.cargaCuadro(PORTADA);
@@ -760,6 +837,14 @@ export class AboutBook2026Component {
     canvas.height = Math.round(h * this.dpr);
     canvas.style.width = `${w}px`;
     canvas.style.height = `${h}px`;
+    this.cuadrosRef().nativeElement.style.height = `${h}px`;
+    const tinta = this.tintaRef().nativeElement;
+    tinta.width = canvas.width;
+    tinta.height = canvas.height;
+    tinta.style.width = canvas.style.width;
+    tinta.style.height = canvas.style.height;
+    this.tintaVista = false;
+    tinta.classList.remove('se-ve');
     const W = w * this.dpr;
     const H = h * this.dpr;
     // El libro va A SANGRE salvo en las pantallas mas anchas que el metraje,
@@ -800,6 +885,18 @@ export class AboutBook2026Component {
     // sola, asi que la misma linea vale para los dos casos.
     this.offY = Math.min(0, Math.max(H - VIDEO_H * this.esc, H / 2 - 543 * this.esc));
     this.ctx.imageSmoothingQuality = 'high';
+    for (const capa of this.capas.values()) this.colocaCapa(capa.el);
+  }
+
+  /** La capa ocupa justo el rectangulo en el que el lienzo dibujaba el cuadro. */
+  private colocaCapa(el: HTMLImageElement): void {
+    const s = el.style;
+    s.position = 'absolute';
+    s.maxWidth = 'none';
+    s.left = `${this.offX / this.dpr}px`;
+    s.top = `${this.offY / this.dpr}px`;
+    s.width = `${(VIDEO_W * this.esc) / this.dpr}px`;
+    s.height = `${(VIDEO_H * this.esc) / this.dpr}px`;
   }
 
   /** Pasa un punto de coordenadas del video a pixeles del lienzo. */
@@ -1180,13 +1277,60 @@ export class AboutBook2026Component {
     const ctx = this.ctx;
     if (!ctx || !this.listo()) return;
     const canvas = this.canvasRef().nativeElement;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    const img = this.cuadroMasCercano(Math.round(this.cuadroActual));
-    if (img) {
-      ctx.drawImage(img, this.offX, this.offY, VIDEO_W * this.esc, VIDEO_H * this.esc);
+    // EL CUADRO NO SE DIBUJA EN EL LIENZO: va en una <img> debajo.
+    //
+    // Dibujado aqui, el lienzo decodificaba el WebP de 1920x1080 en el hilo
+    // principal al confirmar cada fotograma. Medido con la CPU de un telefono
+    // medio (x4): 64 ms de cada 75, once o doce tirones por vuelta de pagina, y
+    // la vuelta de 0,87 s duraba 3,7. `decode()` no lo evita -llena otra cache-
+    // y recortar tampoco: la camara se mueve y cambia el 92 % del cuadro.
+    //
+    // Una <img> puesta en la pagina la decodifica el navegador fuera del hilo
+    // principal. Asi que el cuadro se adelanta -se pone y se decodifica antes de
+    // que toque- y cuando toca solo hay que ensenarlo. Si uno no llega a tiempo
+    // se queda el anterior CON SU CONTENIDO: se pierde un fotograma, no se
+    // descuadra nada. Cuanto se adelanta lo decide `adelanta`.
+    //
+    // Un caso sigue en el lienzo, igual que antes: el primer pintado, antes de
+    // que haya ninguna capa lista.
+    //
+    // El cierre tambien iba aqui -del cuadro 203 al 292-, porque el sello de la
+    // contraportada es tinta MULTIPLICADA sobre el cuero y necesitaba el cuadro
+    // debajo en el mismo lienzo. Eran 90 cuadros decodificados en el hilo
+    // principal: medido con la CPU x4, de los 139 del cierre se veian 62, con
+    // paradas de 150 ms, y 25 al reabrir, con una de 567. La tinta va ahora en
+    // su propio lienzo, mezclada por CSS (ver `pintaSello`).
+    const pedido = this.cuadroActual;
+    const quiere = this.indiceMasCercano(Math.round(pedido));
+    this.cuadroPrevio = quiere;
+    let capa: Capa | null = null;
+    if (quiere > 0) {
+      capa = this.capaLista(quiere);
+      // Se ensena ANTES de adelantar: adelantar hace sitio retirando capas, y la
+      // que esta a la vista es la unica que no se toca.
+      if (capa) this.ensena(capa);
+      this.adelanta(quiere);
+      // Nada listo todavia y hay una a la vista: se queda como esta, entera.
+      if (!capa && this.capaVista) return;
     }
 
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    this.ensena(capa);
+    if (capa) {
+      // El contenido va con el cuadro que de verdad se ve.
+      if (capa.cuadro !== quiere) this.cuadroActual = capa.cuadro;
+    } else {
+      const img = this.cuadros[quiere];
+      if (img) ctx.drawImage(img, this.offX, this.offY, VIDEO_W * this.esc, VIDEO_H * this.esc);
+    }
+    this.pintaContenido(ctx);
+    this.pintaSello(ctx, !!capa);
+    this.cuadroActual = pedido;
+  }
+
+  /** Lo que va ENCIMA del cuadro: las paginas y la hoja en vuelo. */
+  private pintaContenido(ctx: CanvasRenderingContext2D): void {
     const s = this.escena();
     ctx.save();
     const g = (s.hoja ? this.malla?.giro[String(s.hoja.cuadro)] : null) ?? null;
@@ -1211,26 +1355,44 @@ export class AboutBook2026Component {
       if (panel) this.estampaHoja(ctx, panel, g);
     }
     ctx.restore();
+  }
 
-    // El sello de la contraportada. Va IMPRESO en el cuero, asi que se dibuja
-    // siempre que haya tapa a la vista -desde que asoma en el cierre, por el
-    // cuadro 203, hasta el final- y acompana a la tapa mientras baja. No entra
-    // con un fundido: un logotipo impreso no aparece ni desaparece, igual que no
-    // lo hacen los florones de las esquinas.
+  /**
+   * El sello de la contraportada. Va IMPRESO en el cuero, asi que se dibuja
+   * siempre que haya tapa a la vista -desde que asoma en el cierre, por el
+   * cuadro 203, hasta el final- y acompana a la tapa mientras baja. No entra
+   * con un fundido: un logotipo impreso no aparece ni desaparece, igual que no
+   * lo hacen los florones de las esquinas.
+   *
+   * MULTIPLICADO, que es como se comporta la tinta: deja pasar la veta del cuero
+   * y su sombreado en vez de taparlos con un color plano. Es la diferencia entre
+   * una tinta impresa y una calcomania pegada encima.
+   *
+   * Quien multiplica depende de donde este el cuadro. Si va `enCapa` -en una
+   * imagen debajo del lienzo-, la tinta se dibuja tal cual en su propio lienzo y
+   * la mezcla la hace el CSS con lo que tiene debajo. Si el cuadro esta dibujado
+   * en el lienzo -solo antes de que haya una capa lista-, la mezcla la hace el
+   * lienzo, como siempre. La cuenta es la misma en los dos casos.
+   */
+  private pintaSello(ctx: CanvasRenderingContext2D, enCapa: boolean): void {
     const tapa = this.esquinasSello();
-    if (tapa) {
-      ctx.save();
-      // MULTIPLICAR, que es como se comporta la tinta: deja pasar la veta del
-      // cuero y su sombreado en vez de taparlos con un color plano. Es la
-      // diferencia entre una tinta impresa y una calcomania pegada encima.
-      // `globalAlpha` y el modo de mezcla valen para los dos caminos de
-      // estampado: WarpGL termina con un `drawImage` sobre este mismo contexto,
-      // y la malla sin GPU tambien.
-      ctx.globalCompositeOperation = 'multiply';
-      ctx.globalAlpha = SELLO_TINTA;
-      this.estampaCuad(ctx, this.panelSello(), tapa, null);
-      ctx.restore();
+    const tinta = this.ctxTinta;
+    const usaTinta = !!tapa && enCapa && !!tinta;
+    if (tinta && (this.tintaVista || usaTinta)) tinta.clearRect(0, 0, tinta.canvas.width, tinta.canvas.height);
+    if (tinta && usaTinta !== this.tintaVista) {
+      tinta.canvas.classList.toggle('se-ve', usaTinta);
+      this.tintaVista = usaTinta;
     }
+    if (!tapa) return;
+    const destino = usaTinta && tinta ? tinta : ctx;
+    destino.save();
+    // `globalAlpha` y el modo de mezcla valen para los dos caminos de
+    // estampado: WarpGL termina con un `drawImage` sobre este mismo contexto, y
+    // la malla sin GPU tambien.
+    if (destino === ctx) destino.globalCompositeOperation = 'multiply';
+    destino.globalAlpha = SELLO_TINTA;
+    this.estampaCuad(destino, this.panelSello(), tapa, null);
+    destino.restore();
   }
 
   /**
@@ -1339,13 +1501,174 @@ export class AboutBook2026Component {
     ctx.restore();
   }
 
-  /** Si un cuadro aun no ha llegado, se usa el mas cercano que si esta. */
-  private cuadroMasCercano(i: number): HTMLImageElement | null {
+  /** Si un cuadro aun no ha llegado, se usa el mas cercano que si esta. 0: ninguno. */
+  private indiceMasCercano(i: number): number {
     for (let d = 0; d < FRAME_COUNT; d++) {
-      if (this.cuadros[i - d]) return this.cuadros[i - d];
-      if (this.cuadros[i + d]) return this.cuadros[i + d];
+      if (this.cuadros[i - d]) return i - d;
+      if (this.cuadros[i + d]) return i + d;
     }
-    return null;
+    return 0;
+  }
+
+  // ─── Las capas del cuadro ──────────────────────────────────────────────────
+  /**
+   * Pone el cuadro `i` en la pagina, oculto, y lo manda decodificar. Es la misma
+   * <img> que ya lo descargo, no una copia: no vuelve a pedirse a la red.
+   *
+   * Solo hay `CAPAS` a la vez. Cada cuadro decodificado son 8 MB, y los 292
+   * serian memoria que un telefono no tiene -por eso van como <img> y no como
+   * ImageBitmap-. El sitio lo hace `adelanta` antes de pedir; aqui no se retira
+   * ninguna.
+   */
+  private pideCapa(i: number): boolean {
+    if (this.capas.has(i)) return true;
+    const el = this.cuadros[i];
+    if (!el || this.capas.size >= CAPAS) return false;
+    const capa: Capa = { el, cuadro: i, lista: false, pedida: performance.now() };
+    this.capas.set(i, capa);
+    this.colocaCapa(el);
+    el.style.visibility = 'hidden';
+    this.cuadrosRef().nativeElement.appendChild(el);
+    const lista = (): void => {
+      if (this.capas.get(i) !== capa) return;
+      capa.lista = true;
+      const ahora = performance.now();
+      this.servicio += (ahora - Math.max(capa.pedida, this.ultimaEntrega) - this.servicio) * 0.3;
+      this.ultimaEntrega = ahora;
+      // Era la que se esperaba: con el libro quieto nadie mas va a repintar.
+      if (this.cuadroPrevio === i && this.capaVista !== capa) this.pinta();
+    };
+    // Si `decode` falla -no existe, o el navegador la descarto- la capa vale
+    // igual: se decodificara al ensenarla, como una imagen cualquiera.
+    this.zone.runOutsideAngular(() => {
+      if (typeof el.decode === 'function') el.decode().then(lista, lista);
+      else lista();
+    });
+    return true;
+  }
+
+  private retiraCapa(capa: Capa): void {
+    capa.el.remove();
+    this.capas.delete(capa.cuadro);
+  }
+
+  /**
+   * La capa que toca ensenar. En reposo, la del cuadro justo. En marcha, la mas
+   * adelantada de las que ya estan listas sin pasarse del reloj ni volver sobre
+   * lo que ya se vio: si el cuadro justo no ha llegado se ensena el ultimo que
+   * si, y si no hay ninguno nuevo se queda el que esta.
+   */
+  private capaLista(quiere: number): Capa | null {
+    const m = this.marcha;
+    if (!m) {
+      const justa = this.capas.get(quiere);
+      return justa?.lista ? justa : null;
+    }
+    const reloj = (quiere - m.inicio) * m.sentido;
+    let mejor: Capa | null = null;
+    let progreso = m.vista;
+    for (const c of this.capas.values()) {
+      if (!c.lista) continue;
+      const p = (c.cuadro - m.inicio) * m.sentido;
+      if (p > progreso && p <= reloj) {
+        mejor = c;
+        progreso = p;
+      }
+    }
+    if (mejor) m.vista = progreso;
+    return mejor;
+  }
+
+  /**
+   * Manda decodificar los cuadros que vienen, y hace sitio para ellos.
+   *
+   * La primera version pedia siempre los tres siguientes al reloj y, al llenarse,
+   * retiraba la capa mas antigua. Reportado el 2026-10-05 -«se queda pegado y
+   * brinca varios cuadros adelante»- y medido: en cuanto una decodificacion
+   * tardaba mas que esos tres fotogramas, la capa se retiraba ANTES de estar
+   * lista para dejar sitio a la siguiente, que corria la misma suerte. Ninguna
+   * llegaba a ensenarse: el libro se quedaba en un cuadro hasta el final de la
+   * vuelta -1,2 s parado, medido- y saltaba al reposo.
+   *
+   * Ahora:
+   *
+   *   1. una capa solo se retira cuando ya no puede ensenarse: quedo por detras
+   *      de la que se ve. Nunca por hacer sitio;
+   *   2. si no hay sitio no se pide: el reloj ya alcanzara a las que esperan;
+   *   3. lo que se pide es el cuadro siguiente si le da tiempo a llegar, y si no
+   *      el que el reloj va a estar ensenando cuando termine de decodificarse:
+   *      lo que cuesta un cuadro (`servicio`, medido) por los que tiene delante
+   *      en la cola. Un aparato rapido los ensena todos; uno lento se salta los
+   *      que no le caben, repartidos, y llega al final a su hora.
+   *
+   * En reposo se dejan listos los primeros de cada transicion que puede empezar
+   * desde aqui, que no son vecinos: pasar hoja hacia atras arranca en GIRO_HI.
+   */
+  private adelanta(quiere: number): void {
+    const m = this.marcha;
+    if (!m) {
+      const deseadas = this.arranques(quiere);
+      for (const c of [...this.capas.values()]) {
+        if (c !== this.capaVista && !deseadas.includes(c.cuadro)) this.retiraCapa(c);
+      }
+      for (const i of deseadas) this.pideCapa(i);
+      return;
+    }
+    const total = (m.fin - m.inicio) * m.sentido;
+    const reloj = (quiere - m.inicio) * m.sentido;
+    let enVuelo = 0;
+    for (const c of [...this.capas.values()]) {
+      if (c === this.capaVista) continue;
+      const p = (c.cuadro - m.inicio) * m.sentido;
+      // Por detras de lo que se ve, o fuera del tramo.
+      if (p <= m.vista || p > total) this.retiraCapa(c);
+      else if (!c.lista) enVuelo++;
+    }
+    while (enVuelo < PARALELO && this.capas.size < CAPAS && m.pedido < total) {
+      const ventaja = Math.ceil((this.servicio * (enVuelo + 1)) / m.ritmo) + 1;
+      const p = Math.min(total, Math.max(m.pedido + 1, reloj + ventaja));
+      const i = m.inicio + p * m.sentido;
+      if (!this.capas.has(i)) {
+        // Aun no ha bajado: se vuelve a mirar en el fotograma siguiente.
+        if (!this.cuadros[i] && !this.fallidos.has(i)) {
+          m.pedido = p - 1;
+          break;
+        }
+        if (this.pideCapa(i)) enVuelo++;
+      }
+      m.pedido = p;
+    }
+  }
+
+  /** El cuadro de reposo y los primeros de cada transicion que sale de el. */
+  private arranques(quiere: number): number[] {
+    const e = this.estado();
+    const lista = [quiere];
+    if (this.transicion) return lista;
+    const desde = (primero: number, sentido: number): void => {
+      for (let k = 0; k < ADELANTO; k++) lista.push(primero + k * sentido);
+    };
+    if (e >= CERRADO_FINAL) {
+      desde(CERRADO - 1, -1);
+      return lista;
+    }
+    if (e <= 0) {
+      desde(PORTADA + 1, 1);
+      return lista;
+    }
+    // Hacia delante: la hoja siguiente o, en la ultima, bajar la tapa.
+    desde(e < LAST ? REPOSO + 1 : GIRO_HI + 1, 1);
+    // Hacia atras: la hoja anterior o, en la primera, cerrar la tapa.
+    desde(e > 1 ? GIRO_HI - 1 : REPOSO - 1, -1);
+    return lista;
+  }
+
+  /** Deja a la vista esa capa y solo esa; `null` las esconde todas. */
+  private ensena(capa: Capa | null): void {
+    if (this.capaVista === capa) return;
+    if (this.capaVista) this.capaVista.el.style.visibility = 'hidden';
+    if (capa) capa.el.style.visibility = 'visible';
+    this.capaVista = capa;
   }
 
   /** x del borde libre a una altura dada del video. */
@@ -1567,26 +1890,36 @@ export class AboutBook2026Component {
   }
 
   // ─── La pista de scroll ────────────────────────────────────────────────────
-  // El scroll NO se intercepta en ningun momento -eso es cosa del hero y su
-  // controlador de paradas-. Esto es solo RECORRIDO: el componente lee en que
-  // punto de la pista esta la ventana y deriva de ahi la pagina. La posicion del
-  // scroll es la unica fuente de verdad, y por eso el teclado y los controles
-  // ocultos no llaman a las transiciones: mueven la ventana.
+  // El componente lee en que punto de la pista esta la ventana y deriva de ahi
+  // la pagina. La posicion del scroll es la unica fuente de verdad, y por eso el
+  // teclado y los controles ocultos no llaman a las transiciones: mueven la
+  // ventana.
+  //
+  // La unica vez que se toca el scroll es mientras pasa UNA hoja: se bloquea y
+  // al terminar la ventana vuelve al reposo de esa hoja. Un gesto, una hoja (ver
+  // `CerrojoDeHoja`); antes los gestos se acumulaban y el libro pasaba todas las
+  // paginas a toda prisa con la ventana ya en otra parte.
   private objetivo = 0;
   private conduciendo = false;
   private rafPista = 0;
+  private cerrojo: CerrojoDeHoja | null = null;
+  private dedo: DedoDeHoja | null = null;
 
   /**
    * El freno de la inercia, encendido solo mientras la pista se ve. Los topes
    * los declara el SCSS; esto es el interruptor. Ver `freno-de-pista.ts`.
    */
   private enganchaElFreno(): void {
-    const pista = this.trackRef()?.nativeElement;
-    if (pista) this.sueltame.push(frenaMientrasSeVe(pista));
+    this.sueltame.push(frenaLaPagina());
   }
 
   private enganchaPista(): void {
-    this.enganchaElFreno();
+    const cerrojo = new CerrojoDeHoja((terminada) => this.trasLaHoja(terminada));
+    this.cerrojo = cerrojo;
+    this.sueltame.push(() => cerrojo.destruye());
+    const dedo = new DedoDeHoja({ fijo: () => this.pinFijo(), reposo: (i) => this.yDe(i) });
+    this.dedo = dedo;
+    this.sueltame.push(() => dedo.destruye());
     this.zone.runOutsideAngular(() => {
       const alMover = (): void => {
         if (this.rafPista) return;
@@ -1630,12 +1963,17 @@ export class AboutBook2026Component {
    * muerta dejaria el libro en la portada hasta que alguien volviera a moverlo.
    */
   private leePista(forzar = false): void {
+    // Con el cerrojo echado, lo que el gesto siga recorriendo no pide nada.
+    if (this.cerrojo?.puesto) return;
     const bruto = this.progresoPista();
     if (bruto === null) return;
     const previo = this.objetivo;
     const hueco = Math.round(bruto);
     if (forzar || Math.abs(bruto - hueco) < 0.5 - PISTA_BANDA) {
-      this.objetivo = Math.min(CERRADO_FINAL, Math.max(0, hueco));
+      const pedida = Math.min(CERRADO_FINAL, Math.max(0, hueco));
+      // Con el dedo, una hoja por gesto: lo que el scroll pida de mas se recorta
+      // (ver `DedoDeHoja`). El arranque no pasa por ahi: no es un gesto.
+      this.objetivo = forzar || !this.dedo ? pedida : this.dedo.recorta(pedida, this.objetivo);
     }
     if (this.objetivo === previo) return;
     // Las transiciones escriben signals, asi que tienen que correr DENTRO de la
@@ -1649,26 +1987,55 @@ export class AboutBook2026Component {
    * cada vuelta: si mientras tanto quien mira cambia de idea y sube, la cadena se
    * da la vuelta sola en vez de terminar un recorrido que ya nadie pide. Con
    * cola larga la vuelta se acelera hasta ACELERA_MAX.
+   *
+   * Eso ya solo pasa en los saltos de varias hojas que no son un gesto -un
+   * ancla, Inicio/Fin, el relevo al girar-. Un gesto pide UNA hoja y echa el
+   * cerrojo, asi que el destino no cambia hasta que la hoja termina.
    */
   private async conduce(): Promise<void> {
     if (this.conduciendo) return;
     this.conduciendo = true;
     this.ocupado.set(true);
+    const gesto = this.listo() && !this.reducido() && Math.abs(this.objetivo - this.estado()) === 1 && !!this.cerrojo?.hayGesto;
+    if (gesto) this.cerrojo?.echa();
     try {
       while (this.listo() && this.estado() !== this.objetivo) {
         const desde = this.estado();
         const hacia = desde + Math.sign(this.objetivo - desde);
         const cola = Math.abs(this.objetivo - desde);
-        await this.anima(desde, hacia, Math.min(ACELERA_MAX, Math.max(1, cola)));
+        // Solo los saltos largos corren: dos hojas pendientes van una detras de
+        // otra a su ritmo, no al doble de velocidad.
+        await this.anima(desde, hacia, cola >= 3 ? ACELERA_MAX : 1);
         this.estado.set(hacia);
       }
     } finally {
       this.conduciendo = false;
       this.ocupado.set(false);
       this.transicion = null;
+      this.marcha = null;
       this.cuadroActual = this.cuadroDe(this.estado());
       this.pinta();
+      if (gesto) this.cerrojo?.hojaHecha();
     }
+  }
+
+  /**
+   * Al soltarse el cerrojo: la ventana vuelve al reposo de la hoja en la que
+   * quedo el libro, y lo que el gesto alcanzara a recorrer se descarta. La
+   * escena esta fija, asi que el salto no se ve. Si lo solto el tope con la hoja
+   * aun en marcha -en 4G puede esperar a sus cuadros-, no hay reposo: se relee
+   * la pista y el libro sigue al scroll.
+   */
+  private trasLaHoja(terminada: boolean): void {
+    // Solo con la escena FIJA, que es cuando el salto no se ve. Si la ventana ya
+    // salio de la pista, traerla de vuelta seria un brinco de pantalla entera.
+    if (terminada && this.pinFijo()) {
+      const y = this.yDe(this.estado());
+      if (y !== null) window.scrollTo({ top: y, behavior: 'instant' });
+    }
+    // Ya sin cerrojo: el aviso de scroll de la recolocacion puede no llegar si
+    // la ventana ya estaba en su sitio.
+    requestAnimationFrame(() => this.leePista());
   }
 
   private cuadroDe(estado: number): number {
@@ -1701,10 +2068,22 @@ export class AboutBook2026Component {
     // ya ha llegado, y si el siguiente falta, espera ahí y sigue cuando llega.
     // Nunca se pinta un cuadro que no está -se pintaba el más cercano, que podía
     // ser la tapa con el texto de dentro encima o el libro ya abierto-.
+    const inicio = haciaDelante ? a : b;
+    const sentido = haciaDelante ? 1 : -1;
+    // Lo que el reposo dejo ya decodificado de este arranque no se vuelve a pedir.
+    let listos = 0;
+    while (listos < cuadros && this.capas.has(inicio + (listos + 1) * sentido)) listos++;
+    // Y lo que dejo para la transicion contraria solo ocuparia sitio.
+    for (const c of [...this.capas.values()]) {
+      const p = (c.cuadro - inicio) * sentido;
+      if (c !== this.capaVista && (p < 1 || p > listos)) this.retiraCapa(c);
+    }
+    this.marcha = { inicio, fin: haciaDelante ? b : a, sentido, ritmo: dur / cuadros, vista: 0, pedido: listos };
     return new Promise((res) => {
       let hecho = 0;
       let previo = performance.now();
       let quieto = previo;
+      let alFinal = 0;
       const paso = (ahora: number): void => {
         const quiere = Math.min(cuadros, hecho + ((ahora - previo) / dur) * cuadros);
         previo = ahora;
@@ -1714,7 +2093,11 @@ export class AboutBook2026Component {
         hecho = Math.max(hecho, nuevo);
         this.cuadroActual = this.cuadroPintable(haciaDelante ? a + hecho : b - hecho, haciaDelante);
         this.pinta();
-        if (hecho < cuadros) {
+        if (hecho >= cuadros && !alFinal) alFinal = ahora;
+        // Con el reloj al final, un momento mas si el ultimo cuadro todavia no
+        // se ve: es lo que evita el salto.
+        const falta = !!this.capaVista && (this.marcha?.vista ?? cuadros) < cuadros && ahora - alFinal < REMATE_MAX;
+        if (hecho < cuadros || falta) {
           this.raf = requestAnimationFrame(paso);
         } else {
           res();
@@ -1767,18 +2150,36 @@ export class AboutBook2026Component {
    * sin moverse la pagina y el siguiente evento de scroll lo desharia.
    */
   vaA(indice: number): void {
+    // Una hoja por gesto tambien con el teclado y con el dedo de lado.
+    if (this.cerrojo?.puesto) return;
+    const y = this.yDe(indice);
+    if (y === null) return;
+    // Mas de una hoja de golpe -Inicio, Fin- va de un salto: suave, el libro
+    // pasaria las de en medio una a una y el cerrojo lo pararia en la primera.
+    const lejos = Math.abs(indice - this.estado()) > 1;
+    window.scrollTo({ top: y, behavior: this.reducido() || lejos ? 'instant' : 'smooth' });
+  }
+
+  /** Si la escena esta fija ahora mismo: la pista cruza la ventana de arriba abajo. */
+  private pinFijo(): boolean {
+    const r = this.trackRef()?.nativeElement.getBoundingClientRect();
+    return !!r && r.top <= 0 && r.bottom >= window.innerHeight;
+  }
+
+  /** El scroll en el que reposa esa pagina, o null si la pista no se puede medir. */
+  private yDe(indice: number): number | null {
     const pista = this.trackRef()?.nativeElement;
     const recorrido = this.recorridoRef()?.nativeElement;
     const remate = this.remateRef()?.nativeElement;
     const cierre = this.cierreRef()?.nativeElement;
-    if (!pista || !recorrido || !remate || !cierre) return;
+    if (!pista || !recorrido || !remate || !cierre) return null;
     const i = Math.min(CERRADO_FINAL, Math.max(0, indice));
     const arriba = window.scrollY + pista.getBoundingClientRect().top;
     const dentro =
       i <= LAST
         ? (i / LAST) * recorrido.offsetHeight
         : recorrido.offsetHeight + remate.offsetHeight + (i - LAST) * cierre.offsetHeight;
-    window.scrollTo({ top: arriba + dentro, behavior: this.reducido() ? 'auto' : 'smooth' });
+    return arriba + dentro;
   }
 
   // ─── El dedo ───────────────────────────────────────────────────────────────

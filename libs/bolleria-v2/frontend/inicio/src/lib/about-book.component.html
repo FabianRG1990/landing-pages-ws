@@ -79,9 +79,8 @@
       <!-- Invitación a girar el teléfono.
            Solo se ve en un teléfono DE PIE y con dedo (ver el SCSS): acostado ya
            se está viendo el libro nuevo, que es justo lo que esto promete, y en
-           un escritorio no hay nada que girar. Se retira sola en cuanto la
-           persona pasa de la primera página: para entonces ya decidió, y dejarla
-           puesta sería insistir. `aria-hidden` porque no es una instrucción de
+           un escritorio no hay nada que girar. Se queda en todas las páginas
+           mientras el teléfono siga de pie. `aria-hidden` porque no es una instrucción de
            manejo -el libro se recorre igual sin girar nada- sino una sugerencia
            visual; lo que sí se anuncia es la línea de ayuda de aquí abajo. -->
       @if (sugiereGirar()) {

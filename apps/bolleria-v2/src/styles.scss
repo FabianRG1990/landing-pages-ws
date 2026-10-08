@@ -19,13 +19,25 @@ html {
   // El freno de la pista del libro. Va aqui y no en el componente porque
   // `scroll-snap-type` tiene que estar en el elemento que hace scroll -la raiz
   // del documento- y los estilos de un componente van encapsulados. La clase la
-  // pone y la quita `frenaMientrasSeVe`, y los topes los declara cada libro en
-  // su SCSS con `scroll-snap-align`, solo en el telefono.
+  // pone y la quita `frenaLaPagina`, y los topes los declaran la pasarela y cada
+  // libro en su SCSS con `scroll-snap-align`, solo donde hay dedo.
   //
-  // `proximity` y no `mandatory`: el estricto obliga a estar siempre pegado a
-  // un tope, y al final del libro eso puede tirar de vuelta hacia el ultimo y
-  // dejar a alguien atrapado. El freno de `scroll-snap-stop` -que es lo que
-  // impide que un dedazo atraviese la pista entera- funciona igual en los dos.
+  // En el TELEFONO es `mandatory`, y costo dos intentos llegar ahi. Con
+  // `proximity` el navegador solo para si la inercia iba a terminar CERCA del
+  // tope -a menos de un tercio de pantalla-, asi que un gesto con fuerza, que
+  // termina lejos, se lo saltaba aunque llevara `scroll-snap-stop: always`:
+  // medido, un deslizamiento cruzaba un tramo entero de la pasarela sin parar.
+  // El estricto para siempre.
+  //
+  // Lo que el estricto exige a cambio es que no quede NINGUN trecho sin tope
+  // donde poder descansar, o tira de vuelta y deja a la gente atrapada (visto al
+  // final del libro). Por eso en el telefono la pagina entera es una fila de
+  // estaciones: el hero, los tres tramos de la pasarela, la portada, cada hoja,
+  // el libro cerrado y el final. El hero y el final se declaran aqui abajo; el
+  // resto, en su componente.
+  //
+  // Fuera del telefono se queda en `proximity`: la tableta no tiene topes en el
+  // libro y con el estricto no podria pararse dentro de el.
   // Y solo donde hay dedo. Los topes los declaran los dos libros dentro de sus
   // consultas de telefono, asi que en escritorio no hay ninguno y esto no
   // tendria efecto; se acota igual para no dejarle al ratón una propiedad de
@@ -34,6 +46,27 @@ html {
   @media (pointer: coarse) {
     &.bol-frena {
       scroll-snap-type: y proximity;
+    }
+  }
+
+  // Las mismas dos consultas con las que cada libro pone sus topes: el telefono
+  // de pie y el telefono acostado.
+  @media (pointer: coarse) and (max-width: 600px),
+    (pointer: coarse) and (orientation: landscape) and (max-height: 600px) {
+    &.bol-frena {
+      scroll-snap-type: y mandatory;
+
+      // Las dos estaciones de los extremos. El hero mide una pantalla justa en
+      // tactil, y la despedida cierra la pagina.
+      .bol-heroc {
+        scroll-snap-align: start;
+      }
+
+      // La seccion y no su anfitrion: `bol-despedida` es un elemento en linea y
+      // un tope en una caja en linea no cuenta (medido: no agarraba).
+      .bol-despedida {
+        scroll-snap-align: end;
+      }
     }
   }
   background: #faf6ec;

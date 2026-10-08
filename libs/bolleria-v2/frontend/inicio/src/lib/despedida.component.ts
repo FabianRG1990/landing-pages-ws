@@ -38,6 +38,7 @@ import { BolleriaStore } from '@bolleria-v2-ui-shared';
   host: {
     '[class.es-espera]': "fase() === 'espera'",
     '[class.es-dentro]': "fase() === 'dentro'",
+    '[class.es-plegada]': 'plegada()',
   },
 })
 export class DespedidaComponent {
@@ -64,6 +65,14 @@ export class DespedidaComponent {
     if (cerrado === null) return 'libre';
     return cerrado && this.entro() ? 'dentro' : 'espera';
   });
+
+  /**
+   * Con un libro que manda y todavía sin cerrar, el bloque no ocupa sitio donde
+   * el SCSS lo pide (ver `es-plegada`): la página se acaba en el libro y no hay
+   * adónde bajar. No sale de `fase`: `espera` también es «cerrado pero aún sin
+   * asomar», y ahí el bloque tiene que estar puesto para poder llegar a él.
+   */
+  readonly plegada = computed(() => this.store.libroCerrado() === false);
 
   constructor() {
     if (!isPlatformBrowser(inject(PLATFORM_ID))) return;

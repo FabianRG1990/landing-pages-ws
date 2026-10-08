@@ -25,43 +25,40 @@
  * que ir en el elemento que hace scroll, que es la raiz del documento, y por eso
  * no puede vivir dentro de un componente encapsulado.
  *
- * Y se enciende SOLO mientras el libro se ve. Dejarlo puesto en todo el
- * documento es lo que hace que estas cosas se sientan rotas: con topes activos y
- * la ventana lejos de ellos, el navegador puede tirar de vuelta hacia el libro
- * desde otra seccion. Fuera del libro no hay freno y el sitio se desliza como
- * siempre.
+ * Esta puesto MIENTRAS EL LIBRO EXISTE, no solo mientras se ve. Antes se
+ * encendia al asomar la pista, y eso dejaba un agujero que se reporto el
+ * 2026-10-05 y se reprodujo: un deslizamiento fuerte que EMPIEZA mas arriba -en
+ * el hero, en la pasarela- ya tiene decidido donde va a parar cuando la pista
+ * asoma, y el freno llegaba tarde. Cruzaba los tres tramos de la pasarela sin
+ * pararse y el libro pasaba cuatro hojas de un tiron. Un tope solo frena los
+ * gestos que nacen con el ya puesto.
+ *
+ * En el telefono el freno es `mandatory` y la pagina entera es una fila de
+ * estaciones, del hero a la despedida; el porque esta en `styles.scss`, junto a
+ * la regla.
  */
 
 /** La clase que enciende el freno. La regla vive en `styles.scss`. */
 export const CLASE_FRENO = 'bol-frena';
 
+/** Cuantos libros lo tienen puesto ahora mismo. */
+let puestos = 0;
+
 /**
- * Enciende el freno mientras `pista` toque la pantalla. Devuelve la funcion que
- * lo suelta todo; quien la llama la mete en su lista de limpieza.
+ * Enciende el freno. Devuelve la funcion que lo suelta; quien la llama -el
+ * libro que este montado- la mete en su lista de limpieza, asi que el freno
+ * dura lo que dura Inicio y no llega a Menu ni a Contacto.
  */
-export function frenaMientrasSeVe(pista: HTMLElement): () => void {
-  if (typeof IntersectionObserver === 'undefined') return () => undefined;
+export function frenaLaPagina(): () => void {
   const raiz = document.documentElement;
-  const ojo = new IntersectionObserver(
-    (entradas) => {
-      const dentro = entradas.some((e) => e.isIntersecting);
-      raiz.classList.toggle(CLASE_FRENO, dentro);
-    },
-    // Sin margen. Llego a llevar un 10 % de holgura por los dos lados para que
-    // el freno estuviera puesto "por si acaso", y era justo lo contrario de lo
-    // que hace falta: medido en un 393x873, con la ventana arriba del todo la
-    // pista empieza en y=909 -o sea fuera de la pantalla- y el margen la daba
-    // por visible igual, asi que el freno quedaba puesto mientras se recorria el
-    // hero, que tiene su propio controlador de paradas y no debe compartir el
-    // scroll con nada.
-    //
-    // No hace falta holgura: el primer tope esta en el borde de la pista, y para
-    // cuando la ventana llega ahi la pista lleva una pantalla entera tocandola.
-    { threshold: 0 },
-  );
-  ojo.observe(pista);
+  puestos++;
+  raiz.classList.add(CLASE_FRENO);
+  let suelto = false;
   return () => {
-    ojo.disconnect();
-    raiz.classList.remove(CLASE_FRENO);
+    if (suelto) return;
+    suelto = true;
+    // Al girar el telefono el libro que entra se monta ANTES de que el que sale
+    // se desmonte: sin la cuenta, el que sale se llevaria el freno del otro.
+    if (--puestos === 0) raiz.classList.remove(CLASE_FRENO);
   };
 }
