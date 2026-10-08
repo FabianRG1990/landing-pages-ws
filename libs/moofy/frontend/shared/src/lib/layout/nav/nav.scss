@@ -52,10 +52,10 @@
   margin-right: auto;
 }
 
-/* 104 px de ancho = 47 de alto: el logo manuscrito necesita ese cuerpo
-   para leerse, pero más grande grita sobre una barra de 72. */
+/* 152 px de ancho = 69 de alto en una barra de 84: el logo es la marca
+   y tiene que leerse de un vistazo. En móvil, 128 = 58 en una de 76. */
 .nav__logo {
-  width: 104px;
+  width: 152px;
 }
 
 .nav__links {
@@ -144,7 +144,7 @@
   }
 
   .nav__logo {
-    width: 92px;
+    width: 128px;
   }
 }
 
