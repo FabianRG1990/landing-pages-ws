@@ -6,10 +6,10 @@
    con peso en vez de acabarse en blanco sobre blanco. El mismo esquema
    que el pie de bollería: columnas con título, divisores finos y lo
    legal dentro del mismo color. Los textos van en blanco con alfa; el
-   más tenue (0.62) da 4.9:1 sobre el punto más claro del degradado. */
+   más tenue (0.74) da 5.7:1 sobre el punto más claro del degradado. */
 .pie {
-  --pie-texto: rgb(255 255 255 / 0.78);
-  --pie-tenue: rgb(255 255 255 / 0.62);
+  --pie-texto: rgb(255 255 255 / 0.88);
+  --pie-tenue: rgb(255 255 255 / 0.74);
   --pie-linea: rgb(255 255 255 / 0.13);
   --pie-titulo: #b3d6f8;
 
@@ -94,7 +94,7 @@ nav.pie__col {
 
 .pie__titulo {
   margin-bottom: 1rem;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 700;
   letter-spacing: 0.16em;
   text-transform: uppercase;
@@ -187,7 +187,7 @@ nav.pie__col {
   justify-content: space-between;
   gap: 0.5rem 2rem;
   padding-block: 1.125rem max(1.25rem, env(safe-area-inset-bottom));
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--pie-tenue);
   /* El hilo va por dentro del contenido, no a sangre: así los dos
      extremos caen sobre la primera y la última columna. */

@@ -25,8 +25,8 @@
   /* --- Tinta: el azul del logo llevado casi a negro --- */
   --tinta-rgb: 11 31 58;
   --tinta: #0b1f3a; /* 16.52 · 15.20 · 13.93 */
-  --tinta-2: #4a5a70; /*  7.03 ·  6.47 ·  5.93 */
-  --tinta-3: #66768c; /*  4.63 sobre blanco; solo sobre blanco */
+  --tinta-2: #37465b; /*  9.59 ·  8.83 ·  8.09 — texto secundario */
+  --tinta-3: #55647a; /*  6.02 sobre blanco; solo sobre blanco */
 
   /* --- Azul de marca --- */
   --azul-rgb: 0 85 160;
@@ -81,19 +81,25 @@
   --fs-display: clamp(2.75rem, 1.4rem + 5vw, 6rem);
   --fs-h2: clamp(2.125rem, 1.35rem + 3.1vw, 4rem);
   --fs-h3: clamp(1.25rem, 1.08rem + 0.75vw, 1.625rem);
-  --fs-lead: clamp(1.0625rem, 1rem + 0.3vw, 1.25rem);
-  --fs-body: 1.0625rem;
-  --fs-small: 0.9375rem;
-  --fs-caption: 0.75rem;
+  /* Texto de lectura: nada por debajo de 13 px, y el cuerpo de las
+     tarjetas a 16. El cliente lo leía con dificultad a 15/12 px y peso
+     400: «muy delgaditas». */
+  --fs-lead: clamp(1.125rem, 1.05rem + 0.35vw, 1.3125rem);
+  --fs-body: 1.125rem;
+  --fs-small: 1rem;
+  --fs-caption: 0.8125rem;
 
   --tracking-display: -0.035em;
   --tracking-h2: -0.028em;
   --tracking-caps: 0.1em;
   --tracking-label: 0.01em;
 
-  --w-read: 400;
-  --w-emph: 500;
-  --w-announce: 600;
+  /* Instrument Sans es fina de por sí: a 400 el texto corrido se veía
+     delgado sobre blanco. Toda la escala sube un escalón; los titulares
+     se quedan donde estaban. */
+  --w-read: 480;
+  --w-emph: 580;
+  --w-announce: 640;
   --w-display: 650;
 
   /* --- Layout --- */
