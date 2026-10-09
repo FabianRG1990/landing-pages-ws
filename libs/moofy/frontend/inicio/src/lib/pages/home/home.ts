@@ -12,11 +12,10 @@ import { ProcesoComponent } from '../../sections/proceso/proceso';
 import { ContactoComponent } from '../../sections/contacto/contacto';
 import { CierreComponent } from '../../sections/cierre/cierre';
 import { PieComponent } from '@moofy-ui-shared/layout/pie/pie';
-import { RutaComponent } from '@moofy-ui-shared/layout/ruta/ruta';
 
 @Component({
   selector: 'app-home',
-  imports: [NavComponent, HeroComponent, FabricaComponent, LineasComponent, CintaComponent, CanalesComponent, ProcesoComponent, CierreComponent, ContactoComponent, PieComponent, RutaComponent],
+  imports: [NavComponent, HeroComponent, FabricaComponent, LineasComponent, CintaComponent, CanalesComponent, ProcesoComponent, CierreComponent, ContactoComponent, PieComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './home.html',
   styleUrl: './home.scss',

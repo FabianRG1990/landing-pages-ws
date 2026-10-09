@@ -59,23 +59,6 @@ export const NAV = [
   { etiqueta: 'Proceso', ancla: '#proceso' },
 ] as const;
 
-/**
- * La ruta del camión que recorre la página (ruta.ts). La carretera baja
- * por el margen y cruza de lado en cada frontera de esta lista, entre la
- * sección `antes` y la sección `despues`; al cruzar, el camión dice la
- * frase. Termina en un pin justo antes de `destino.antesDe`, y al llegar
- * al blanco que deja debajo `destino.ultimaSeccion` dice la última.
- * Frases cortas: van en un rótulo de un renglón.
- */
-export const RUTA = {
-  cruces: [
-    { antes: 'section.hero', despues: '#fabrica', frase: 'Salimos de Grecia' },
-    { antes: '#fabrica', despues: '#lineas', frase: 'Seis líneas a bordo' },
-    { antes: '#canales', despues: '#proceso', frase: 'Vamos a todo el país' },
-  ],
-  destino: { antesDe: 'footer.pie', ultimaSeccion: '#contacto', frase: 'Llegamos adonde usted está' },
-} as const;
-
 export const HERO = {
   eyebrow: 'Fábrica de repostería · Costa Rica',
   titulo: [
