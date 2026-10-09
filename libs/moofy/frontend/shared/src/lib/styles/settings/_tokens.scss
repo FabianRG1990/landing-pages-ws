@@ -68,6 +68,11 @@
   --shadow-btn:
     inset 0 1px 0 rgb(var(--blanco-rgb) / 0.18), 0 0 0 1.5px var(--blanco), 0 0 0 3px var(--azul),
     0 10px 20px -12px rgb(var(--azul-rgb) / 0.55);
+  /* El mismo contorno al levantarse: 2 px de filete, 2 de azul y la
+     sombra más larga, porque el botón está más lejos del papel. */
+  --shadow-btn-alza:
+    inset 0 1px 0 rgb(var(--blanco-rgb) / 0.18), 0 0 0 2px var(--blanco), 0 0 0 4px var(--azul),
+    0 18px 28px -14px rgb(var(--azul-rgb) / 0.6);
 
   /* --- Tipografía --- */
   --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;

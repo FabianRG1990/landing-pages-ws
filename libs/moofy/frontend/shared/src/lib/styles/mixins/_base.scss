@@ -248,17 +248,64 @@ section[id] {
 
 /* Botón principal: el logo de Moofy dicho en voz baja. Rojo plano, y
    alrededor el filete blanco y la línea azul de sus letras, en fino
-   (--shadow-btn). Sin degradado, sin resplandor y sin brillo: al pasar
-   el ratón solo se oscurece un tono, que es la respuesta sobria de un
-   botón de empresa. Es el único relleno rojo de la pantalla. */
+   (--shadow-btn). Sin degradado, sin resplandor y sin brillo. Es el
+   único relleno rojo de la pantalla.
+
+   Al pasar el ratón no cambia de color: se levanta 2 px, el contorno
+   del logo engorda (--shadow-btn-alza) y la flecha sale por la derecha
+   y vuelve a entrar por la izquierda. Oscurecerlo lo apagaba justo
+   cuando tiene que invitar. Solo con puntero fino: en táctil el hover
+   se queda pegado tras el toque. */
 .btn--rojo {
   font-weight: var(--w-announce);
   color: var(--blanco);
   background: var(--rojo);
   box-shadow: var(--shadow-btn);
 
-  &:hover {
-    background: var(--rojo-hondo);
+  /* La flecha del final; el glifo de WhatsApp del principio no corre */
+  &:hover > svg:last-child,
+  &:hover > app-icono:last-child svg {
+    transform: none;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-btn-alza);
+    }
+
+    &:active {
+      transform: translateY(0);
+      box-shadow: var(--shadow-btn);
+    }
+
+    &:hover > svg:last-child,
+    &:hover > app-icono:last-child svg {
+      animation: btn-relevo 0.52s var(--ease-fluid);
+    }
+  }
+}
+
+/* La flecha se va por la derecha y entra otra por la izquierda */
+@keyframes btn-relevo {
+  0% {
+    transform: none;
+    opacity: 1;
+  }
+
+  42% {
+    transform: translateX(0.7em);
+    opacity: 0;
+  }
+
+  43% {
+    transform: translateX(-0.7em);
+    opacity: 0;
+  }
+
+  100% {
+    transform: none;
+    opacity: 1;
   }
 }
 
