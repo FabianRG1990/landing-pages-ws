@@ -164,7 +164,11 @@ export class RutaComponent {
     const navH = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--nav-h')) || 0;
     this.xInicio = izquierda;
     this.yInicio = navH + 26;
-    this.yFin = this.arribaDe(pie) - 64;
+    // El destino cae en el blanco que deja debajo la última sección: a
+    // media altura si es corto (móvil), nunca a más de 64 px del pie.
+    const ultima = document.querySelector<HTMLElement>(RUTA.destino.ultimaSeccion);
+    const blanco = ultima ? parseFloat(getComputedStyle(ultima).paddingBottom) : 0;
+    this.yFin = this.arribaDe(pie) - Math.min(64, Math.max(20, blanco / 2));
 
     // Un cruce por frontera; cada uno sale del lado al que llegó el anterior
     let lado = izquierda;
@@ -203,9 +207,8 @@ export class RutaComponent {
     for (const trazo of [this.filete(), this.via(), this.hechaFilete(), this.hecha()]) {
       trazo.nativeElement.setAttribute('d', d);
     }
-    // Hasta dónde llega el blanco de abajo: ahí es donde cabe la última frase
-    const ultima = document.querySelector<HTMLElement>(RUTA.destino.ultimaSeccion);
-    this.alcance = 64 + (ultima ? parseFloat(getComputedStyle(ultima).paddingBottom) : 0);
+    // La última frase solo al llegar: antes caería sobre la sección
+    this.alcance = 34;
     this.origen().nativeElement.setAttribute('cx', this.xInicio.toFixed(1));
     this.origen().nativeElement.setAttribute('cy', this.yInicio.toFixed(1));
     this.destino().nativeElement.setAttribute('transform', `translate(${lado.toFixed(1)} ${(this.yFin + 4).toFixed(1)})`);
