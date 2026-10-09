@@ -72,6 +72,9 @@ export const HERO = {
   imagen: 'img/hero-hojaldre.webp',
   alt: 'Hojaldres dorados recién horneados sobre la bandeja de una línea de producción.',
   pegatina: ['Hecho en', 'Costa Rica'],
+  // La leyenda que da la vuelta al sello; termina en separador porque
+  // el final se une con el principio.
+  selloVuelta: 'Planta propia · Grecia · Alajuela · ',
   // La tarjeta de datos del hero: solo hechos publicados.
   tarjeta: {
     etiqueta: 'Planta propia · Grecia',

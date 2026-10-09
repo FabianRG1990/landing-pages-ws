@@ -94,37 +94,128 @@
   }
 }
 
-/* Pegatina roja: rojo con filete blanco y contorno azul, girada como si
-   estuviera pegada a mano. */
+/* Sello de origen, montado sobre la esquina de la foto y girado como
+   si estuviera pegado a mano. Todo el dibujo es un SVG (hero.html); aquí
+   van sus colores, que salen de los tokens. La sombra es drop-shadow y
+   no box-shadow para que siga el canto festoneado. */
 .hero__pegatina {
   position: absolute;
-  top: 0.5rem;
-  right: -0.75rem;
+  top: -1.25rem;
+  right: -1.75rem;
   z-index: 3;
-  display: grid;
-  place-content: center;
-  width: clamp(6.5rem, 5rem + 4vw, 8.25rem);
+  width: clamp(8.5rem, 6.25rem + 5.5vw, 10.5rem);
   aspect-ratio: 1;
-  text-align: center;
-  line-height: 1.05;
-  color: var(--blanco);
-  background: radial-gradient(circle at 35% 30%, var(--rojo-vivo), var(--rojo) 55%, var(--rojo-hondo));
-  border-radius: 50%;
-  box-shadow: 0 0 0 4px var(--blanco), 0 0 0 8px var(--azul), var(--shadow-rojo);
-  transform: rotate(10deg);
-  /* El giro con el scroll va aparte del transform, que es de la entrada */
+  transform: rotate(8deg);
+
+  /* La sombra va en el SVG y no en la caja que anima la entrada: con el
+     filtro en el mismo elemento que GSAP escala, Chromium dejaba los
+     textos del sello rasterizados a la escala de partida. */
+  svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    filter: drop-shadow(0 12px 14px rgb(6 59 115 / 0.3));
+  }
+}
+
+/* El giro con el scroll (--giro, hero.ts) solo mueve el canto y la
+   leyenda; el centro se queda derecho. */
+.sello__aro {
+  transform-box: view-box;
+  transform-origin: 50% 50%;
   rotate: var(--giro, 0deg);
+}
 
-  span {
-    font-size: 0.8125rem;
-    font-weight: var(--w-emph);
-  }
+/* Contorno azul por fuera y filete blanco por dentro, como el logo: el
+   mismo festón dos veces, el de abajo con el trazo más ancho. */
+.sello__canto {
+  fill: var(--azul);
+  stroke: var(--azul);
+  stroke-width: 15;
+  stroke-linejoin: round;
+}
 
-  strong {
-    font-size: clamp(1rem, 0.85rem + 0.5vw, 1.25rem);
-    font-weight: 700;
-    letter-spacing: -0.01em;
-  }
+.sello__cuerpo {
+  stroke: var(--blanco);
+  stroke-width: 6;
+  stroke-linejoin: round;
+}
+
+.sello__luz {
+  stop-color: var(--rojo-vivo);
+}
+
+.sello__medio {
+  stop-color: var(--rojo);
+}
+
+.sello__hondo {
+  stop-color: var(--rojo-hondo);
+}
+
+/* Pespunte: la línea de puntos de una etiqueta cosida */
+.sello__pespunte {
+  fill: none;
+  stroke: rgb(var(--blanco-rgb) / 0.55);
+  stroke-width: 1;
+  stroke-dasharray: 0.1 4.55;
+  stroke-linecap: round;
+}
+
+.sello__vuelta {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  fill: var(--blanco);
+}
+
+.sello__disco {
+  fill: var(--blanco);
+  stroke: var(--azul);
+  stroke-width: 2.5;
+}
+
+.sello__filo {
+  fill: none;
+  stroke: rgb(var(--azul-rgb) / 0.3);
+  stroke-width: 0.75;
+}
+
+.sello__arriba {
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  fill: var(--azul);
+}
+
+.sello__centro {
+  font-family: var(--font-sans);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  fill: var(--rojo);
+}
+
+.sello__azul {
+  fill: var(--azul);
+}
+
+.sello__blanco {
+  fill: var(--blanco);
+}
+
+.sello__rojo {
+  fill: var(--rojo);
+}
+
+.sello__bandera-filo {
+  fill: none;
+  stroke: rgb(var(--tinta-rgb) / 0.18);
+  stroke-width: 0.75;
 }
 
 /* Tarjeta de datos, montada sobre la esquina inferior izquierda */
@@ -235,18 +326,9 @@
 
   /* Dentro de la foto, en su esquina: no se sale del borde común */
   .hero__pegatina {
-    top: var(--esp-3);
-    right: var(--esp-3);
-    width: 5.25rem;
-    box-shadow: 0 0 0 3px var(--blanco), 0 0 0 6px var(--azul), var(--shadow-rojo);
-
-    span {
-      font-size: 0.6875rem;
-    }
-
-    strong {
-      font-size: 0.9375rem;
-    }
+    top: var(--esp-2);
+    right: var(--esp-2);
+    width: 7rem;
   }
 
   .hero__tarjeta {

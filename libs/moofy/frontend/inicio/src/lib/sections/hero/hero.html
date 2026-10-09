@@ -42,12 +42,47 @@
         </picture>
       </figure>
 
-      <!-- Pegatina: rojo, filete blanco y contorno azul, como las letras
-           del logo. Decorativa: el mismo dato ya está en la etiqueta. -->
-      <p #pegatina class="hero__pegatina" aria-hidden="true">
-        <span>{{ hero.pegatina[0] }}</span>
-        <strong>{{ hero.pegatina[1] }}</strong>
-      </p>
+      <!-- Sello de origen: canto festoneado como un cortador de masa, en
+           rojo con el filete blanco y el contorno azul del logo; la
+           leyenda da la vuelta y el centro lleva la bandera, que comparte
+           colores con la marca. Decorativo: el dato ya está en la etiqueta. -->
+      <div #pegatina class="hero__pegatina" aria-hidden="true">
+        <svg viewBox="0 0 200 200" focusable="false">
+          <defs>
+            <radialGradient id="sello-rojo" cx="34%" cy="26%" r="82%">
+              <stop class="sello__luz" offset="0" />
+              <stop class="sello__medio" offset="0.55" />
+              <stop class="sello__hondo" offset="1" />
+            </radialGradient>
+            <path id="sello-vuelta" d="M41 100a59 59 0 1 1 118 0a59 59 0 1 1-118 0" />
+            <clipPath id="sello-bandera">
+              <rect x="86" y="116" width="28" height="14" rx="2.5" />
+            </clipPath>
+          </defs>
+
+          <!-- Lo que gira con el scroll: el canto y la leyenda -->
+          <g class="sello__aro">
+            <path class="sello__canto" d="M100.00 20.00A12 12 0 0 1 120.71 22.73A12 12 0 0 1 140.00 30.72A12 12 0 0 1 156.57 43.43A12 12 0 0 1 169.28 60.00A12 12 0 0 1 177.27 79.29A12 12 0 0 1 180.00 100.00A12 12 0 0 1 177.27 120.71A12 12 0 0 1 169.28 140.00A12 12 0 0 1 156.57 156.57A12 12 0 0 1 140.00 169.28A12 12 0 0 1 120.71 177.27A12 12 0 0 1 100.00 180.00A12 12 0 0 1 79.29 177.27A12 12 0 0 1 60.00 169.28A12 12 0 0 1 43.43 156.57A12 12 0 0 1 30.72 140.00A12 12 0 0 1 22.73 120.71A12 12 0 0 1 20.00 100.00A12 12 0 0 1 22.73 79.29A12 12 0 0 1 30.72 60.00A12 12 0 0 1 43.43 43.43A12 12 0 0 1 60.00 30.72A12 12 0 0 1 79.29 22.73A12 12 0 0 1 100.00 20.00Z" />
+            <path class="sello__cuerpo" fill="url(#sello-rojo)" d="M100.00 20.00A12 12 0 0 1 120.71 22.73A12 12 0 0 1 140.00 30.72A12 12 0 0 1 156.57 43.43A12 12 0 0 1 169.28 60.00A12 12 0 0 1 177.27 79.29A12 12 0 0 1 180.00 100.00A12 12 0 0 1 177.27 120.71A12 12 0 0 1 169.28 140.00A12 12 0 0 1 156.57 156.57A12 12 0 0 1 140.00 169.28A12 12 0 0 1 120.71 177.27A12 12 0 0 1 100.00 180.00A12 12 0 0 1 79.29 177.27A12 12 0 0 1 60.00 169.28A12 12 0 0 1 43.43 156.57A12 12 0 0 1 30.72 140.00A12 12 0 0 1 22.73 120.71A12 12 0 0 1 20.00 100.00A12 12 0 0 1 22.73 79.29A12 12 0 0 1 30.72 60.00A12 12 0 0 1 43.43 43.43A12 12 0 0 1 60.00 30.72A12 12 0 0 1 79.29 22.73A12 12 0 0 1 100.00 20.00Z" />
+            <circle class="sello__pespunte" cx="100" cy="100" r="74" />
+            <text class="sello__vuelta">
+              <textPath href="#sello-vuelta" textLength="366" lengthAdjust="spacing">{{ hero.selloVuelta }}</textPath>
+            </text>
+          </g>
+
+          <!-- El centro no gira: se lee siempre derecho -->
+          <circle class="sello__disco" cx="100" cy="100" r="50" />
+          <circle class="sello__filo" cx="100" cy="100" r="45.5" />
+          <text class="sello__arriba" x="100" y="87" text-anchor="middle">{{ hero.pegatina[0] }}</text>
+          <text class="sello__centro" x="100" y="107" text-anchor="middle">{{ hero.pegatina[1] }}</text>
+          <g clip-path="url(#sello-bandera)">
+            <rect class="sello__azul" x="86" y="116" width="28" height="14" />
+            <rect class="sello__blanco" x="86" y="118.33" width="28" height="9.34" />
+            <rect class="sello__rojo" x="86" y="120.67" width="28" height="4.66" />
+          </g>
+          <rect class="sello__bandera-filo" x="86" y="116" width="28" height="14" rx="2.5" />
+        </svg>
+      </div>
 
       <aside #tarjeta class="carta hero__tarjeta" aria-label="Moofy en cifras">
         <p class="hero__tarjeta-cabeza mono">
