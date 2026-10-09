@@ -14,12 +14,11 @@ import { FABRICA, foto800 } from '@moofy-ui-shared/data/site';
 import { CapituloComponent } from '@moofy-ui-shared/tipografia/capitulo';
 import { RenglonesComponent } from '@moofy-ui-shared/tipografia/renglones';
 import { RevelarDirective } from '@moofy-ui-shared/motion/revelar.directive';
-import { ContadorDirective } from '@moofy-ui-shared/motion/contador.directive';
 import { IconoComponent } from '@moofy-ui-shared/marca/icono';
 import { montarEscena } from '@moofy-ui-shared/motion/escena';
 
 /**
- * Capítulo 01: el argumento central. Moofy fabrica, no revende.
+ * Capítulo 03: el respaldo. Moofy fabrica, no revende.
  *
  * Escritorio: el escenario se fija a pantalla completa. La foto de la
  * planta se abre de tarjeta centrada a sangre (clip-path, con un leve
@@ -32,7 +31,7 @@ import { montarEscena } from '@moofy-ui-shared/motion/escena';
  */
 @Component({
   selector: 'app-fabrica',
-  imports: [CapituloComponent, RenglonesComponent, RevelarDirective, ContadorDirective, IconoComponent],
+  imports: [CapituloComponent, RenglonesComponent, RevelarDirective, IconoComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './fabrica.html',
   styleUrl: './fabrica.scss',

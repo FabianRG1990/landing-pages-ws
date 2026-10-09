@@ -13,9 +13,12 @@
   column-gap: var(--gutter);
   row-gap: 3.5rem;
   align-items: center;
-  min-height: min(100svh, 980px);
+  /* Un poco menos que la pantalla: debajo viene el catálogo, que ocupa
+     la pantalla entera y centra su contenido, y con el hero a 100svh
+     quedaban casi 280 px en blanco entre los dos. */
+  min-height: min(93svh, 900px);
   padding-top: calc(var(--nav-h) + clamp(1.5rem, 1rem + 2vw, 3rem));
-  padding-bottom: clamp(2.5rem, 2rem + 2vw, 4rem);
+  padding-bottom: clamp(1.5rem, 1rem + 1.5vw, 2.5rem);
 }
 
 /* ---------- Texto ---------- */

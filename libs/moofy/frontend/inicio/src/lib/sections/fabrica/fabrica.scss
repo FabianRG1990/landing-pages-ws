@@ -6,16 +6,6 @@
   padding-block: var(--section-y);
 }
 
-/* En escritorio esta sección queda entre dos pantallas completas: el
-   hero, que ya trae su aire abajo, y el carril de líneas, que centra su
-   contenido en la pantalla y trae el suyo arriba. Con el margen entero a
-   cada lado se sumaban más de 300 px en blanco en cada frontera. */
-@media (min-width: 900px) {
-  .fabrica {
-    padding-block: calc(var(--section-y) * 0.5) calc(var(--section-y) * 0.35);
-  }
-}
-
 /* ---------- Cabecera: titular a la izquierda, entrada abajo a la derecha ---------- */
 
 .fabrica__cabeza {
@@ -156,79 +146,12 @@
   }
 }
 
-/* ---------- Cifras en el bloque azul ---------- */
-
-.fabrica__bloque {
-  margin-top: clamp(2.5rem, 2rem + 2.5vw, 4rem);
-  padding: clamp(2rem, 1.5rem + 2vw, 3.5rem) clamp(1.5rem, 1rem + 2vw, 3.5rem);
-}
-
-/* Tantas columnas como cifras haya, a partes iguales */
-.fabrica__cifras {
-  display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: minmax(0, 1fr);
-}
-
-.cifra {
-  display: flex;
-  flex-direction: column;
-  padding-inline: clamp(1rem, 0.5rem + 2vw, 2.5rem);
-
-  &:first-child {
-    padding-left: 0;
-  }
-
-  & + & {
-    border-left: 1px solid rgb(255 255 255 / 0.22);
-  }
-}
-
-/* El número va primero a la vista y segundo en el DOM: el lector de
-   pantalla oye «Planta propia, 1», que es como se entiende. */
-.cifra__valor {
-  order: -1;
-  font-size: clamp(3.5rem, 2.6rem + 3.6vw, 6rem);
-  font-weight: 700;
-  line-height: 0.95;
-  letter-spacing: -0.05em;
-  color: var(--blanco);
-  font-variant-numeric: tabular-nums lining-nums;
-}
-
-.cifra__titulo {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-top: 1rem;
-  font-weight: var(--w-announce);
-  color: var(--blanco);
-
-  /* Punto rojo con filete blanco: la pegatina en miniatura */
-  &::before {
-    content: '';
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--rojo);
-    box-shadow: 0 0 0 2px var(--blanco);
-  }
-}
-
-.cifra__detalle {
-  margin-top: 0.25rem;
-  font-size: var(--fs-small);
-  color: rgb(255 255 255 / 0.84);
-}
-
 /* ---------- Responsive ---------- */
 
-/* ---------- Móvil: un solo borde, cifras en una fila ----------
+/* ---------- Móvil: un solo borde ----------
    Antes el texto de cada pilar arrancaba a 88 px (detrás del círculo
-   del icono), la foto llevaba el filete blanco por fuera del margen y
-   las dos cifras apiladas ocupaban media pantalla. Ahora todo arranca
-   en el margen: el icono va encima de su título y las cifras forman
-   una franja azul baja, lado a lado. */
+   del icono) y la foto llevaba el filete blanco por fuera del margen.
+   Ahora todo arranca en el margen: el icono va encima de su título. */
 @media (max-width: 899.98px) {
   .fabrica__cabeza {
     row-gap: var(--esp-4);
@@ -266,22 +189,5 @@
 
   .pilar__texto {
     margin-top: var(--esp-1);
-  }
-
-  .fabrica__bloque {
-    margin-top: var(--esp-6);
-    padding: var(--esp-5) var(--esp-4);
-  }
-
-  .cifra {
-    padding-inline: var(--esp-4);
-  }
-
-  .cifra__valor {
-    font-size: 3rem;
-  }
-
-  .cifra__titulo {
-    margin-top: var(--esp-2);
   }
 }

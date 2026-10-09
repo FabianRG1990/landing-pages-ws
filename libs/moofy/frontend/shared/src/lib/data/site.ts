@@ -53,22 +53,22 @@ export const SITE = {
 } as const;
 
 export const NAV = [
+  { etiqueta: 'Catálogo', ancla: '#catalogo' },
+  { etiqueta: 'Cobertura', ancla: '#cobertura' },
   { etiqueta: 'Fábrica', ancla: '#fabrica' },
-  { etiqueta: 'Líneas', ancla: '#lineas' },
   { etiqueta: 'Canales', ancla: '#canales' },
-  { etiqueta: 'Proceso', ancla: '#proceso' },
 ] as const;
 
 export const HERO = {
   eyebrow: 'Fábrica de repostería · Costa Rica',
   titulo: [
-    [{ t: 'Hecho en ' }, { t: 'nuestra', em: true }, { t: ' planta.' }],
-    [{ t: 'Servido en ' }, { t: 'su', em: true }, { t: ' mesa.' }],
+    [{ t: 'Nuestro ' }, { t: 'catálogo', em: true }],
+    [{ t: 'llega adonde ' }, { t: 'usted', em: true }, { t: ' esté.' }],
   ] as readonly Renglon[],
   entrada:
-    'Repostería fina empacada, producida en planta propia para empresas que no negocian la calidad.',
+    'Seis líneas de repostería fina empacada, de nuestra planta en Grecia a cualquier punto del país.',
   ctaPrimario: 'Agendar reunión comercial',
-  ctaSecundario: 'Ver líneas',
+  ctaSecundario: 'Ver catálogo',
   imagen: 'img/hero-hojaldre.webp',
   alt: 'Hojaldres dorados recién horneados sobre la bandeja de una línea de producción.',
   pegatina: ['Hecho en', 'Costa Rica'],
@@ -79,7 +79,7 @@ export const HERO = {
   tarjeta: {
     etiqueta: 'Planta propia · Grecia',
     cifra: '06',
-    cifraTexto: 'Líneas en producción',
+    cifraTexto: 'Líneas en catálogo',
     datos: [
       { k: 'Canales', v: '9' },
       { k: 'Provincias', v: '7' },
@@ -89,7 +89,7 @@ export const HERO = {
 } as const;
 
 export const FABRICA = {
-  num: '01',
+  num: '03',
   nombre: 'La fábrica',
   titulo: [[{ t: 'No revendemos. ' }, { t: 'Fabricamos.', em: true }]] as readonly Renglon[],
   entrada:
@@ -113,15 +113,26 @@ export const FABRICA = {
       texto: 'Despachamos con nuestros camiones a cualquier punto del país.',
     },
   ],
-  cifras: [
-    { valor: 1, titulo: 'Planta propia', detalle: 'San Roque de Grecia' },
-    { valor: 7, titulo: 'Provincias', detalle: 'Despacho a todo el país' },
+} as const;
+
+/* Capítulo 02. Solo hechos ya publicados en el sitio: siete provincias,
+   flota propia, entrega programada y la planta en San Roque de Grecia. */
+export const COBERTURA = {
+  num: '02',
+  nombre: 'Cobertura',
+  titulo: [[{ t: 'De Grecia a ' }, { t: 'todo el país.', em: true }]] as readonly Renglon[],
+  entrada: 'Despachamos con nuestros camiones a cualquier punto del país.',
+  origen: 'Planta · Grecia',
+  datos: [
+    { valor: '7', titulo: 'Provincias', detalle: 'Despacho a todo el país' },
+    { valor: '1', titulo: 'Planta propia', detalle: 'San Roque de Grecia' },
   ],
+  notas: ['Flota propia', 'Entrega programada'],
 } as const;
 
 export const LINEAS = {
-  num: '02',
-  nombre: 'Líneas',
+  num: '01',
+  nombre: 'Catálogo',
   titulo: [[{ t: 'Seis líneas. ' }, { t: 'Un mismo estándar.', em: true }]] as readonly Renglon[],
   entrada: 'Todo sale de la misma planta. Pida muestras de la línea que encaja con su operación.',
   items: [
@@ -189,7 +200,7 @@ export interface Canal {
    líneas encajan; no prometen formatos ni plazos que Moofy no ha
    publicado. La entrega se acuerda en la reunión. */
 export const CANALES = {
-  num: '03',
+  num: '04',
   nombre: 'Canales',
   titulo: [[{ t: 'Producimos para ' }, { t: 'su', em: true }, { t: ' operación.' }]] as readonly Renglon[],
   entrada: 'Elija su canal y vea qué resolvemos.',
@@ -306,7 +317,7 @@ export const CANALES = {
 } as const;
 
 export const PROCESO = {
-  num: '04',
+  num: '05',
   nombre: 'Proceso',
   titulo: [[{ t: 'De la reunión a la ' }, { t: 'entrega recurrente.', em: true }]] as readonly Renglon[],
   pasos: [
@@ -318,7 +329,7 @@ export const PROCESO = {
 } as const;
 
 export const CONTACTO = {
-  num: '05',
+  num: '06',
   nombre: 'Hablemos',
   titulo: [[{ t: 'Hablemos de su ' }, { t: 'operación.', em: true }]] as readonly Renglon[],
   entrada: 'Elija su canal y abra la conversación directamente con el equipo comercial.',

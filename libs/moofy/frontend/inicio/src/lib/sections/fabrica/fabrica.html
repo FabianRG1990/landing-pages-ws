@@ -34,20 +34,4 @@
       }
     </ol>
   </div>
-
-  <div class="shell">
-    <!-- Las cifras en un bloque a todo azul: el contraste alegre de la
-         página, con los números en blanco. -->
-    <div class="fabrica__bloque bloque-azul" appRevelar>
-      <dl class="fabrica__cifras">
-        @for (c of f.cifras; track c.titulo; let i = $index) {
-          <div class="cifra">
-            <dt class="cifra__titulo">{{ c.titulo }}</dt>
-            <dd class="cifra__valor" [appContador]="c.valor">{{ c.valor }}</dd>
-            <dd class="cifra__detalle">{{ c.detalle }}</dd>
-          </div>
-        }
-      </dl>
-    </div>
-  </div>
 </section>
