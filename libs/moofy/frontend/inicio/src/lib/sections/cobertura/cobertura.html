@@ -1,0 +1,85 @@
+<section #seccion id="cobertura" class="cobertura" aria-labelledby="cobertura-titulo">
+  <div class="shell">
+    <div class="cobertura__panel bloque-azul">
+      <div class="cobertura__texto">
+        <app-capitulo [num]="c.num" [nombre]="c.nombre" appRevelar />
+        <h2 id="cobertura-titulo" class="titular" appRevelar [retraso]="80">
+          <app-renglones [renglones]="c.titulo" />
+        </h2>
+        <p class="lead" appRevelar [retraso]="220">{{ c.entrada }}</p>
+
+        <dl class="cobertura__datos" appRevelar [retraso]="320">
+          @for (d of c.datos; track d.titulo) {
+            <div class="dato">
+              <dt class="dato__titulo">{{ d.titulo }}</dt>
+              <dd class="dato__valor">{{ d.valor }}</dd>
+              <dd class="dato__detalle">{{ d.detalle }}</dd>
+            </div>
+          }
+        </dl>
+
+        <ul class="cobertura__notas" appRevelar [retraso]="400">
+          @for (n of c.notas; track n) {
+            <li>{{ n }}</li>
+          }
+        </ul>
+      </div>
+
+      <!-- El mapa: las siete provincias y una ruta de la planta a cada
+           una. Es una ilustración de la cobertura, no un mapa de rutas
+           reales; el dato («despacho a todo el país») está en el texto. -->
+      <figure class="cobertura__mapa">
+        <svg
+          #mapa
+          [attr.viewBox]="'0 0 ' + m.ancho + ' ' + m.alto"
+          role="img"
+          aria-labelledby="cobertura-mapa-titulo"
+          focusable="false"
+        >
+          <title id="cobertura-mapa-titulo">
+            Mapa de Costa Rica con sus siete provincias y una ruta desde la planta de Moofy en Grecia hasta cada una.
+          </title>
+
+          <g class="mapa__provincias">
+            @for (p of m.provincias; track p.nombre) {
+              <path class="mapa__provincia" [attr.d]="p.d" />
+            }
+          </g>
+
+          <g class="mapa__rutas" aria-hidden="true">
+            @for (p of m.provincias; track p.nombre) {
+              <path class="mapa__ruta" [attr.d]="p.ruta" />
+            }
+          </g>
+
+          <g aria-hidden="true">
+            @for (p of m.provincias; track p.nombre) {
+              <g class="mapa__destino" [attr.transform]="'translate(' + p.x + ' ' + p.y + ')'">
+                <circle class="mapa__punto" r="4.2" />
+                <text
+                  class="mapa__nombre"
+                  [attr.x]="p.nombre === 'Guanacaste' ? -10 : 10"
+                  y="3.6"
+                  [attr.text-anchor]="p.nombre === 'Guanacaste' ? 'end' : 'start'"
+                >
+                  {{ p.nombre }}
+                </text>
+              </g>
+            }
+          </g>
+
+          <!-- La planta: de aquí sale todo -->
+          <g class="mapa__planta" aria-hidden="true" [attr.transform]="'translate(' + m.grecia.x + ' ' + m.grecia.y + ')'">
+            <circle class="mapa__onda" r="9" />
+            <circle class="mapa__planta-aro" r="9" />
+            <circle class="mapa__planta-punto" r="5" />
+            <g class="mapa__planta-rotulo" transform="translate(-9 27)">
+              <rect x="-104" y="-13" width="104" height="23" rx="11.5" />
+              <text x="-52" y="3" text-anchor="middle">{{ c.origen }}</text>
+            </g>
+          </g>
+        </svg>
+      </figure>
+    </div>
+  </div>
+</section>

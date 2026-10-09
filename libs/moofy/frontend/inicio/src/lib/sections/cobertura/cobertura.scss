@@ -1,0 +1,256 @@
+:host {
+  display: block;
+}
+
+.cobertura {
+  padding-block: var(--section-y);
+}
+
+/* ---------- El panel ----------
+   El bloque azul de la página: a la izquierda el argumento y a la derecha
+   el mapa. Sobre el azul, el texto va en blanco y las cursivas también
+   (el rojo como texto no contrasta: 1.9:1). */
+.cobertura__panel {
+  --cursiva: var(--blanco);
+  --capitulo-num: #ff9aa8;
+  --capitulo-regla: linear-gradient(90deg, #ff9aa8, var(--blanco));
+  --mono-ink: var(--blanco);
+
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  column-gap: clamp(1.5rem, 0.5rem + 3vw, 4rem);
+  align-items: center;
+  padding: clamp(2.5rem, 2rem + 2.5vw, 4.5rem) clamp(1.5rem, 1rem + 2.5vw, 4.5rem);
+
+  .lead {
+    max-width: 30ch;
+    margin-top: 1.25rem;
+    color: rgb(var(--blanco-rgb) / 0.86);
+  }
+}
+
+/* ---------- Las cifras ---------- */
+
+.cobertura__datos {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, max-content));
+  column-gap: clamp(1.75rem, 1rem + 2.5vw, 3.5rem);
+  margin-top: clamp(2rem, 1.5rem + 2vw, 3.25rem);
+}
+
+.dato {
+  display: flex;
+  flex-direction: column;
+
+  & + & {
+    padding-left: clamp(1.75rem, 1rem + 2.5vw, 3.5rem);
+    border-left: 1px solid rgb(var(--blanco-rgb) / 0.22);
+  }
+}
+
+/* El número va primero a la vista y segundo en el DOM: el lector de
+   pantalla oye «Provincias, 7», que es como se entiende. */
+.dato__valor {
+  order: -1;
+  font-size: clamp(3.5rem, 2.6rem + 3.6vw, 6rem);
+  font-weight: 700;
+  line-height: 0.95;
+  letter-spacing: -0.05em;
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+.dato__titulo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.875rem;
+  font-weight: var(--w-announce);
+
+  /* Punto rojo con filete blanco: la pegatina en miniatura */
+  &::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    background: var(--rojo);
+    border-radius: 50%;
+    box-shadow: 0 0 0 2px var(--blanco);
+  }
+}
+
+.dato__detalle {
+  margin-top: 0.25rem;
+  font-size: var(--fs-small);
+  color: rgb(var(--blanco-rgb) / 0.84);
+}
+
+.cobertura__notas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: clamp(1.5rem, 1.25rem + 1vw, 2.25rem);
+
+  li {
+    padding: 0.4375rem 0.875rem;
+    font-size: var(--fs-small);
+    font-weight: var(--w-emph);
+    border: 1px solid rgb(var(--blanco-rgb) / 0.32);
+    border-radius: var(--r-pill);
+  }
+}
+
+/* ---------- El mapa ---------- */
+
+.cobertura__mapa {
+  margin: 0;
+
+  svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    overflow: visible;
+  }
+}
+
+/* Las provincias en un blanco translúcido sobre el azul: el país se lee
+   como un relieve del propio panel, no como una pieza pegada encima. */
+.mapa__provincia {
+  fill: rgb(var(--blanco-rgb) / 0.11);
+  stroke: rgb(var(--blanco-rgb) / 0.42);
+  stroke-width: 0.9;
+  stroke-linejoin: round;
+  transition: fill var(--dur-base) var(--ease-out);
+
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      fill: rgb(var(--blanco-rgb) / 0.2);
+    }
+  }
+}
+
+.mapa__ruta {
+  fill: none;
+  stroke: var(--blanco);
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  opacity: 0.9;
+}
+
+.mapa__punto {
+  fill: var(--rojo);
+  stroke: var(--blanco);
+  stroke-width: 1.6;
+}
+
+.mapa__nombre {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  fill: var(--blanco);
+  /* Un halo del azul del panel bajo la letra: el nombre se lee aunque
+     pise un límite de provincia o una ruta. */
+  paint-order: stroke;
+  stroke: var(--azul-hondo);
+  stroke-width: 3;
+  stroke-linejoin: round;
+}
+
+/* La planta: el punto de la casa, más grande, con una onda que late */
+.mapa__planta-aro {
+  fill: var(--blanco);
+}
+
+.mapa__planta-punto {
+  fill: var(--rojo);
+}
+
+.mapa__onda {
+  fill: none;
+  stroke: var(--blanco);
+  stroke-width: 1.5;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: cobertura-onda 2.8s var(--ease-out) infinite;
+}
+
+@keyframes cobertura-onda {
+  0% {
+    scale: 1;
+    opacity: 0.7;
+  }
+
+  70%,
+  100% {
+    scale: 3;
+    opacity: 0;
+  }
+}
+
+.mapa__planta-rotulo {
+  rect {
+    fill: var(--blanco);
+  }
+
+  text {
+    font-family: var(--font-mono);
+    font-size: 9.5px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    fill: var(--tinta);
+  }
+}
+
+/* Chromium compone el texto SVG con una fuente escalada según las
+   transformaciones de sus ancestros y a veces la deja a la escala de
+   partida de una animación (pasó en el sello del hero). Con
+   geometricPrecision el texto sigue siempre al dibujo. */
+.cobertura__mapa text {
+  text-rendering: geometricPrecision;
+}
+
+/* ---------- Móvil: texto arriba, mapa debajo ---------- */
+@media (max-width: 899.98px) {
+  .cobertura__panel {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: var(--esp-5);
+    padding: var(--esp-5) var(--esp-4) var(--esp-4);
+    border-radius: var(--r-lg);
+
+    .lead {
+      max-width: none;
+      margin-top: var(--esp-3);
+    }
+  }
+
+  .cobertura__datos {
+    margin-top: var(--esp-5);
+  }
+
+  .dato__valor {
+    font-size: 3rem;
+  }
+
+  .cobertura__notas {
+    margin-top: var(--esp-4);
+  }
+
+  /* En un mapa de 320 px los nombres a 10 px del lienzo quedaban en 5 */
+  .mapa__nombre {
+    font-size: 15px;
+    letter-spacing: 0.04em;
+    stroke-width: 4;
+  }
+
+  /* Crece desde su esquina superior derecha, que es la que mira a la planta */
+  .mapa__planta-rotulo {
+    transform-box: fill-box;
+    transform-origin: 100% 0%;
+    scale: 1.45;
+  }
+
+  .mapa__punto {
+    r: 5.5px;
+  }
+}
