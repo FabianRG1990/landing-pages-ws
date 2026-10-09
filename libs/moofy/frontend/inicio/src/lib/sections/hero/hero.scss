@@ -117,6 +117,15 @@
     overflow: visible;
     filter: drop-shadow(0 12px 14px rgb(6 59 115 / 0.3));
   }
+
+  /* Chromium compone el texto SVG con una fuente escalada según la
+     transformación de sus ancestros, y la entrada escala el sello 2,6×:
+     una de cada ~40 cargas el texto se quedaba a la escala de partida,
+     encogido en una esquina. Con geometricPrecision no usa esa fuente
+     escalada y el texto sigue siempre al dibujo. */
+  text {
+    text-rendering: geometricPrecision;
+  }
 }
 
 /* El giro con el scroll (--giro, hero.ts) solo mueve el canto y la
