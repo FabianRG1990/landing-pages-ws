@@ -6,6 +6,16 @@
   padding-block: var(--section-y);
 }
 
+/* En escritorio esta sección queda entre dos pantallas completas: el
+   hero, que ya trae su aire abajo, y el carril de líneas, que centra su
+   contenido en la pantalla y trae el suyo arriba. Con el margen entero a
+   cada lado se sumaban más de 300 px en blanco en cada frontera. */
+@media (min-width: 900px) {
+  .fabrica {
+    padding-block: calc(var(--section-y) * 0.5) calc(var(--section-y) * 0.35);
+  }
+}
+
 /* ---------- Cabecera: titular a la izquierda, entrada abajo a la derecha ---------- */
 
 .fabrica__cabeza {
@@ -14,7 +24,7 @@
   column-gap: var(--gutter);
   row-gap: 1.5rem;
   align-items: end;
-  margin-bottom: clamp(3rem, 2rem + 4vw, 5rem);
+  margin-bottom: clamp(2.25rem, 1.5rem + 2.5vw, 3.5rem);
 
   > div {
     grid-column: 1 / span 7;
@@ -149,7 +159,7 @@
 /* ---------- Cifras en el bloque azul ---------- */
 
 .fabrica__bloque {
-  margin-top: clamp(4rem, 3rem + 4vw, 6rem);
+  margin-top: clamp(2.5rem, 2rem + 2.5vw, 4rem);
   padding: clamp(2rem, 1.5rem + 2vw, 3.5rem) clamp(1.5rem, 1rem + 2vw, 3.5rem);
 }
 
