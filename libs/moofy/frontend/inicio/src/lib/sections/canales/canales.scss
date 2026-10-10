@@ -24,8 +24,11 @@
 
 /* ---------- Pestañas (lista vertical en escritorio) ---------- */
 
-.canales__pestanas {
+.canales__carril {
   grid-column: 1 / span 4;
+}
+
+.canales__pestanas {
   display: flex;
   flex-direction: column;
   border-bottom: 1px solid var(--line);
@@ -211,15 +214,60 @@
     display: block;
   }
 
+  /* La fila no cabe entera y se desplaza de lado. Para que se note: el
+     borde por el que queda contenido se desvanece y lleva una flecha.
+     --antes y --mas (0 a 1) los pone el componente según el recorrido;
+     la flecha no recibe el toque, que pasa al chip que tiene debajo. */
+  .canales__carril {
+    --antes: 0;
+    --mas: 0;
+    --chip-y: 0.25rem;
+    position: relative;
+
+    &::before,
+    &::after {
+      content: '';
+      position: absolute;
+      top: calc(var(--chip-y) + 8px);
+      z-index: 1;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--blanco)
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230055a0' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m9 6 6 6-6 6'/%3E%3C/svg%3E")
+        center / 16px no-repeat;
+      box-shadow: var(--shadow-md), 0 0 0 1px var(--line);
+      pointer-events: none;
+    }
+
+    &::before {
+      left: calc(0.375rem - var(--gutter));
+      opacity: var(--antes);
+      transform: scaleX(-1);
+    }
+
+    &::after {
+      right: calc(0.375rem - var(--gutter));
+      opacity: var(--mas);
+    }
+  }
+
   .canales__pestanas {
     flex-direction: row;
     gap: 0.5rem;
     margin-inline: calc(var(--gutter) * -1);
-    padding: 0.25rem var(--gutter) 1.25rem;
+    padding: var(--chip-y) var(--gutter) 1.25rem;
     overflow-x: auto;
     overscroll-behavior-x: contain;
     border-bottom: 0;
     scrollbar-width: none;
+    mask-image: linear-gradient(
+      to right,
+      transparent,
+      #000 calc(var(--antes) * 3.5rem),
+      #000 calc(100% - var(--mas) * 3.5rem),
+      transparent
+    );
 
     &::-webkit-scrollbar {
       display: none;
@@ -398,8 +446,12 @@
     }
   }
 
+  .canales__carril {
+    --chip-y: 0.125rem;
+  }
+
   .canales__pestanas {
-    padding-block: 0.125rem 0.375rem;
+    padding-block: var(--chip-y) 0.375rem;
   }
 
   .pestana {
