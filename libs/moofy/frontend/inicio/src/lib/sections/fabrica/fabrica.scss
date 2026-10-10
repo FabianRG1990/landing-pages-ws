@@ -102,7 +102,7 @@
    Antes el texto de cada pilar arrancaba a 88 px (detrás del círculo
    del icono) y la foto llevaba el filete blanco por fuera del margen.
    Ahora todo arranca en el margen: el icono va encima de su título. */
-@media (max-width: 899.98px) {
+@media (max-width: 899.98px), (orientation: landscape) and (max-height: 520px) {
   .fabrica__cabeza {
     row-gap: var(--esp-4);
     margin-bottom: var(--esp-5);

@@ -127,7 +127,7 @@
 
 /* Escritorio: la sección llena la pantalla y el mapa crece hasta donde
    deja el alto (su ancho sale del alto disponible, 600:573). */
-@media (min-width: 900px) {
+@media (min-width: 900px) and (min-height: 521px) {
   .cobertura {
     display: flex;
     align-items: center;
@@ -142,7 +142,7 @@
 
 /* Mientras está fija, lo que no cabe en la pantalla no se ve: en un
    portátil bajo el texto se aprieta para que las notas no queden fuera. */
-@media (min-width: 900px) and (max-height: 820px) {
+@media (min-width: 900px) and (min-height: 521px) and (max-height: 820px) {
   .cobertura {
     padding-block: calc(var(--nav-h) + 1rem) 1.25rem;
   }
@@ -165,7 +165,7 @@
 }
 
 /* Con poco ancho la columna del texto parte los rótulos de las cifras */
-@media (min-width: 900px) and (max-width: 1199.98px) {
+@media (min-width: 900px) and (min-height: 521px) and (max-width: 1199.98px) {
   .cobertura__panel {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   }
@@ -279,7 +279,7 @@
 }
 
 /* ---------- Móvil: texto arriba, mapa debajo ---------- */
-@media (max-width: 899.98px) {
+@media (max-width: 899.98px), (orientation: landscape) and (max-height: 520px) {
   .cobertura__panel {
     grid-template-columns: minmax(0, 1fr);
     row-gap: var(--esp-5);

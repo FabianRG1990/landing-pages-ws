@@ -141,11 +141,13 @@ section[id] {
   scroll-margin-top: var(--nav-h);
 }
 
+/* El margen crece hasta la zona segura: con el teléfono apaisado la
+   muesca y la esquina redonda caen a los lados (viewport-fit=cover). */
 .shell {
   width: 100%;
   max-width: var(--maxw);
   margin-inline: auto;
-  padding-inline: var(--gutter);
+  padding-inline: max(var(--gutter), env(safe-area-inset-left)) max(var(--gutter), env(safe-area-inset-right));
 }
 
 .measure {
@@ -373,7 +375,7 @@ html.menu-abierto {
   opacity: 0.08;
   pointer-events: none;
 
-  @media (max-width: 899.98px) {
+  @media (max-width: 899.98px), (orientation: landscape) and (max-height: 520px) {
     background-size: 400px;
     opacity: 0.07;
   }

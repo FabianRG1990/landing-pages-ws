@@ -136,7 +136,7 @@
   }
 }
 
-@media (max-width: 899.98px) {
+@media (max-width: 899.98px), (orientation: landscape) and (max-height: 520px) {
   .nav__links,
   .nav__cta {
     display: none;
@@ -226,7 +226,7 @@
   padding-block: 0.5rem;
 }
 
-@media (min-width: 900px) {
+@media (min-width: 900px) and (min-height: 521px) {
   .menu {
     display: none;
   }

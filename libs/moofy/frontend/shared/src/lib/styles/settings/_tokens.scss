@@ -134,11 +134,14 @@
   --dur-slow: 700ms;
 }
 
-/* ---------- Sistema móvil (< 900 px) ----------
+/* ---------- Sistema móvil (< 900 px, o teléfono apaisado) ----------
    Un solo margen (--gutter, 20 px a 390) al que se alinea todo, y
    secciones separadas unos 80 px: con el espaciado de escritorio los
-   huecos entre secciones llegaban a 228 px y parecían zonas vacías. */
-@media (max-width: 899.98px) {
+   huecos entre secciones llegaban a 228 px y parecían zonas vacías.
+
+   La segunda condición es el teléfono en horizontal: hasta 932 px de
+   ancho pero solo 360-430 de alto. Es móvil aunque pase de 900. */
+@media (max-width: 899.98px), (orientation: landscape) and (max-height: 520px) {
   :root {
     --section-y: 2.5rem;
     --nav-h: 76px;

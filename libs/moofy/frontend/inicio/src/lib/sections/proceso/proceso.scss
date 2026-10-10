@@ -174,10 +174,12 @@
 
 /* ---------- Móvil: la línea baja por la izquierda ---------- */
 
+/* Solo en vertical: con el teléfono apaisado caben los cuatro pasos en
+   fila, como en escritorio. */
 /* Móvil: la vía va a 24 px del margen para que el camión (40 px) y su
    halo queden dentro; con la vía en el borde asomaban 17 px por fuera
    de la página. */
-@media (max-width: 767.98px) {
+@media (max-width: 767.98px) and (orientation: portrait) {
   .proceso__linea {
     top: 6px;
     bottom: 0;

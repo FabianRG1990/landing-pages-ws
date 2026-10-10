@@ -206,7 +206,7 @@
 
 /* ---------- Responsive: la lista pasa a una fila de chips ---------- */
 
-@media (max-width: 899.98px) {
+@media (max-width: 899.98px), (orientation: landscape) and (max-height: 520px) {
   .canales__cuerpo {
     display: block;
   }

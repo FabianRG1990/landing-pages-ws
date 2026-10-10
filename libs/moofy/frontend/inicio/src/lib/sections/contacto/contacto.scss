@@ -157,7 +157,7 @@
   display: none;
 }
 
-@media (max-width: 899.98px) {
+@media (max-width: 899.98px), (orientation: landscape) and (max-height: 520px) {
   .contacto__cabeza,
   .tarjeta {
     grid-column: 1 / -1;
@@ -172,7 +172,7 @@
    una caja con otra caja dentro (tres bordes izquierdos: 20, 40 y 60
    px); aquí deja de ser caja. Y sin los chips de canal: el canal ya se
    elige en Canales, y el botón abre un mensaje general. */
-@media (max-width: 899.98px) {
+@media (max-width: 899.98px), (orientation: landscape) and (max-height: 520px) {
   .contacto__panel {
     row-gap: var(--esp-5);
     padding: 0;
