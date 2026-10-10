@@ -16,8 +16,11 @@
 :root {
   color-scheme: light;
 
-  /* --- Fondos --- */
-  --fondo: #ffffff;
+  /* --- Fondos ---
+     El fondo de la página no es blanco puro sino un blanco apenas
+     azulado: las tarjetas y los filetes, que sí son blancos, se
+     despegan de él, y la página deja de verse vacía. */
+  --fondo: #f7fafe;
   --azul-50: #f1f6fc; /* panel suave */
   --azul-100: #e2edf9; /* panel más marcado, bordes de matiz */
   --rojo-50: #fdeff1; /* toque rosado */
