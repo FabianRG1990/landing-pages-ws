@@ -2,25 +2,28 @@
   display: block;
 }
 
+/* ---------- La sección ----------
+   Azul de borde a borde y, en escritorio, a pantalla completa: la
+   cobertura es uno de los dos mensajes de la página y antes era su
+   sección más corta (un panel que pasaba en un solo scroll). Sobre el
+   azul, el texto va en blanco y las cursivas también (el rojo como texto
+   no contrasta: 1.9:1). */
 .cobertura {
-  padding-block: var(--section-y);
-}
-
-/* ---------- El panel ----------
-   El bloque azul de la página: a la izquierda el argumento y a la derecha
-   el mapa. Sobre el azul, el texto va en blanco y las cursivas también
-   (el rojo como texto no contrasta: 1.9:1). */
-.cobertura__panel {
   --cursiva: var(--blanco);
   --capitulo-num: #ff9aa8;
   --capitulo-regla: linear-gradient(90deg, #ff9aa8, var(--blanco));
   --mono-ink: var(--blanco);
 
+  padding-block: var(--section-y);
+  border-radius: 0;
+}
+
+/* A la izquierda el argumento y a la derecha el mapa */
+.cobertura__panel {
   display: grid;
   grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
   column-gap: clamp(1.5rem, 0.5rem + 3vw, 4rem);
   align-items: center;
-  padding: clamp(2.5rem, 2rem + 2.5vw, 4.5rem) clamp(1.5rem, 1rem + 2.5vw, 4.5rem);
 
   .lead {
     max-width: 30ch;
@@ -107,7 +110,62 @@
     display: block;
     width: 100%;
     height: auto;
+    margin-inline: auto;
     overflow: visible;
+  }
+}
+
+/* Escritorio: la sección llena la pantalla y el mapa crece hasta donde
+   deja el alto (su ancho sale del alto disponible, 600:573). */
+@media (min-width: 900px) {
+  .cobertura {
+    display: flex;
+    align-items: center;
+    min-height: 100svh;
+    padding-block: calc(var(--nav-h) + 1.5rem) 2rem;
+  }
+
+  .cobertura__mapa svg {
+    width: min(100%, calc((100svh - var(--nav-h) - 5rem) * 600 / 573));
+  }
+}
+
+/* Mientras está fija, lo que no cabe en la pantalla no se ve: en un
+   portátil bajo el texto se aprieta para que las notas no queden fuera. */
+@media (min-width: 900px) and (max-height: 820px) {
+  .cobertura {
+    padding-block: calc(var(--nav-h) + 1rem) 1.25rem;
+  }
+
+  .cobertura__panel .lead {
+    margin-top: 0.75rem;
+  }
+
+  .cobertura__datos {
+    margin-top: 1.5rem;
+  }
+
+  .dato__valor {
+    font-size: 3.25rem;
+  }
+
+  .cobertura__notas {
+    margin-top: 1.25rem;
+  }
+}
+
+/* Con poco ancho la columna del texto parte los rótulos de las cifras */
+@media (min-width: 900px) and (max-width: 1199.98px) {
+  .cobertura__panel {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .cobertura__datos {
+    column-gap: 1.25rem;
+  }
+
+  .dato + .dato {
+    padding-left: 1.25rem;
   }
 }
 
@@ -215,8 +273,6 @@
   .cobertura__panel {
     grid-template-columns: minmax(0, 1fr);
     row-gap: var(--esp-5);
-    padding: var(--esp-5) var(--esp-4) var(--esp-4);
-    border-radius: var(--r-lg);
 
     .lead {
       max-width: none;
