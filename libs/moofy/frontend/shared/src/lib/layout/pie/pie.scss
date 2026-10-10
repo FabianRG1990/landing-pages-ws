@@ -392,3 +392,12 @@ nav.pie__col {
     padding-top: 1.25rem;
   }
 }
+
+/* A 320 de ancho el correo no cabe en su columna y ensanchaba la página
+   entera: ahí sí puede partir. */
+@media (max-width: 339.98px) {
+  .pie__datos a {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+}

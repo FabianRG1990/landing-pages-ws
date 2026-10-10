@@ -459,6 +459,36 @@
   }
 }
 
+/* A 320 no caben en una fila ni a 14 px y ensanchaban la página: van
+   uno debajo del otro. Ese alto lo cede la entrada, que en una pantalla
+   de 568 ya no cabía junto a las fotos. */
+@media (max-width: 339.98px) and (orientation: portrait) {
+  .hero__entrada {
+    display: none;
+  }
+
+  .hero__acciones {
+    flex-wrap: wrap;
+
+    .btn {
+      flex: 1 1 100%;
+    }
+  }
+
+  .hero__escena {
+    --pieza-h: clamp(4.5rem, calc((100svh - var(--nav-h) - 21rem) / 2), 13rem);
+  }
+
+  .pieza__nombre {
+    padding-inline: 0.5rem;
+    font-size: 0.75rem;
+  }
+
+  .hero__pegatina {
+    width: 4.5rem;
+  }
+}
+
 /* ---------- Teléfono apaisado: el hero en una pantalla ----------
    Texto a la izquierda y mosaico a la derecha. El lado de las fotos sale
    del alto visible (dos filas más la escalera y la tarjeta: 5,75 rem) y
