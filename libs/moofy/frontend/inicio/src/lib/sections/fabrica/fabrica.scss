@@ -272,3 +272,10 @@
     line-height: 1.35;
   }
 }
+
+/* Los apaisados más bajos (320-340 px visibles): los pilares, más juntos */
+@media (orientation: landscape) and (max-height: 339.98px) {
+  .pilar {
+    padding-block: 0.125rem;
+  }
+}

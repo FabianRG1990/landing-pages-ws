@@ -521,3 +521,27 @@
     grid-template-columns: minmax(0, 4fr) minmax(0, 8fr);
   }
 }
+
+/* Los apaisados más bajos (320-340 px visibles): la tarjeta se pasaba
+   12 px de la pantalla; cede aire por dentro, no contenido */
+@media (orientation: landscape) and (max-height: 339.98px) {
+  .canales__pestanas {
+    padding-bottom: 0.25rem;
+  }
+
+  .panel__info {
+    gap: 0.25rem;
+    padding-block: 0.375rem;
+  }
+
+  .panel__datos {
+    > div {
+      padding-top: 0.25rem;
+    }
+
+    dd {
+      font-size: 0.8125rem;
+      line-height: 1.3;
+    }
+  }
+}
