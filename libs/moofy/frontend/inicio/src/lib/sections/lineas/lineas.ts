@@ -22,14 +22,15 @@ import { InclinarDirective } from '@moofy-ui-shared/motion/inclinar.directive';
 type Ref = ElementRef<HTMLElement>;
 
 /**
- * Capítulo 02: las seis líneas, en tarjetas al estilo de
+ * Capítulo 01: el catálogo. Las seis líneas, en tarjetas al estilo de
  * claudioandrade.solutions. Cada tarjeta tiene una acción real: pedir
  * muestras de esa línea por WhatsApp, con el mensaje ya redactado.
  *
- * Escritorio: la sección se fija y el carril (cabecera y tarjetas) pasa
- * en horizontal, 1:1 con el scroll, con la cuenta «01 / 06» y una barra
- * de rojo a azul abajo. Con Tab, la página va a la tarjeta que recibe el
- * foco: el navegador no puede desplazar un carril movido con transform.
+ * Escritorio: la sección se fija con la cabecera arriba y las tarjetas,
+ * que llenan el alto de la pantalla, pasan en horizontal 1:1 con el
+ * scroll, con la cuenta «01 / 06» y una barra de rojo a azul abajo. Con
+ * Tab, la página va a la tarjeta que recibe el foco: el navegador no
+ * puede desplazar un carril movido con transform.
  *
  * Móvil: la fila con scroll-snap de siempre. Sin movimiento: la rejilla.
  */
@@ -74,12 +75,14 @@ export class LineasComponent {
     const recorrido = () => Math.max(0, carril.scrollWidth - window.innerWidth);
 
     // La cuenta sigue a la última tarjeta cuyo borde izquierdo ya cruzó
-    // una marca que avanza con el recorrido (del 35 % al 85 % del
+    // una marca que avanza con el recorrido (del 20 % al 85 % del
     // ancho): con una marca fija en la mitad, la última tarjeta termina
-    // a su derecha y la cuenta no llegaba a 06. Solo se escribe si cambia.
+    // a su derecha y la cuenta no llegaba a 06; y empezando más allá del
+    // 20 %, en pantallas estrechas la segunda tarjeta ya la había cruzado
+    // y la cuenta arrancaba en 02. Solo se escribe si cambia.
     let mostrado = '';
     const contar = (st?: ScrollTrigger) => {
-      const marca = window.innerWidth * (0.35 + 0.5 * (st?.progress ?? 0));
+      const marca = window.innerWidth * (0.2 + 0.65 * (st?.progress ?? 0));
       let i = 0;
       tarjetas.forEach((t, k) => {
         if (t.getBoundingClientRect().left < marca) i = k;

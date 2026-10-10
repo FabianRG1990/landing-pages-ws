@@ -8,7 +8,7 @@
 
 .lineas__cabeza {
   max-width: 46rem;
-  margin-bottom: clamp(2.5rem, 2rem + 3vw, 4.5rem);
+  margin-bottom: clamp(2rem, 1.5rem + 2vw, 3rem);
 
   .lead {
     margin-top: 1.25rem;
@@ -69,6 +69,9 @@
   position: relative;
   margin: 0;
   aspect-ratio: 4 / 3.4;
+  /* En el carril la tarjeta tiene alto fijo: la foto se queda con todo
+     lo que no ocupa el cuerpo. */
+  flex: 1 1 auto;
   overflow: clip;
   background: var(--azul-50);
 
@@ -104,7 +107,7 @@
 
 .linea__cuerpo {
   display: flex;
-  flex: 1;
+  flex: 0 0 auto;
   flex-direction: column;
   padding: 1.25rem 1.5rem 1.5rem;
 }
@@ -172,41 +175,54 @@
 }
 
 /* ---------- Modo horizontal (escritorio, lo activa lineas.ts) ----------
-   La sección ocupa la pantalla y se fija; el carril pone cabecera y
-   tarjetas en una fila y GSAP lo desplaza con transform. El ancho de la
-   tarjeta sale del alto disponible: foto (0.85 del ancho) más ~190 px de
-   cuerpo tienen que caber bajo la barra y sobre el indicador. */
+   La sección ocupa la pantalla y se fija. Arriba queda la cabecera,
+   compacta y quieta; debajo, las tarjetas llenan el alto que sobra y
+   GSAP desplaza el carril con transform. Así el catálogo se ve desde el
+   primer momento: antes la primera pantalla era casi toda titular, con
+   las tarjetas a media altura y cortadas a la derecha.
+
+   El alto de la tarjeta sale de la pantalla (menos la barra, la cabecera
+   y el indicador: ~14 rem) y su ancho, del alto, con un mínimo: en un
+   portátil de 720 px de alto la tarjeta se queda más apaisada antes que
+   estrecha, para que la foto no acabe en una tira. */
 .lineas--horizontal {
-  --tarjeta-w: clamp(16rem, calc((100svh - 25rem) / 0.85), 25rem);
+  --tarjeta-h: clamp(21rem, calc(100svh - var(--nav-h) - 14rem), 40rem);
+  --tarjeta-w: max(20rem, calc(var(--tarjeta-h) * 0.76));
+  /* El margen de la página, también en monitores más anchos que --maxw */
+  --borde: max(var(--gutter), calc((100vw - var(--maxw)) / 2 + var(--gutter)));
 
   position: relative;
   display: flex;
   flex-direction: column;
   justify-content: center;
   height: 100svh;
-  padding-block: calc(var(--nav-h) + 1rem) 5.5rem;
+  padding-block: calc(var(--nav-h) + 1.25rem) 4.5rem;
   overflow: clip;
+
+  /* Titular a la izquierda y entrada a la derecha, en una sola fila */
+  .lineas__cabeza {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 2rem;
+    max-width: none;
+    margin-bottom: 1.5rem;
+
+    .titular {
+      font-size: clamp(2rem, 1.1rem + 2.2vw, 3rem);
+    }
+
+    .lead {
+      max-width: 38ch;
+      margin-top: 0;
+      font-size: var(--fs-body);
+    }
+  }
 
   .lineas__carril {
     position: relative;
-    display: flex;
-    align-items: center;
     width: max-content;
     will-change: transform;
-  }
-
-  /* Ancho del contenido: un ancho fijo cortaba «Un mismo estándar.»,
-     que no se parte (la cursiva va en nowrap). */
-  .lineas__intro {
-    flex: 0 0 auto;
-    width: auto;
-    max-width: none;
-    margin: 0;
-    padding-right: clamp(2rem, 4vw, 5rem);
-  }
-
-  .lineas__cabeza {
-    margin-bottom: 0;
   }
 
   .lineas__lista {
@@ -215,11 +231,45 @@
     width: max-content;
     max-width: none;
     margin: 0;
-    padding-left: 0;
+    padding-inline: var(--borde);
   }
 
   .linea {
     flex: 0 0 var(--tarjeta-w);
+    height: var(--tarjeta-h);
+  }
+
+  /* La foto ya no manda con su proporción: llena lo que deja el cuerpo */
+  .linea__foto {
+    aspect-ratio: auto;
+    min-height: 0;
+  }
+
+  .linea__nombre {
+    font-size: clamp(1.5rem, 1.2rem + 0.9vw, 2rem);
+  }
+
+  /* Pantallas bajas: el cuerpo se aprieta y la foto se queda con el alto */
+  @media (max-height: 820px) {
+    .lineas__cabeza {
+      margin-bottom: 1rem;
+    }
+
+    .linea__cuerpo {
+      padding: 0.875rem 1.25rem 1rem;
+    }
+
+    .linea__nombre {
+      font-size: 1.5rem;
+    }
+
+    .linea__pie {
+      padding-top: 0.75rem;
+    }
+
+    .linea__ideal {
+      padding-top: 0.75rem;
+    }
   }
 
   .lineas__hud {
@@ -284,10 +334,15 @@
     }
   }
 
+  /* Más foto y menos tarjeta vecina: el producto es el argumento */
+  .linea__foto {
+    aspect-ratio: 4 / 4.2;
+  }
+
   .lineas__lista {
     grid-template-columns: none;
     grid-auto-flow: column;
-    grid-auto-columns: 80vw;
+    grid-auto-columns: 84vw;
     gap: 0.875rem;
     width: max-content;
     max-width: none;

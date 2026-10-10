@@ -1,18 +1,20 @@
 <section #seccion id="catalogo" class="lineas" aria-labelledby="lineas-titulo">
-  <!-- El carril: en escritorio se fija la sección y el carril entero
-       (cabecera y tarjetas) se desplaza en horizontal con el scroll
-       (lineas.ts). En móvil y sin movimiento es cabecera y lista. -->
-  <div #carril class="lineas__carril">
-    <div class="shell lineas__intro">
-      <header class="lineas__cabeza">
+  <div class="shell lineas__intro">
+    <header class="lineas__cabeza">
+      <div>
         <app-capitulo [num]="l.num" [nombre]="l.nombre" appRevelar />
         <h2 id="lineas-titulo" class="titular" appRevelar [retraso]="80">
           <app-renglones [renglones]="l.titulo" />
         </h2>
-        <p class="lead" appRevelar [retraso]="220">{{ l.entrada }}</p>
-      </header>
-    </div>
+      </div>
+      <p class="lead" appRevelar [retraso]="220">{{ l.entrada }}</p>
+    </header>
+  </div>
 
+  <!-- El carril: en escritorio se fija la sección y las tarjetas pasan en
+       horizontal con el scroll, bajo la cabecera, que se queda en su
+       sitio (lineas.ts). En móvil y sin movimiento es una lista. -->
+  <div #carril class="lineas__carril">
     <!-- En móvil la lista es una fila con scroll horizontal nativo: se
          arrastra con el dedo, se recorre con Tab y no necesita JS. -->
     <div class="lineas__pista" tabindex="0" role="region" aria-label="Líneas de producto, desplazable">
