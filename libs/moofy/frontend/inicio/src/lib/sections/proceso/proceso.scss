@@ -220,3 +220,23 @@
     left: 1.125rem;
   }
 }
+
+/* ---------- Teléfono apaisado: los cuatro pasos en fila, más juntos ---------- */
+@media (orientation: landscape) and (max-height: 520px) {
+  .proceso__cabeza {
+    margin-bottom: 1.75rem;
+  }
+
+  .proceso__pasos {
+    gap: 1.25rem;
+  }
+
+  .paso {
+    padding-top: 2rem;
+  }
+
+  .paso__texto {
+    font-size: 0.9375rem;
+    line-height: 1.45;
+  }
+}

@@ -353,3 +353,87 @@
     scroll-snap-align: start;
   }
 }
+
+/* ---------- Teléfono apaisado ----------
+   La misma fila que se arrastra con el dedo, con la tarjeta tumbada:
+   foto a la izquierda y texto a la derecha. De pie, cada tarjeta medía
+   pantalla y media de alto. */
+@media (orientation: landscape) and (max-height: 520px) {
+  .lineas__cabeza {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 1.5rem;
+    max-width: none;
+    margin-bottom: 0.875rem;
+
+    .lead {
+      max-width: 34ch;
+      margin-top: 0;
+      font-size: 1rem;
+    }
+  }
+
+  .lineas__pista {
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: max(var(--gutter), env(safe-area-inset-left));
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+
+  .lineas__lista {
+    grid-template-columns: none;
+    grid-auto-flow: column;
+    grid-auto-columns: min(27rem, 58vw);
+    gap: 0.875rem;
+    width: max-content;
+    max-width: none;
+    padding-bottom: 1rem;
+  }
+
+  .linea {
+    scroll-snap-align: start;
+  }
+
+  .linea__tarjeta {
+    flex-direction: row;
+    min-height: 12.5rem;
+  }
+
+  .linea__foto {
+    flex: 0 0 42%;
+    aspect-ratio: auto;
+  }
+
+  /* En una foto de 170 px no caben la insignia y la cuenta */
+  .linea__cuenta {
+    display: none;
+  }
+
+  .linea__marcas {
+    inset: 0.625rem 0.625rem auto;
+  }
+
+  .linea__cuerpo {
+    flex: 1;
+    min-width: 0;
+    padding: 1rem 1.125rem;
+  }
+
+  .linea__nombre {
+    font-size: 1.375rem;
+  }
+
+  .linea__pie {
+    padding-top: 0.75rem;
+  }
+
+  .linea__ideal {
+    padding-top: 0.75rem;
+  }
+}

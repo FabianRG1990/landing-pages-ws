@@ -147,3 +147,20 @@
     --nav-h: 76px;
   }
 }
+
+/* ---------- Teléfono apaisado ----------
+   Sobra ancho y falta alto (360-430 px): la barra se encoge, los
+   titulares se miden contra el alto y cada sección se arma en dos
+   columnas para caber en una pantalla. */
+@media (orientation: landscape) and (max-height: 520px) {
+  :root {
+    --nav-h: 60px;
+    --section-y: 1.75rem;
+    --gutter: 1.5rem;
+    --fs-display: clamp(1.875rem, min(4.8vw, 10.5vh), 2.625rem);
+    --fs-h2: clamp(1.5rem, min(3.6vw, 8vh), 2rem);
+    --fs-h3: 1.125rem;
+    --fs-lead: 1.0625rem;
+    --fs-body: 1rem;
+  }
+}

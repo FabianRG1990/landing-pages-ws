@@ -375,3 +375,20 @@ nav.pie__col {
     margin-bottom: 1rem;
   }
 }
+
+/* ---------- Teléfono apaisado: menos aire arriba y el logo a escala ---------- */
+@media (orientation: landscape) and (max-height: 520px) {
+  .pie__rejilla {
+    row-gap: 1.5rem;
+    padding-block: 1.75rem 1.25rem;
+  }
+
+  .pie__logo {
+    width: 150px;
+  }
+
+  nav.pie__col,
+  .pie__col:nth-child(3) {
+    padding-top: 1.25rem;
+  }
+}

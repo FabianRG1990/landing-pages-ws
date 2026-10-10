@@ -141,3 +141,55 @@
     margin-top: var(--esp-1);
   }
 }
+
+/* ---------- Teléfono apaisado ----------
+   Titular y entrada en una fila; debajo, la foto a media anchura y los
+   pilares al lado. A todo el ancho la foto medía dos pantallas de alto. */
+@media (orientation: landscape) and (max-height: 520px) {
+  .fabrica__cabeza {
+    row-gap: 0;
+    align-items: end;
+    margin-bottom: 1rem;
+
+    > div {
+      grid-column: 1 / span 6;
+    }
+  }
+
+  .fabrica__entrada {
+    grid-column: 7 / -1;
+    font-size: 1rem;
+  }
+
+  .fabrica__cuerpo {
+    align-items: center;
+    row-gap: 0;
+  }
+
+  .fabrica__foto {
+    grid-column: 1 / span 6;
+    aspect-ratio: 16 / 10;
+  }
+
+  .fabrica__pilares {
+    grid-column: 7 / -1;
+  }
+
+  .pilar {
+    grid-template-columns: 2.25rem 1fr;
+    gap: 0 0.875rem;
+    padding-block: 0.625rem;
+  }
+
+  .pilar__icono {
+    width: 2.25rem;
+    height: 2.25rem;
+    font-size: 1rem;
+  }
+
+  .pilar__texto {
+    margin-top: 0.125rem;
+    font-size: 0.9375rem;
+    line-height: 1.45;
+  }
+}

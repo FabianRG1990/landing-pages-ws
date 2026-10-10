@@ -231,3 +231,37 @@
     display: none;
   }
 }
+
+/* ---------- Teléfono apaisado ----------
+   El logo se ajusta a la barra de 60 px. El menú, en dos columnas: las
+   secciones a la izquierda y el botón a la derecha; apilado, la lista
+   no cabía en 390 px de alto y el botón quedaba fuera de la pantalla. */
+@media (orientation: landscape) and (max-height: 520px) {
+  .nav__logo {
+    width: 104px;
+  }
+
+  .menu__shell {
+    flex-direction: row;
+    align-items: center;
+    gap: 2rem;
+    padding-block: 1rem max(1rem, env(safe-area-inset-bottom));
+  }
+
+  .menu__lista {
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 2rem;
+  }
+
+  .menu__link {
+    padding-block: 0.875rem;
+    font-size: 1.5rem;
+  }
+
+  .menu__pie {
+    flex: 0 0 15rem;
+    margin-top: 0;
+  }
+}

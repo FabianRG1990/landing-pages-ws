@@ -389,3 +389,121 @@
     flex: 1 1 100%;
   }
 }
+
+/* ---------- Teléfono apaisado ----------
+   Texto a la izquierda y mosaico a la derecha, todo en una pantalla.
+   Las fotos pasan a cuadradas para que las dos filas quepan en el alto;
+   miden unos 100 px y el nombre no cabe, así que se oculta. La tarjeta
+   se ciñe a su contenido y no sale de la escena: asomando a la izquierda
+   pisaba el segundo botón en los teléfonos de 667 a 740 px de ancho. */
+@media (orientation: landscape) and (max-height: 520px) {
+  .hero__shell {
+    row-gap: 0;
+    min-height: 100svh;
+    padding-top: calc(var(--nav-h) + 0.5rem);
+    padding-bottom: 0.75rem;
+  }
+
+  .hero__texto {
+    grid-column: 1 / span 7;
+  }
+
+  .hero__eyebrow {
+    margin-bottom: 0.625rem;
+  }
+
+  .hero__titulo {
+    max-width: none;
+  }
+
+  .hero__entrada {
+    max-width: none;
+    margin-top: 0.625rem;
+  }
+
+  /* Los dos botones en una fila también a 667 px de ancho */
+  .hero__acciones {
+    flex-wrap: nowrap;
+    gap: 0.75rem;
+    margin-top: 1rem;
+
+    .btn {
+      padding-inline: 1rem;
+    }
+  }
+
+  .hero__escena {
+    --escalon: 1.25rem;
+    --sangria: 0rem;
+
+    grid-column: 8 / -1;
+    display: block;
+    width: 100%;
+    max-width: 20rem;
+    justify-self: end;
+    padding: 0 0 1.25rem;
+  }
+
+  .hero__forma {
+    display: block;
+  }
+
+  .hero__mosaico {
+    gap: 0.5rem;
+  }
+
+  .pieza {
+    aspect-ratio: 1;
+    border-radius: var(--r-md);
+    box-shadow: 0 0 0 3px var(--blanco), var(--shadow-md);
+  }
+
+  .pieza__nombre {
+    display: none;
+  }
+
+  .hero__pegatina {
+    top: -1.25rem;
+    right: -0.75rem;
+    width: 5rem;
+  }
+
+  .hero__tarjeta {
+    position: absolute;
+    left: 0;
+    width: max-content;
+    margin: 0;
+    padding: 0.375rem 0.625rem 0.5rem;
+  }
+
+  .hero__cifras {
+    grid-template-columns: repeat(2, auto);
+    column-gap: 0.625rem;
+  }
+
+  .hero__cifras > div + div {
+    padding-left: 0.625rem;
+  }
+
+  .hero__cifras dt {
+    font-size: 0.8125rem;
+  }
+
+  .hero__cifra {
+    font-size: 1.625rem;
+  }
+}
+
+/* Los apaisados más estrechos (667-740 px): con el botón a tamaño
+   normal, «Ver catálogo» llegaba hasta la tarjeta de cifras. */
+@media (orientation: landscape) and (max-height: 520px) and (max-width: 760px) {
+  .hero__acciones .btn {
+    padding-inline: 0.75rem;
+    font-size: 0.9375rem;
+  }
+
+  /* Y sin la flecha: son los 25 px que faltan a 667 */
+  .hero__acciones app-icono {
+    display: none;
+  }
+}

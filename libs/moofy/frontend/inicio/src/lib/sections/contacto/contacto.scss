@@ -224,3 +224,38 @@
     text-underline-offset: 0.3em;
   }
 }
+
+/* ---------- Teléfono apaisado ----------
+   El titular a la izquierda y la tarjeta a la derecha, con los dos
+   botones en una fila y los cuatro datos en dos columnas. */
+@media (orientation: landscape) and (max-height: 520px) {
+  .contacto__panel {
+    row-gap: 0;
+    align-items: center;
+  }
+
+  .contacto__cabeza {
+    grid-column: 1 / span 5;
+  }
+
+  .tarjeta {
+    grid-column: 6 / -1;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+    padding: 1rem;
+  }
+
+  /* Los dos botones comparten fila: menos relleno para que el texto quepa */
+  .tarjeta__cta,
+  .tarjeta__visita {
+    padding-inline: 0.5rem;
+  }
+
+  .tarjeta__datos {
+    grid-column: 1 / -1;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.25rem 1rem;
+    margin-top: 0.25rem;
+    padding-top: 0.75rem;
+  }
+}
