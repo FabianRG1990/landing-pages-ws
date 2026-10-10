@@ -201,8 +201,26 @@
 
   .tarjeta__datos {
     grid-template-columns: 1fr;
-    gap: var(--esp-4);
+    gap: var(--esp-3);
     margin-top: var(--esp-4);
     padding-top: var(--esp-4);
+
+    > div {
+      gap: 0;
+    }
+  }
+
+  /* 44 px de alto para el dedo: el teléfono, el WhatsApp y el correo
+     son lo que más se toca aquí y medían 21 px. El subrayado se queda
+     bajo el texto, no bajo la caja. */
+  .tarjeta__datos .enlace {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    border-bottom: 0;
+    text-decoration: underline;
+    text-decoration-color: var(--line-strong);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.3em;
   }
 }

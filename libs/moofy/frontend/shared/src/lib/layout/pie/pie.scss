@@ -351,3 +351,27 @@ nav.pie__col {
     padding-top: 1.25rem;
   }
 }
+
+/* ---------- Dedo ----------
+   En cualquier pantalla táctil los enlaces de las listas miden 44 px de
+   alto (en tableta y con el teléfono apaisado medían 20). */
+@media (hover: none) and (pointer: coarse) {
+  .pie__lista {
+    gap: 0;
+  }
+
+  .pie__lista li,
+  .pie__lista a {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+  }
+
+  .pie__titulo {
+    margin-bottom: 0.25rem;
+  }
+
+  .pie__pedidos .pie__titulo {
+    margin-bottom: 1rem;
+  }
+}
