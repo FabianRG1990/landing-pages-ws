@@ -22,25 +22,28 @@
     </div>
 
     <div #escena class="hero__escena">
-      <!-- La forma azul del logo detrás de la foto: el color entra como
+      <!-- La forma azul del logo detrás de las fotos: el color entra como
            una masa alegre, no como un fondo de página. -->
       <div #forma class="hero__forma" aria-hidden="true"></div>
 
-      <figure #foto class="hero__foto" appParallax [recorrido]="5">
-        <picture>
-          <source media="(max-width: 899.98px)" [attr.srcset]="foto800(hero.imagen)" />
-          <img
-            [src]="hero.imagen"
-            [attr.srcset]="foto800(hero.imagen) + ' 800w, ' + hero.imagen + ' 1536w'"
-            sizes="(max-width: 1439px) 46vw, 670px"
-            [alt]="hero.alt"
-            width="1536"
-            height="1024"
-            fetchpriority="high"
-            decoding="async"
-          />
-        </picture>
-      </figure>
+      <!-- El catálogo a la vista: una foto por línea, en tres columnas
+           en escalera. La escalera deja libre la esquina de arriba a la
+           derecha (el sello) y la de abajo a la izquierda (las cifras). -->
+      <ul #mosaico class="hero__mosaico" aria-label="Las seis líneas del catálogo">
+        @for (item of lineas; track item.id; let i = $index) {
+          <li class="pieza" [style.--col]="i % 3">
+            <img
+              [src]="foto800(item.imagen)"
+              [alt]="item.alt"
+              width="800"
+              height="1200"
+              [attr.fetchpriority]="i < 3 ? 'high' : null"
+              decoding="async"
+            />
+            <span class="pieza__nombre">{{ item.nombre }}</span>
+          </li>
+        }
+      </ul>
 
       <!-- Sello de origen: canto festoneado como un cortador de masa, en
            rojo con el filete blanco y el contorno azul del logo; la
@@ -85,17 +88,11 @@
       </div>
 
       <aside #tarjeta class="carta hero__tarjeta" aria-label="Moofy en cifras">
-        <p class="hero__tarjeta-cabeza mono">
-          {{ t.etiqueta }}
-          <span class="vivo" aria-hidden="true"></span>
-        </p>
-        <p #cifra class="hero__cifra">{{ t.cifra }}</p>
-        <p class="hero__cifra-texto">{{ t.cifraTexto }}</p>
-        <dl class="hero__tarjeta-datos">
-          @for (d of t.datos; track d.k) {
+        <dl class="hero__cifras">
+          @for (c of hero.cifras; track c.texto) {
             <div>
-              <dt class="mono">{{ d.k }}</dt>
-              <dd>{{ d.v }}</dd>
+              <dt>{{ c.texto }}</dt>
+              <dd class="hero__cifra" [attr.data-valor]="c.valor">{{ c.valor }}</dd>
             </div>
           }
         </dl>

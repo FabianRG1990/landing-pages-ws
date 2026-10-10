@@ -69,23 +69,16 @@ export const HERO = {
     'Seis líneas de repostería fina empacada, de nuestra planta en Grecia a cualquier punto del país.',
   ctaPrimario: 'Agendar reunión comercial',
   ctaSecundario: 'Ver catálogo',
-  imagen: 'img/hero-hojaldre.webp',
-  alt: 'Hojaldres dorados recién horneados sobre la bandeja de una línea de producción.',
   pegatina: ['Hecho en', 'Costa Rica'],
   // La leyenda que da la vuelta al sello; termina en separador porque
   // el final se une con el principio.
   selloVuelta: 'Planta propia · Grecia · Alajuela · ',
-  // La tarjeta de datos del hero: solo hechos publicados.
-  tarjeta: {
-    etiqueta: 'Planta propia · Grecia',
-    cifra: '06',
-    cifraTexto: 'Líneas en catálogo',
-    datos: [
-      { k: 'Canales', v: '9' },
-      { k: 'Provincias', v: '7' },
-      { k: 'Flota', v: 'Propia' },
-    ],
-  },
+  // Las dos cifras del hero, que son los dos mensajes de la página: el
+  // catálogo y la cobertura. Solo hechos publicados.
+  cifras: [
+    { valor: 6, texto: 'Líneas' },
+    { valor: 7, texto: 'Provincias' },
+  ],
 } as const;
 
 export const FABRICA = {
