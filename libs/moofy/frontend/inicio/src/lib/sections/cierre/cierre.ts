@@ -104,9 +104,10 @@ export class CierreComponent {
     const APERTURA = 0.9;
     const RESPIRO = 0.15;
     const TOTAL = ABRE + APERTURA + RESPIRO;
-    // 0.88 pantallas de scroll por unidad: la misma velocidad del camión
-    // que tenía el pin de 2.6 pantallas.
-    const PANTALLAS_POR_UNIDAD = 0.88;
+    // Media pantalla de scroll por unidad: el pin entero dura 1,3
+    // pantallas. Con 0.88 eran 2,2 y el proceso ocupaba más recorrido
+    // que el catálogo o la cobertura, que son el mensaje de la página.
+    const PANTALLAS_POR_UNIDAD = 0.5;
 
     const tl = gsap.timeline({
       defaults: { ease: 'none' },
