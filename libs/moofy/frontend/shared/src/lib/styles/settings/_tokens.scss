@@ -144,23 +144,34 @@
 @media (max-width: 899.98px), (orientation: landscape) and (max-height: 520px) {
   :root {
     --section-y: 2.5rem;
-    --nav-h: 76px;
+    --nav-h: 64px;
+    /* El aire de cada pantalla, arriba (bajo la barra) y abajo */
+    --pantalla-y: 0.75rem;
+    /* Los titulares se miden contra el ancho y contra el alto visible:
+       en un teléfono de 664 px útiles un titular de tres renglones no
+       puede llevarse un cuarto de la pantalla. */
+    --fs-display: clamp(1.875rem, min(9.6vw, 5.6svh), 2.75rem);
+    --fs-h2: clamp(1.625rem, min(8vw, 4.6svh), 2.25rem);
+    --fs-h3: 1.125rem;
+    --fs-lead: 1.0625rem;
+    --fs-body: 1.0625rem;
   }
 }
 
 /* ---------- Teléfono apaisado ----------
-   Sobra ancho y falta alto (360-430 px): la barra se encoge, los
-   titulares se miden contra el alto y cada sección se arma en dos
-   columnas para caber en una pantalla. */
+   Sobra ancho y falta alto (unos 340 px útiles con las barras del
+   navegador): la barra se encoge, los titulares se miden contra el alto
+   y cada sección se arma en dos columnas para caber en una pantalla. */
 @media (orientation: landscape) and (max-height: 520px) {
   :root {
-    --nav-h: 60px;
+    --nav-h: 52px;
+    --pantalla-y: 0.5rem;
     --section-y: 1.75rem;
     --gutter: 1.5rem;
-    --fs-display: clamp(1.875rem, min(4.8vw, 10.5vh), 2.625rem);
-    --fs-h2: clamp(1.5rem, min(3.6vw, 8vh), 2rem);
-    --fs-h3: 1.125rem;
-    --fs-lead: 1.0625rem;
+    --fs-display: clamp(1.625rem, min(4.6vw, 10svh), 2.5rem);
+    --fs-h2: clamp(1.375rem, min(3.4vw, 8svh), 2rem);
+    --fs-h3: 1.0625rem;
+    --fs-lead: 1rem;
     --fs-body: 1rem;
   }
 }

@@ -146,8 +146,9 @@
     display: block;
   }
 
+  /* 108 px de ancho = 49 de alto en una barra de 64 */
   .nav__logo {
-    width: 128px;
+    width: 108px;
   }
 }
 
@@ -233,12 +234,12 @@
 }
 
 /* ---------- Teléfono apaisado ----------
-   El logo se ajusta a la barra de 60 px. El menú, en dos columnas: las
+   El logo se ajusta a la barra de 52 px. El menú, en dos columnas: las
    secciones a la izquierda y el botón a la derecha; apilado, la lista
    no cabía en 390 px de alto y el botón quedaba fuera de la pantalla. */
 @media (orientation: landscape) and (max-height: 520px) {
   .nav__logo {
-    width: 104px;
+    width: 88px;
   }
 
   .menu__shell {

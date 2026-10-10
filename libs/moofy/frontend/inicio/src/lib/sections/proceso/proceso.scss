@@ -221,22 +221,78 @@
   }
 }
 
-/* ---------- Teléfono apaisado: los cuatro pasos en fila, más juntos ---------- */
-@media (orientation: landscape) and (max-height: 520px) {
+/* ---------- Teléfono en vertical: el proceso en una pantalla ---------- */
+@media (max-width: 899.98px) and (orientation: portrait) {
+  .proceso {
+    display: flex;
+    align-items: center;
+    min-height: 100svh;
+    padding-block: calc(var(--nav-h) + var(--pantalla-y)) var(--pantalla-y);
+
+    > .shell {
+      flex: 1;
+    }
+  }
+
   .proceso__cabeza {
-    margin-bottom: 1.75rem;
+    margin-bottom: 1.25rem;
   }
 
   .proceso__pasos {
-    gap: 1.25rem;
+    gap: 1rem;
   }
 
   .paso {
-    padding-top: 2rem;
+    gap: 0.125rem;
+  }
+
+  .paso__titulo {
+    margin-top: 0;
   }
 
   .paso__texto {
     font-size: 0.9375rem;
-    line-height: 1.45;
+    line-height: 1.4;
+  }
+}
+
+/* ---------- Teléfono apaisado: el proceso en una pantalla ----------
+   El capítulo y el titular en un renglón y los cuatro pasos en fila. */
+@media (orientation: landscape) and (max-height: 520px) {
+  .proceso {
+    display: flex;
+    align-items: center;
+    min-height: 100svh;
+    padding-block: calc(var(--nav-h) + var(--pantalla-y)) var(--pantalla-y);
+
+    > .shell {
+      flex: 1;
+    }
+  }
+
+  .proceso__cabeza {
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+    max-width: none;
+    margin-bottom: 1.25rem;
+
+    .capitulo {
+      margin-bottom: 0;
+    }
+  }
+
+  .proceso__pasos {
+    gap: 1rem;
+  }
+
+  .paso {
+    gap: 0.25rem;
+    padding-top: 1.75rem;
+  }
+
+  .paso__texto {
+    font-size: 0.9375rem;
+    line-height: 1.4;
   }
 }

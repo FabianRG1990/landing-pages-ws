@@ -330,82 +330,21 @@
   }
 }
 
-/* ---------- Móvil: un solo borde ----------
-   El mosaico ocupa exactamente el ancho del texto (el margen de la
-   página) y la tarjeta deja de flotar: va debajo, con los mismos bordes.
-   Las fotos miden ~110 px y el nombre no cabe: se oculta, porque el
-   catálogo con sus nombres empieza justo debajo. */
-@media (max-width: 599.98px) {
+/* ---------- Teléfono en vertical: el hero en una pantalla ----------
+   Texto arriba y, debajo, el mosaico y las cifras. Todo es fijo menos el
+   alto de las fotos, que se queda con lo que sobra de la pantalla: el
+   alto visible menos la barra y menos lo que ocupan el texto, los
+   botones y las cifras (unos 27 rem). Sin escalera: aquí el espacio
+   es para las fotos. */
+@media (max-width: 899.98px) and (orientation: portrait) {
   .hero__shell {
-    row-gap: var(--esp-6);
-  }
-
-  .hero__escena {
-    --escalon: 1rem;
-    --sangria: 0rem;
-
-    display: grid;
-    padding: 0;
-  }
-
-  /* El óvalo solo funciona con aire alrededor; en móvil cortaba la
-     composición por la derecha. */
-  .hero__forma {
-    display: none;
-  }
-
-  .hero__mosaico {
-    gap: 0.5rem;
-  }
-
-  .pieza {
-    border-radius: var(--r-md);
-    box-shadow: var(--shadow-md);
-  }
-
-  .pieza__nombre {
-    display: none;
-  }
-
-  /* Asoma por encima del mosaico, en el hueco de la escalera */
-  .hero__pegatina {
-    top: -2.25rem;
-    right: -0.25rem;
-    width: 6rem;
-  }
-
-  .hero__tarjeta {
-    position: relative;
-    width: auto;
-    margin-top: calc(var(--escalon) * -1);
-    padding: var(--esp-3) var(--esp-4);
-  }
-
-  .hero__acciones {
-    gap: var(--esp-2);
-  }
-
-  .hero__acciones .btn {
-    flex: 1 1 100%;
-  }
-}
-
-/* ---------- Teléfono apaisado ----------
-   Texto a la izquierda y mosaico a la derecha, todo en una pantalla.
-   Las fotos pasan a cuadradas para que las dos filas quepan en el alto;
-   miden unos 100 px y el nombre no cabe, así que se oculta. La tarjeta
-   se ciñe a su contenido y no sale de la escena: asomando a la izquierda
-   pisaba el segundo botón en los teléfonos de 667 a 740 px de ancho. */
-@media (orientation: landscape) and (max-height: 520px) {
-  .hero__shell {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
     row-gap: 0;
     min-height: 100svh;
-    padding-top: calc(var(--nav-h) + 0.5rem);
-    padding-bottom: 0.75rem;
-  }
-
-  .hero__texto {
-    grid-column: 1 / span 7;
+    padding-top: calc(var(--nav-h) + var(--pantalla-y));
+    padding-bottom: var(--pantalla-y);
   }
 
   .hero__eyebrow {
@@ -421,27 +360,156 @@
     margin-top: 0.625rem;
   }
 
-  /* Los dos botones en una fila también a 667 px de ancho */
+  /* Los dos botones en una fila; sin la flecha, que no cabe a 390 */
   .hero__acciones {
     flex-wrap: nowrap;
-    gap: 0.75rem;
-    margin-top: 1rem;
+    gap: 0.5rem;
+    margin-top: 0.875rem;
 
     .btn {
-      padding-inline: 1rem;
+      flex: 0 1 auto;
+      padding-inline: 0.875rem;
+      font-size: 0.9375rem;
+    }
+
+    .btn--rojo {
+      flex: 1 1 auto;
+    }
+
+    app-icono {
+      display: none;
     }
   }
 
   .hero__escena {
-    --escalon: 1.25rem;
+    --pieza-h: clamp(4.5rem, calc((100svh - var(--nav-h) - 27rem) / 2), 10rem);
+
+    display: block;
+    width: 100%;
+    max-width: none;
+    margin-top: 1rem;
+    padding: 0;
+  }
+
+  .hero__forma {
+    display: none;
+  }
+
+  .hero__mosaico {
+    gap: 0.5rem;
+    padding-bottom: 0;
+  }
+
+  .pieza {
+    height: var(--pieza-h);
+    aspect-ratio: auto;
+    border-radius: var(--r-md);
+    box-shadow: var(--shadow-md);
+    translate: none;
+  }
+
+  /* Asoma por encima del mosaico, sobre su esquina */
+  .hero__pegatina {
+    top: -1.75rem;
+    right: -0.25rem;
+    width: 5.25rem;
+  }
+
+  /* Las dos cifras en una franja baja: número y rótulo en el mismo renglón */
+  .hero__tarjeta {
+    position: relative;
+    left: auto;
+    bottom: auto;
+    width: auto;
+    margin: 0.5rem 0 0;
+    padding: 0.5rem 1rem;
+  }
+
+  .hero__cifras > div {
+    flex-direction: row;
+    align-items: baseline;
+    gap: 0.5rem;
+  }
+
+  .hero__cifra {
+    font-size: 1.75rem;
+  }
+}
+
+/* A 360 px de ancho los dos botones no caben a 15 px, y la entrada
+   ocupa un renglón más */
+@media (max-width: 374.98px) and (orientation: portrait) {
+  .hero__acciones .btn {
+    padding-inline: 0.75rem;
+    font-size: 0.875rem;
+  }
+
+  .hero__escena {
+    --pieza-h: clamp(4.5rem, calc((100svh - var(--nav-h) - 28.5rem) / 2), 10rem);
+  }
+}
+
+/* ---------- Teléfono apaisado: el hero en una pantalla ----------
+   Texto a la izquierda y mosaico a la derecha. El lado de las fotos sale
+   del alto visible (dos filas más la escalera y la tarjeta: 5,75 rem) y
+   de él, el ancho de la escena. El nombre no cabe en fotos de 100 px y
+   se oculta. La tarjeta se ciñe a su contenido y no sale de la escena:
+   asomando a la izquierda pisaba el segundo botón. */
+@media (orientation: landscape) and (max-height: 520px) {
+  .hero__shell {
+    row-gap: 0;
+    align-items: center;
+    min-height: 100svh;
+    padding-top: calc(var(--nav-h) + var(--pantalla-y));
+    padding-bottom: var(--pantalla-y);
+  }
+
+  .hero__texto {
+    grid-column: 1 / span 7;
+  }
+
+  .hero__eyebrow {
+    margin-bottom: 0.5rem;
+  }
+
+  .hero__titulo {
+    max-width: none;
+  }
+
+  .hero__entrada {
+    max-width: none;
+    margin-top: 0.5rem;
+  }
+
+  .hero__acciones {
+    flex-wrap: nowrap;
+    gap: 0.625rem;
+    margin-top: 0.75rem;
+
+    .btn {
+      flex: 0 1 auto;
+      min-height: 44px;
+      padding-inline: 0.875rem;
+      font-size: 0.9375rem;
+    }
+
+    app-icono {
+      display: none;
+    }
+  }
+
+  .hero__escena {
+    --pieza: clamp(4rem, calc((100svh - var(--nav-h) - 5.75rem) / 2), 7.5rem);
+    --escalon: 1rem;
     --sangria: 0rem;
 
     grid-column: 8 / -1;
     display: block;
-    width: 100%;
-    max-width: 20rem;
+    width: calc(var(--pieza) * 3 + 1rem);
+    max-width: 100%;
     justify-self: end;
-    padding: 0 0 1.25rem;
+    margin-top: 0;
+    padding: 0 0 1rem;
   }
 
   .hero__forma {
@@ -450,10 +518,12 @@
 
   .hero__mosaico {
     gap: 0.5rem;
+    padding-bottom: calc(var(--escalon) * 2);
   }
 
   .pieza {
-    aspect-ratio: 1;
+    height: var(--pieza);
+    aspect-ratio: auto;
     border-radius: var(--r-md);
     box-shadow: 0 0 0 3px var(--blanco), var(--shadow-md);
   }
@@ -463,9 +533,9 @@
   }
 
   .hero__pegatina {
-    top: -1.25rem;
+    top: -1rem;
     right: -0.75rem;
-    width: 5rem;
+    width: 4.5rem;
   }
 
   .hero__tarjeta {
@@ -490,20 +560,6 @@
   }
 
   .hero__cifra {
-    font-size: 1.625rem;
-  }
-}
-
-/* Los apaisados más estrechos (667-740 px): con el botón a tamaño
-   normal, «Ver catálogo» llegaba hasta la tarjeta de cifras. */
-@media (orientation: landscape) and (max-height: 520px) and (max-width: 760px) {
-  .hero__acciones .btn {
-    padding-inline: 0.75rem;
-    font-size: 0.9375rem;
-  }
-
-  /* Y sin la flecha: son los 25 px que faltan a 667 */
-  .hero__acciones app-icono {
-    display: none;
+    font-size: 1.5rem;
   }
 }

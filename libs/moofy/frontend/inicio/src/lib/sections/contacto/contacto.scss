@@ -225,11 +225,56 @@
   }
 }
 
-/* ---------- Teléfono apaisado ----------
+/* ---------- Teléfono en vertical: el contacto en una pantalla ----------
+   Titular, entrada y la tarjeta: los dos botones y los datos en dos
+   columnas (el correo y la planta, que son largos, a todo el ancho). */
+@media (max-width: 899.98px) and (orientation: portrait) {
+  .contacto {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 100svh;
+    padding-block: calc(var(--nav-h) + var(--pantalla-y)) var(--pantalla-y);
+  }
+
+  .contacto__panel {
+    row-gap: 1rem;
+  }
+
+  .contacto__cabeza .lead {
+    margin-top: 0.625rem;
+  }
+
+  .tarjeta {
+    gap: 0.5rem;
+    padding: 1rem;
+  }
+
+  .tarjeta__datos {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.25rem 1rem;
+    margin-top: 0.5rem;
+    padding-top: 0.75rem;
+
+    > div:nth-child(n + 3) {
+      grid-column: 1 / -1;
+    }
+  }
+}
+
+/* ---------- Teléfono apaisado: el contacto en una pantalla ----------
    El titular a la izquierda y la tarjeta a la derecha, con los cuatro
    datos en dos columnas. Los dos botones van en una fila solo si caben
    enteros y con aire (216 px cada uno); si no, uno sobre otro. */
 @media (orientation: landscape) and (max-height: 520px) {
+  .contacto {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 100svh;
+    padding-block: calc(var(--nav-h) + var(--pantalla-y)) var(--pantalla-y);
+  }
+
   .contacto__panel {
     row-gap: 0;
     align-items: center;
@@ -237,13 +282,17 @@
 
   .contacto__cabeza {
     grid-column: 1 / span 5;
+
+    .lead {
+      margin-top: 0.5rem;
+    }
   }
 
   .tarjeta {
     grid-column: 6 / -1;
     grid-template-columns: repeat(auto-fit, minmax(13.5rem, 1fr));
-    gap: 0.625rem;
-    padding: 1rem;
+    gap: 0.375rem;
+    padding: 0.5rem 0.875rem;
   }
 
   .tarjeta__cta,
@@ -255,8 +304,12 @@
   .tarjeta__datos {
     grid-column: 1 / -1;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.25rem 1rem;
-    margin-top: 0.25rem;
-    padding-top: 0.75rem;
+    gap: 0 1rem;
+    margin-top: 0.125rem;
+    padding-top: 0.375rem;
+
+    > div {
+      gap: 0;
+    }
   }
 }

@@ -141,6 +141,43 @@ section[id] {
   scroll-margin-top: var(--nav-h);
 }
 
+/* ---------- Móvil: una sección, una pantalla ----------
+   En el teléfono cada sección mide exactamente el alto visible (lo
+   ajusta cada componente) y el scroll encaja en ellas: no hay que
+   tantear para dejar una sección entera a la vista. Empiezan arriba del
+   todo, con su propio hueco para la barra, así que el margen de ancla
+   sobra.
+
+   El encaje solo con el dedo: con ratón el scroll lo suaviza Lenis y los
+   dos pelearían. Obligatorio y no por proximidad, que deja la página a
+   medias entre dos secciones; si una sección mide más que la pantalla
+   (letra agrandada, teléfonos muy pequeños), el navegador deja recorrerla
+   por dentro. El pie encaja por abajo: es el final de la página. */
+@media (max-width: 899.98px), (orientation: landscape) and (max-height: 520px) {
+  section[id] {
+    scroll-margin-top: 0;
+  }
+
+  main section {
+    scroll-snap-align: start;
+  }
+
+  .pie {
+    scroll-snap-align: end;
+  }
+
+  .capitulo {
+    margin-bottom: 0.625rem;
+  }
+}
+
+@media (max-width: 899.98px) and (hover: none) and (pointer: coarse),
+  (orientation: landscape) and (max-height: 520px) and (hover: none) and (pointer: coarse) {
+  html {
+    scroll-snap-type: y mandatory;
+  }
+}
+
 /* El margen crece hasta la zona segura: con el teléfono apaisado la
    muesca y la esquina redonda caen a los lados (viewport-fit=cover). */
 .shell {
