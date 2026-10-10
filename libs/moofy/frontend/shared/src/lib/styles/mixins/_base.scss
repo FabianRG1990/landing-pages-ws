@@ -353,18 +353,29 @@ html.menu-abierto {
 }
 
 /* ---------- La trama del fondo ----------
-   Iconos de línea de panadería (espiga, croissant, gorro, rodillo,
-   batidor, pastel), el mismo recurso que Moofy usa detrás de su logo en
-   redes. Una capa fija y estática: cero repintado por fotograma. En azul
-   muy claro sobre blanco: es textura, no ilustración. */
+   Doce piezas de panadería en línea (espiga, croissant, cupcake,
+   rosquilla, gorro, alfajor, rodillo, pastel, batidor, empanada, palitos
+   y pan) con destellos entre ellas, en el azul del logo y con algún
+   detalle en rojo: el mismo recurso que Moofy usa detrás de su logo en
+   redes. Una capa fija y estática: cero repintado por fotograma.
+
+   La opacidad es la única perilla de intensidad. Al 5,5 % no se
+   apreciaba; al 11 % se ve el dibujo y el texto de encima se sigue
+   leyendo sin esfuerzo. En móvil baja un punto, porque ahí el texto
+   ocupa casi todo el ancho y pisa más piezas. */
 .trama {
   position: fixed;
   inset: 0;
   z-index: -1;
   background: url('/img/trama.svg') repeat;
-  background-size: 360px;
-  opacity: 0.055;
+  background-size: 480px;
+  opacity: 0.11;
   pointer-events: none;
+
+  @media (max-width: 899.98px) {
+    background-size: 400px;
+    opacity: 0.09;
+  }
 }
 
 /* ---------- Piezas globales ----------

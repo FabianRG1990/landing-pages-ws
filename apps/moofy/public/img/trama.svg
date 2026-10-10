@@ -1,39 +1,130 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="360" height="360" viewBox="0 0 360 360" fill="none" stroke="#5aa7f0" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-  <!-- Espiga de trigo -->
-  <g transform="translate(30 24) rotate(-18 32 32)">
-    <path d="M32 60V10"/>
-    <path d="M32 18c-6-2-9-7-9-12 6 1 9 6 9 12z"/>
-    <path d="M32 18c6-2 9-7 9-12-6 1-9 6-9 12z"/>
-    <path d="M32 30c-6-2-9-7-9-12 6 1 9 6 9 12z"/>
-    <path d="M32 30c6-2 9-7 9-12-6 1-9 6-9 12z"/>
-    <path d="M32 42c-6-2-9-7-9-12 6 1 9 6 9 12z"/>
-    <path d="M32 42c6-2 9-7 9-12-6 1-9 6-9 12z"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="480" height="480" viewBox="0 0 480 480" fill="none" stroke="#0055a0" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+  <!-- Doce piezas de panadería en cuatro filas al tresbolillo, con el
+       azul del logo y un detalle en rojo en algunas; entre ellas, destellos
+       y puntos. Las dos piezas del borde izquierdo se repiten en el derecho
+       para que el mosaico case. La intensidad la pone el CSS (opacity). -->
+
+  <!-- Fila 1 -->
+  <!-- Espiga -->
+  <g transform="translate(48 28) rotate(-18 32 32)">
+    <path d="M32 60V12"/>
+    <path d="M32 20c-6-2-9-7-9-12 6 1 9 6 9 12z"/>
+    <path d="M32 20c6-2 9-7 9-12-6 1-9 6-9 12z"/>
+    <path d="M32 32c-6-2-9-7-9-12 6 1 9 6 9 12z"/>
+    <path d="M32 32c6-2 9-7 9-12-6 1-9 6-9 12z"/>
+    <path d="M32 44c-6-2-9-7-9-12 6 1 9 6 9 12z"/>
+    <path d="M32 44c6-2 9-7 9-12-6 1-9 6-9 12z"/>
   </g>
   <!-- Croissant -->
-  <g transform="translate(196 36)">
+  <g transform="translate(204 26) rotate(8 36 32)">
     <path d="M4 46C6 30 18 18 36 18s30 12 32 28c-4-4-10-4-14 0l-4-10c-4-5-9-7-14-7s-10 2-14 7l-4 10c-4-4-10-4-14 0z"/>
     <path d="M24 22l4 9M36 18v11M48 22l-4 9"/>
+    <path d="M14 30l6 8M58 30l-6 8"/>
+  </g>
+  <!-- Cupcake con cereza -->
+  <g transform="translate(368 28) rotate(-6 32 32)">
+    <path d="M18 38h28l-4 20H22z"/>
+    <path d="M27 38l1.4 20M32 38v20M37 38l-1.4 20"/>
+    <path d="M16 38c-3-7 3-11 8-10 0-6 4-9 8-9s8 3 8 9c5-1 11 3 8 10z"/>
+    <g stroke="#d00020">
+      <circle cx="32" cy="14" r="4"/>
+      <path d="M33 10c1-3 3-5 6-5"/>
+    </g>
+  </g>
+
+  <!-- Fila 2 (la primera pieza va partida entre los dos bordes) -->
+  <!-- Rosquilla -->
+  <g transform="translate(-32 148) rotate(12 32 32)">
+    <circle cx="32" cy="32" r="23"/>
+    <circle cx="32" cy="32" r="7.500"/>
+    <path d="M13 28c2 5 5 1 8 5s5-1 8 3 6-2 9 1 5-4 8-1 4-3 5-6"/>
+    <path d="M22 20l2 3M33 14h3.500M43 21l-2.500 2.500M27 24h.01" stroke="#d00020"/>
+  </g>
+  <g transform="translate(448 148) rotate(12 32 32)">
+    <circle cx="32" cy="32" r="23"/>
+    <circle cx="32" cy="32" r="7.500"/>
+    <path d="M13 28c2 5 5 1 8 5s5-1 8 3 6-2 9 1 5-4 8-1 4-3 5-6"/>
+    <path d="M22 20l2 3M33 14h3.500M43 21l-2.500 2.500M27 24h.01" stroke="#d00020"/>
   </g>
   <!-- Gorro de chef -->
-  <g transform="translate(110 150)">
+  <g transform="translate(124 150) rotate(-8 36 30)">
     <path d="M18 44V34c-7-1-12-7-12-14 0-8 7-14 15-13 2-6 8-10 15-10s13 4 15 10c8-1 15 5 15 13 0 7-5 13-12 14v10z"/>
     <path d="M18 52h36v-8H18z"/>
+    <path d="M28 44v-8M36 44V32M44 44v-8"/>
   </g>
+  <!-- Alfajor -->
+  <g transform="translate(288 148) rotate(6 32 32)">
+    <ellipse cx="32" cy="20" rx="21" ry="8"/>
+    <path d="M11 20v7c0 4.4 9.4 8 21 8s21-3.600 21-8v-7"/>
+    <path d="M11 30v2.500c0 4.400 9.400 8 21 8s21-3.600 21-8V30" stroke="#d00020"/>
+    <path d="M11 36v7c0 4.400 9.400 8 21 8s21-3.600 21-8v-7"/>
+    <path d="M24 18.500h.01M33 16h.01M40 20.500h.01M30 22h.01"/>
+  </g>
+
+  <!-- Fila 3 -->
   <!-- Rodillo -->
-  <g transform="translate(250 180) rotate(-30 32 32)">
-    <rect x="14" y="26" width="36" height="12" rx="6"/>
-    <path d="M14 32H4M50 32h10"/>
+  <g transform="translate(48 268) rotate(-30 32 32)">
+    <rect x="15" y="24" width="34" height="16" rx="8"/>
+    <path d="M15 32H7M49 32h8"/>
+    <circle cx="4.500" cy="32" r="2.500"/>
+    <circle cx="59.500" cy="32" r="2.500"/>
+    <path d="M25 28.500h14"/>
+  </g>
+  <!-- Porción de pastel -->
+  <g transform="translate(208 268) rotate(5 32 32)">
+    <path d="M8 48h48V29L8 17z"/>
+    <path d="M8 30h48M8 39h48"/>
+    <path d="M8 17l48 12"/>
+    <g stroke="#d00020">
+      <circle cx="44" cy="15" r="4"/>
+      <path d="M45 11c1-3 3-4.500 5.500-4.500"/>
+    </g>
   </g>
   <!-- Batidor -->
-  <g transform="translate(20 226) rotate(20 32 32)">
+  <g transform="translate(368 268) rotate(20 32 32)">
     <rect x="29" y="38" width="6" height="22" rx="3"/>
     <path d="M32 38C20 32 20 8 32 4c12 4 12 28 0 34z"/>
     <path d="M32 38c-6-7-6-26 0-34M32 38c6-7 6-26 0-34"/>
   </g>
-  <!-- Porción de pastel -->
-  <g transform="translate(170 280)">
-    <path d="M8 44h48V26L8 14z"/>
-    <path d="M8 26h48M8 14l48 12"/>
-    <circle cx="44" cy="12" r="4"/>
+
+  <!-- Fila 4 (la primera pieza va partida entre los dos bordes) -->
+  <!-- Empanada -->
+  <g transform="translate(-32 388) rotate(-10 32 32)">
+    <path d="M8.0 45.0A5.1 5.1 0 0 1 9.8 35.8A5.1 5.1 0 0 1 15.0 28.0A5.1 5.1 0 0 1 22.8 22.8A5.1 5.1 0 0 1 32.0 21.0A5.1 5.1 0 0 1 41.2 22.8A5.1 5.1 0 0 1 49.0 28.0A5.1 5.1 0 0 1 54.2 35.8A5.1 5.1 0 0 1 56.0 45.0z"/>
+    <path d="M15 43c1-9 8-15 17-15s16 6 17 15"/>
+    <path d="M28 36l1.500 3.500M36 36l-1.500 3.500"/>
+  </g>
+  <g transform="translate(448 388) rotate(-10 32 32)">
+    <path d="M8.0 45.0A5.1 5.1 0 0 1 9.8 35.8A5.1 5.1 0 0 1 15.0 28.0A5.1 5.1 0 0 1 22.8 22.8A5.1 5.1 0 0 1 32.0 21.0A5.1 5.1 0 0 1 41.2 22.8A5.1 5.1 0 0 1 49.0 28.0A5.1 5.1 0 0 1 54.2 35.8A5.1 5.1 0 0 1 56.0 45.0z"/>
+    <path d="M15 43c1-9 8-15 17-15s16 6 17 15"/>
+    <path d="M28 36l1.500 3.500M36 36l-1.500 3.500"/>
+  </g>
+  <!-- Palitos en su vaso -->
+  <g transform="translate(128 388) rotate(8 32 32)">
+    <path d="M21 36h22l-3 22H24z"/>
+    <path d="M28.500 36l.900 22M35.500 36l-.900 22"/>
+    <path d="M26 36L21 10M32 36V6M38 36l6-25"/>
+  </g>
+  <!-- Pan -->
+  <g transform="translate(288 388) rotate(-14 32 32)">
+    <path d="M5 33c0-8 7-13 27-13s27 5 27 13-7 12-27 12S5 41 5 33z"/>
+    <path d="M19 26c3 3 4 8 3 13M30 25c3 4 4 9 3 15M41 26c3 3 4 8 3 13"/>
+  </g>
+
+  <!-- Entre pieza y pieza: destellos, cruces y puntos -->
+  <g>
+    <path transform="translate(160 118)" d="M0-7c1 4.500 2.500 6 7 7-4.500 1-6 2.500-7 7-1-4.500-2.500-6-7-7 4.500-1 6-2.500 7-7z" stroke="#d00020"/>
+    <path transform="translate(400 240)" d="M0-7c1 4.500 2.500 6 7 7-4.500 1-6 2.500-7 7-1-4.500-2.500-6-7-7 4.500-1 6-2.500 7-7z"/>
+    <path transform="translate(240 360)" d="M0-6c.900 3.900 2.100 5.100 6 6-3.900.900-5.100 2.100-6 6-.900-3.900-2.100-5.100-6-6 3.900-.900 5.100-2.100 6-6z" stroke="#d00020"/>
+    <path transform="translate(80 240)" d="M0-6c.900 3.900 2.100 5.100 6 6-3.900.900-5.100 2.100-6 6-.900-3.900-2.100-5.100-6-6 3.900-.900 5.100-2.100 6-6z"/>
+    <path d="M316 116h10M321 111v10"/>
+    <path d="M395 472h10M400 467v10" stroke="#d00020"/>
+    <path d="M155 0h10M160-5v10M155 480h10M160 475v10"/>
+    <circle cx="240" cy="122" r="2.200"/>
+    <circle cx="80" cy="360" r="2.200" stroke="#d00020"/>
+    <circle cx="320" cy="356" r="2.200"/>
+    <circle cx="322" cy="6" r="2.200" stroke="#d00020"/>
+    <circle cx="322" cy="486" r="2.200" stroke="#d00020"/>
+    <circle cx="240" cy="238" r="2.200"/>
   </g>
 </svg>
