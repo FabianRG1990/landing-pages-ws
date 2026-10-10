@@ -385,7 +385,7 @@
   }
 
   .hero__escena {
-    --pieza-h: clamp(4.5rem, calc((100svh - var(--nav-h) - 22.5rem) / 2), 11.5rem);
+    --pieza-h: clamp(4.5rem, calc((100svh - var(--nav-h) - 22.5rem) / 2), 13rem);
 
     display: block;
     width: 100%;
@@ -417,6 +417,37 @@
     top: -1.25rem;
     right: -0.25rem;
     width: 5.25rem;
+  }
+}
+
+/* En el teléfono las fotos son pequeñas y el sello sobre el mosaico
+   tapaba media foto: va junto al titular, en el hueco que dejan a la
+   derecha sus renglones segundo y tercero (hasta 520 px de ancho el
+   titular parte siempre en tres). Se coloca respecto del shell, así que
+   el contenido arranca desde arriba y no centrado: el titular tiene que
+   empezar siempre a la misma altura. */
+@media (max-width: 519.98px) and (orientation: portrait) {
+  .hero__shell {
+    position: relative;
+    justify-content: flex-start;
+    padding-top: calc(var(--nav-h) + 1.5rem);
+  }
+
+  .hero__escena {
+    position: static;
+  }
+
+  .hero__pegatina {
+    top: calc(var(--nav-h) + 1.5rem + var(--fs-display) * 0.9);
+    right: var(--gutter);
+    width: 5rem;
+  }
+}
+
+/* Tabletas en vertical: las fotos son anchas y pueden ser más altas */
+@media (min-width: 600px) and (max-width: 899.98px) and (orientation: portrait) {
+  .hero__escena {
+    --pieza-h: clamp(4.5rem, calc((100svh - var(--nav-h) - 22.5rem) / 2), 20rem);
   }
 }
 
