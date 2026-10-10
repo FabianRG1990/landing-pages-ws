@@ -331,11 +331,13 @@
 }
 
 /* ---------- Teléfono en vertical: el hero en una pantalla ----------
-   Texto arriba y, debajo, el mosaico y las cifras. Todo es fijo menos el
-   alto de las fotos, que se queda con lo que sobra de la pantalla: el
-   alto visible menos la barra y menos lo que ocupan el texto, los
-   botones y las cifras (unos 27 rem). Sin escalera: aquí el espacio
-   es para las fotos. */
+   Titular, entrada y botones arriba y, debajo, el mosaico. Sin la
+   insignia ni las cifras: lo que dicen ya está en el sello y en la
+   entrada, y con ellas los bloques quedaban a 6-16 px unos de otros.
+   Todo es fijo menos el alto de las fotos, que se queda con lo que sobra
+   de la pantalla: el alto visible menos la barra y menos lo que ocupan
+   el texto, los botones y sus separaciones (unos 22,5 rem). Sin
+   escalera: aquí el espacio es para las fotos. */
 @media (max-width: 899.98px) and (orientation: portrait) {
   .hero__shell {
     display: flex;
@@ -347,8 +349,9 @@
     padding-bottom: var(--pantalla-y);
   }
 
-  .hero__eyebrow {
-    margin-bottom: 0.625rem;
+  .hero__eyebrow,
+  .hero__tarjeta {
+    display: none;
   }
 
   .hero__titulo {
@@ -357,14 +360,14 @@
 
   .hero__entrada {
     max-width: none;
-    margin-top: 0.625rem;
+    margin-top: 0.875rem;
   }
 
   /* Los dos botones en una fila; sin la flecha, que no cabe a 390 */
   .hero__acciones {
     flex-wrap: nowrap;
     gap: 0.5rem;
-    margin-top: 0.875rem;
+    margin-top: 1.375rem;
 
     .btn {
       flex: 0 1 auto;
@@ -382,12 +385,12 @@
   }
 
   .hero__escena {
-    --pieza-h: clamp(4.5rem, calc((100svh - var(--nav-h) - 27rem) / 2), 10rem);
+    --pieza-h: clamp(4.5rem, calc((100svh - var(--nav-h) - 22.5rem) / 2), 11.5rem);
 
     display: block;
     width: 100%;
     max-width: none;
-    margin-top: 1rem;
+    margin-top: 1.75rem;
     padding: 0;
   }
 
@@ -408,44 +411,20 @@
     translate: none;
   }
 
-  /* Asoma por encima del mosaico, sobre su esquina */
+  /* Asoma por encima del mosaico, sobre su esquina, sin llegar a los
+     botones */
   .hero__pegatina {
-    top: -1.75rem;
+    top: -1.25rem;
     right: -0.25rem;
     width: 5.25rem;
   }
-
-  /* Las dos cifras en una franja baja: número y rótulo en el mismo renglón */
-  .hero__tarjeta {
-    position: relative;
-    left: auto;
-    bottom: auto;
-    width: auto;
-    margin: 0.5rem 0 0;
-    padding: 0.5rem 1rem;
-  }
-
-  .hero__cifras > div {
-    flex-direction: row;
-    align-items: baseline;
-    gap: 0.5rem;
-  }
-
-  .hero__cifra {
-    font-size: 1.75rem;
-  }
 }
 
-/* A 360 px de ancho los dos botones no caben a 15 px, y la entrada
-   ocupa un renglón más */
+/* A 360 px de ancho los dos botones no caben a 15 px */
 @media (max-width: 374.98px) and (orientation: portrait) {
   .hero__acciones .btn {
     padding-inline: 0.75rem;
     font-size: 0.875rem;
-  }
-
-  .hero__escena {
-    --pieza-h: clamp(4.5rem, calc((100svh - var(--nav-h) - 28.5rem) / 2), 10rem);
   }
 }
 
