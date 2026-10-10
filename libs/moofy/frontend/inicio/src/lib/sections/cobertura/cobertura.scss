@@ -2,6 +2,16 @@
   display: block;
 }
 
+/* El relevo (escritorio, lo activa cobertura.ts): la sección sube una
+   pantalla más la cola del catálogo (RELEVO, 0.4 pantallas) y queda
+   montada sobre su final; empieza recortada a un círculo de radio cero
+   y se abre sobre él. Por encima del catálogo, que sigue fijo debajo. */
+:host(.cobertura-relevo) {
+  position: relative;
+  z-index: 2;
+  margin-top: -140svh;
+}
+
 /* ---------- La sección ----------
    Azul de borde a borde y, en escritorio, a pantalla completa: la
    cobertura es uno de los dos mensajes de la página y antes era su

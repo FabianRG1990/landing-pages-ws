@@ -10,13 +10,16 @@ import {
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { gsap } from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { COBERTURA } from '@moofy-ui-shared/data/site';
 import { CapituloComponent } from '@moofy-ui-shared/tipografia/capitulo';
 import { RenglonesComponent } from '@moofy-ui-shared/tipografia/renglones';
 import { RevelarDirective } from '@moofy-ui-shared/motion/revelar.directive';
 import { montarEscena } from '@moofy-ui-shared/motion/escena';
+import { RELEVO } from '@moofy-ui-shared/motion/relevo';
 import { MAPA } from './mapa-cr';
+
+/** El orden en que se arma el mapa: de la provincia de la planta hacia fuera. */
+const ORDEN = ['Alajuela', 'Heredia', 'San José', 'Cartago', 'Guanacaste', 'Puntarenas', 'Limón'];
 
 /**
  * Capítulo 02: la cobertura. Moofy llega a cualquier punto del país.
@@ -25,15 +28,16 @@ import { MAPA } from './mapa-cr';
  * sus siete provincias y una ruta que sale de la planta en Grecia hacia
  * cada una.
  *
- * El mapa se arma así: las provincias aparecen escalonadas, la planta
- * cae, las rutas se trazan desde ella y cada destino se enciende cuando
- * su ruta llega.
+ * Escritorio: la sección va montada sobre el final del catálogo y se
+ * queda fija. Primero se abre el azul en círculo desde la planta, sobre
+ * el catálogo que se apaga (RELEVO); después, con la pantalla ya quieta,
+ * el mapa se arma provincia por provincia de Grecia hacia fuera, las
+ * rutas salen de la planta y cada destino se enciende cuando su ruta
+ * llega. Todo lo lleva el scroll, en poco más de una pantalla.
  *
- * Escritorio: la sección ocupa la pantalla y el scroll lleva la
- * secuencia; empieza con la sección subiendo y termina durante una parada
- * corta. Móvil: sin parada; el mapa se arma una vez, a su ritmo, al
- * asomar. Sin movimiento, el mapa está completo desde el principio, que
- * es lo que pinta el HTML.
+ * Móvil: sin pin; el mapa se arma una vez, a su ritmo, al asomar. Sin
+ * movimiento, el mapa está completo desde el principio, que es lo que
+ * pinta el HTML.
  */
 @Component({
   selector: 'app-cobertura',
@@ -46,6 +50,7 @@ export class CoberturaComponent {
   protected readonly c = COBERTURA;
   protected readonly m = MAPA;
 
+  private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly seccion = viewChild.required<ElementRef<HTMLElement>>('seccion');
   private readonly mapa = viewChild.required<ElementRef<SVGSVGElement>>('mapa');
 
@@ -59,62 +64,147 @@ export class CoberturaComponent {
     });
   }
 
-  private armar(escritorio: boolean): () => void {
+  private armar(escritorio: boolean): (() => void) | void {
+    const mapa = this.mapa().nativeElement;
+    const q = <T extends Element>(sel: string) => gsap.utils.toArray<T>(sel, mapa);
+    // Las tres listas vienen en el orden de MAPA.provincias: se reordenan
+    // igual para que provincia, ruta y destino vayan juntos.
+    const enOrden = <T>(lista: T[]) =>
+      ORDEN.map((nombre) => lista[MAPA.provincias.findIndex((p) => p.nombre === nombre)]);
+    const piezas = {
+      provincias: enOrden(q<SVGPathElement>('.mapa__provincia')),
+      rutas: enOrden(q<SVGPathElement>('.mapa__ruta')),
+      destinos: enOrden(q<SVGGElement>('.mapa__destino')),
+      planta: q<SVGGElement>('.mapa__planta'),
+    };
+    return escritorio ? this.escritorio(piezas) : this.movil(piezas);
+  }
+
+  /**
+   * Escritorio: un solo pin con todo. En unidades de pantalla de scroll:
+   * el relevo (el azul se abre), el armado del mapa y un respiro con el
+   * mapa completo antes de soltar.
+   */
+  private escritorio(p: Piezas): () => void {
+    const host = this.host.nativeElement;
     const seccion = this.seccion().nativeElement;
     const mapa = this.mapa().nativeElement;
-    const q = <T extends Element>(s: string) => gsap.utils.toArray<T>(s, mapa);
-    const rutas = q<SVGPathElement>('.mapa__ruta');
-    const destinos = q<SVGGElement>('.mapa__destino');
+    const texto = seccion.querySelector('.cobertura__texto');
 
-    // Escritorio: el mapa empieza a armarse con la sección aún subiendo
-    // (ENTRADA) y la sección se detiene un momento (PARADA) mientras las
-    // rutas terminan de llegar. La parada es corta a propósito: una
-    // pantalla entera de pin con el mapa ya hecho se siente como un bache.
-    const ENTRADA = 0.6;
-    const PARADA = 0.45;
-    if (escritorio) {
-      ScrollTrigger.create({
-        trigger: seccion,
-        start: 'top top',
-        end: () => '+=' + window.innerHeight * PARADA,
-        pin: true,
-        invalidateOnRefresh: true,
-      });
-      // Quien llega por el menú debe ver el mapa hecho, no a medias: el
-      // ancla va al final de la parada (SmoothScroll lee esta marca).
-      seccion.setAttribute('data-ancla-fin', '');
-    }
+    const ARMADO = 0.7;
+    const RESPIRO = 0.12;
+    const TOTAL = RELEVO + ARMADO + RESPIRO;
+
+    // La clase sube la sección sobre el final del catálogo; va antes de
+    // crear el pin para que mida ya en su sitio.
+    host.classList.add('cobertura-relevo');
+    // Quien llega por el menú debe ver el mapa hecho: el ancla va al
+    // final del pin (SmoothScroll lee esta marca).
+    seccion.setAttribute('data-ancla-fin', '');
+
+    // El círculo se abre desde la planta: su punto en la sección
+    const planta = () => {
+      const s = seccion.getBoundingClientRect();
+      const m = mapa.getBoundingClientRect();
+      return {
+        x: m.left - s.left + (MAPA.grecia.x / MAPA.ancho) * m.width,
+        y: m.top - s.top + (MAPA.grecia.y / MAPA.alto) * m.height,
+      };
+    };
+    const circulo = (radio: number) => {
+      const c = planta();
+      return `circle(${radio}px at ${c.x.toFixed(1)}px ${c.y.toFixed(1)}px)`;
+    };
 
     const tl = gsap.timeline({
       defaults: { ease: 'power3.out' },
-      scrollTrigger: escritorio
-        ? {
-            trigger: seccion,
-            start: () => `top ${ENTRADA * 100}%`,
-            end: () => '+=' + window.innerHeight * (ENTRADA + PARADA),
-            scrub: true,
-            invalidateOnRefresh: true,
-          }
-        : { trigger: mapa, start: 'top 72%', once: true },
+      scrollTrigger: {
+        trigger: seccion,
+        start: 'top top',
+        end: () => '+=' + window.innerHeight * TOTAL,
+        pin: true,
+        scrub: true,
+        invalidateOnRefresh: true,
+      },
     });
 
-    tl.from(q('.mapa__provincia'), { opacity: 0, y: 14, duration: 0.7, stagger: 0.07 }, 0)
-      .from(q('.mapa__planta'), { opacity: 0, scale: 0.2, duration: 0.6, ease: 'back.out(2.2)', transformOrigin: '0 0' }, 0.55)
-      .from(rutas, { drawSVG: '0%', duration: 0.95, ease: 'power2.inOut', stagger: 0.11 }, 0.85);
+    // 1. El relevo: el azul se abre en círculo desde la planta. De círculo
+    //    a círculo, con el final explícito: hacia `none` GSAP no interpola.
+    tl.fromTo(
+      seccion,
+      { clipPath: () => circulo(0) },
+      {
+        clipPath: () => circulo(Math.hypot(seccion.offsetWidth, seccion.offsetHeight)),
+        duration: RELEVO,
+        ease: 'power2.in',
+      },
+      0,
+    )
+      .from(p.planta, { scale: 0.2, opacity: 0, duration: 0.14, ease: 'back.out(2.2)', transformOrigin: '0 0' }, 0.02)
+      .from(texto, { opacity: 0, y: 40, duration: 0.22 }, RELEVO * 0.7);
 
-    // Cada destino se enciende cuando su ruta está llegando
-    destinos.forEach((destino, i) => {
-      tl.from(
-        destino.querySelector('.mapa__punto'),
-        { scale: 0, duration: 0.45, ease: 'back.out(3)', transformOrigin: '50% 50%' },
-        0.85 + i * 0.11 + 0.72,
-      ).from(destino.querySelector('.mapa__nombre'), { opacity: 0, duration: 0.4 }, '<0.05');
+    // 2. El mapa se arma provincia por provincia, de Grecia hacia fuera
+    const t0 = RELEVO * 0.85;
+    tl.from(
+      p.provincias,
+      { opacity: 0, scale: 0.82, transformOrigin: '50% 50%', duration: 0.16, ease: 'back.out(1.6)', stagger: 0.05 },
+      t0,
+    );
+
+    // 3. Las rutas salen de la planta y cada destino se enciende al llegar
+    const t1 = t0 + 0.3;
+    p.rutas.forEach((ruta, i) => {
+      const t = t1 + i * 0.045;
+      const destino = p.destinos[i];
+      tl.from(ruta, { drawSVG: '0%', duration: 0.24, ease: 'power2.inOut' }, t)
+        .from(
+          destino.querySelector('.mapa__punto'),
+          { scale: 0, duration: 0.1, ease: 'back.out(3)', transformOrigin: '50% 50%' },
+          t + 0.19,
+        )
+        .from(destino.querySelector('.mapa__nombre'), { opacity: 0, duration: 0.1 }, '<0.02');
     });
 
-    // Con el scroll al mando, un respiro al final: el mapa completo se
-    // queda a la vista antes de que la sección se suelte.
-    if (escritorio) tl.to({}, { duration: 0.5 });
+    // 4. El mapa completo se queda a la vista antes de soltar
+    tl.to({}, { duration: Math.max(0.01, TOTAL - tl.duration()) });
 
-    return () => seccion.removeAttribute('data-ancla-fin');
+    return () => {
+      seccion.removeAttribute('data-ancla-fin');
+      host.classList.remove('cobertura-relevo');
+    };
   }
+
+  /** Móvil: sin pin. El mapa se arma una vez, a su ritmo, al asomar. */
+  private movil(p: Piezas): void {
+    const tl = gsap.timeline({
+      defaults: { ease: 'power3.out' },
+      scrollTrigger: { trigger: this.mapa().nativeElement, start: 'top 72%', once: true },
+    });
+
+    tl.from(p.planta, { opacity: 0, scale: 0.2, duration: 0.6, ease: 'back.out(2.2)', transformOrigin: '0 0' }, 0)
+      .from(
+        p.provincias,
+        { opacity: 0, scale: 0.82, transformOrigin: '50% 50%', duration: 0.6, ease: 'back.out(1.6)', stagger: 0.12 },
+        0.15,
+      );
+
+    p.rutas.forEach((ruta, i) => {
+      const t = 1.1 + i * 0.12;
+      const destino = p.destinos[i];
+      tl.from(ruta, { drawSVG: '0%', duration: 0.9, ease: 'power2.inOut' }, t)
+        .from(
+          destino.querySelector('.mapa__punto'),
+          { scale: 0, duration: 0.45, ease: 'back.out(3)', transformOrigin: '50% 50%' },
+          t + 0.7,
+        )
+        .from(destino.querySelector('.mapa__nombre'), { opacity: 0, duration: 0.4 }, '<0.05');
+    });
+  }
+}
+
+interface Piezas {
+  readonly provincias: SVGPathElement[];
+  readonly rutas: SVGPathElement[];
+  readonly destinos: SVGGElement[];
+  readonly planta: SVGGElement[];
 }

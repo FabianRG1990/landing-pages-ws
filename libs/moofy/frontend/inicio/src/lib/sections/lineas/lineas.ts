@@ -17,6 +17,7 @@ import { RenglonesComponent } from '@moofy-ui-shared/tipografia/renglones';
 import { RevelarDirective } from '@moofy-ui-shared/motion/revelar.directive';
 import { IconoComponent } from '@moofy-ui-shared/marca/icono';
 import { montarEscena } from '@moofy-ui-shared/motion/escena';
+import { RELEVO } from '@moofy-ui-shared/motion/relevo';
 import { InclinarDirective } from '@moofy-ui-shared/motion/inclinar.directive';
 
 type Ref = ElementRef<HTMLElement>;
@@ -31,6 +32,9 @@ type Ref = ElementRef<HTMLElement>;
  * scroll, con la cuenta «01 / 06» y una barra de rojo a azul abajo. Con
  * Tab, la página va a la tarjeta que recibe el foco: el navegador no
  * puede desplazar un carril movido con transform.
+ *
+ * Al llegar a la última tarjeta la sección sigue fija un tramo más
+ * (RELEVO) y se desvanece: encima se abre la cobertura (cobertura.ts).
  *
  * Móvil: la fila con scroll-snap de siempre. Sin movimiento: la rejilla.
  */
@@ -73,6 +77,12 @@ export class LineasComponent {
 
     seccion.classList.add('lineas--horizontal');
     const recorrido = () => Math.max(0, carril.scrollWidth - window.innerWidth);
+    // El pin dura el recorrido del carril más la cola del relevo. `carril`
+    // es la fracción del pin en que el carril se mueve; el resto es cola.
+    const cola = () => window.innerHeight * RELEVO;
+    const parte = () => Math.max(0.001, recorrido() / (recorrido() + cola()));
+    const enCarril = (p: number) => Math.min(1, p / parte());
+    const enCola = (p: number) => Math.max(0, (p - parte()) / (1 - parte()));
 
     // La cuenta sigue a la última tarjeta cuyo borde izquierdo ya cruzó
     // una marca que avanza con el recorrido (del 20 % al 85 % del
@@ -82,7 +92,7 @@ export class LineasComponent {
     // y la cuenta arrancaba en 02. Solo se escribe si cambia.
     let mostrado = '';
     const contar = (st?: ScrollTrigger) => {
-      const marca = window.innerWidth * (0.2 + 0.65 * (st?.progress ?? 0));
+      const marca = window.innerWidth * (0.2 + 0.65 * enCarril(st?.progress ?? 0));
       let i = 0;
       tarjetas.forEach((t, k) => {
         if (t.getBoundingClientRect().left < marca) i = k;
@@ -96,7 +106,7 @@ export class LineasComponent {
       scrollTrigger: {
         trigger: seccion,
         start: 'top top',
-        end: () => '+=' + recorrido(),
+        end: () => '+=' + (recorrido() + cola()),
         pin: true,
         scrub: true,
         invalidateOnRefresh: true,
@@ -104,12 +114,15 @@ export class LineasComponent {
         onRefresh: contar,
       },
     });
-    tl.to(carril, { x: () => -recorrido() }, 0).fromTo(
-      this.barra().nativeElement,
-      { scaleX: 0 },
-      { scaleX: 1 },
-      0,
-    );
+    // Una sola unidad de timeline para todo el pin: las curvas reparten
+    // el tramo del carril y el de la cola, y lo hacen con las medidas del
+    // momento, así que siguen valiendo tras un cambio de tamaño.
+    tl.to(carril, { x: () => -recorrido(), ease: enCarril }, 0)
+      .fromTo(this.barra().nativeElement, { scaleX: 0 }, { scaleX: 1, ease: enCarril }, 0)
+      // La cola: el catálogo se apaga y se aleja un poco mientras la
+      // cobertura se abre encima.
+      .to(seccion.children, { opacity: 0, ease: enCola }, 0)
+      .to(seccion, { scale: 0.96, ease: enCola }, 0);
 
     // Tab dentro del carril: se lleva el scroll al punto en que la
     // tarjeta enfocada queda centrada.
