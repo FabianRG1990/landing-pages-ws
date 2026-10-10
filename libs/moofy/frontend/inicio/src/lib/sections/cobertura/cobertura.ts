@@ -18,6 +18,23 @@ import { montarEscena } from '@moofy-ui-shared/motion/escena';
 import { RELEVO } from '@moofy-ui-shared/motion/relevo';
 import { MAPA } from './mapa-cr';
 
+/**
+ * Dónde va el nombre de cada provincia en el teléfono, respecto de su
+ * punto y en unidades del lienzo (600 de ancho). En un mapa de 350 px el
+ * nombre tiene que medir 22 unidades para leerse a 13 px, y a ese tamaño
+ * no caben todos a la derecha de su punto, como en escritorio: Cartago y
+ * Limón se pisaban. Cada uno va al hueco que tiene libre.
+ */
+const ROTULOS: Record<string, { dx: number; dy: number; ancla: 'start' | 'middle' | 'end' }> = {
+  Guanacaste: { dx: -42, dy: -16, ancla: 'start' },
+  Alajuela: { dx: 0, dy: -16, ancla: 'middle' },
+  Heredia: { dx: 13, dy: -8, ancla: 'start' },
+  Limón: { dx: 13, dy: 6, ancla: 'start' },
+  Cartago: { dx: 14, dy: 30, ancla: 'middle' },
+  'San José': { dx: 13, dy: 22, ancla: 'start' },
+  Puntarenas: { dx: -13, dy: 7, ancla: 'end' },
+};
+
 /** El orden en que se arma el mapa: de la provincia de la planta hacia fuera. */
 const ORDEN = ['Alajuela', 'Heredia', 'San José', 'Cartago', 'Guanacaste', 'Puntarenas', 'Limón'];
 
@@ -49,6 +66,17 @@ const ORDEN = ['Alajuela', 'Heredia', 'San José', 'Cartago', 'Guanacaste', 'Pun
 export class CoberturaComponent {
   protected readonly c = COBERTURA;
   protected readonly m = MAPA;
+
+  /**
+   * El rótulo de una provincia: `x` y `ancla` son los de escritorio (a
+   * un lado del punto); `tx`/`ty` es lo que hay que moverlo desde ahí
+   * para llevarlo a su sitio en el teléfono (lo aplica el CSS).
+   */
+  protected rotulo(nombre: string) {
+    const x = nombre === 'Guanacaste' ? -10 : 10;
+    const r = ROTULOS[nombre];
+    return { x, ancla: x < 0 ? 'end' : 'start', tx: `${r.dx - x}px`, ty: `${r.dy - 3.6}px`, anclaMovil: r.ancla };
+  }
 
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly seccion = viewChild.required<ElementRef<HTMLElement>>('seccion');

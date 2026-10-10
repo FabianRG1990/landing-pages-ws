@@ -54,13 +54,17 @@
 
           <g aria-hidden="true">
             @for (p of m.provincias; track p.nombre) {
+              @let r = rotulo(p.nombre);
               <g class="mapa__destino" [attr.transform]="'translate(' + p.x + ' ' + p.y + ')'">
                 <circle class="mapa__punto" r="4.2" />
                 <text
                   class="mapa__nombre"
-                  [attr.x]="p.nombre === 'Guanacaste' ? -10 : 10"
+                  [attr.x]="r.x"
                   y="3.6"
-                  [attr.text-anchor]="p.nombre === 'Guanacaste' ? 'end' : 'start'"
+                  [attr.text-anchor]="r.ancla"
+                  [style.--tx]="r.tx"
+                  [style.--ty]="r.ty"
+                  [style.--ancla]="r.anclaMovil"
                 >
                   {{ p.nombre }}
                 </text>
