@@ -168,10 +168,43 @@
   }
 }
 
-/* ---------- Indicador (solo en modo horizontal) ---------- */
+/* ---------- Indicador ----------
+   La cuenta «01 / 06» y la barra de rojo a azul. Solo se ve donde el
+   catálogo es una fila que se recorre: el carril de escritorio y la fila
+   que se arrastra con el dedo en el teléfono. */
 
 .lineas__hud {
   display: none;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.lineas__cuenta-grande {
+  flex-shrink: 0;
+  font-size: 0.9375rem;
+  color: var(--tinta-2);
+  font-variant-numeric: tabular-nums;
+
+  span {
+    font-size: 1.5rem;
+    font-weight: 500;
+    color: var(--rojo);
+  }
+}
+
+.lineas__barra {
+  flex: 1;
+  height: 3px;
+  overflow: clip;
+  background: var(--line);
+  border-radius: 3px;
+}
+
+.lineas__barra-in {
+  height: 100%;
+  background: linear-gradient(90deg, var(--rojo), var(--azul));
+  transform: scaleX(0);
+  transform-origin: left center;
 }
 
 /* ---------- Modo horizontal (escritorio, lo activa lineas.ts) ----------
@@ -278,36 +311,6 @@
     right: 0;
     bottom: 1.75rem;
     display: flex;
-    align-items: center;
-    gap: 1.5rem;
-  }
-
-  .lineas__cuenta-grande {
-    flex-shrink: 0;
-    font-size: 0.9375rem;
-    color: var(--tinta-2);
-    font-variant-numeric: tabular-nums;
-
-    span {
-      font-size: 1.5rem;
-      font-weight: 500;
-      color: var(--rojo);
-    }
-  }
-
-  .lineas__barra {
-    flex: 1;
-    height: 3px;
-    overflow: clip;
-    background: var(--line);
-    border-radius: 3px;
-  }
-
-  .lineas__barra-in {
-    height: 100%;
-    background: linear-gradient(90deg, var(--rojo), var(--azul));
-    transform: scaleX(0);
-    transform-origin: left center;
   }
 }
 
@@ -351,6 +354,12 @@
 
   .linea {
     scroll-snap-align: start;
+  }
+
+  /* El dedo también sabe por dónde va: la fila deja ver que hay más,
+     pero no cuántas ni cuál es esta. */
+  .lineas__hud {
+    display: flex;
   }
 }
 
@@ -435,5 +444,9 @@
 
   .linea__ideal {
     padding-top: 0.75rem;
+  }
+
+  .lineas__hud {
+    display: flex;
   }
 }

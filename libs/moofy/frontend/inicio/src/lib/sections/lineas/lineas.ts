@@ -62,7 +62,43 @@ export class LineasComponent {
     afterNextRender(() => {
       if (!esNavegador) return;
       montarEscena(destroyRef, ({ escritorio }) => (escritorio ? this.horizontal() : undefined));
+      const soltar = this.conElDedo();
+      destroyRef.onDestroy(soltar);
     });
+  }
+
+  /**
+   * En el teléfono la fila se arrastra con scroll nativo (CSS): aquí solo
+   * se lleva la cuenta y la barra. No es una animación, así que también
+   * corre con movimiento reducido. En escritorio la pista no se desplaza
+   * y esto no llega a dispararse.
+   */
+  private conElDedo(): () => void {
+    const pista = this.carril().nativeElement.querySelector<HTMLElement>('.lineas__pista');
+    if (!pista) return () => undefined;
+    const actual = this.actual().nativeElement;
+    const barra = this.barra().nativeElement;
+    const ultimo = LINEAS.items.length - 1;
+    let pendiente = 0;
+    const pintar = () => {
+      pendiente = 0;
+      const tramo = pista.scrollWidth - pista.clientWidth;
+      if (tramo <= 0) return;
+      const avance = Math.min(1, Math.max(0, pista.scrollLeft / tramo));
+      actual.textContent = String(Math.round(avance * ultimo) + 1).padStart(2, '0');
+      // Arranca con un tramo ya pintado: en la primera tarjeta la barra
+      // vacía no se distinguía de una línea divisoria.
+      barra.style.transform = `scaleX(${((1 + avance * ultimo) / (ultimo + 1)).toFixed(4)})`;
+    };
+    const alDesplazar = () => {
+      pendiente ||= requestAnimationFrame(pintar);
+    };
+    pista.addEventListener('scroll', alDesplazar, { passive: true });
+    pintar();
+    return () => {
+      pista.removeEventListener('scroll', alDesplazar);
+      cancelAnimationFrame(pendiente);
+    };
   }
 
   protected muestras(linea: string): string {
