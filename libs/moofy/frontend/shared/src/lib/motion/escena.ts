@@ -4,13 +4,19 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { DrawSVGPlugin } from 'gsap/DrawSVGPlugin';
 
 /**
- * Escritorio: a partir de 900 px las secciones pueden fijarse (pin) y
- * contar su historia con el scroll. Por debajo no se fija nada: en móvil
- * la barra del navegador cambia el alto visible a mitad de gesto y un pin
- * da tirones.
+ * Escritorio: a partir de 900 px de ancho las secciones pueden fijarse
+ * (pin) y contar su historia con el scroll. Por debajo no se fija nada:
+ * en móvil la barra del navegador cambia el alto visible a mitad de gesto
+ * y un pin da tirones.
+ *
+ * Y hace falta alto: un teléfono grande apaisado mide 932 × 430 y pasaba
+ * por escritorio, con escenas a pantalla completa en 430 px. Con menos de
+ * 521 px de alto es móvil, mida lo que mida de ancho. Los estilos usan
+ * las mismas dos condiciones.
  */
-export const ESCRITORIO = '(min-width: 900px) and (prefers-reduced-motion: no-preference)';
-export const MOVIL = '(max-width: 899.98px) and (prefers-reduced-motion: no-preference)';
+const MOVIMIENTO = '(prefers-reduced-motion: no-preference)';
+export const ESCRITORIO = `(min-width: 900px) and (min-height: 521px) and ${MOVIMIENTO}`;
+export const MOVIL = `(max-width: 899.98px) and ${MOVIMIENTO}, (max-height: 520.98px) and ${MOVIMIENTO}`;
 
 export interface Variante {
   readonly escritorio: boolean;

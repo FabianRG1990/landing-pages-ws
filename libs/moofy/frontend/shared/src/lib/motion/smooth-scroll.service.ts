@@ -19,6 +19,12 @@ import Lenis from 'lenis';
  * Con `prefers-reduced-motion` no se arranca Lenis: el scroll es el nativo.
  * En SSR no se inicializa nada.
  */
+/** Móvil: estrecho, o un teléfono apaisado (las mismas condiciones que los estilos). */
+const MOVIL: { readonly matches: boolean } =
+  typeof matchMedia === 'function'
+    ? matchMedia('(max-width: 899.98px), (max-height: 520.98px)')
+    : { matches: false };
+
 @Injectable({ providedIn: 'root' })
 export class SmoothScroll {
   private readonly esNavegador = isPlatformBrowser(inject(PLATFORM_ID));
@@ -31,6 +37,7 @@ export class SmoothScroll {
 
     gsap.registerPlugin(ScrollTrigger);
     this.fijarArranque();
+    this.mantenerSeccionAlGirar();
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
     this.lenis = new Lenis({
@@ -70,14 +77,72 @@ export class SmoothScroll {
     const navH = this.alturaNav();
     const objetivo = this.destinoDe(destino);
     if (objetivo === null) return;
+    const suave = !inmediato && !matchMedia('(prefers-reduced-motion: reduce)').matches;
+    // Teléfono: las secciones empiezan arriba del todo (llevan dentro el
+    // hueco de la barra) y el scroll encaja en ellas con CSS. Se va con el
+    // scroll nativo: Lenis anima la posición paso a paso y el encaje
+    // obligatorio lo devolvería a la sección de partida en cada paso.
+    if (MOVIL.matches) {
+      const top = typeof objetivo === 'number' ? objetivo : objetivo.getBoundingClientRect().top + window.scrollY;
+      window.scrollTo({ top, behavior: suave ? 'smooth' : 'instant' });
+      return;
+    }
     if (this.lenis) {
       this.lenis.scrollTo(objetivo, { duration: 1.4, immediate: inmediato });
       return;
     }
     const y =
       typeof objetivo === 'number' ? objetivo : objetivo.getBoundingClientRect().top + window.scrollY - navH;
-    const suave = !inmediato && !matchMedia('(prefers-reduced-motion: reduce)').matches;
     window.scrollTo({ top: y, behavior: suave ? 'smooth' : 'instant' });
+  }
+
+  /**
+   * Al girar el teléfono la página cambia de alto (de unas ocho pantallas
+   * a otras ocho de otra medida) pero el navegador conserva la posición
+   * en píxeles: se aparecía a más de mil píxeles de la sección que se
+   * estaba viendo. Aquí se anota en cada scroll qué sección ocupa el
+   * centro de la pantalla y, cuando cambia el ancho, se vuelve a ella.
+   *
+   * Solo cuenta el cambio de ancho: la barra del navegador, al
+   * esconderse, cambia el alto a mitad de gesto y eso no es un giro. Y
+   * durante el giro no se anota nada: el propio reajuste dispara scrolls
+   * que apuntarían a la sección equivocada.
+   */
+  private mantenerSeccionAlGirar(): void {
+    const secciones = () => Array.from(document.querySelectorAll<HTMLElement>('main section, .pie'));
+    let actual: HTMLElement | null = null;
+    let ancho = window.innerWidth;
+    let girando = false;
+    let pendiente = 0;
+    let espera: ReturnType<typeof setTimeout> | undefined;
+
+    const anotar = () => {
+      pendiente = 0;
+      if (girando) return;
+      const medio = window.innerHeight / 2;
+      actual =
+        secciones().find((s) => {
+          const r = s.getBoundingClientRect();
+          return r.top <= medio && r.bottom > medio;
+        }) ?? actual;
+    };
+    window.addEventListener('scroll', () => (pendiente ||= requestAnimationFrame(anotar)), { passive: true });
+
+    window.addEventListener('resize', () => {
+      if (window.innerWidth === ancho) return;
+      ancho = window.innerWidth;
+      const destino = actual;
+      if (!destino) return;
+      girando = true;
+      clearTimeout(espera);
+      // Tras el refresh de ScrollTrigger (200 ms), con las medidas nuevas
+      espera = setTimeout(() => {
+        if (MOVIL.matches) {
+          window.scrollTo({ top: destino.getBoundingClientRect().top + window.scrollY, behavior: 'instant' });
+        }
+        girando = false;
+      }, 380);
+    });
   }
 
   /**

@@ -5,8 +5,7 @@
 /* ---------- La franja azul ----------
    La única sección a sangre en azul profundo: el contraste fuerte de la
    página, entre dos tramos blancos. Texto en blanco; las cursivas pasan
-   a blanco con el marcador en rojo (el rojo como texto no contrasta
-   sobre este azul: 1.9:1). */
+   a blanco (el rojo como texto no contrasta sobre este azul: 1.9:1). */
 .proceso {
   position: relative;
   isolation: isolate;
@@ -18,7 +17,6 @@
     linear-gradient(160deg, #04284f, var(--azul-hondo) 45%, var(--azul));
 
   /* Lo que pintan <app-capitulo> y <app-renglones>, vía sus variables */
-  --marcador: var(--rojo);
   --cursiva: var(--blanco);
   --capitulo-num: #ff9aa8;
   --capitulo-regla: linear-gradient(90deg, #ff9aa8, var(--blanco));
@@ -34,7 +32,7 @@
   position: absolute;
   inset: 0;
   z-index: -1;
-  background: url('/img/trama.svg') center / 360px repeat;
+  background: url('/img/trama.svg') center / 480px repeat;
   opacity: 0.07;
   filter: brightness(0) invert(1);
   pointer-events: none;
@@ -156,7 +154,7 @@
 
 .paso__texto {
   max-width: 28ch;
-  color: rgb(255 255 255 / 0.8);
+  color: rgb(255 255 255 / 0.9);
 }
 
 /* Los pasos aún no alcanzados esperan en segundo plano */
@@ -176,10 +174,12 @@
 
 /* ---------- Móvil: la línea baja por la izquierda ---------- */
 
+/* Solo en vertical: con el teléfono apaisado caben los cuatro pasos en
+   fila, como en escritorio. */
 /* Móvil: la vía va a 24 px del margen para que el camión (40 px) y su
    halo queden dentro; con la vía en el borde asomaban 17 px por fuera
    de la página. */
-@media (max-width: 767.98px) {
+@media (max-width: 767.98px) and (orientation: portrait) {
   .proceso__linea {
     top: 6px;
     bottom: 0;
@@ -218,5 +218,81 @@
   /* Centrado sobre la vía: 24 + 1 (medio trazo) − 7 (medio nodo) */
   .paso__nodo {
     left: 1.125rem;
+  }
+}
+
+/* ---------- Teléfono en vertical: el proceso en una pantalla ---------- */
+@media (max-width: 899.98px) and (orientation: portrait) {
+  .proceso {
+    display: flex;
+    align-items: center;
+    min-height: 100svh;
+    padding-block: calc(var(--nav-h) + var(--pantalla-y)) var(--pantalla-y);
+
+    > .shell {
+      flex: 1;
+    }
+  }
+
+  .proceso__cabeza {
+    margin-bottom: 1.25rem;
+  }
+
+  .proceso__pasos {
+    gap: 1rem;
+  }
+
+  .paso {
+    gap: 0.125rem;
+  }
+
+  .paso__titulo {
+    margin-top: 0;
+  }
+
+  .paso__texto {
+    font-size: 0.9375rem;
+    line-height: 1.4;
+  }
+}
+
+/* ---------- Teléfono apaisado: el proceso en una pantalla ----------
+   El capítulo y el titular en un renglón y los cuatro pasos en fila. */
+@media (orientation: landscape) and (max-height: 520px) {
+  .proceso {
+    display: flex;
+    align-items: center;
+    min-height: 100svh;
+    padding-block: calc(var(--nav-h) + var(--pantalla-y)) var(--pantalla-y);
+
+    > .shell {
+      flex: 1;
+    }
+  }
+
+  .proceso__cabeza {
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+    max-width: none;
+    margin-bottom: 1.25rem;
+
+    .capitulo {
+      margin-bottom: 0;
+    }
+  }
+
+  .proceso__pasos {
+    gap: 1rem;
+  }
+
+  .paso {
+    gap: 0.25rem;
+    padding-top: 1.75rem;
+  }
+
+  .paso__texto {
+    font-size: 0.9375rem;
+    line-height: 1.4;
   }
 }

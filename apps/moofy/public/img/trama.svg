@@ -1,39 +1,105 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="360" height="360" viewBox="0 0 360 360" fill="none" stroke="#5aa7f0" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
-  <!-- Espiga de trigo -->
-  <g transform="translate(30 24) rotate(-18 32 32)">
-    <path d="M32 60V10"/>
-    <path d="M32 18c-6-2-9-7-9-12 6 1 9 6 9 12z"/>
-    <path d="M32 18c6-2 9-7 9-12-6 1-9 6-9 12z"/>
-    <path d="M32 30c-6-2-9-7-9-12 6 1 9 6 9 12z"/>
-    <path d="M32 30c6-2 9-7 9-12-6 1-9 6-9 12z"/>
-    <path d="M32 42c-6-2-9-7-9-12 6 1 9 6 9 12z"/>
-    <path d="M32 42c6-2 9-7 9-12-6 1-9 6-9 12z"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="480" height="480" viewBox="0 0 480 480" fill="none" stroke="#0055a0" stroke-width="0.743" stroke-linecap="round" stroke-linejoin="round">
+  <!-- La trama del fondo: doce iconos de panadería en cuatro filas al
+       tresbolillo, en el azul del logo. La intensidad la pone el CSS.
+       Los dibujos son de Lucide (ISC, lucide.dev) y Tabler Icons (MIT,
+       tabler.io/icons), con el trazo afinado; no se editan a mano. -->
+  <!-- Espiga -->
+  <g transform="translate(80 60) rotate(-8) scale(1.75) translate(-12 -12)">
+    <path d="M2 22 16 8"/>
+    <path d="M3.47 12.53 5 11l1.53 1.53a3.5 3.5 0 0 1 0 4.94L5 19l-1.53-1.53a3.5 3.5 0 0 1 0-4.94Z"/>
+    <path d="M7.47 8.53 9 7l1.53 1.53a3.5 3.5 0 0 1 0 4.94L9 15l-1.53-1.53a3.5 3.5 0 0 1 0-4.94Z"/>
+    <path d="M11.47 4.53 13 3l1.53 1.53a3.5 3.5 0 0 1 0 4.94L13 11l-1.53-1.53a3.5 3.5 0 0 1 0-4.94Z"/>
+    <path d="M20 2h2v2a4 4 0 0 1-4 4h-2V6a4 4 0 0 1 4-4Z"/>
+    <path d="M11.47 17.47 13 19l-1.53 1.53a3.5 3.5 0 0 1-4.94 0L5 19l1.53-1.53a3.5 3.5 0 0 1 4.94 0Z"/>
+    <path d="M15.47 13.47 17 15l-1.53 1.53a3.5 3.5 0 0 1-4.94 0L9 15l1.53-1.53a3.5 3.5 0 0 1 4.94 0Z"/>
+    <path d="M19.47 9.47 21 11l-1.53 1.53a3.5 3.5 0 0 1-4.94 0L13 11l1.53-1.53a3.5 3.5 0 0 1 4.94 0Z"/>
   </g>
   <!-- Croissant -->
-  <g transform="translate(196 36)">
-    <path d="M4 46C6 30 18 18 36 18s30 12 32 28c-4-4-10-4-14 0l-4-10c-4-5-9-7-14-7s-10 2-14 7l-4 10c-4-4-10-4-14 0z"/>
-    <path d="M24 22l4 9M36 18v11M48 22l-4 9"/>
+  <g transform="translate(240 60) rotate(6) scale(1.75) translate(-12 -12)">
+    <path d="M10.2 18H4.774a1.5 1.5 0 0 1-1.352-.97 11 11 0 0 1 .132-6.487"/>
+    <path d="M18 10.2V4.774a1.5 1.5 0 0 0-.97-1.352 11 11 0 0 0-6.486.132"/>
+    <path d="M18 5a4 3 0 0 1 4 3 2 2 0 0 1-2 2 10 10 0 0 0-5.139 1.42"/>
+    <path d="M5 18a3 4 0 0 0 3 4 2 2 0 0 0 2-2 10 10 0 0 1 1.42-5.14"/>
+    <path d="M8.709 2.554a10 10 0 0 0-6.155 6.155 1.5 1.5 0 0 0 .676 1.626l9.807 5.42a2 2 0 0 0 2.718-2.718l-5.42-9.807a1.5 1.5 0 0 0-1.626-.676"/>
+  </g>
+  <!-- Cupcake -->
+  <g transform="translate(400 60) rotate(-5) scale(1.75) translate(-12 -12)">
+    <path d="M12 22v-9"/>
+    <path d="M14 4h1a3 3 0 013 3l-.004.125A4 4 0 0121 11v2"/>
+    <path d="m15.5 22 1.5-9"/>
+    <path d="M21 13a1 1 0 01.919 1.394l-2.74 6.394A2 2 0 0117.34 22H6.659a2 2 0 01-1.838-1.212l-2.74-6.394A1 1 0 013 13z"/>
+    <path d="M3 13v-2a4 4 0 013.003-3.875L6 7a3 3 0 013-3h1"/>
+    <path d="M8.5 22 7 13"/>
+    <circle cx="12" cy="4" r="2"/>
+  </g>
+  <!-- Rosquilla -->
+  <g transform="translate(0 180) rotate(10) scale(1.75) translate(-12 -12)">
+    <path d="M20.5 10a2.5 2.5 0 0 1-2.4-3H18a2.95 2.95 0 0 1-2.6-4.4 10 10 0 1 0 6.3 7.1c-.3.2-.8.3-1.2.3"/>
+    <circle cx="12" cy="12" r="3"/>
+  </g>
+  <!-- Rosquilla (repetida en el borde) -->
+  <g transform="translate(480 180) rotate(10) scale(1.75) translate(-12 -12)">
+    <path d="M20.5 10a2.5 2.5 0 0 1-2.4-3H18a2.95 2.95 0 0 1-2.6-4.4 10 10 0 1 0 6.3 7.1c-.3.2-.8.3-1.2.3"/>
+    <circle cx="12" cy="12" r="3"/>
   </g>
   <!-- Gorro de chef -->
-  <g transform="translate(110 150)">
-    <path d="M18 44V34c-7-1-12-7-12-14 0-8 7-14 15-13 2-6 8-10 15-10s13 4 15 10c8-1 15 5 15 13 0 7-5 13-12 14v10z"/>
-    <path d="M18 52h36v-8H18z"/>
+  <g transform="translate(160 180) rotate(-7) scale(1.75) translate(-12 -12)">
+    <path d="M17 21a1 1 0 0 0 1-1v-5.35c0-.457.316-.844.727-1.041a4 4 0 0 0-2.134-7.589 5 5 0 0 0-9.186 0 4 4 0 0 0-2.134 7.588c.411.198.727.585.727 1.041V20a1 1 0 0 0 1 1Z"/>
+    <path d="M6 17h12"/>
   </g>
-  <!-- Rodillo -->
-  <g transform="translate(250 180) rotate(-30 32 32)">
-    <rect x="14" y="26" width="36" height="12" rx="6"/>
-    <path d="M14 32H4M50 32h10"/>
+  <!-- Rollo -->
+  <g transform="translate(320 180) rotate(5) scale(1.75) translate(-12 -12)">
+    <path d="M12 15c-4.97 0 -9 -2.462 -9 -5.5s4.03 -5.5 9 -5.5s9 2.462 9 5.5s-4.03 5.5 -9 5.5"/>
+    <path d="M12 6.97c3 0 4 1.036 4 1.979c0 2.805 -8 2.969 -8 -.99c0 -2.11 1.5 -3.959 4 -3.959"/>
+    <path d="M21 9.333v5.334c0 2.945 -4.03 5.333 -9 5.333c-4.97 0 -9 -2.388 -9 -5.333v-5.334"/>
   </g>
   <!-- Batidor -->
-  <g transform="translate(20 226) rotate(20 32 32)">
-    <rect x="29" y="38" width="6" height="22" rx="3"/>
-    <path d="M32 38C20 32 20 8 32 4c12 4 12 28 0 34z"/>
-    <path d="M32 38c-6-7-6-26 0-34M32 38c6-7 6-26 0-34"/>
+  <g transform="translate(80 300) rotate(-6) scale(1.75) translate(-12 -12)">
+    <path d="M21.015 3.035l-16.515 16.465"/>
+    <path d="M3.173 17.619a4.63 4.63 0 0 0 3.284 3.26a4.67 4.67 0 0 0 4.487 -1.194c1.85 -1.836 4.07 -10.65 4.07 -10.65s-8.88 2.296 -10.639 4.132a4.59 4.59 0 0 0 -1.202 4.452"/>
   </g>
   <!-- Porción de pastel -->
-  <g transform="translate(170 280)">
-    <path d="M8 44h48V26L8 14z"/>
-    <path d="M8 26h48M8 14l48 12"/>
-    <circle cx="44" cy="12" r="4"/>
+  <g transform="translate(240 300) rotate(5) scale(1.75) translate(-12 -12)">
+    <path d="M16 13H3"/>
+    <path d="M16 17H3"/>
+    <path d="m7.2 7.9-3.388 2.5A2 2 0 0 0 3 12.01V20a1 1 0 0 0 1 1h16a1 1 0 0 0 1-1v-8.654c0-2-2.44-6.026-6.44-8.026a1 1 0 0 0-1.082.057L10.4 5.6"/>
+    <circle cx="9" cy="7" r="2"/>
+  </g>
+  <!-- Galleta -->
+  <g transform="translate(400 300) rotate(12) scale(1.75) translate(-12 -12)">
+    <path d="M11 17h.01"/>
+    <path d="M11.496 2c.324-.016.558.292.529.615a4 4 0 004.235 4.368.713.713 0 01.758.757 4 4 0 004.366 4.237c.323-.03.63.204.614.527a10 10 0 01-2.915 6.566A1 1 0 114.93 4.918 10 10 0 0111.496 2"/>
+    <path d="M12 12h.01"/>
+    <path d="M16 16h.01"/>
+    <path d="M16 3h.01"/>
+    <path d="M21 4h.01"/>
+    <path d="M21 8h.01"/>
+    <path d="M7 14h.01"/>
+    <path d="M9 8h.01"/>
+  </g>
+  <!-- Baguette -->
+  <g transform="translate(0 420) rotate(8) scale(1.75) translate(-12 -12)">
+    <path d="M5.628 11.283l5.644 -5.637c2.665 -2.663 5.924 -3.747 8.663 -1.205l.188 .181a2.987 2.987 0 0 1 0 4.228l-11.287 11.274a3 3 0 0 1 -4.089 .135l-.143 -.135c-2.728 -2.724 -1.704 -6.117 1.024 -8.841"/>
+    <path d="M9.5 7.5l1.5 3.5"/>
+    <path d="M6.5 10.5l1.5 3.5"/>
+    <path d="M12.5 4.5l1.5 3.5"/>
+  </g>
+  <!-- Baguette (repetida en el borde) -->
+  <g transform="translate(480 420) rotate(8) scale(1.75) translate(-12 -12)">
+    <path d="M5.628 11.283l5.644 -5.637c2.665 -2.663 5.924 -3.747 8.663 -1.205l.188 .181a2.987 2.987 0 0 1 0 4.228l-11.287 11.274a3 3 0 0 1 -4.089 .135l-.143 -.135c-2.728 -2.724 -1.704 -6.117 1.024 -8.841"/>
+    <path d="M9.5 7.5l1.5 3.5"/>
+    <path d="M6.5 10.5l1.5 3.5"/>
+    <path d="M12.5 4.5l1.5 3.5"/>
+  </g>
+  <!-- Cerezas -->
+  <g transform="translate(160 420) rotate(-6) scale(1.75) translate(-12 -12)">
+    <path d="M2 17a5 5 0 0 0 10 0c0-2.76-2.5-5-5-3-2.5-2-5 .24-5 3Z"/>
+    <path d="M12 17a5 5 0 0 0 10 0c0-2.76-2.5-5-5-3-2.5-2-5 .24-5 3Z"/>
+    <path d="M7 14c3.22-2.91 4.29-8.75 5-12 1.66 2.38 4.94 9 5 12"/>
+    <path d="M22 9c-4.29 0-7.14-2.33-10-7 5.71 0 10 4.67 10 7Z"/>
+  </g>
+  <!-- Pan de molde -->
+  <g transform="translate(320 420) rotate(-9) scale(1.75) translate(-12 -12)">
+    <path d="M18 4a3 3 0 0 1 2 5.235v8.765a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-8.764a3 3 0 0 1 1.824 -5.231h12.176v-.005"/>
   </g>
 </svg>

@@ -157,7 +157,7 @@
   display: none;
 }
 
-@media (max-width: 899.98px) {
+@media (max-width: 899.98px), (orientation: landscape) and (max-height: 520px) {
   .contacto__cabeza,
   .tarjeta {
     grid-column: 1 / -1;
@@ -172,7 +172,7 @@
    una caja con otra caja dentro (tres bordes izquierdos: 20, 40 y 60
    px); aquí deja de ser caja. Y sin los chips de canal: el canal ya se
    elige en Canales, y el botón abre un mensaje general. */
-@media (max-width: 899.98px) {
+@media (max-width: 899.98px), (orientation: landscape) and (max-height: 520px) {
   .contacto__panel {
     row-gap: var(--esp-5);
     padding: 0;
@@ -201,8 +201,136 @@
 
   .tarjeta__datos {
     grid-template-columns: 1fr;
-    gap: var(--esp-4);
+    gap: var(--esp-3);
     margin-top: var(--esp-4);
     padding-top: var(--esp-4);
+
+    > div {
+      gap: 0;
+    }
+  }
+
+  /* 44 px de alto para el dedo: el teléfono, el WhatsApp y el correo
+     son lo que más se toca aquí y medían 21 px. El subrayado se queda
+     bajo el texto, no bajo la caja. */
+  .tarjeta__datos .enlace {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    border-bottom: 0;
+    text-decoration: underline;
+    text-decoration-color: var(--line-strong);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.3em;
+  }
+}
+
+/* ---------- Teléfono en vertical: el contacto en una pantalla ----------
+   Titular, entrada y la tarjeta: los dos botones y los datos en dos
+   columnas (el correo y la planta, que son largos, a todo el ancho). */
+@media (max-width: 899.98px) and (orientation: portrait) {
+  .contacto {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 100svh;
+    padding-block: calc(var(--nav-h) + var(--pantalla-y)) var(--pantalla-y);
+  }
+
+  .contacto__panel {
+    row-gap: 1rem;
+  }
+
+  .contacto__cabeza .lead {
+    margin-top: 0.625rem;
+  }
+
+  .tarjeta {
+    gap: 0.5rem;
+    padding: 1rem;
+  }
+
+  .tarjeta__datos {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.25rem 1rem;
+    margin-top: 0.5rem;
+    padding-top: 0.75rem;
+
+    > div:nth-child(n + 3) {
+      grid-column: 1 / -1;
+    }
+  }
+}
+
+/* ---------- Teléfono apaisado: el contacto en una pantalla ----------
+   El titular a la izquierda y la tarjeta a la derecha, con los cuatro
+   datos en dos columnas. Los dos botones van en una fila solo si caben
+   enteros y con aire (216 px cada uno); si no, uno sobre otro. */
+@media (orientation: landscape) and (max-height: 520px) {
+  .contacto {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 100svh;
+    padding-block: calc(var(--nav-h) + var(--pantalla-y)) var(--pantalla-y);
+  }
+
+  .contacto__panel {
+    row-gap: 0;
+    align-items: center;
+  }
+
+  .contacto__cabeza {
+    grid-column: 1 / span 5;
+
+    .lead {
+      margin-top: 0.5rem;
+    }
+  }
+
+  .tarjeta {
+    grid-column: 6 / -1;
+    grid-template-columns: repeat(auto-fit, minmax(13.5rem, 1fr));
+    gap: 0.375rem;
+    padding: 0.5rem 0.875rem;
+  }
+
+  .tarjeta__cta,
+  .tarjeta__visita {
+    min-height: 44px;
+    padding-inline: 0.5rem;
+  }
+
+  .tarjeta__datos {
+    grid-column: 1 / -1;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0 1rem;
+    margin-top: 0.125rem;
+    padding-top: 0.375rem;
+
+    > div {
+      gap: 0;
+    }
+  }
+}
+
+/* Los apaisados más estrechos: con la tarjeta a 7 columnas los dos
+   botones no cabían en una fila y, apilados, se pasaba de la pantalla.
+   La tarjeta gana una columna y los botones se ciñen. */
+@media (orientation: landscape) and (max-height: 520px) and (max-width: 780px) {
+  .contacto__cabeza {
+    grid-column: 1 / span 4;
+  }
+
+  .tarjeta {
+    grid-column: 5 / -1;
+    grid-template-columns: repeat(auto-fit, minmax(11.75rem, 1fr));
+    gap: 0.25rem;
+    padding-block: 0.375rem;
+  }
+
+  .tarjeta__cta,
+  .tarjeta__visita {
+    font-size: 0.9375rem;
   }
 }
