@@ -1,0 +1,456 @@
+:host {
+  display: block;
+}
+
+/* El relevo (escritorio, lo activa cobertura.ts): la sección sube una
+   pantalla más la cola del catálogo (RELEVO, 0.4 pantallas) y queda
+   montada sobre su final; empieza recortada a un círculo de radio cero
+   y se abre sobre él. Por encima del catálogo, que sigue fijo debajo. */
+:host(.cobertura-relevo) {
+  position: relative;
+  z-index: 2;
+  margin-top: -140svh;
+}
+
+/* ---------- La sección ----------
+   Azul de borde a borde y, en escritorio, a pantalla completa: la
+   cobertura es uno de los dos mensajes de la página y antes era su
+   sección más corta (un panel que pasaba en un solo scroll). Sobre el
+   azul, el texto va en blanco y las cursivas también (el rojo como texto
+   no contrasta: 1.9:1). */
+.cobertura {
+  --cursiva: var(--blanco);
+  --capitulo-num: #ff9aa8;
+  --capitulo-regla: linear-gradient(90deg, #ff9aa8, var(--blanco));
+  --mono-ink: var(--blanco);
+
+  padding-block: var(--section-y);
+  border-radius: 0;
+}
+
+/* A la izquierda el argumento y a la derecha el mapa */
+.cobertura__panel {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  column-gap: clamp(1.5rem, 0.5rem + 3vw, 4rem);
+  align-items: center;
+
+  .lead {
+    max-width: 30ch;
+    margin-top: 1.25rem;
+    color: rgb(var(--blanco-rgb) / 0.94);
+  }
+}
+
+/* ---------- Las cifras ---------- */
+
+.cobertura__datos {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, max-content));
+  column-gap: clamp(1.75rem, 1rem + 2.5vw, 3.5rem);
+  margin-top: clamp(2rem, 1.5rem + 2vw, 3.25rem);
+}
+
+.dato {
+  display: flex;
+  flex-direction: column;
+
+  & + & {
+    padding-left: clamp(1.75rem, 1rem + 2.5vw, 3.5rem);
+    border-left: 1px solid rgb(var(--blanco-rgb) / 0.22);
+  }
+}
+
+/* El número va primero a la vista y segundo en el DOM: el lector de
+   pantalla oye «Provincias, 7», que es como se entiende. */
+.dato__valor {
+  order: -1;
+  font-size: clamp(3.5rem, 2.6rem + 3.6vw, 6rem);
+  font-weight: 700;
+  line-height: 0.95;
+  letter-spacing: -0.05em;
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+.dato__titulo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.875rem;
+  font-weight: var(--w-announce);
+
+  /* Punto rojo con filete blanco: la pegatina en miniatura */
+  &::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    background: var(--rojo);
+    border-radius: 50%;
+    box-shadow: 0 0 0 2px var(--blanco);
+  }
+}
+
+.dato__detalle {
+  margin-top: 0.25rem;
+  font-size: var(--fs-small);
+  color: rgb(var(--blanco-rgb) / 0.92);
+}
+
+.cobertura__notas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: clamp(1.5rem, 1.25rem + 1vw, 2.25rem);
+
+  li {
+    padding: 0.4375rem 0.875rem;
+    font-size: var(--fs-small);
+    font-weight: var(--w-emph);
+    border: 1px solid rgb(var(--blanco-rgb) / 0.32);
+    border-radius: var(--r-pill);
+  }
+}
+
+/* ---------- El mapa ---------- */
+
+.cobertura__mapa {
+  margin: 0;
+
+  svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    margin-inline: auto;
+    overflow: visible;
+  }
+}
+
+/* Escritorio: la sección llena la pantalla y el mapa crece hasta donde
+   deja el alto (su ancho sale del alto disponible, 600:573). */
+@media (min-width: 900px) and (min-height: 521px) {
+  .cobertura {
+    display: flex;
+    align-items: center;
+    min-height: 100svh;
+    padding-block: calc(var(--nav-h) + 1.5rem) 2rem;
+  }
+
+  .cobertura__mapa svg {
+    width: min(100%, calc((100svh - var(--nav-h) - 5rem) * 600 / 573));
+  }
+}
+
+/* Mientras está fija, lo que no cabe en la pantalla no se ve: en un
+   portátil bajo el texto se aprieta para que las notas no queden fuera. */
+@media (min-width: 900px) and (min-height: 521px) and (max-height: 820px) {
+  .cobertura {
+    padding-block: calc(var(--nav-h) + 1rem) 1.25rem;
+  }
+
+  .cobertura__panel .lead {
+    margin-top: 0.75rem;
+  }
+
+  .cobertura__datos {
+    margin-top: 1.5rem;
+  }
+
+  .dato__valor {
+    font-size: 3.25rem;
+  }
+
+  .cobertura__notas {
+    margin-top: 1.25rem;
+  }
+}
+
+/* Con poco ancho la columna del texto parte los rótulos de las cifras */
+@media (min-width: 900px) and (min-height: 521px) and (max-width: 1199.98px) {
+  .cobertura__panel {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .cobertura__datos {
+    column-gap: 1.25rem;
+  }
+
+  .dato + .dato {
+    padding-left: 1.25rem;
+  }
+}
+
+/* Las provincias en un blanco translúcido sobre el azul: el país se lee
+   como un relieve del propio panel, no como una pieza pegada encima. */
+.mapa__provincia {
+  fill: rgb(var(--blanco-rgb) / 0.11);
+  stroke: rgb(var(--blanco-rgb) / 0.42);
+  stroke-width: 0.9;
+  stroke-linejoin: round;
+  transition: fill var(--dur-base) var(--ease-out);
+
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      fill: rgb(var(--blanco-rgb) / 0.2);
+    }
+  }
+}
+
+.mapa__ruta {
+  fill: none;
+  stroke: var(--blanco);
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  opacity: 0.9;
+}
+
+.mapa__punto {
+  fill: var(--rojo);
+  stroke: var(--blanco);
+  stroke-width: 1.6;
+}
+
+.mapa__nombre {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  fill: var(--blanco);
+  /* Un halo del azul del panel bajo la letra: el nombre se lee aunque
+     pise un límite de provincia o una ruta. */
+  paint-order: stroke;
+  stroke: var(--azul-hondo);
+  stroke-width: 3;
+  stroke-linejoin: round;
+}
+
+/* La planta: el punto de la casa, más grande, con una onda que late */
+.mapa__planta-aro {
+  fill: var(--blanco);
+}
+
+.mapa__planta-punto {
+  fill: var(--rojo);
+}
+
+.mapa__onda {
+  fill: none;
+  stroke: var(--blanco);
+  stroke-width: 1.5;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: cobertura-onda 2.8s var(--ease-out) infinite;
+}
+
+@keyframes cobertura-onda {
+  0% {
+    scale: 1;
+    opacity: 0.7;
+  }
+
+  70%,
+  100% {
+    scale: 3;
+    opacity: 0;
+  }
+}
+
+.mapa__planta-rotulo {
+  rect {
+    fill: var(--blanco);
+  }
+
+  text {
+    font-family: var(--font-mono);
+    font-size: 9.5px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    fill: var(--tinta);
+  }
+}
+
+/* Chromium compone el texto SVG con una fuente escalada según las
+   transformaciones de sus ancestros y a veces la deja a la escala de
+   partida de una animación (pasó en el sello del hero). Con
+   geometricPrecision el texto sigue siempre al dibujo. */
+.cobertura__mapa text {
+  text-rendering: geometricPrecision;
+}
+
+/* ---------- Móvil: texto arriba, mapa debajo ---------- */
+@media (max-width: 899.98px), (orientation: landscape) and (max-height: 520px) {
+  .cobertura__panel {
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: var(--esp-5);
+
+    .lead {
+      max-width: none;
+      margin-top: var(--esp-3);
+    }
+  }
+
+  .cobertura__datos {
+    margin-top: var(--esp-5);
+  }
+
+  .dato__valor {
+    font-size: 3rem;
+  }
+
+  .cobertura__notas {
+    margin-top: var(--esp-4);
+  }
+
+  /* En un mapa de 350 px el lienzo se ve al 58 %: los nombres van a 22
+     unidades para leerse a 13 px (a 15 quedaban en menos de 9). A ese
+     tamaño cada uno va a su hueco (cobertura.ts): --tx/--ty lo mueven
+     desde su sitio de escritorio y --ancla cambia de qué lado crece. */
+  .mapa__nombre {
+    font-size: 22px;
+    letter-spacing: 0.03em;
+    stroke-width: 5;
+    text-anchor: var(--ancla);
+    translate: var(--tx) var(--ty);
+  }
+
+  /* Crece desde su esquina superior derecha, que es la que mira a la planta */
+  .mapa__planta-rotulo {
+    transform-box: fill-box;
+    transform-origin: 100% 0%;
+    scale: 2.2;
+  }
+
+  .mapa__punto {
+    r: 6.5px;
+    stroke-width: 2.2;
+  }
+
+  .mapa__ruta {
+    stroke-width: 2;
+  }
+}
+
+/* ---------- Teléfono en vertical: la cobertura en una pantalla ----------
+   El argumento arriba y el mapa debajo, tan grande como deje el alto
+   visible (menos la barra y el texto: unos 17,5 rem). Las cifras van en
+   un renglón, número y rótulo juntos; el detalle de cada una y las notas
+   solo aparecen en pantallas altas. */
+@media (max-width: 899.98px) and (orientation: portrait) {
+  .cobertura {
+    display: flex;
+    align-items: center;
+    min-height: 100svh;
+    padding-block: calc(var(--nav-h) + var(--pantalla-y)) var(--pantalla-y);
+  }
+
+  .cobertura__panel {
+    row-gap: 0.75rem;
+
+    .lead {
+      margin-top: 0.5rem;
+    }
+  }
+
+  .cobertura__datos {
+    grid-template-columns: repeat(2, auto);
+    justify-content: start;
+    column-gap: 1.25rem;
+    margin-top: 0.75rem;
+  }
+
+  .dato {
+    flex-direction: row;
+    align-items: center;
+    gap: 0.625rem;
+  }
+
+  .dato + .dato {
+    padding-left: 1.25rem;
+  }
+
+  .dato__valor {
+    font-size: 2.25rem;
+  }
+
+  .dato__titulo {
+    margin-top: 0;
+    font-size: 1rem;
+  }
+
+  .dato__detalle,
+  .cobertura__notas {
+    display: none;
+  }
+
+  .cobertura__mapa svg {
+    width: min(100%, calc((100svh - var(--nav-h) - 17.5rem) * 600 / 573));
+    min-width: 13rem;
+  }
+}
+
+@media (max-width: 899.98px) and (orientation: portrait) and (min-height: 800px) {
+  .cobertura__notas {
+    display: flex;
+    margin-top: 0.75rem;
+  }
+
+  .cobertura__mapa svg {
+    width: min(100%, calc((100svh - var(--nav-h) - 21rem) * 600 / 573));
+  }
+}
+
+/* ---------- Teléfono apaisado: la cobertura en una pantalla ----------
+   Texto y mapa lado a lado. El mapa sale del alto visible. */
+@media (orientation: landscape) and (max-height: 520px) {
+  .cobertura {
+    display: flex;
+    align-items: center;
+    min-height: 100svh;
+    padding-block: calc(var(--nav-h) + var(--pantalla-y)) var(--pantalla-y);
+  }
+
+  .cobertura__panel {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    column-gap: 1.5rem;
+
+    .lead {
+      margin-top: 0.375rem;
+    }
+  }
+
+  .cobertura__datos {
+    column-gap: 1rem;
+    margin-top: 0.625rem;
+  }
+
+  .dato + .dato {
+    padding-left: 1rem;
+  }
+
+  .dato__valor {
+    font-size: 2rem;
+  }
+
+  .dato__titulo {
+    margin-top: 0.25rem;
+    font-size: 1rem;
+  }
+
+  .dato__detalle {
+    display: none;
+  }
+
+  .cobertura__notas {
+    margin-top: 0.5rem;
+
+    li {
+      padding: 0.25rem 0.75rem;
+      font-size: 0.875rem;
+    }
+  }
+
+  .cobertura__mapa svg {
+    width: min(100%, calc((100svh - var(--nav-h) - 1rem) * 600 / 573));
+  }
+}

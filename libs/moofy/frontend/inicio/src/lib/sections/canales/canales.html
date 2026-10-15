@@ -9,24 +9,26 @@
     </header>
 
     <div class="canales__cuerpo" appRevelar [retraso]="120">
-      <div class="canales__pestanas" role="tablist" aria-label="Canales">
-        @for (canal of c.items; track canal.id; let i = $index) {
-          <button
-            #pestana
-            type="button"
-            role="tab"
-            class="pestana"
-            [id]="'canal-' + canal.id"
-            [attr.aria-selected]="i === indice()"
-            [attr.aria-controls]="'panel-canales'"
-            [attr.tabindex]="i === indice() ? 0 : -1"
-            (click)="elegir(i)"
-            (keydown)="teclado($event)"
-          >
-            <span class="pestana__num mono">{{ (i + 1).toString().padStart(2, '0') }}</span>
-            <span class="pestana__nombre">{{ canal.nombre }}</span>
-          </button>
-        }
+      <div #carril class="canales__carril">
+        <div #pista class="canales__pestanas" role="tablist" aria-label="Canales">
+          @for (canal of c.items; track canal.id; let i = $index) {
+            <button
+              #pestana
+              type="button"
+              role="tab"
+              class="pestana"
+              [id]="'canal-' + canal.id"
+              [attr.aria-selected]="i === indice()"
+              [attr.aria-controls]="'panel-canales'"
+              [attr.tabindex]="i === indice() ? 0 : -1"
+              (click)="elegir(i)"
+              (keydown)="teclado($event)"
+            >
+              <span class="pestana__num mono">{{ (i + 1).toString().padStart(2, '0') }}</span>
+              <span class="pestana__nombre">{{ canal.nombre }}</span>
+            </button>
+          }
+        </div>
       </div>
 
       <div

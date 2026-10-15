@@ -17,19 +17,24 @@ import { RenglonesComponent } from '@moofy-ui-shared/tipografia/renglones';
 import { RevelarDirective } from '@moofy-ui-shared/motion/revelar.directive';
 import { IconoComponent } from '@moofy-ui-shared/marca/icono';
 import { montarEscena } from '@moofy-ui-shared/motion/escena';
+import { RELEVO } from '@moofy-ui-shared/motion/relevo';
 import { InclinarDirective } from '@moofy-ui-shared/motion/inclinar.directive';
 
 type Ref = ElementRef<HTMLElement>;
 
 /**
- * Capítulo 02: las seis líneas, en tarjetas al estilo de
+ * Capítulo 01: el catálogo. Las seis líneas, en tarjetas al estilo de
  * claudioandrade.solutions. Cada tarjeta tiene una acción real: pedir
  * muestras de esa línea por WhatsApp, con el mensaje ya redactado.
  *
- * Escritorio: la sección se fija y el carril (cabecera y tarjetas) pasa
- * en horizontal, 1:1 con el scroll, con la cuenta «01 / 06» y una barra
- * de rojo a azul abajo. Con Tab, la página va a la tarjeta que recibe el
- * foco: el navegador no puede desplazar un carril movido con transform.
+ * Escritorio: la sección se fija con la cabecera arriba y las tarjetas,
+ * que llenan el alto de la pantalla, pasan en horizontal 1:1 con el
+ * scroll, con la cuenta «01 / 06» y una barra de rojo a azul abajo. Con
+ * Tab, la página va a la tarjeta que recibe el foco: el navegador no
+ * puede desplazar un carril movido con transform.
+ *
+ * Al llegar a la última tarjeta la sección sigue fija un tramo más
+ * (RELEVO) y se desvanece: encima se abre la cobertura (cobertura.ts).
  *
  * Móvil: la fila con scroll-snap de siempre. Sin movimiento: la rejilla.
  */
@@ -57,7 +62,43 @@ export class LineasComponent {
     afterNextRender(() => {
       if (!esNavegador) return;
       montarEscena(destroyRef, ({ escritorio }) => (escritorio ? this.horizontal() : undefined));
+      const soltar = this.conElDedo();
+      destroyRef.onDestroy(soltar);
     });
+  }
+
+  /**
+   * En el teléfono la fila se arrastra con scroll nativo (CSS): aquí solo
+   * se lleva la cuenta y la barra. No es una animación, así que también
+   * corre con movimiento reducido. En escritorio la pista no se desplaza
+   * y esto no llega a dispararse.
+   */
+  private conElDedo(): () => void {
+    const pista = this.carril().nativeElement.querySelector<HTMLElement>('.lineas__pista');
+    if (!pista) return () => undefined;
+    const actual = this.actual().nativeElement;
+    const barra = this.barra().nativeElement;
+    const ultimo = LINEAS.items.length - 1;
+    let pendiente = 0;
+    const pintar = () => {
+      pendiente = 0;
+      const tramo = pista.scrollWidth - pista.clientWidth;
+      if (tramo <= 0) return;
+      const avance = Math.min(1, Math.max(0, pista.scrollLeft / tramo));
+      actual.textContent = String(Math.round(avance * ultimo) + 1).padStart(2, '0');
+      // Arranca con un tramo ya pintado: en la primera tarjeta la barra
+      // vacía no se distinguía de una línea divisoria.
+      barra.style.transform = `scaleX(${((1 + avance * ultimo) / (ultimo + 1)).toFixed(4)})`;
+    };
+    const alDesplazar = () => {
+      pendiente ||= requestAnimationFrame(pintar);
+    };
+    pista.addEventListener('scroll', alDesplazar, { passive: true });
+    pintar();
+    return () => {
+      pista.removeEventListener('scroll', alDesplazar);
+      cancelAnimationFrame(pendiente);
+    };
   }
 
   protected muestras(linea: string): string {
@@ -72,14 +113,22 @@ export class LineasComponent {
 
     seccion.classList.add('lineas--horizontal');
     const recorrido = () => Math.max(0, carril.scrollWidth - window.innerWidth);
+    // El pin dura el recorrido del carril más la cola del relevo. `carril`
+    // es la fracción del pin en que el carril se mueve; el resto es cola.
+    const cola = () => window.innerHeight * RELEVO;
+    const parte = () => Math.max(0.001, recorrido() / (recorrido() + cola()));
+    const enCarril = (p: number) => Math.min(1, p / parte());
+    const enCola = (p: number) => Math.max(0, (p - parte()) / (1 - parte()));
 
     // La cuenta sigue a la última tarjeta cuyo borde izquierdo ya cruzó
-    // una marca que avanza con el recorrido (del 35 % al 85 % del
+    // una marca que avanza con el recorrido (del 20 % al 85 % del
     // ancho): con una marca fija en la mitad, la última tarjeta termina
-    // a su derecha y la cuenta no llegaba a 06. Solo se escribe si cambia.
+    // a su derecha y la cuenta no llegaba a 06; y empezando más allá del
+    // 20 %, en pantallas estrechas la segunda tarjeta ya la había cruzado
+    // y la cuenta arrancaba en 02. Solo se escribe si cambia.
     let mostrado = '';
     const contar = (st?: ScrollTrigger) => {
-      const marca = window.innerWidth * (0.35 + 0.5 * (st?.progress ?? 0));
+      const marca = window.innerWidth * (0.2 + 0.65 * enCarril(st?.progress ?? 0));
       let i = 0;
       tarjetas.forEach((t, k) => {
         if (t.getBoundingClientRect().left < marca) i = k;
@@ -93,7 +142,7 @@ export class LineasComponent {
       scrollTrigger: {
         trigger: seccion,
         start: 'top top',
-        end: () => '+=' + recorrido(),
+        end: () => '+=' + (recorrido() + cola()),
         pin: true,
         scrub: true,
         invalidateOnRefresh: true,
@@ -101,12 +150,15 @@ export class LineasComponent {
         onRefresh: contar,
       },
     });
-    tl.to(carril, { x: () => -recorrido() }, 0).fromTo(
-      this.barra().nativeElement,
-      { scaleX: 0 },
-      { scaleX: 1 },
-      0,
-    );
+    // Una sola unidad de timeline para todo el pin: las curvas reparten
+    // el tramo del carril y el de la cola, y lo hacen con las medidas del
+    // momento, así que siguen valiendo tras un cambio de tamaño.
+    tl.to(carril, { x: () => -recorrido(), ease: enCarril }, 0)
+      .fromTo(this.barra().nativeElement, { scaleX: 0 }, { scaleX: 1, ease: enCarril }, 0)
+      // La cola: el catálogo se apaga y se aleja un poco mientras la
+      // cobertura se abre encima.
+      .to(seccion.children, { opacity: 0, ease: enCola }, 0)
+      .to(seccion, { scale: 0.96, ease: enCola }, 0);
 
     // Tab dentro del carril: se lleva el scroll al punto en que la
     // tarjeta enfocada queda centrada.

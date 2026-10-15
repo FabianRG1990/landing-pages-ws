@@ -16,8 +16,11 @@
 :root {
   color-scheme: light;
 
-  /* --- Fondos --- */
-  --fondo: #ffffff;
+  /* --- Fondos ---
+     El fondo de la página no es blanco puro sino un blanco apenas
+     azulado: las tarjetas y los filetes, que sí son blancos, se
+     despegan de él, y la página deja de verse vacía. */
+  --fondo: #f7fafe;
   --azul-50: #f1f6fc; /* panel suave */
   --azul-100: #e2edf9; /* panel más marcado, bordes de matiz */
   --rojo-50: #fdeff1; /* toque rosado */
@@ -25,8 +28,8 @@
   /* --- Tinta: el azul del logo llevado casi a negro --- */
   --tinta-rgb: 11 31 58;
   --tinta: #0b1f3a; /* 16.52 · 15.20 · 13.93 */
-  --tinta-2: #4a5a70; /*  7.03 ·  6.47 ·  5.93 */
-  --tinta-3: #66768c; /*  4.63 sobre blanco; solo sobre blanco */
+  --tinta-2: #37465b; /*  9.59 ·  8.83 ·  8.09 — texto secundario */
+  --tinta-3: #55647a; /*  6.02 sobre blanco; solo sobre blanco */
 
   /* --- Azul de marca --- */
   --azul-rgb: 0 85 160;
@@ -38,7 +41,7 @@
   --rojo-rgb: 208 0 32;
   --rojo: #d00020; /* 5.67 · 5.22 · 4.78 — y blanco sobre él, 5.67 */
   --rojo-hondo: #a30019;
-  --rojo-vivo: #ec2340; /* extremo luminoso del botón */
+  --rojo-vivo: #ec2340; /* extremo luminoso de los degradados rojos */
 
   --blanco-rgb: 255 255 255;
   --blanco: #ffffff;
@@ -51,8 +54,8 @@
 
   /* --- La «pegatina» del logo: filete blanco y contorno azul ---
          Un anillo blanco y otro azul por fuera, como las letras de
-         Moofy. Se usa en el botón principal, las insignias y los
-         nodos del proceso: la página habla el idioma del logo. */
+         Moofy. Se usa en las insignias y los nodos del proceso: la
+         página habla el idioma del logo. */
   --pegatina: 0 0 0 2px var(--blanco), 0 0 0 4px var(--azul);
   --pegatina-fina: 0 0 0 1.5px var(--blanco), 0 0 0 3px var(--azul);
 
@@ -62,6 +65,17 @@
   --shadow-lg: 0 28px 70px -30px rgb(var(--azul-rgb) / 0.32);
   --shadow-xl: 0 44px 80px -32px rgb(var(--azul-rgb) / 0.48); /* tarjeta levantada */
   --shadow-rojo: 0 14px 34px -14px rgb(var(--rojo-rgb) / 0.55);
+  /* Botón principal: las tres capas del logo en fino. Filo de luz
+     arriba, filete blanco de 1,5 px, una línea azul de 1,5 px y una
+     sombra azul corta. Es la «pegatina» a la mitad de grosor. */
+  --shadow-btn:
+    inset 0 1px 0 rgb(var(--blanco-rgb) / 0.18), 0 0 0 1.5px var(--blanco), 0 0 0 3px var(--azul),
+    0 10px 20px -12px rgb(var(--azul-rgb) / 0.55);
+  /* El mismo contorno al levantarse: 2 px de filete, 2 de azul y la
+     sombra más larga, porque el botón está más lejos del papel. */
+  --shadow-btn-alza:
+    inset 0 1px 0 rgb(var(--blanco-rgb) / 0.18), 0 0 0 2px var(--blanco), 0 0 0 4px var(--azul),
+    0 18px 28px -14px rgb(var(--azul-rgb) / 0.6);
 
   /* --- Tipografía --- */
   --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
@@ -70,25 +84,31 @@
   --fs-display: clamp(2.75rem, 1.4rem + 5vw, 6rem);
   --fs-h2: clamp(2.125rem, 1.35rem + 3.1vw, 4rem);
   --fs-h3: clamp(1.25rem, 1.08rem + 0.75vw, 1.625rem);
-  --fs-lead: clamp(1.0625rem, 1rem + 0.3vw, 1.25rem);
-  --fs-body: 1.0625rem;
-  --fs-small: 0.9375rem;
-  --fs-caption: 0.75rem;
+  /* Texto de lectura: nada por debajo de 13 px, y el cuerpo de las
+     tarjetas a 16. El cliente lo leía con dificultad a 15/12 px y peso
+     400: «muy delgaditas». */
+  --fs-lead: clamp(1.125rem, 1.05rem + 0.35vw, 1.3125rem);
+  --fs-body: 1.125rem;
+  --fs-small: 1rem;
+  --fs-caption: 0.8125rem;
 
   --tracking-display: -0.035em;
   --tracking-h2: -0.028em;
   --tracking-caps: 0.1em;
   --tracking-label: 0.01em;
 
-  --w-read: 400;
-  --w-emph: 500;
-  --w-announce: 600;
+  /* Instrument Sans es fina de por sí: a 400 el texto corrido se veía
+     delgado sobre blanco. Toda la escala sube un escalón; los titulares
+     se quedan donde estaban. */
+  --w-read: 480;
+  --w-emph: 580;
+  --w-announce: 640;
   --w-display: 650;
 
   /* --- Layout --- */
   --maxw: 1440px;
   --gutter: clamp(1.25rem, 0.6rem + 2.6vw, 4rem);
-  --section-y: clamp(5.5rem, 3rem + 8vw, 9rem);
+  --section-y: clamp(3.25rem, 2rem + 3vw, 4.5rem);
 
   /* Escala de espacios: todo hueco interior sale de aquí */
   --esp-1: 0.5rem; /*  8 */
@@ -97,13 +117,14 @@
   --esp-4: 1.5rem; /* 24 */
   --esp-5: 2rem; /* 32 */
   --esp-6: 3rem; /* 48 */
-  --nav-h: 72px;
+  --nav-h: 84px;
   --measure: 60ch;
   --r-sm: 8px;
   --r-md: 14px;
   --r-lg: 22px;
   --r-xl: 32px;
   --r-pill: 999px;
+  --r-btn: 12px; /* botones: esquina firme, no píldora */
 
   /* --- Movimiento --- */
   --ease-fluid: cubic-bezier(0.16, 1, 0.3, 1);
@@ -113,12 +134,44 @@
   --dur-slow: 700ms;
 }
 
-/* ---------- Sistema móvil (< 900 px) ----------
+/* ---------- Sistema móvil (< 900 px, o teléfono apaisado) ----------
    Un solo margen (--gutter, 20 px a 390) al que se alinea todo, y
    secciones separadas unos 80 px: con el espaciado de escritorio los
-   huecos entre secciones llegaban a 228 px y parecían zonas vacías. */
-@media (max-width: 899.98px) {
+   huecos entre secciones llegaban a 228 px y parecían zonas vacías.
+
+   La segunda condición es el teléfono en horizontal: hasta 932 px de
+   ancho pero solo 360-430 de alto. Es móvil aunque pase de 900. */
+@media (max-width: 899.98px), (orientation: landscape) and (max-height: 520px) {
   :root {
     --section-y: 2.5rem;
+    --nav-h: 64px;
+    /* El aire de cada pantalla, arriba (bajo la barra) y abajo */
+    --pantalla-y: 0.75rem;
+    /* Los titulares se miden contra el ancho y contra el alto visible:
+       en un teléfono de 664 px útiles un titular de tres renglones no
+       puede llevarse un cuarto de la pantalla. */
+    --fs-display: clamp(1.875rem, min(9.6vw, 5.6svh), 2.75rem);
+    --fs-h2: clamp(1.625rem, min(8vw, 4.6svh), 2.25rem);
+    --fs-h3: 1.125rem;
+    --fs-lead: 1.0625rem;
+    --fs-body: 1.0625rem;
+  }
+}
+
+/* ---------- Teléfono apaisado ----------
+   Sobra ancho y falta alto (unos 340 px útiles con las barras del
+   navegador): la barra se encoge, los titulares se miden contra el alto
+   y cada sección se arma en dos columnas para caber en una pantalla. */
+@media (orientation: landscape) and (max-height: 520px) {
+  :root {
+    --nav-h: 52px;
+    --pantalla-y: 0.5rem;
+    --section-y: 1.75rem;
+    --gutter: 1.5rem;
+    --fs-display: clamp(1.625rem, min(4.6vw, 10svh), 2.5rem);
+    --fs-h2: clamp(1.375rem, min(3.4vw, 8svh), 2rem);
+    --fs-h3: 1.0625rem;
+    --fs-lead: 1rem;
+    --fs-body: 1rem;
   }
 }

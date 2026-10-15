@@ -6,10 +6,10 @@
    con peso en vez de acabarse en blanco sobre blanco. El mismo esquema
    que el pie de bollería: columnas con título, divisores finos y lo
    legal dentro del mismo color. Los textos van en blanco con alfa; el
-   más tenue (0.62) da 4.9:1 sobre el punto más claro del degradado. */
+   más tenue (0.74) da 5.7:1 sobre el punto más claro del degradado. */
 .pie {
-  --pie-texto: rgb(255 255 255 / 0.78);
-  --pie-tenue: rgb(255 255 255 / 0.62);
+  --pie-texto: rgb(255 255 255 / 0.88);
+  --pie-tenue: rgb(255 255 255 / 0.74);
   --pie-linea: rgb(255 255 255 / 0.13);
   --pie-titulo: #b3d6f8;
 
@@ -81,7 +81,7 @@ nav.pie__col {
    corta lo levanta del azul, como una pegatina. Sin caja. */
 .pie__logo {
   display: block;
-  width: 140px;
+  width: 200px;
   filter: drop-shadow(0 8px 12px rgb(0 0 0 / 0.32));
 }
 
@@ -94,7 +94,7 @@ nav.pie__col {
 
 .pie__titulo {
   margin-bottom: 1rem;
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 700;
   letter-spacing: 0.16em;
   text-transform: uppercase;
@@ -125,8 +125,7 @@ nav.pie__col {
   }
 }
 
-/* El botón de la casa; sobre azul, el filete blanco de la pegatina
-   es lo que lo despega del fondo. */
+/* El botón de la casa: sobre el azul, su filete blanco lo despega. */
 .pie__cta {
   gap: 0.75rem;
   padding-left: 1.125rem;
@@ -188,7 +187,7 @@ nav.pie__col {
   justify-content: space-between;
   gap: 0.5rem 2rem;
   padding-block: 1.125rem max(1.25rem, env(safe-area-inset-bottom));
-  font-size: 0.8125rem;
+  font-size: 0.875rem;
   color: var(--pie-tenue);
   /* El hilo va por dentro del contenido, no a sangre: así los dos
      extremos caen sobre la primera y la última columna. */
@@ -350,5 +349,55 @@ nav.pie__col {
     flex-direction: column;
     align-items: flex-start;
     padding-top: 1.25rem;
+  }
+}
+
+/* ---------- Dedo ----------
+   En cualquier pantalla táctil los enlaces de las listas miden 44 px de
+   alto (en tableta y con el teléfono apaisado medían 20). */
+@media (hover: none) and (pointer: coarse) {
+  .pie__lista {
+    gap: 0;
+  }
+
+  .pie__lista li,
+  .pie__lista a {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+  }
+
+  .pie__titulo {
+    margin-bottom: 0.25rem;
+  }
+
+  .pie__pedidos .pie__titulo {
+    margin-bottom: 1rem;
+  }
+}
+
+/* ---------- Teléfono apaisado: menos aire arriba y el logo a escala ---------- */
+@media (orientation: landscape) and (max-height: 520px) {
+  .pie__rejilla {
+    row-gap: 1.5rem;
+    padding-block: 1.75rem 1.25rem;
+  }
+
+  .pie__logo {
+    width: 150px;
+  }
+
+  nav.pie__col,
+  .pie__col:nth-child(3) {
+    padding-top: 1.25rem;
+  }
+}
+
+/* A 320 de ancho el correo no cabe en su columna y ensanchaba la página
+   entera: ahí sí puede partir. */
+@media (max-width: 339.98px) {
+  .pie__datos a {
+    white-space: normal;
+    overflow-wrap: anywhere;
   }
 }

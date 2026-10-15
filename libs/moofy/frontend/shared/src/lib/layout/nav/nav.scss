@@ -52,10 +52,13 @@
   margin-right: auto;
 }
 
-/* 104 px de ancho = 47 de alto: el logo manuscrito necesita ese cuerpo
-   para leerse, pero más grande grita sobre una barra de 72. */
+/* 152 px de ancho = 69 de alto en una barra de 84: el logo es la marca
+   y tiene que leerse de un vistazo. En móvil, 128 = 58 en una de 76. */
 .nav__logo {
-  width: 104px;
+  /* En bloque: en línea, la caja del enlace le deja hueco abajo y el
+     logo queda pegado al borde superior de la barra. */
+  display: block;
+  width: 152px;
 }
 
 .nav__links {
@@ -133,7 +136,7 @@
   }
 }
 
-@media (max-width: 899.98px) {
+@media (max-width: 899.98px), (orientation: landscape) and (max-height: 520px) {
   .nav__links,
   .nav__cta {
     display: none;
@@ -143,8 +146,9 @@
     display: block;
   }
 
+  /* 108 px de ancho = 49 de alto en una barra de 64 */
   .nav__logo {
-    width: 92px;
+    width: 108px;
   }
 }
 
@@ -223,8 +227,42 @@
   padding-block: 0.5rem;
 }
 
-@media (min-width: 900px) {
+@media (min-width: 900px) and (min-height: 521px) {
   .menu {
     display: none;
+  }
+}
+
+/* ---------- Teléfono apaisado ----------
+   El logo se ajusta a la barra de 52 px. El menú, en dos columnas: las
+   secciones a la izquierda y el botón a la derecha; apilado, la lista
+   no cabía en 390 px de alto y el botón quedaba fuera de la pantalla. */
+@media (orientation: landscape) and (max-height: 520px) {
+  .nav__logo {
+    width: 88px;
+  }
+
+  .menu__shell {
+    flex-direction: row;
+    align-items: center;
+    gap: 2rem;
+    padding-block: 1rem max(1rem, env(safe-area-inset-bottom));
+  }
+
+  .menu__lista {
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 2rem;
+  }
+
+  .menu__link {
+    padding-block: 0.875rem;
+    font-size: 1.5rem;
+  }
+
+  .menu__pie {
+    flex: 0 0 15rem;
+    margin-top: 0;
   }
 }

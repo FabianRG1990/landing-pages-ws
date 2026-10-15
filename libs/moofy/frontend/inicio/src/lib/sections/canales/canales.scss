@@ -24,8 +24,11 @@
 
 /* ---------- Pestañas (lista vertical en escritorio) ---------- */
 
-.canales__pestanas {
+.canales__carril {
   grid-column: 1 / span 4;
+}
+
+.canales__pestanas {
   display: flex;
   flex-direction: column;
   border-bottom: 1px solid var(--line);
@@ -206,20 +209,65 @@
 
 /* ---------- Responsive: la lista pasa a una fila de chips ---------- */
 
-@media (max-width: 899.98px) {
+@media (max-width: 899.98px), (orientation: landscape) and (max-height: 520px) {
   .canales__cuerpo {
     display: block;
+  }
+
+  /* La fila no cabe entera y se desplaza de lado. Para que se note: el
+     borde por el que queda contenido se desvanece y lleva una flecha.
+     --antes y --mas (0 a 1) los pone el componente según el recorrido;
+     la flecha no recibe el toque, que pasa al chip que tiene debajo. */
+  .canales__carril {
+    --antes: 0;
+    --mas: 0;
+    --chip-y: 0.25rem;
+    position: relative;
+
+    &::before,
+    &::after {
+      content: '';
+      position: absolute;
+      top: calc(var(--chip-y) + 8px);
+      z-index: 1;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--blanco)
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230055a0' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m9 6 6 6-6 6'/%3E%3C/svg%3E")
+        center / 16px no-repeat;
+      box-shadow: var(--shadow-md), 0 0 0 1px var(--line);
+      pointer-events: none;
+    }
+
+    &::before {
+      left: calc(0.375rem - var(--gutter));
+      opacity: var(--antes);
+      transform: scaleX(-1);
+    }
+
+    &::after {
+      right: calc(0.375rem - var(--gutter));
+      opacity: var(--mas);
+    }
   }
 
   .canales__pestanas {
     flex-direction: row;
     gap: 0.5rem;
     margin-inline: calc(var(--gutter) * -1);
-    padding: 0.25rem var(--gutter) 1.25rem;
+    padding: var(--chip-y) var(--gutter) 1.25rem;
     overflow-x: auto;
     overscroll-behavior-x: contain;
     border-bottom: 0;
     scrollbar-width: none;
+    mask-image: linear-gradient(
+      to right,
+      transparent,
+      #000 calc(var(--antes) * 3.5rem),
+      #000 calc(100% - var(--mas) * 3.5rem),
+      transparent
+    );
 
     &::-webkit-scrollbar {
       display: none;
@@ -284,5 +332,216 @@
     text-wrap: balance;
     line-height: 1.25;
     padding-block: 0.75rem;
+  }
+}
+
+/* ---------- Teléfono en vertical: los canales en una pantalla ----------
+   Titular, la fila de chips, la foto y la tarjeta del canal montada
+   sobre ella. El alto de la foto es lo que sobra de la pantalla. */
+@media (max-width: 899.98px) and (orientation: portrait) {
+  .canales {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 100svh;
+    padding-block: calc(var(--nav-h) + var(--pantalla-y)) var(--pantalla-y);
+  }
+
+  .canales__cabeza {
+    margin-bottom: 0.625rem;
+
+    .lead {
+      display: none;
+    }
+  }
+
+  .canales__pestanas {
+    padding-bottom: 0.75rem;
+  }
+
+  .panel {
+    margin-top: 0;
+  }
+
+  .panel__foto {
+    height: clamp(5.5rem, calc(100svh - var(--nav-h) - 33.5rem), 20rem);
+    aspect-ratio: auto;
+  }
+
+  .panel__tarjetas {
+    margin: -2rem 0.75rem 0;
+  }
+
+  .panel__info {
+    gap: 0.75rem;
+    padding: 1rem 1.125rem;
+  }
+
+  .panel__frase {
+    font-size: 1.25rem;
+  }
+
+  .panel__datos {
+    gap: 0.5rem;
+
+    > div {
+      gap: 0.125rem;
+      padding-top: 0.5rem;
+    }
+
+    dd {
+      font-size: 0.9375rem;
+      line-height: 1.4;
+    }
+  }
+
+  .panel__cta {
+    min-height: 48px;
+    padding-block: 0.375rem;
+    font-size: 0.9375rem;
+  }
+}
+
+/* A 360 px de ancho los datos parten en más renglones y la tarjeta no
+   cabía: se queda con la necesidad y las líneas (la entrega es casi
+   igual en todos los canales). */
+@media (max-width: 374.98px) and (orientation: portrait) {
+  .panel__foto {
+    height: clamp(5.5rem, calc(100svh - var(--nav-h) - 33rem), 20rem);
+  }
+
+  .panel__datos > div:nth-child(3) {
+    display: none;
+  }
+}
+
+/* ---------- Teléfono apaisado: los canales en una pantalla ----------
+   El capítulo y el titular en un renglón, los chips debajo y, a la misma
+   altura, la foto y la tarjeta del canal. De los tres datos se quedan
+   la necesidad y las líneas: la entrega es casi igual en todos los
+   canales, y con tres columnas el texto partía en tres renglones y la
+   tarjeta no cabía en el alto. */
+@media (orientation: landscape) and (max-height: 520px) {
+  .canales {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 100svh;
+    padding-block: calc(var(--nav-h) + var(--pantalla-y)) var(--pantalla-y);
+  }
+
+  .canales__cabeza {
+    display: flex;
+    align-items: baseline;
+    gap: 1rem;
+    max-width: none;
+    margin-bottom: 0;
+
+    .capitulo {
+      margin-bottom: 0;
+    }
+
+    .lead {
+      display: none;
+    }
+  }
+
+  .canales__carril {
+    --chip-y: 0.125rem;
+  }
+
+  .canales__pestanas {
+    padding-block: var(--chip-y) 0.375rem;
+  }
+
+  .pestana {
+    padding-block: 0.5rem;
+  }
+
+  .panel {
+    display: grid;
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    gap: 0.75rem;
+    align-items: stretch;
+    margin-top: 0;
+  }
+
+  .panel__foto {
+    height: 100%;
+    min-height: 0;
+    aspect-ratio: auto;
+  }
+
+  .panel__tarjetas {
+    margin: 0;
+  }
+
+  .panel__info {
+    align-self: stretch;
+    align-content: start;
+    gap: 0.375rem;
+    padding: 0.5rem 1rem;
+  }
+
+  .panel__frase {
+    font-size: 1.0625rem;
+  }
+
+  .panel__datos {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+
+    > div {
+      gap: 0.125rem;
+      padding-top: 0.375rem;
+    }
+
+    > div:nth-child(3) {
+      display: none;
+    }
+
+    dd {
+      font-size: 0.875rem;
+      line-height: 1.35;
+    }
+  }
+
+  .panel__cta {
+    justify-self: start;
+    min-height: 44px;
+    padding-block: 0;
+    font-size: 0.9375rem;
+  }
+}
+
+/* Los apaisados más estrechos: más ancho para el texto, que así parte
+   en menos renglones */
+@media (orientation: landscape) and (max-height: 520px) and (max-width: 760px) {
+  .panel {
+    grid-template-columns: minmax(0, 4fr) minmax(0, 8fr);
+  }
+}
+
+/* Los apaisados más bajos (320-340 px visibles): la tarjeta se pasaba
+   12 px de la pantalla; cede aire por dentro, no contenido */
+@media (orientation: landscape) and (max-height: 339.98px) {
+  .canales__pestanas {
+    padding-bottom: 0.25rem;
+  }
+
+  .panel__info {
+    gap: 0.25rem;
+    padding-block: 0.375rem;
+  }
+
+  .panel__datos {
+    > div {
+      padding-top: 0.25rem;
+    }
+
+    dd {
+      font-size: 0.8125rem;
+      line-height: 1.3;
+    }
   }
 }

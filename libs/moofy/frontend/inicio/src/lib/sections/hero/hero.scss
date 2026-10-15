@@ -13,9 +13,12 @@
   column-gap: var(--gutter);
   row-gap: 3.5rem;
   align-items: center;
-  min-height: min(100svh, 980px);
+  /* Un poco menos que la pantalla: debajo viene el catálogo, que ocupa
+     la pantalla entera y centra su contenido, y con el hero a 100svh
+     quedaban casi 280 px en blanco entre los dos. */
+  min-height: min(93svh, 900px);
   padding-top: calc(var(--nav-h) + clamp(1.5rem, 1rem + 2vw, 3rem));
-  padding-bottom: clamp(2.5rem, 2rem + 2vw, 4rem);
+  padding-bottom: clamp(1.5rem, 1rem + 1.5vw, 2.5rem);
 }
 
 /* ---------- Texto ---------- */
@@ -44,12 +47,16 @@
   margin-top: clamp(1.75rem, 1.4rem + 1.4vw, 2.5rem);
 }
 
-/* ---------- Escena: forma azul, foto, pegatina y tarjeta ---------- */
+/* ---------- Escena: forma azul, mosaico, pegatina y tarjeta ---------- */
 
 .hero__escena {
+  /* Lo que baja cada columna del mosaico respecto de la anterior */
+  --escalon: clamp(2rem, 0.75rem + 2.6vw, 3.5rem);
+  --sangria: 2.5rem;
+
   grid-column: 7 / -1;
   position: relative;
-  padding: 1.5rem 0 2.5rem 2.5rem;
+  padding: 0.5rem 0 1.5rem var(--sangria);
 }
 
 /* Oculta hasta que la timeline de entrada ponga sus estados de partida
@@ -60,7 +67,7 @@
 }
 
 /* La forma azul: un óvalo del azul del logo, ligeramente girado, que
-   asoma por detrás de la foto arriba a la derecha. */
+   asoma por detrás del mosaico arriba a la derecha. */
 .hero__forma {
   position: absolute;
   inset: 0 -12% 18% 18%;
@@ -72,16 +79,30 @@
   transform: rotate(-6deg);
 }
 
-.hero__foto {
+/* El mosaico: las seis líneas en tres columnas. Cada columna baja un
+   escalón respecto de la anterior (--col: 0, 1, 2), así que arriba a la
+   derecha y abajo a la izquierda quedan dos huecos: el del sello y el de
+   la tarjeta. Ninguno de los dos tapa una foto por construcción.
+   `translate` y no `transform`: el transform es de la entrada (hero.ts).
+   `--deriva` (hero.ts, con el scroll) aplana la escalera al bajar. */
+.hero__mosaico {
   position: relative;
   z-index: 1;
-  margin: 0;
-  aspect-ratio: 1;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.875rem;
+  padding-bottom: calc(var(--escalon) * 2);
+}
+
+.pieza {
+  position: relative;
+  aspect-ratio: 4 / 5;
   overflow: clip;
-  border-radius: var(--r-xl);
   background: var(--azul-50);
-  /* El marco blanco grueso es el filete del logo alrededor de la foto */
-  box-shadow: 0 0 0 6px var(--blanco), var(--shadow-lg);
+  border-radius: var(--r-lg);
+  /* El filete blanco del logo alrededor de cada foto */
+  box-shadow: 0 0 0 4px var(--blanco), var(--shadow-lg);
+  translate: 0 calc(var(--col) * (var(--escalon) + var(--deriva, 0px)));
 
   img {
     position: absolute;
@@ -89,95 +110,199 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
-    object-position: 60% 50%;
-    will-change: transform;
   }
 }
 
-/* Pegatina roja: rojo con filete blanco y contorno azul, girada como si
-   estuviera pegada a mano. */
+.pieza__nombre {
+  position: absolute;
+  left: 0.5rem;
+  bottom: 0.5rem;
+  max-width: calc(100% - 1rem);
+  padding: 0.25rem 0.625rem;
+  font-size: 0.875rem;
+  font-weight: var(--w-announce);
+  line-height: 1.3;
+  color: var(--tinta);
+  background: rgb(var(--blanco-rgb) / 0.94);
+  border-radius: var(--r-pill);
+}
+
+/* Sello de origen, montado sobre la esquina de la foto y girado como
+   si estuviera pegado a mano. Todo el dibujo es un SVG (hero.html); aquí
+   van sus colores, que salen de los tokens. La sombra es drop-shadow y
+   no box-shadow para que siga el canto festoneado. */
 .hero__pegatina {
   position: absolute;
-  top: 0.5rem;
-  right: -0.75rem;
+  top: -1.25rem;
+  right: -1.75rem;
   z-index: 3;
-  display: grid;
-  place-content: center;
-  width: clamp(6.5rem, 5rem + 4vw, 8.25rem);
+  width: clamp(8.5rem, 6.25rem + 5.5vw, 10.5rem);
   aspect-ratio: 1;
-  text-align: center;
-  line-height: 1.05;
-  color: var(--blanco);
-  background: radial-gradient(circle at 35% 30%, var(--rojo-vivo), var(--rojo) 55%, var(--rojo-hondo));
-  border-radius: 50%;
-  box-shadow: 0 0 0 4px var(--blanco), 0 0 0 8px var(--azul), var(--shadow-rojo);
-  transform: rotate(10deg);
-  /* El giro con el scroll va aparte del transform, que es de la entrada */
-  rotate: var(--giro, 0deg);
+  transform: rotate(8deg);
 
-  span {
-    font-size: 0.8125rem;
-    font-weight: var(--w-emph);
+  /* La sombra va en el SVG y no en la caja que anima la entrada: con el
+     filtro en el mismo elemento que GSAP escala, Chromium dejaba los
+     textos del sello rasterizados a la escala de partida. */
+  svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    filter: drop-shadow(0 12px 14px rgb(6 59 115 / 0.3));
   }
 
-  strong {
-    font-size: clamp(1rem, 0.85rem + 0.5vw, 1.25rem);
-    font-weight: 700;
-    letter-spacing: -0.01em;
+  /* Chromium compone el texto SVG con una fuente escalada según la
+     transformación de sus ancestros, y la entrada escala el sello 2,6×:
+     una de cada ~40 cargas el texto se quedaba a la escala de partida,
+     encogido en una esquina. Con geometricPrecision no usa esa fuente
+     escalada y el texto sigue siempre al dibujo. */
+  text {
+    text-rendering: geometricPrecision;
   }
 }
 
-/* Tarjeta de datos, montada sobre la esquina inferior izquierda */
+/* El giro con el scroll (--giro, hero.ts) solo mueve el canto y la
+   leyenda; el centro se queda derecho. */
+.sello__aro {
+  transform-box: view-box;
+  transform-origin: 50% 50%;
+  rotate: var(--giro, 0deg);
+}
+
+/* Contorno azul por fuera y filete blanco por dentro, como el logo: el
+   mismo festón dos veces, el de abajo con el trazo más ancho. */
+.sello__canto {
+  fill: var(--azul);
+  stroke: var(--azul);
+  stroke-width: 15;
+  stroke-linejoin: round;
+}
+
+.sello__cuerpo {
+  stroke: var(--blanco);
+  stroke-width: 6;
+  stroke-linejoin: round;
+}
+
+.sello__luz {
+  stop-color: var(--rojo-vivo);
+}
+
+.sello__medio {
+  stop-color: var(--rojo);
+}
+
+.sello__hondo {
+  stop-color: var(--rojo-hondo);
+}
+
+/* Pespunte: la línea de puntos de una etiqueta cosida */
+.sello__pespunte {
+  fill: none;
+  stroke: rgb(var(--blanco-rgb) / 0.55);
+  stroke-width: 1;
+  stroke-dasharray: 0.1 4.55;
+  stroke-linecap: round;
+}
+
+.sello__vuelta {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  fill: var(--blanco);
+}
+
+.sello__disco {
+  fill: var(--blanco);
+  stroke: var(--azul);
+  stroke-width: 2.5;
+}
+
+.sello__filo {
+  fill: none;
+  stroke: rgb(var(--azul-rgb) / 0.3);
+  stroke-width: 0.75;
+}
+
+.sello__arriba {
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  fill: var(--azul);
+}
+
+.sello__centro {
+  font-family: var(--font-sans);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  fill: var(--rojo);
+}
+
+.sello__azul {
+  fill: var(--azul);
+}
+
+.sello__blanco {
+  fill: var(--blanco);
+}
+
+.sello__rojo {
+  fill: var(--rojo);
+}
+
+.sello__bandera-filo {
+  fill: none;
+  stroke: rgb(var(--tinta-rgb) / 0.18);
+  stroke-width: 0.75;
+}
+
+/* Las dos cifras, en el hueco que deja la escalera abajo a la izquierda:
+   tan ancha como la primera columna más la sangría de la escena. */
 .hero__tarjeta {
   position: absolute;
   left: 0;
   bottom: 0;
   z-index: 2;
-  width: min(19rem, 70%);
-  padding: 1.25rem 1.375rem;
+  width: calc(var(--sangria) + (100% - var(--sangria) - 1.75rem) / 3);
+  padding: 0.875rem 1rem 1rem;
 }
 
-.hero__tarjeta-cabeza {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
+.hero__cifras {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+
+  > div {
+    display: flex;
+    flex-direction: column;
+
+    & + div {
+      padding-left: 1rem;
+      border-left: 1px solid var(--line);
+    }
+  }
+
+  dt {
+    font-size: 0.875rem;
+    font-weight: var(--w-announce);
+  }
 }
 
+/* El número va primero a la vista y segundo en el DOM: el lector de
+   pantalla oye «Líneas, 6». */
 .hero__cifra {
-  margin-top: 0.75rem;
-  font-size: clamp(2.75rem, 2.2rem + 2vw, 3.75rem);
+  order: -1;
+  font-size: clamp(2.5rem, 1.9rem + 1.8vw, 3.25rem);
   font-weight: 700;
   line-height: 1;
   letter-spacing: -0.045em;
   color: var(--azul);
   font-variant-numeric: tabular-nums;
-}
 
-.hero__cifra-texto {
-  margin-top: 0.25rem;
-  font-weight: var(--w-announce);
-}
-
-.hero__tarjeta-datos {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.75rem;
-  margin-top: 1rem;
-  padding-top: 0.875rem;
-  border-top: 1px solid var(--line);
-
-  > div {
-    display: grid;
-    gap: 0.2rem;
-  }
-
-  dt {
-    font-size: 0.625rem;
-  }
-
-  dd {
-    font-weight: 700;
+  div + div > & {
     color: var(--rojo);
   }
 }
@@ -205,62 +330,276 @@
   }
 }
 
-/* ---------- Móvil: un solo borde ----------
-   Foto y tarjeta ocupan exactamente el ancho del texto (el margen de
-   la página): antes la foto entraba 16 px, el óvalo azul asomaba por
-   la derecha cortado y la pegatina chocaba con el borde. La tarjeta
-   deja de flotar en una esquina y se monta bajo la foto, con los
-   mismos bordes. */
-@media (max-width: 599.98px) {
+/* ---------- Teléfono en vertical: el hero en una pantalla ----------
+   Titular, entrada y botones arriba y, debajo, el mosaico. Sin la
+   insignia ni las cifras: lo que dicen ya está en el sello y en la
+   entrada, y con ellas los bloques quedaban a 6-16 px unos de otros.
+   Todo es fijo menos el alto de las fotos, que se queda con lo que sobra
+   de la pantalla: el alto visible menos la barra y menos lo que ocupan
+   el texto, los botones y sus separaciones (unos 22,5 rem). Sin
+   escalera: aquí el espacio es para las fotos. */
+@media (max-width: 899.98px) and (orientation: portrait) {
   .hero__shell {
-    row-gap: var(--esp-6);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    row-gap: 0;
+    min-height: 100svh;
+    padding-top: calc(var(--nav-h) + var(--pantalla-y));
+    padding-bottom: var(--pantalla-y);
+  }
+
+  .hero__eyebrow,
+  .hero__tarjeta {
+    display: none;
+  }
+
+  .hero__titulo {
+    max-width: none;
+  }
+
+  .hero__entrada {
+    max-width: none;
+    margin-top: 0.875rem;
+  }
+
+  /* Los dos botones en una fila; sin la flecha, que no cabe a 390 */
+  .hero__acciones {
+    flex-wrap: nowrap;
+    gap: 0.5rem;
+    margin-top: 1.375rem;
+
+    .btn {
+      flex: 0 1 auto;
+      padding-inline: 0.875rem;
+      font-size: 0.9375rem;
+    }
+
+    .btn--rojo {
+      flex: 1 1 auto;
+    }
+
+    app-icono {
+      display: none;
+    }
   }
 
   .hero__escena {
-    display: grid;
+    --pieza-h: clamp(4.5rem, calc((100svh - var(--nav-h) - 22.5rem) / 2), 13rem);
+
+    display: block;
+    width: 100%;
+    max-width: none;
+    margin-top: 1.75rem;
     padding: 0;
   }
 
-  /* El óvalo solo funciona con aire alrededor; en móvil cortaba la
-     composición por la derecha. */
   .hero__forma {
     display: none;
   }
 
-  .hero__foto {
-    aspect-ratio: 4 / 3.4;
-    border-radius: var(--r-lg);
-    box-shadow: var(--shadow-lg);
+  .hero__mosaico {
+    gap: 0.5rem;
+    padding-bottom: 0;
   }
 
-  /* Dentro de la foto, en su esquina: no se sale del borde común */
+  .pieza {
+    height: var(--pieza-h);
+    aspect-ratio: auto;
+    border-radius: var(--r-md);
+    box-shadow: var(--shadow-md);
+    translate: none;
+  }
+
+  /* Asoma por encima del mosaico, sobre su esquina, sin llegar a los
+     botones */
   .hero__pegatina {
-    top: var(--esp-3);
-    right: var(--esp-3);
+    top: -1.25rem;
+    right: -0.25rem;
     width: 5.25rem;
-    box-shadow: 0 0 0 3px var(--blanco), 0 0 0 6px var(--azul), var(--shadow-rojo);
+  }
+}
 
-    span {
-      font-size: 0.6875rem;
-    }
-
-    strong {
-      font-size: 0.9375rem;
-    }
+/* En el teléfono las fotos son pequeñas y el sello sobre el mosaico
+   tapaba media foto: va junto al titular, en el hueco que dejan a la
+   derecha sus renglones segundo y tercero (hasta 520 px de ancho el
+   titular parte siempre en tres). Se coloca respecto del shell, así que
+   el contenido arranca desde arriba y no centrado: el titular tiene que
+   empezar siempre a la misma altura. */
+@media (max-width: 519.98px) and (orientation: portrait) {
+  .hero__shell {
+    position: relative;
+    justify-content: flex-start;
+    padding-top: calc(var(--nav-h) + 1.5rem);
   }
 
-  .hero__tarjeta {
-    position: relative;
-    z-index: 2;
-    width: auto;
-    margin: calc(var(--esp-6) * -1) var(--esp-3) 0;
+  .hero__escena {
+    position: static;
+  }
+
+  .hero__pegatina {
+    top: calc(var(--nav-h) + 1.5rem + var(--fs-display) * 0.9);
+    right: var(--gutter);
+    width: 5rem;
+  }
+}
+
+/* Tabletas en vertical: las fotos son anchas y pueden ser más altas */
+@media (min-width: 600px) and (max-width: 899.98px) and (orientation: portrait) {
+  .hero__escena {
+    --pieza-h: clamp(4.5rem, calc((100svh - var(--nav-h) - 22.5rem) / 2), 20rem);
+  }
+}
+
+/* A 360 px de ancho los dos botones no caben a 15 px */
+@media (max-width: 374.98px) and (orientation: portrait) {
+  .hero__acciones .btn {
+    padding-inline: 0.75rem;
+    font-size: 0.875rem;
+  }
+}
+
+/* A 320 no caben en una fila ni a 14 px y ensanchaban la página: van
+   uno debajo del otro. Ese alto lo cede la entrada, que en una pantalla
+   de 568 ya no cabía junto a las fotos. */
+@media (max-width: 339.98px) and (orientation: portrait) {
+  .hero__entrada {
+    display: none;
   }
 
   .hero__acciones {
-    gap: var(--esp-2);
+    flex-wrap: wrap;
+
+    .btn {
+      flex: 1 1 100%;
+    }
   }
 
-  .hero__acciones .btn {
-    flex: 1 1 100%;
+  .hero__escena {
+    --pieza-h: clamp(4.5rem, calc((100svh - var(--nav-h) - 21rem) / 2), 13rem);
+  }
+
+  .pieza__nombre {
+    padding-inline: 0.5rem;
+    font-size: 0.75rem;
+  }
+
+  .hero__pegatina {
+    width: 4.5rem;
+  }
+}
+
+/* ---------- Teléfono apaisado: el hero en una pantalla ----------
+   Texto a la izquierda y mosaico a la derecha. El lado de las fotos sale
+   del alto visible (dos filas más la escalera y la tarjeta: 5,75 rem) y
+   de él, el ancho de la escena. El nombre no cabe en fotos de 100 px y
+   se oculta. La tarjeta se ciñe a su contenido y no sale de la escena:
+   asomando a la izquierda pisaba el segundo botón. */
+@media (orientation: landscape) and (max-height: 520px) {
+  .hero__shell {
+    row-gap: 0;
+    align-items: center;
+    min-height: 100svh;
+    padding-top: calc(var(--nav-h) + var(--pantalla-y));
+    padding-bottom: var(--pantalla-y);
+  }
+
+  .hero__texto {
+    grid-column: 1 / span 7;
+  }
+
+  .hero__eyebrow {
+    margin-bottom: 0.5rem;
+  }
+
+  .hero__titulo {
+    max-width: none;
+  }
+
+  .hero__entrada {
+    max-width: none;
+    margin-top: 0.5rem;
+  }
+
+  .hero__acciones {
+    flex-wrap: nowrap;
+    gap: 0.625rem;
+    margin-top: 0.75rem;
+
+    .btn {
+      flex: 0 1 auto;
+      min-height: 44px;
+      padding-inline: 0.875rem;
+      font-size: 0.9375rem;
+    }
+
+    app-icono {
+      display: none;
+    }
+  }
+
+  .hero__escena {
+    --pieza: clamp(4rem, calc((100svh - var(--nav-h) - 5.75rem) / 2), 7.5rem);
+    --escalon: 1rem;
+    --sangria: 0rem;
+
+    grid-column: 8 / -1;
+    display: block;
+    width: calc(var(--pieza) * 3 + 1rem);
+    max-width: 100%;
+    justify-self: end;
+    margin-top: 0;
+    padding: 0 0 1rem;
+  }
+
+  .hero__forma {
+    display: block;
+  }
+
+  .hero__mosaico {
+    gap: 0.5rem;
+    padding-bottom: calc(var(--escalon) * 2);
+  }
+
+  .pieza {
+    height: var(--pieza);
+    aspect-ratio: auto;
+    border-radius: var(--r-md);
+    box-shadow: 0 0 0 3px var(--blanco), var(--shadow-md);
+  }
+
+  .pieza__nombre {
+    display: none;
+  }
+
+  .hero__pegatina {
+    top: -1rem;
+    right: -0.75rem;
+    width: 4.5rem;
+  }
+
+  .hero__tarjeta {
+    position: absolute;
+    left: 0;
+    width: max-content;
+    margin: 0;
+    padding: 0.375rem 0.625rem 0.5rem;
+  }
+
+  .hero__cifras {
+    grid-template-columns: repeat(2, auto);
+    column-gap: 0.625rem;
+  }
+
+  .hero__cifras > div + div {
+    padding-left: 0.625rem;
+  }
+
+  .hero__cifras dt {
+    font-size: 0.8125rem;
+  }
+
+  .hero__cifra {
+    font-size: 1.5rem;
   }
 }

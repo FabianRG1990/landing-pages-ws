@@ -14,7 +14,7 @@
   column-gap: var(--gutter);
   row-gap: 1.5rem;
   align-items: end;
-  margin-bottom: clamp(3rem, 2rem + 4vw, 5rem);
+  margin-bottom: clamp(2.25rem, 1.5rem + 2.5vw, 3.5rem);
 
   > div {
     grid-column: 1 / span 7;
@@ -39,7 +39,9 @@
   grid-column: 1 / span 7;
   position: relative;
   margin: 0;
-  aspect-ratio: 5 / 4;
+  /* Apaisada: con el titular encima, la sección entera cabe en una
+     pantalla de portátil. */
+  aspect-ratio: 16 / 10;
   overflow: clip;
   border-radius: var(--r-xl);
   background: var(--azul-50);
@@ -94,132 +96,13 @@
   color: var(--tinta-2);
 }
 
-/* ---------- Escenario fijo (escritorio, lo activa fabrica.ts) ----------
-   El cuerpo pasa a ocupar la pantalla entera: la foto llena el escenario
-   (el recorte de tarjeta a sangre lo anima GSAP con clip-path) y los
-   pilares son tarjetas blancas encima, a la derecha. Sin la clase
-   (móvil, movimiento reducido, sin JS) todo sigue en la rejilla. */
-.fabrica--escena {
-  .fabrica__cuerpo {
-    position: relative;
-    display: block;
-    max-width: none;
-    height: 100svh;
-    padding: 0;
-    overflow: clip;
-  }
-
-  .fabrica__foto {
-    position: absolute;
-    inset: 0;
-    aspect-ratio: auto;
-    border-radius: 0;
-    box-shadow: none;
-    will-change: clip-path;
-  }
-
-  /* Los pilares se alinean al borde derecho del contenido, no al de la
-     pantalla: en monitores anchos siguen dentro de la rejilla. */
-  .fabrica__pilares {
-    position: absolute;
-    z-index: 1;
-    top: calc(var(--nav-h) + 1.5rem);
-    bottom: 1.5rem;
-    right: max(var(--gutter), calc((100% - var(--maxw)) / 2 + var(--gutter)));
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    gap: 1rem;
-    width: min(27rem, 36%);
-  }
-
-  .pilar {
-    padding: 1.375rem 1.5rem;
-    background: var(--blanco);
-    border: 0;
-    border-radius: var(--r-lg);
-    box-shadow: 0 30px 60px -24px rgb(2 20 50 / 0.45), 0 0 0 1px rgb(var(--tinta-rgb) / 0.04);
-
-    &:last-child {
-      border-bottom: 0;
-    }
-  }
-}
-
-/* ---------- Cifras en el bloque azul ---------- */
-
-.fabrica__bloque {
-  margin-top: clamp(4rem, 3rem + 4vw, 6rem);
-  padding: clamp(2rem, 1.5rem + 2vw, 3.5rem) clamp(1.5rem, 1rem + 2vw, 3.5rem);
-}
-
-/* Tantas columnas como cifras haya, a partes iguales */
-.fabrica__cifras {
-  display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: minmax(0, 1fr);
-}
-
-.cifra {
-  display: flex;
-  flex-direction: column;
-  padding-inline: clamp(1rem, 0.5rem + 2vw, 2.5rem);
-
-  &:first-child {
-    padding-left: 0;
-  }
-
-  & + & {
-    border-left: 1px solid rgb(255 255 255 / 0.22);
-  }
-}
-
-/* El número va primero a la vista y segundo en el DOM: el lector de
-   pantalla oye «Planta propia, 1», que es como se entiende. */
-.cifra__valor {
-  order: -1;
-  font-size: clamp(3.5rem, 2.6rem + 3.6vw, 6rem);
-  font-weight: 700;
-  line-height: 0.95;
-  letter-spacing: -0.05em;
-  color: var(--blanco);
-  font-variant-numeric: tabular-nums lining-nums;
-}
-
-.cifra__titulo {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-top: 1rem;
-  font-weight: var(--w-announce);
-  color: var(--blanco);
-
-  /* Punto rojo con filete blanco: la pegatina en miniatura */
-  &::before {
-    content: '';
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: var(--rojo);
-    box-shadow: 0 0 0 2px var(--blanco);
-  }
-}
-
-.cifra__detalle {
-  margin-top: 0.25rem;
-  font-size: var(--fs-small);
-  color: rgb(255 255 255 / 0.84);
-}
-
 /* ---------- Responsive ---------- */
 
-/* ---------- Móvil: un solo borde, cifras en una fila ----------
+/* ---------- Móvil: un solo borde ----------
    Antes el texto de cada pilar arrancaba a 88 px (detrás del círculo
-   del icono), la foto llevaba el filete blanco por fuera del margen y
-   las dos cifras apiladas ocupaban media pantalla. Ahora todo arranca
-   en el margen: el icono va encima de su título y las cifras forman
-   una franja azul baja, lado a lado. */
-@media (max-width: 899.98px) {
+   del icono) y la foto llevaba el filete blanco por fuera del margen.
+   Ahora todo arranca en el margen: el icono va encima de su título. */
+@media (max-width: 899.98px), (orientation: landscape) and (max-height: 520px) {
   .fabrica__cabeza {
     row-gap: var(--esp-4);
     margin-bottom: var(--esp-5);
@@ -257,21 +140,142 @@
   .pilar__texto {
     margin-top: var(--esp-1);
   }
+}
 
-  .fabrica__bloque {
-    margin-top: var(--esp-6);
-    padding: var(--esp-5) var(--esp-4);
+/* ---------- Teléfono en vertical: la fábrica en una pantalla ----------
+   Titular, foto y los tres pilares en filas compactas (icono a la
+   izquierda). El alto de la foto es lo que sobra de la pantalla; la
+   entrada solo aparece en pantallas altas, porque los pilares ya dicen
+   lo mismo. */
+@media (max-width: 899.98px) and (orientation: portrait) {
+  .fabrica {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 100svh;
+    padding-block: calc(var(--nav-h) + var(--pantalla-y)) var(--pantalla-y);
   }
 
-  .cifra {
-    padding-inline: var(--esp-4);
+  .fabrica__cabeza {
+    row-gap: 0.5rem;
+    margin-bottom: 0.75rem;
   }
 
-  .cifra__valor {
-    font-size: 3rem;
+  .fabrica__entrada {
+    display: none;
   }
 
-  .cifra__titulo {
-    margin-top: var(--esp-2);
+  .fabrica__cuerpo {
+    row-gap: 0.5rem;
+  }
+
+  .fabrica__foto {
+    height: clamp(7rem, calc(100svh - var(--nav-h) - 26.5rem), 22rem);
+    aspect-ratio: auto;
+  }
+
+  .pilar {
+    grid-template-columns: 2.25rem 1fr;
+    gap: 0 0.875rem;
+    padding-block: 0.625rem;
+  }
+
+  .pilar__icono {
+    width: 2.25rem;
+    height: 2.25rem;
+    font-size: 1rem;
+  }
+
+  .pilar__texto {
+    margin-top: 0.125rem;
+    font-size: 0.9375rem;
+    line-height: 1.45;
+  }
+}
+
+@media (max-width: 899.98px) and (orientation: portrait) and (min-height: 800px) {
+  .fabrica__entrada {
+    display: block;
+  }
+
+  .fabrica__foto {
+    height: clamp(7rem, calc(100svh - var(--nav-h) - 33rem), 22rem);
+  }
+}
+
+/* ---------- Teléfono apaisado: la fábrica en una pantalla ----------
+   El capítulo y el titular en un renglón; debajo, la foto a media
+   anchura (su alto sale del alto visible) y los pilares al lado. */
+@media (orientation: landscape) and (max-height: 520px) {
+  .fabrica {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 100svh;
+    padding-block: calc(var(--nav-h) + var(--pantalla-y)) var(--pantalla-y);
+  }
+
+  .fabrica__cabeza {
+    display: block;
+    margin-bottom: 0;
+
+    > div {
+      display: flex;
+      align-items: baseline;
+      gap: 1rem;
+    }
+
+    .capitulo {
+      margin-bottom: 0;
+    }
+  }
+
+  .fabrica__entrada {
+    display: none;
+  }
+
+  .fabrica__cuerpo {
+    align-items: center;
+    row-gap: 0;
+  }
+
+  .fabrica__foto {
+    grid-column: 1 / span 6;
+    height: clamp(8rem, calc(100svh - var(--nav-h) - 6rem), 16rem);
+    aspect-ratio: auto;
+  }
+
+  .fabrica__pilares {
+    grid-column: 7 / -1;
+  }
+
+  .pilar {
+    grid-template-columns: 2.25rem 1fr;
+    gap: 0 0.75rem;
+    padding-block: 0.25rem;
+  }
+
+  .pilar__icono {
+    width: 2.25rem;
+    height: 2.25rem;
+    font-size: 1rem;
+  }
+
+  .pilar__titulo {
+    font-size: 1rem;
+    line-height: 1.3;
+  }
+
+  .pilar__texto {
+    margin-top: 0;
+    font-size: 0.875rem;
+    line-height: 1.35;
+  }
+}
+
+/* Los apaisados más bajos (320-340 px visibles): los pilares, más juntos */
+@media (orientation: landscape) and (max-height: 339.98px) {
+  .pilar {
+    padding-block: 0.125rem;
   }
 }

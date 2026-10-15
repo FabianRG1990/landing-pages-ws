@@ -141,11 +141,50 @@ section[id] {
   scroll-margin-top: var(--nav-h);
 }
 
+/* ---------- Móvil: una sección, una pantalla ----------
+   En el teléfono cada sección mide exactamente el alto visible (lo
+   ajusta cada componente) y el scroll encaja en ellas: no hay que
+   tantear para dejar una sección entera a la vista. Empiezan arriba del
+   todo, con su propio hueco para la barra, así que el margen de ancla
+   sobra.
+
+   El encaje solo con el dedo: con ratón el scroll lo suaviza Lenis y los
+   dos pelearían. Obligatorio y no por proximidad, que deja la página a
+   medias entre dos secciones; si una sección mide más que la pantalla
+   (letra agrandada, teléfonos muy pequeños), el navegador deja recorrerla
+   por dentro. El pie encaja por abajo: es el final de la página. */
+@media (max-width: 899.98px), (orientation: landscape) and (max-height: 520px) {
+  section[id] {
+    scroll-margin-top: 0;
+  }
+
+  main section {
+    scroll-snap-align: start;
+  }
+
+  .pie {
+    scroll-snap-align: end;
+  }
+
+  .capitulo {
+    margin-bottom: 0.625rem;
+  }
+}
+
+@media (max-width: 899.98px) and (hover: none) and (pointer: coarse),
+  (orientation: landscape) and (max-height: 520px) and (hover: none) and (pointer: coarse) {
+  html {
+    scroll-snap-type: y mandatory;
+  }
+}
+
+/* El margen crece hasta la zona segura: con el teléfono apaisado la
+   muesca y la esquina redonda caen a los lados (viewport-fit=cover). */
 .shell {
   width: 100%;
   max-width: var(--maxw);
   margin-inline: auto;
-  padding-inline: var(--gutter);
+  padding-inline: max(var(--gutter), env(safe-area-inset-left)) max(var(--gutter), env(safe-area-inset-right));
 }
 
 .measure {
@@ -162,7 +201,7 @@ section[id] {
 .mono {
   font-family: var(--font-mono);
   font-size: var(--fs-caption);
-  font-weight: var(--w-emph);
+  font-weight: 600;
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
   color: var(--tinta-2);
@@ -223,7 +262,7 @@ section[id] {
   font-size: var(--fs-small);
   font-weight: var(--w-emph);
   letter-spacing: var(--tracking-label);
-  border-radius: var(--r-pill);
+  border-radius: var(--r-btn);
   white-space: nowrap;
   transition:
     transform var(--dur-fast) var(--ease-out),
@@ -246,37 +285,66 @@ section[id] {
   }
 }
 
-/* Botón principal: rojo del logo con su filete blanco y contorno azul
-   (la «pegatina»). Es el único relleno rojo de la pantalla. */
+/* Botón principal: el logo de Moofy dicho en voz baja. Rojo plano, y
+   alrededor el filete blanco y la línea azul de sus letras, en fino
+   (--shadow-btn). Sin degradado, sin resplandor y sin brillo. Es el
+   único relleno rojo de la pantalla.
+
+   Al pasar el ratón no cambia de color: se levanta 2 px, el contorno
+   del logo engorda (--shadow-btn-alza) y la flecha sale por la derecha
+   y vuelve a entrar por la izquierda. Oscurecerlo lo apagaba justo
+   cuando tiene que invitar. Solo con puntero fino: en táctil el hover
+   se queda pegado tras el toque. */
 .btn--rojo {
-  overflow: clip;
+  font-weight: var(--w-announce);
   color: var(--blanco);
-  background: linear-gradient(180deg, var(--rojo-vivo), var(--rojo) 55%, var(--rojo-hondo));
-  box-shadow: var(--pegatina), var(--shadow-rojo);
+  background: var(--rojo);
+  box-shadow: var(--shadow-btn);
 
-  &:hover {
-    box-shadow: var(--pegatina), 0 20px 44px -16px rgb(var(--rojo-rgb) / 0.7);
-  }
-
-  /* Brillo que cruza el botón al pasar el ratón, como luz sobre una
-     pegatina. Solo con puntero fino; al salir vuelve sin transición.
-     (overflow: clip recorta el brillo, no el anillo de --pegatina,
-     que es sombra del propio botón.) */
-  &::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(100deg, transparent 30%, rgb(255 255 255 / 0.42) 50%, transparent 70%);
-    transform: translateX(-110%);
-    pointer-events: none;
+  /* La flecha del final; el glifo de WhatsApp del principio no corre */
+  &:hover > svg:last-child,
+  &:hover > app-icono:last-child svg {
+    transform: none;
   }
 
   @media (hover: hover) and (pointer: fine) {
-    &:hover::after {
-      transform: translateX(110%);
-      /* Curva pareja: con --ease-fluid cruzaba en 120 ms y no se veía */
-      transition: transform 0.9s cubic-bezier(0.4, 0, 0.2, 1);
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-btn-alza);
     }
+
+    &:active {
+      transform: translateY(0);
+      box-shadow: var(--shadow-btn);
+    }
+
+    &:hover > svg:last-child,
+    &:hover > app-icono:last-child svg {
+      animation: btn-relevo 0.52s var(--ease-fluid);
+    }
+  }
+}
+
+/* La flecha se va por la derecha y entra otra por la izquierda */
+@keyframes btn-relevo {
+  0% {
+    transform: none;
+    opacity: 1;
+  }
+
+  42% {
+    transform: translateX(0.7em);
+    opacity: 0;
+  }
+
+  43% {
+    transform: translateX(-0.7em);
+    opacity: 0;
+  }
+
+  100% {
+    transform: none;
+    opacity: 1;
   }
 }
 
@@ -324,18 +392,30 @@ html.menu-abierto {
 }
 
 /* ---------- La trama del fondo ----------
-   Iconos de línea de panadería (espiga, croissant, gorro, rodillo,
-   batidor, pastel), el mismo recurso que Moofy usa detrás de su logo en
-   redes. Una capa fija y estática: cero repintado por fotograma. En azul
-   muy claro sobre blanco: es textura, no ilustración. */
+   Doce iconos de panadería de trazo fino (espiga, croissant, cupcake,
+   rosquilla, gorro, rollo, batidor, pastel, galleta, baguette, cerezas
+   y pan), en el azul del logo: el mismo recurso que Moofy usa detrás de
+   su logo en redes. Los dibujos son de Lucide y Tabler Icons, no hechos
+   a mano. Una capa fija y estática: cero repintado por fotograma.
+
+   La opacidad es la única perilla de intensidad. Al 5,5 % no se
+   apreciaba; al 11 %, con trazo más grueso y detalles en rojo, saturaba
+   y distraía del titular. Con el trazo fino y un solo color, al 8 % se
+   distingue el dibujo sin competir con el texto. En móvil baja un
+   punto, porque ahí el texto ocupa casi todo el ancho. */
 .trama {
   position: fixed;
   inset: 0;
   z-index: -1;
   background: url('/img/trama.svg') repeat;
-  background-size: 360px;
-  opacity: 0.055;
+  background-size: 480px;
+  opacity: 0.08;
   pointer-events: none;
+
+  @media (max-width: 899.98px), (orientation: landscape) and (max-height: 520px) {
+    background-size: 400px;
+    opacity: 0.07;
+  }
 }
 
 /* ---------- Piezas globales ----------
@@ -351,8 +431,8 @@ html.menu-abierto {
   gap: 0.5rem;
   padding: 0.375rem 0.8rem;
   font-family: var(--font-mono);
-  font-size: 0.6875rem;
-  font-weight: var(--w-emph);
+  font-size: 0.75rem;
+  font-weight: 600;
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
   color: var(--azul);
@@ -401,7 +481,7 @@ html.menu-abierto {
   }
 
   .mono {
-    color: rgb(255 255 255 / 0.82);
+    color: rgb(255 255 255 / 0.9);
   }
 }
 
