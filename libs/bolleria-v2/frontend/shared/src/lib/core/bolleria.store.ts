@@ -1,5 +1,12 @@
 import { computed } from '@angular/core';
-import { patchState, signalStore, withComputed, withMethods, withState } from '@ngrx/signals';
+import {
+  patchState,
+  signalStore,
+  withComputed,
+  withHooks,
+  withMethods,
+  withState,
+} from '@ngrx/signals';
 import { ScreenId } from './models';
 
 // Desde el 2026-09-15 la v2 no toma pedidos: la carta se consulta y el encargo
@@ -7,6 +14,8 @@ import { ScreenId } from './models';
 interface BolleriaState {
   // navegación + cortina (transcripción fiel de `go()` del original)
   screen: ScreenId;
+  /** La pantalla a la que se va: durante la cortina todavía no es `screen`. */
+  destino: ScreenId;
   curtain: boolean;
   /** Se incrementa cada vez que un cambio de pantalla termina de asentarse — dispara reveal-on-scroll y el reinicio del hero. */
   settleTick: number;
@@ -29,12 +38,18 @@ interface BolleriaState {
 
 const initialState: BolleriaState = {
   screen: 'inicio',
+  destino: 'inicio',
   curtain: false,
   settleTick: 0,
   mobileOpen: false,
   loaded: false,
   libroCerrado: null,
 };
+
+/** Bajo qué nombre se anota la pantalla en cada entrada del historial. */
+const CLAVE_PANTALLA = 'bolPantalla';
+const PANTALLAS: readonly ScreenId[] = ['inicio', 'menu', 'contacto'];
+const esPantalla = (v: unknown): v is ScreenId => PANTALLAS.includes(v as ScreenId);
 
 export const BolleriaStore = signalStore(
   { providedIn: 'root' },
@@ -70,10 +85,21 @@ export const BolleriaStore = signalStore(
      * `prefers-reduced-motion` el componente usa un respaldo mucho más
      * corto (~420ms) — estos tiempos lo acompañan.
      */
-    go(screen: ScreenId): void {
-      if (screen === store.screen()) {
+    go(screen: ScreenId, origen: 'mano' | 'historial' = 'mano'): void {
+      // Se compara con el destino y no con `screen()`: la pantalla tarda 280 ms
+      // en canjearse, y un «atrás» dentro de esa ventana veía todavía la vieja,
+      // lo daba por hecho y dejaba el historial en una pantalla y el sitio en otra.
+      if (screen === store.destino()) {
         patchState(store, { mobileOpen: false });
         return;
+      }
+      // Una entrada por pantalla, con la misma dirección. Sin esto la carta y el
+      // inicio eran para el navegador la misma página: «atrás» sacaba del sitio,
+      // o no hacía nada si la pestaña se abrió desde un enlace (reportado el
+      // 2026-10-08). Cuando el cambio viene del historial no se añade nada: el
+      // navegador ya se movió.
+      if (origen === 'mano' && typeof window !== 'undefined') {
+        window.history.pushState({ [CLAVE_PANTALLA]: screen }, '');
       }
       const reduced =
         typeof window !== 'undefined' &&
@@ -86,7 +112,7 @@ export const BolleriaStore = signalStore(
        */
       const swapDelay = reduced ? 120 : 280;
       const resetDelay = reduced ? 420 : 910;
-      patchState(store, { curtain: true, mobileOpen: false });
+      patchState(store, { destino: screen, curtain: true, mobileOpen: false });
       setTimeout(() => {
         patchState(store, { screen });
         // `instant`: el html declara `scroll-behavior: smooth`, y volver arriba
@@ -105,4 +131,16 @@ export const BolleriaStore = signalStore(
 
     setLibroCerrado: (libroCerrado: boolean | null) => patchState(store, { libroCerrado }),
   })),
+
+  withHooks({
+    onInit(store) {
+      if (typeof window === 'undefined') return;
+      // «Atrás» y «adelante» del navegador. La entrada con la que se abrió el
+      // sitio no lleva pantalla anotada: es el inicio.
+      window.addEventListener('popstate', (ev) => {
+        const anotada = (ev.state as Record<string, unknown> | null)?.[CLAVE_PANTALLA];
+        store.go(esPantalla(anotada) ? anotada : 'inicio', 'historial');
+      });
+    },
+  }),
 );
