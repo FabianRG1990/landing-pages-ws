@@ -143,39 +143,21 @@ section[id] {
 
 /* ---------- Móvil: una sección, una pantalla ----------
    En el teléfono cada sección mide exactamente el alto visible (lo
-   ajusta cada componente) y el scroll encaja en ellas: no hay que
-   tantear para dejar una sección entera a la vista. Empiezan arriba del
-   todo, con su propio hueco para la barra, así que el margen de ancla
-   sobra.
+   ajusta cada componente). Empiezan arriba del todo, con su propio hueco
+   para la barra, así que el margen de ancla sobra.
 
-   El encaje solo con el dedo: con ratón el scroll lo suaviza Lenis y los
-   dos pelearían. Por proximidad y no obligatorio: la página se acomoda
-   solo si la persona la suelta cerca del inicio de una sección, y si no
-   se queda donde la dejó. El obligatorio devolvía cualquier deslizamiento
-   de menos de media pantalla a la sección de partida (se sentía como no
-   dejar hacer scroll) y no dejaba ver la parte de arriba del pie, que
-   mide más que la pantalla. El pie no encaja: se recorre libre. */
+   El scroll es libre: no encaja en las secciones. Se probó con encaje
+   obligatorio (devolvía a la sección de partida cualquier deslizamiento
+   corto, no dejaba ver la parte de arriba del pie y en iPhone mandaba la
+   recarga al catálogo) y por proximidad (dejaba la página a medias), y en
+   los dos casos se sentía como no dejar hacer scroll. */
 @media (max-width: 899.98px), (orientation: landscape) and (max-height: 520px) {
   section[id] {
     scroll-margin-top: 0;
   }
 
-  main section {
-    scroll-snap-align: start;
-  }
-
   .capitulo {
     margin-bottom: 0.625rem;
-  }
-}
-
-/* El encaje se enciende con el primer gesto (`con-encaje`, la pone
-   smooth-scroll.service.ts): encendido desde la carga, Safari en iPhone
-   re-encajaba la recarga en la sección siguiente al hero. */
-@media (max-width: 899.98px) and (hover: none) and (pointer: coarse),
-  (orientation: landscape) and (max-height: 520px) and (hover: none) and (pointer: coarse) {
-  html.con-encaje {
-    scroll-snap-type: y proximity;
   }
 }
 

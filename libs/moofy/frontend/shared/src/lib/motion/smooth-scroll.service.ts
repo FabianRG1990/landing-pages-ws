@@ -41,7 +41,7 @@ export class SmoothScroll {
     if (!this.esNavegador || this.lenis) return;
 
     gsap.registerPlugin(ScrollTrigger);
-    this.encajarTrasGesto();
+    this.vigilarGesto();
     this.fijarArranque();
     this.mantenerSeccionAlGirar();
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
@@ -81,22 +81,13 @@ export class SmoothScroll {
     );
   }
 
-  /**
-   * El encaje del scroll del teléfono (`html.con-encaje`, en _base.scss)
-   * se enciende con el primer gesto y no al cargar. En iPhone, al recargar
-   * tirando de la página hacia abajo, Safari calculaba el encaje con la
-   * página aún desplazada por el tirón y la encajaba en la sección
-   * siguiente: aparecía en el catálogo sin pasar por el hero. Sin encaje
-   * durante la carga no hay nada que re-encajar; desde el primer toque
-   * funciona como siempre.
-   */
-  private encajarTrasGesto(): void {
-    const encender = () => {
+  /** El primer gesto de la persona: desde ahí el scroll es suyo. */
+  private vigilarGesto(): void {
+    const marcar = () => {
       this.conGesto = true;
-      document.documentElement.classList.add('con-encaje');
-      for (const t of GESTOS) window.removeEventListener(t, encender, true);
+      for (const t of GESTOS) window.removeEventListener(t, marcar, true);
     };
-    for (const t of GESTOS) window.addEventListener(t, encender, { capture: true, passive: true });
+    for (const t of GESTOS) window.addEventListener(t, marcar, { capture: true, passive: true });
   }
 
   /**
@@ -113,9 +104,8 @@ export class SmoothScroll {
     if (objetivo === null) return;
     const suave = !inmediato && !matchMedia('(prefers-reduced-motion: reduce)').matches;
     // Teléfono: las secciones empiezan arriba del todo (llevan dentro el
-    // hueco de la barra) y el scroll encaja en ellas con CSS. Se va con el
-    // scroll nativo: Lenis anima la posición paso a paso y el encaje lo
-    // devolvería a la sección de partida en cada paso.
+    // hueco de la barra), así que se va a su borde con el scroll nativo,
+    // que es el que el dedo ya usa ahí.
     if (MOVIL.matches) {
       const top = typeof objetivo === 'number' ? objetivo : objetivo.getBoundingClientRect().top + window.scrollY;
       window.scrollTo({ top, behavior: suave ? 'smooth' : 'instant' });
