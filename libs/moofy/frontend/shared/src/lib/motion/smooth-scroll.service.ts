@@ -25,17 +25,23 @@ const MOVIL: { readonly matches: boolean } =
     ? matchMedia('(max-width: 899.98px), (max-height: 520.98px)')
     : { matches: false };
 
+/** Lo que cuenta como gesto de la persona sobre la página. */
+const GESTOS = ['touchstart', 'wheel', 'keydown', 'pointerdown'] as const;
+
 @Injectable({ providedIn: 'root' })
 export class SmoothScroll {
   private readonly esNavegador = isPlatformBrowser(inject(PLATFORM_ID));
 
   private lenis: Lenis | null = null;
   private tickerFn: ((time: number) => void) | null = null;
+  /** Si la persona ya tocó, giró la rueda o usó el teclado en esta carga. */
+  private conGesto = false;
 
   init(): void {
     if (!this.esNavegador || this.lenis) return;
 
     gsap.registerPlugin(ScrollTrigger);
+    this.encajarTrasGesto();
     this.fijarArranque();
     this.mantenerSeccionAlGirar();
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
@@ -60,9 +66,37 @@ export class SmoothScroll {
    * eligió. Con fragmento en la URL sí hay intención y no se fuerza.
    */
   private fijarArranque(): void {
-    if (!('scrollRestoration' in history)) return;
-    history.scrollRestoration = 'manual';
-    if (!location.hash) window.scrollTo(0, 0);
+    if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+    if (location.hash) return;
+    window.scrollTo(0, 0);
+    // Una sola vez más, al terminar de cargar, por si Safari devolvió la
+    // posición por su cuenta. Una sola: repetirlo peleaba con Safari y la
+    // página brincaba sin llegar a pintarse.
+    window.addEventListener(
+      'load',
+      () => {
+        if (!this.conGesto && window.scrollY !== 0) window.scrollTo(0, 0);
+      },
+      { once: true },
+    );
+  }
+
+  /**
+   * El encaje del scroll del teléfono (`html.con-encaje`, en _base.scss)
+   * se enciende con el primer gesto y no al cargar. En iPhone, al recargar
+   * tirando de la página hacia abajo, Safari calculaba el encaje con la
+   * página aún desplazada por el tirón y la encajaba en la sección
+   * siguiente: aparecía en el catálogo sin pasar por el hero. Sin encaje
+   * durante la carga no hay nada que re-encajar; desde el primer toque
+   * funciona como siempre.
+   */
+  private encajarTrasGesto(): void {
+    const encender = () => {
+      this.conGesto = true;
+      document.documentElement.classList.add('con-encaje');
+      for (const t of GESTOS) window.removeEventListener(t, encender, true);
+    };
+    for (const t of GESTOS) window.addEventListener(t, encender, { capture: true, passive: true });
   }
 
   /**

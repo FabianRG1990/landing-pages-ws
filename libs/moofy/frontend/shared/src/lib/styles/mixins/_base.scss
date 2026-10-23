@@ -171,9 +171,12 @@ section[id] {
   }
 }
 
+/* El encaje se enciende con el primer gesto (`con-encaje`, la pone
+   smooth-scroll.service.ts): encendido desde la carga, Safari en iPhone
+   re-encajaba la recarga en la sección siguiente al hero. */
 @media (max-width: 899.98px) and (hover: none) and (pointer: coarse),
   (orientation: landscape) and (max-height: 520px) and (hover: none) and (pointer: coarse) {
-  html {
+  html.con-encaje {
     scroll-snap-type: y mandatory;
   }
 }
