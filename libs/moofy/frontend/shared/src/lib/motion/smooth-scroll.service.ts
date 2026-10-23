@@ -25,17 +25,23 @@ const MOVIL: { readonly matches: boolean } =
     ? matchMedia('(max-width: 899.98px), (max-height: 520.98px)')
     : { matches: false };
 
+/** Lo que cuenta como gesto de la persona sobre la página. */
+const GESTOS = ['touchstart', 'wheel', 'keydown', 'pointerdown'] as const;
+
 @Injectable({ providedIn: 'root' })
 export class SmoothScroll {
   private readonly esNavegador = isPlatformBrowser(inject(PLATFORM_ID));
 
   private lenis: Lenis | null = null;
   private tickerFn: ((time: number) => void) | null = null;
+  /** Si la persona ya tocó, giró la rueda o usó el teclado en esta carga. */
+  private conGesto = false;
 
   init(): void {
     if (!this.esNavegador || this.lenis) return;
 
     gsap.registerPlugin(ScrollTrigger);
+    this.vigilarGesto();
     this.fijarArranque();
     this.mantenerSeccionAlGirar();
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
@@ -60,9 +66,37 @@ export class SmoothScroll {
    * eligió. Con fragmento en la URL sí hay intención y no se fuerza.
    */
   private fijarArranque(): void {
-    if (!('scrollRestoration' in history)) return;
-    history.scrollRestoration = 'manual';
-    if (!location.hash) window.scrollTo(0, 0);
+    if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+    if (location.hash) return;
+    window.scrollTo(0, 0);
+    // En iPhone, al recargar tirando de la página hacia abajo, la página
+    // aparecía en el catálogo sin pasar por el hero. Safari puede devolver
+    // la posición o re-encajar el scroll después de este punto (al
+    // terminar de cargar, al llegar las fuentes, al recalcular los pins),
+    // así que hasta el primer gesto cualquier scroll que no haya hecho la
+    // persona se deshace. Basta con mirar si hubo gesto, no con comparar
+    // posiciones: en iOS scrollY llega tarde y una comparación se
+    // dispararía sola.
+    const aArriba = () => {
+      if (!this.conGesto && window.scrollY !== 0) window.scrollTo(0, 0);
+    };
+    window.addEventListener('scroll', aArriba, { passive: true });
+    window.addEventListener('load', aArriba);
+    window.addEventListener('pageshow', aArriba);
+    ScrollTrigger.addEventListener('refresh', aArriba);
+    setTimeout(() => {
+      window.removeEventListener('scroll', aArriba);
+      ScrollTrigger.removeEventListener('refresh', aArriba);
+    }, 6000);
+  }
+
+  /** El primer gesto de la persona: desde ahí el scroll es suyo. */
+  private vigilarGesto(): void {
+    const marcar = () => {
+      this.conGesto = true;
+      for (const t of GESTOS) window.removeEventListener(t, marcar, true);
+    };
+    for (const t of GESTOS) window.addEventListener(t, marcar, { capture: true, passive: true });
   }
 
   /**
@@ -106,7 +140,10 @@ export class SmoothScroll {
    * Solo cuenta el cambio de ancho: la barra del navegador, al
    * esconderse, cambia el alto a mitad de gesto y eso no es un giro. Y
    * durante el giro no se anota nada: el propio reajuste dispara scrolls
-   * que apuntarían a la sección equivocada.
+   * que apuntarían a la sección equivocada. Tampoco antes del primer
+   * gesto: los scrolls de la carga no son una sección que alguien
+   * estuviera viendo, y volver a una de ellas mandaba la página lejos del
+   * hero.
    */
   private mantenerSeccionAlGirar(): void {
     const secciones = () => Array.from(document.querySelectorAll<HTMLElement>('main section, .pie'));
@@ -118,7 +155,7 @@ export class SmoothScroll {
 
     const anotar = () => {
       pendiente = 0;
-      if (girando) return;
+      if (girando || !this.conGesto) return;
       const medio = window.innerHeight / 2;
       actual =
         secciones().find((s) => {
