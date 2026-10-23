@@ -85,6 +85,11 @@
     height: 100%;
     object-fit: cover;
     transition: transform 1.2s var(--ease-fluid);
+    /* La foto no se arrastra: en iOS, con el dedo quieto un instante, se
+       «levantaba» para arrastrarla y el carril dejaba de responder */
+    -webkit-user-drag: none;
+    -webkit-touch-callout: none;
+    user-select: none;
   }
 }
 
@@ -345,8 +350,14 @@
     }
   }
 
+  /* Solo en horizontal. Con overflow-x: auto el eje vertical pasa a auto
+     también, y las tarjetas que aún no se han visto esperan su entrada
+     18 px más abajo: el carril quedaba 10 px más alto por dentro y el
+     primer deslizamiento vertical que empezaba en él movía el carril, con
+     la foto pegada al dedo, en vez de la página. */
   .lineas__pista {
     overflow-x: auto;
+    overflow-y: hidden;
     overscroll-behavior-x: contain;
     scroll-snap-type: x mandatory;
     scroll-padding-inline: var(--gutter);
@@ -440,8 +451,10 @@
     }
   }
 
+  /* Solo en horizontal: ver el carril del teléfono en vertical */
   .lineas__pista {
     overflow-x: auto;
+    overflow-y: hidden;
     overscroll-behavior-x: contain;
     scroll-snap-type: x mandatory;
     scroll-padding-inline: max(var(--gutter), env(safe-area-inset-left));
