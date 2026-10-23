@@ -149,10 +149,12 @@ section[id] {
    sobra.
 
    El encaje solo con el dedo: con ratón el scroll lo suaviza Lenis y los
-   dos pelearían. Obligatorio y no por proximidad, que deja la página a
-   medias entre dos secciones; si una sección mide más que la pantalla
-   (letra agrandada, teléfonos muy pequeños), el navegador deja recorrerla
-   por dentro. El pie encaja por abajo: es el final de la página. */
+   dos pelearían. Por proximidad y no obligatorio: la página se acomoda
+   solo si la persona la suelta cerca del inicio de una sección, y si no
+   se queda donde la dejó. El obligatorio devolvía cualquier deslizamiento
+   de menos de media pantalla a la sección de partida (se sentía como no
+   dejar hacer scroll) y no dejaba ver la parte de arriba del pie, que
+   mide más que la pantalla. El pie no encaja: se recorre libre. */
 @media (max-width: 899.98px), (orientation: landscape) and (max-height: 520px) {
   section[id] {
     scroll-margin-top: 0;
@@ -160,10 +162,6 @@ section[id] {
 
   main section {
     scroll-snap-align: start;
-  }
-
-  .pie {
-    scroll-snap-align: end;
   }
 
   .capitulo {
@@ -177,7 +175,7 @@ section[id] {
 @media (max-width: 899.98px) and (hover: none) and (pointer: coarse),
   (orientation: landscape) and (max-height: 520px) and (hover: none) and (pointer: coarse) {
   html.con-encaje {
-    scroll-snap-type: y mandatory;
+    scroll-snap-type: y proximity;
   }
 }
 

@@ -114,8 +114,8 @@ export class SmoothScroll {
     const suave = !inmediato && !matchMedia('(prefers-reduced-motion: reduce)').matches;
     // Teléfono: las secciones empiezan arriba del todo (llevan dentro el
     // hueco de la barra) y el scroll encaja en ellas con CSS. Se va con el
-    // scroll nativo: Lenis anima la posición paso a paso y el encaje
-    // obligatorio lo devolvería a la sección de partida en cada paso.
+    // scroll nativo: Lenis anima la posición paso a paso y el encaje lo
+    // devolvería a la sección de partida en cada paso.
     if (MOVIL.matches) {
       const top = typeof objetivo === 'number' ? objetivo : objetivo.getBoundingClientRect().top + window.scrollY;
       window.scrollTo({ top, behavior: suave ? 'smooth' : 'instant' });
