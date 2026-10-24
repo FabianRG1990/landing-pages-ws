@@ -16,6 +16,56 @@
   }
 }
 
+/* La salida al catálogo completo, a la altura del rótulo */
+.lineas__rotulo {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem 1.5rem;
+}
+
+.lineas__todo {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 0.5rem;
+  /* 44 px para el dedo sin mover el rótulo */
+  margin-block: -0.875rem;
+  padding-block: 0.875rem;
+  font-size: 0.9375rem;
+  font-weight: var(--w-emph);
+  line-height: 1.2;
+  color: var(--azul);
+  white-space: nowrap;
+  text-decoration: underline;
+  text-decoration-color: var(--line-azul);
+  text-underline-offset: 0.3em;
+  transition:
+    color var(--dur-fast) var(--ease-out),
+    text-decoration-color var(--dur-fast) var(--ease-out);
+
+  app-icono {
+    transition: transform var(--dur-base) var(--ease-fluid);
+  }
+
+  &:hover,
+  &:focus-visible {
+    color: var(--rojo);
+    text-decoration-color: currentColor;
+
+    app-icono {
+      transform: translateX(3px);
+    }
+  }
+}
+
+/* En los teléfonos más estrechos la flecha no cabe junto al rótulo */
+@media (max-width: 379.98px) {
+  .lineas__todo app-icono {
+    display: none;
+  }
+}
+
 .lineas__pista:focus-visible {
   outline-offset: -2px;
 }
@@ -239,8 +289,11 @@
   padding-block: calc(var(--nav-h) + 1.25rem) 4.5rem;
   overflow: clip;
 
-  /* Titular a la izquierda y entrada a la derecha, en una sola fila */
+  /* Titular a la izquierda y entrada a la derecha, en una sola fila.
+     La salida al catálogo completo, arriba a la derecha, en el margen
+     de la página y a la altura del rótulo. */
   .lineas__cabeza {
+    position: relative;
     display: flex;
     align-items: end;
     justify-content: space-between;
@@ -250,6 +303,12 @@
 
     .titular {
       font-size: clamp(2rem, 1.1rem + 2.2vw, 3rem);
+    }
+
+    .lineas__todo {
+      position: absolute;
+      top: 0;
+      right: 0;
     }
 
     .lead {

@@ -2,7 +2,16 @@
   <div class="shell lineas__intro">
     <header class="lineas__cabeza">
       <div>
-        <app-capitulo [num]="l.num" [nombre]="l.nombre" appRevelar />
+        <!-- El rótulo y, a su derecha, la salida al catálogo completo: en
+             la misma fila, para no sumar alto (en el teléfono la sección
+             mide una pantalla). -->
+        <div class="lineas__rotulo" appRevelar>
+          <app-capitulo [num]="l.num" [nombre]="l.nombre" />
+          <a class="lineas__todo" href="/catalogo">
+            {{ l.verTodo }}
+            <app-icono nombre="flecha" />
+          </a>
+        </div>
         <h2 id="lineas-titulo" class="titular" appRevelar [retraso]="80">
           <app-renglones [renglones]="l.titulo" />
         </h2>

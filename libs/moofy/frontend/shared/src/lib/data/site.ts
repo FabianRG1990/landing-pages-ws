@@ -134,6 +134,7 @@ export const LINEAS = {
   nombre: 'Catálogo',
   titulo: [[{ t: 'Seis líneas. ' }, { t: 'Un mismo estándar.', em: true }]] as readonly Renglon[],
   entrada: 'Veinte productos, todos de la misma planta. Pida muestras de la línea que encaja con su operación.',
+  verTodo: 'Catálogo completo',
   items: [
     {
       id: 'hojaldre',
