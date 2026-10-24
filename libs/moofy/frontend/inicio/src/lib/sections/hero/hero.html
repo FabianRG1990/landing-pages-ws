@@ -33,14 +33,14 @@
         @for (item of lineas; track item.id; let i = $index) {
           <li class="pieza" [style.--col]="i % 3">
             <img
-              [src]="foto800(item.imagen)"
-              [alt]="item.alt"
-              width="800"
-              height="1200"
+              [src]="item.pieza"
+              alt=""
+              width="640"
+              height="480"
               [attr.fetchpriority]="i < 3 ? 'high' : null"
               decoding="async"
             />
-            <span class="pieza__nombre">{{ item.nombre }}</span>
+            <span class="pieza__nombre">{{ item.corto }}</span>
           </li>
         }
       </ul>

@@ -11,7 +11,7 @@ import {
 import { isPlatformBrowser } from '@angular/common';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { HERO, LINEAS, SITE, enlaceWhatsapp, foto800 } from '@moofy-ui-shared/data/site';
+import { HERO, LINEAS, SITE, enlaceWhatsapp } from '@moofy-ui-shared/data/site';
 import { RevelarDirective } from '@moofy-ui-shared/motion/revelar.directive';
 import { RenglonesComponent } from '@moofy-ui-shared/tipografia/renglones';
 import { IconoComponent } from '@moofy-ui-shared/marca/icono';
@@ -55,7 +55,6 @@ export class HeroComponent {
 
   protected readonly hero = HERO;
   protected readonly lineas = LINEAS.items;
-  protected readonly foto800 = foto800;
   protected readonly whatsapp = enlaceWhatsapp(SITE.mensajeReunion);
 
   private readonly texto = viewChild.required<Ref>('texto');
