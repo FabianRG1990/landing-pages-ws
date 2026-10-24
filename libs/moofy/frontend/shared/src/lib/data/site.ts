@@ -587,6 +587,31 @@ export const PIE = {
   nota: 'Fotografías ilustrativas.',
 } as const;
 
+/* La página del catálogo completo (/catalogo): los veinte productos
+   agrupados por línea, cada uno con su botón para pedir muestras. */
+export const CATALOGO = {
+  descripcionPagina:
+    'Los veinte productos de Moofy en seis líneas: hojaldre, gatos rellenos, pastelería, panadería dulce, galletería y salados. Repostería fina empacada, fabricada en Grecia, Costa Rica.',
+  insignia: 'Catálogo completo',
+  titulo: [[{ t: 'Todo lo que ' }, { t: 'horneamos.', em: true }]] as readonly Renglon[],
+  entrada:
+    'Veinte productos en seis líneas, todos de nuestra planta en Grecia. Pida muestras de los que encajan con su operación.',
+  volver: 'Volver al inicio',
+  indice: 'Líneas del catálogo',
+  muestras: 'Pedir muestras',
+  sinFoto: 'Foto en preparación',
+  cierre: {
+    titulo: [[{ t: '¿Armamos su ' }, { t: 'surtido?', em: true }]] as readonly Renglon[],
+    texto: 'Le ayudamos a elegir los productos y las cantidades que encajan con su canal.',
+    cta: 'Agendar reunión comercial',
+  },
+} as const;
+
+/** El mensaje de WhatsApp para pedir muestras de un producto. */
+export function mensajeProducto(producto: string): string {
+  return `Hola, Moofy. Me interesa recibir muestras de «${producto}» para mi empresa.`;
+}
+
 /** El mensaje de WhatsApp para pedir muestras de una línea. */
 export function mensajeMuestras(linea: string): string {
   return `Hola, Moofy. Me interesa recibir muestras de la línea «${linea}» para mi empresa.`;
