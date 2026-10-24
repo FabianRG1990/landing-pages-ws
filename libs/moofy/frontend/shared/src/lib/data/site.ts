@@ -73,8 +73,8 @@ export const HERO = {
   ctaSecundario: 'Ver catálogo',
   pegatina: ['Hecho en', 'Costa Rica'],
   // La leyenda que da la vuelta al sello; termina en separador porque
-  // el final se une con el principio.
-  selloVuelta: 'Planta propia · Grecia · Alajuela · ',
+  // el final se une con el principio. «Desde 1997» lo publica la marca.
+  selloVuelta: 'Desde 1997 · Planta propia · Grecia · ',
   // Las dos cifras del hero, que son los dos mensajes de la página: el
   // catálogo y la cobertura. Solo hechos publicados.
   cifras: [
@@ -89,8 +89,9 @@ export const FABRICA = {
   titulo: [[{ t: 'No revendemos. ' }, { t: 'Fabricamos.', em: true }]] as readonly Renglon[],
   entrada:
     'Cada pieza sale de nuestra planta en Grecia. La receta, el horno, el empaque y el camión que la lleva son nuestros.',
-  imagen: 'img/planta-linea.webp',
-  alt: 'Operarios con bata y redecilla revisan una línea de horneado en la planta.',
+  // Foto real de la planta, recortada de una publicación de Moofy
+  imagen: 'img/planta-manos.webp',
+  alt: 'Manos dando forma, una por una, a los bizcochos de maíz sobre la mesa de la planta.',
   pilares: [
     {
       icono: 'espiga',
@@ -110,8 +111,9 @@ export const FABRICA = {
   ],
 } as const;
 
-/* Capítulo 02. Solo hechos ya publicados en el sitio: siete provincias,
-   flota propia, entrega programada y la planta en San Roque de Grecia. */
+/* Capítulo 02. Solo hechos ya publicados: siete provincias, flota
+   propia, entrega programada, la planta en San Roque de Grecia y el
+   año en que empezó (1997, de las publicaciones de la marca). */
 export const COBERTURA = {
   num: '02',
   nombre: 'Cobertura',
@@ -120,7 +122,7 @@ export const COBERTURA = {
   origen: 'Planta · Grecia',
   datos: [
     { valor: '7', titulo: 'Provincias', detalle: 'Despacho a todo el país' },
-    { valor: '1', titulo: 'Planta propia', detalle: 'San Roque de Grecia' },
+    { valor: '1', titulo: 'Planta propia', detalle: 'San Roque de Grecia, desde 1997' },
   ],
   notas: ['Flota propia', 'Entrega programada'],
 } as const;
