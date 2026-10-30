@@ -240,8 +240,43 @@ main:focus {
   padding: 1.125rem 1.25rem 0.5rem;
 }
 
+.producto__cabeza {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 1rem;
+  width: 100%;
+
+  > div {
+    display: grid;
+    gap: 0.5rem;
+  }
+}
+
 .producto__categoria {
   color: var(--azul);
+}
+
+/* El empaque en miniatura, sobre el mismo papel del estudio */
+.producto__empaque {
+  display: grid;
+  justify-items: center;
+  gap: 0.25rem;
+  margin: 0;
+
+  img {
+    width: 4.25rem;
+    height: 4.25rem;
+    padding: 0.25rem;
+    object-fit: contain;
+    background: var(--estudio);
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+  }
+
+  figcaption {
+    font-size: 0.6875rem;
+  }
 }
 
 .producto__nombre {

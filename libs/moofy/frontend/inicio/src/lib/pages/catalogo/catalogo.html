@@ -69,8 +69,20 @@
             </figure>
 
             <div class="producto__cuerpo">
-              <p class="producto__categoria mono">{{ p.categoria }}</p>
-              <h3 class="producto__nombre">{{ p.nombre }}</h3>
+              <!-- El empaque va aparte, en miniatura: junto a la pieza en
+                   la foto se veía como un recorte pegado encima. -->
+              <div class="producto__cabeza">
+                <div>
+                  <p class="producto__categoria mono">{{ p.categoria }}</p>
+                  <h3 class="producto__nombre">{{ p.nombre }}</h3>
+                </div>
+                @if (p.empaque) {
+                  <figure class="producto__empaque">
+                    <img [src]="p.empaque" [alt]="'Empaque de ' + p.nombre" width="320" height="320" loading="lazy" decoding="async" />
+                    <figcaption class="mono">{{ c.empaque }}</figcaption>
+                  </figure>
+                }
+              </div>
               @if (p.descripcion) {
                 <p class="producto__texto">{{ p.descripcion }}</p>
               }

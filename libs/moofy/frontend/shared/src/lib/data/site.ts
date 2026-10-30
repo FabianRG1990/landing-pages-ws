@@ -205,8 +205,11 @@ export interface Producto {
   /** Resumen de la ficha del catálogo; null si la del catálogo no sirve. */
   readonly descripcion: string | null;
   readonly atributos: readonly string[];
-  /** Pieza con su empaque, sin fondo; null si el catálogo no trae foto. */
+  /** La pieza sola, sin fondo; null si el catálogo no trae foto. */
   readonly imagen: string | null;
+  /** El empaque, en miniatura, para reconocerlo en la góndola; null si
+   *  no hay foto de él o si la foto principal ya es el empaque. */
+  readonly empaque: string | null;
   readonly alt: string;
 }
 
@@ -224,6 +227,7 @@ export const PRODUCTOS: readonly Producto[] = [
     descripcion: 'Crujientes y doraditas, de capas hojaldradas ligeras con el toque dulce justo.',
     atributos: ['Crujiente y ligera', 'Capas hojaldradas'],
     imagen: 'img/productos/palmeritas.webp',
+    empaque: 'img/productos/palmeritas-empaque.webp',
     alt: 'Palmerita azucarada.',
   },
   {
@@ -234,6 +238,7 @@ export const PRODUCTOS: readonly Producto[] = [
     descripcion: 'Dorada y crujiente, con un toque de azúcar y un relleno generoso de guayaba.',
     atributos: ['Crocante', 'Centro suave'],
     imagen: 'img/productos/costilla-guayaba.webp',
+    empaque: 'img/productos/costilla-guayaba-empaque.webp',
     alt: 'Costilla de hojaldre rellena de guayaba.',
   },
   {
@@ -244,6 +249,7 @@ export const PRODUCTOS: readonly Producto[] = [
     descripcion: 'Doraditas y crujientes por fuera, suaves por dentro y con un relleno generoso.',
     atributos: ['Crujiente', 'Relleno dulce'],
     imagen: null,
+    empaque: null,
     alt: '',
   },
   {
@@ -254,6 +260,7 @@ export const PRODUCTOS: readonly Producto[] = [
     descripcion: 'Suaves, con aroma a chocolate y un relleno de dulce de leche.',
     atributos: ['Suave y esponjoso', 'Relleno cremoso'],
     imagen: 'img/productos/choco-gatos.webp',
+    empaque: 'img/productos/choco-gatos-empaque.webp',
     alt: 'Choco gato relleno de dulce de leche.',
   },
   {
@@ -264,6 +271,7 @@ export const PRODUCTOS: readonly Producto[] = [
     descripcion: 'Suaves y esponjosos, con un relleno de piña de sabor fresco.',
     atributos: ['Suave y esponjoso', 'Relleno frutal'],
     imagen: 'img/productos/gatos-pina.webp',
+    empaque: 'img/productos/gatos-pina-empaque.webp',
     alt: 'Gato relleno de piña.',
   },
   {
@@ -274,6 +282,7 @@ export const PRODUCTOS: readonly Producto[] = [
     descripcion: 'Tiernos y suaves, con un relleno de guayaba de sabor intenso.',
     atributos: ['Suave y ligero', 'Sabor tropical'],
     imagen: 'img/productos/gatos-guayaba.webp',
+    empaque: 'img/productos/gatos-guayaba-empaque.webp',
     alt: 'Gato relleno de guayaba.',
   },
   {
@@ -284,6 +293,7 @@ export const PRODUCTOS: readonly Producto[] = [
     descripcion: 'Esponjoso y ligero, con una generosa capa de dulce de leche.',
     atributos: ['Ligero y esponjoso', 'Relleno dulce'],
     imagen: 'img/productos/arrollado.webp',
+    empaque: 'img/productos/arrollado-empaque.webp',
     alt: 'Rodaja de arrollado con dulce de leche.',
   },
   {
@@ -294,6 +304,7 @@ export const PRODUCTOS: readonly Producto[] = [
     descripcion: 'Capas finas con un relleno generoso de dulce de leche.',
     atributos: ['Capas finas', 'Relleno abundante'],
     imagen: 'img/productos/torta-chilena.webp',
+    empaque: 'img/productos/torta-chilena-empaque.webp',
     alt: 'Porción de torta chilena.',
   },
   {
@@ -304,6 +315,7 @@ export const PRODUCTOS: readonly Producto[] = [
     descripcion: null,
     atributos: ['Esponjoso', 'Dulce'],
     imagen: 'img/productos/quequito.webp',
+    empaque: 'img/productos/quequito-empaque.webp',
     alt: 'Quequito de vainilla.',
   },
   {
@@ -314,6 +326,7 @@ export const PRODUCTOS: readonly Producto[] = [
     descripcion: 'Doraditos y suaves, con ese aroma a canela que despierta el antojo.',
     atributos: ['Suave', 'Dulce'],
     imagen: 'img/productos/rollitos-canela.webp',
+    empaque: 'img/productos/rollitos-canela-empaque.webp',
     alt: 'Rollito de canela glaseado.',
   },
   {
@@ -324,6 +337,7 @@ export const PRODUCTOS: readonly Producto[] = [
     descripcion: 'Doradita, suave y ligera, de sabor delicado para acompañar un café.',
     atributos: ['Suave', 'Ligero'],
     imagen: null,
+    empaque: null,
     alt: '',
   },
   {
@@ -334,6 +348,7 @@ export const PRODUCTOS: readonly Producto[] = [
     descripcion: 'Crujientes por fuera, se deshacen en la boca y llevan un punto de guayaba.',
     atributos: ['Dulzor suave', 'Toque frutal'],
     imagen: 'img/productos/julietas.webp',
+    empaque: 'img/productos/julietas-empaque.webp',
     alt: 'Galleta tipo Julieta.',
   },
   {
@@ -344,6 +359,7 @@ export const PRODUCTOS: readonly Producto[] = [
     descripcion: 'Doraditas y crujientes, con sabor casero y un toque de avena.',
     atributos: ['Crujiente', 'Sabor casero'],
     imagen: null,
+    empaque: null,
     alt: '',
   },
   {
@@ -354,6 +370,7 @@ export const PRODUCTOS: readonly Producto[] = [
     descripcion: 'Crujientes y doraditas, de textura ligera y dulzor suave.',
     atributos: ['Crujiente', 'Ligero'],
     imagen: null,
+    empaque: null,
     alt: '',
   },
   {
@@ -364,6 +381,7 @@ export const PRODUCTOS: readonly Producto[] = [
     descripcion: 'Delgada y doradita, ligera y crocante, con un toque de azúcar.',
     atributos: ['Ligera', 'Toque dulce'],
     imagen: null,
+    empaque: null,
     alt: '',
   },
   {
@@ -374,6 +392,7 @@ export const PRODUCTOS: readonly Producto[] = [
     descripcion: 'Crujientes y ligeros, con el sabor del queso en cada mordida.',
     atributos: ['Crocante', 'Ligero'],
     imagen: 'img/productos/palitos-queso.webp',
+    empaque: 'img/productos/palitos-queso-empaque.webp',
     alt: 'Palito casero con queso.',
   },
   {
@@ -384,6 +403,7 @@ export const PRODUCTOS: readonly Producto[] = [
     descripcion: 'Doraditas y bien tostadas, con queso por encima.',
     atributos: ['Crocante', 'Toque salado'],
     imagen: null,
+    empaque: null,
     alt: '',
   },
   {
@@ -394,6 +414,7 @@ export const PRODUCTOS: readonly Producto[] = [
     descripcion: 'Crujientes y de textura firme, para picar o acompañar.',
     atributos: ['Crocante', 'Firme'],
     imagen: null,
+    empaque: null,
     alt: '',
   },
   {
@@ -404,6 +425,7 @@ export const PRODUCTOS: readonly Producto[] = [
     descripcion: 'Firmes y doraditos, con el toque de maíz de siempre.',
     atributos: ['Tradicional', 'Sabor casero'],
     imagen: 'img/productos/bizcochos-maiz.webp',
+    empaque: null,
     alt: 'Bolsa Moofy de bizcochos de maíz.',
   },
   {
@@ -414,6 +436,7 @@ export const PRODUCTOS: readonly Producto[] = [
     descripcion: 'Suaves y dulces, con un relleno de guayaba.',
     atributos: ['Suave', 'Relleno dulce'],
     imagen: 'img/productos/bizcochos-guayaba.webp',
+    empaque: 'img/productos/bizcochos-guayaba-empaque.webp',
     alt: 'Bizcocho relleno de guayaba.',
   },
 ];
@@ -595,6 +618,7 @@ export const CATALOGO = {
   indice: 'Líneas del catálogo',
   muestras: 'Pedir muestras',
   sinFoto: 'Foto en preparación',
+  empaque: 'Así llega',
   cierre: {
     titulo: [[{ t: '¿Armamos su ' }, { t: 'surtido?', em: true }]] as readonly Renglon[],
     texto: 'Le ayudamos a elegir los productos y las cantidades que encajan con su canal.',
