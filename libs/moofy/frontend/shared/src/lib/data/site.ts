@@ -144,7 +144,6 @@ export const LINEAS = {
       productos: ['Palmeritas', 'Costilla con guayaba', 'Empanadas'],
       ideal: 'Cafeterías · Hoteles',
       imagen: 'img/productos/palmeritas.webp',
-      pieza: 'img/productos/palmeritas-pieza.webp',
       alt: 'Palmerita azucarada de hojaldre.',
     },
     {
@@ -154,7 +153,6 @@ export const LINEAS = {
       productos: ['Choco gatos', 'Gatos de piña', 'Gatos de guayaba'],
       ideal: 'Supermercados · Conveniencia',
       imagen: 'img/productos/choco-gatos.webp',
-      pieza: 'img/productos/choco-gatos-pieza.webp',
       alt: 'Choco gato relleno de dulce de leche.',
     },
     {
@@ -164,7 +162,6 @@ export const LINEAS = {
       productos: ['Arrollado', 'Torta chilena', 'Quequito'],
       ideal: 'Cafeterías · Catering',
       imagen: 'img/productos/torta-chilena.webp',
-      pieza: 'img/productos/torta-chilena-pieza.webp',
       alt: 'Porción de torta chilena con dulce de leche.',
     },
     {
@@ -174,7 +171,6 @@ export const LINEAS = {
       productos: ['Rollitos de canela', 'Media luna'],
       ideal: 'Hoteles · Cafeterías',
       imagen: 'img/productos/rollitos-canela.webp',
-      pieza: 'img/productos/rollitos-canela-pieza.webp',
       alt: 'Rollito de canela glaseado.',
     },
     {
@@ -184,7 +180,6 @@ export const LINEAS = {
       productos: ['Julietas', 'Choco chip y avena', 'Galletas Pan', 'Bizcotela'],
       ideal: 'Supermercados · Vending',
       imagen: 'img/productos/julietas.webp',
-      pieza: 'img/productos/julietas-pieza.webp',
       alt: 'Galleta dulce tipo Julieta con su punto de guayaba.',
     },
     {
@@ -194,7 +189,6 @@ export const LINEAS = {
       productos: ['Palitos de queso', 'Rosquillas', 'Grissines', 'Bizcochos de maíz', 'Bizcochos de guayaba'],
       ideal: 'Conveniencia · Vending',
       imagen: 'img/productos/palitos-queso.webp',
-      pieza: 'img/productos/palitos-queso-pieza.webp',
       alt: 'Palito casero con queso.',
     },
   ],
