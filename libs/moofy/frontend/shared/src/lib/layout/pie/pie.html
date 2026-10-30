@@ -11,9 +11,9 @@
       <p class="pie__titulo" id="pie-nav">Navegación</p>
       <ul class="pie__lista">
         @for (item of nav; track item.ancla) {
-          <li><a [href]="item.ancla">{{ item.etiqueta }}</a></li>
+          <li><a [href]="(enInicio() ? '' : '/') + item.ancla">{{ item.etiqueta }}</a></li>
         }
-        <li><a href="#contacto">Contacto</a></li>
+        <li><a [href]="enInicio() ? '#contacto' : '/#contacto'">Contacto</a></li>
       </ul>
     </nav>
 

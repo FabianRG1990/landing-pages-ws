@@ -1,0 +1,114 @@
+<app-nav [enInicio]="false" />
+
+<main id="main" tabindex="-1" class="catalogo">
+  <header class="catalogo__cabeza shell">
+    <a class="catalogo__volver mono" href="/">
+      <app-icono nombre="flecha" />
+      {{ c.volver }}
+    </a>
+    <p class="insignia" appRevelar>
+      <span class="insignia__punto" aria-hidden="true"></span>
+      {{ c.insignia }} · {{ total }} productos
+    </p>
+    <h1 class="catalogo__titulo titular" appRevelar [retraso]="80">
+      <app-renglones [renglones]="c.titulo" />
+    </h1>
+    <p class="lead catalogo__entrada" appRevelar [retraso]="200">{{ c.entrada }}</p>
+  </header>
+
+  <!-- El índice de líneas: se queda pegado bajo la barra y, en el
+       teléfono, es una fila que se desliza con el dedo. -->
+  <nav class="indice" [attr.aria-label]="c.indice">
+    <ul class="indice__lista shell">
+      @for (g of grupos; track g.id) {
+        <li>
+          <a class="indice__chip" [href]="'catalogo#linea-' + g.id" (click)="ir($event, g.id)">
+            {{ g.nombre }}
+            <span class="indice__cuenta">{{ g.productos.length }}</span>
+          </a>
+        </li>
+      }
+    </ul>
+  </nav>
+
+  @for (g of grupos; track g.id; let gi = $index) {
+    <section
+      class="grupo shell"
+      [id]="'linea-' + g.id"
+      [attr.aria-labelledby]="'linea-' + g.id + '-titulo'"
+      [class.grupo--rojo]="gi % 2 === 1"
+    >
+      <header class="grupo__cabeza">
+        <p class="mono"><span class="grupo__num">Línea {{ g.num }}</span></p>
+        <h2 class="grupo__nombre" [id]="'linea-' + g.id + '-titulo'" tabindex="-1">{{ g.nombre }}</h2>
+        <p class="grupo__cuenta mono">{{ g.productos.length }} productos</p>
+      </header>
+
+      <ul class="grupo__lista">
+        @for (p of g.productos; track p.id; let i = $index) {
+          <li class="producto" appRevelar [retraso]="(i % 3) * 90">
+            <figure class="producto__foto" [class.producto__foto--marca]="!p.imagen">
+              @if (p.imagen) {
+                <picture>
+                  <source media="(max-width: 599.98px)" [attr.srcset]="foto800(p.imagen)" />
+                  <img
+                    [src]="p.imagen"
+                    [attr.srcset]="foto800(p.imagen) + ' 800w, ' + p.imagen + ' 1024w'"
+                    sizes="(max-width: 1023.98px) 50vw, 420px"
+                    [alt]="p.alt"
+                    width="1024"
+                    height="768"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                </picture>
+              } @else {
+                <img class="producto__marca" src="img/marca/m.webp" alt="" width="320" height="263" loading="lazy" decoding="async" />
+                <figcaption class="producto__pendiente mono">{{ c.sinFoto }}</figcaption>
+              }
+            </figure>
+
+            <div class="producto__cuerpo">
+              <p class="producto__categoria mono">{{ p.categoria }}</p>
+              <h3 class="producto__nombre">{{ p.nombre }}</h3>
+              @if (p.descripcion) {
+                <p class="producto__texto">{{ p.descripcion }}</p>
+              }
+              <ul class="producto__atributos" aria-label="Atributos">
+                @for (a of p.atributos; track a) {
+                  <li>{{ a }}</li>
+                }
+              </ul>
+              <a
+                class="producto__muestras"
+                [href]="muestras(p.nombre)"
+                target="_blank"
+                rel="noopener"
+                [attr.aria-label]="c.muestras + ' de ' + p.nombre + ' por WhatsApp'"
+              >
+                {{ c.muestras }}
+                <app-icono nombre="diagonal" />
+              </a>
+            </div>
+          </li>
+        }
+      </ul>
+    </section>
+  }
+
+  <!-- El cierre: la misma acción principal del sitio -->
+  <section class="cierre shell" aria-labelledby="catalogo-cierre">
+    <div class="cierre__caja bloque-azul" appRevelar>
+      <h2 id="catalogo-cierre" class="cierre__titulo">
+        <app-renglones [renglones]="c.cierre.titulo" />
+      </h2>
+      <p class="cierre__texto">{{ c.cierre.texto }}</p>
+      <a class="btn btn--rojo" [href]="whatsapp" target="_blank" rel="noopener">
+        {{ c.cierre.cta }}
+        <app-icono nombre="flecha" />
+      </a>
+    </div>
+  </section>
+</main>
+
+<app-pie [enInicio]="false" />

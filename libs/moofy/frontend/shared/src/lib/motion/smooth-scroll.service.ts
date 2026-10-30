@@ -25,17 +25,23 @@ const MOVIL: { readonly matches: boolean } =
     ? matchMedia('(max-width: 899.98px), (max-height: 520.98px)')
     : { matches: false };
 
+/** Lo que cuenta como gesto de la persona sobre la página. */
+const GESTOS = ['touchstart', 'wheel', 'keydown', 'pointerdown'] as const;
+
 @Injectable({ providedIn: 'root' })
 export class SmoothScroll {
   private readonly esNavegador = isPlatformBrowser(inject(PLATFORM_ID));
 
   private lenis: Lenis | null = null;
   private tickerFn: ((time: number) => void) | null = null;
+  /** Si la persona ya tocó, giró la rueda o usó el teclado en esta carga. */
+  private conGesto = false;
 
   init(): void {
     if (!this.esNavegador || this.lenis) return;
 
     gsap.registerPlugin(ScrollTrigger);
+    this.vigilarGesto();
     this.fijarArranque();
     this.mantenerSeccionAlGirar();
     if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
@@ -60,9 +66,28 @@ export class SmoothScroll {
    * eligió. Con fragmento en la URL sí hay intención y no se fuerza.
    */
   private fijarArranque(): void {
-    if (!('scrollRestoration' in history)) return;
-    history.scrollRestoration = 'manual';
-    if (!location.hash) window.scrollTo(0, 0);
+    if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+    if (location.hash) return;
+    window.scrollTo(0, 0);
+    // Una sola vez más, al terminar de cargar, por si Safari devolvió la
+    // posición por su cuenta. Una sola: repetirlo peleaba con Safari y la
+    // página brincaba sin llegar a pintarse.
+    window.addEventListener(
+      'load',
+      () => {
+        if (!this.conGesto && window.scrollY !== 0) window.scrollTo(0, 0);
+      },
+      { once: true },
+    );
+  }
+
+  /** El primer gesto de la persona: desde ahí el scroll es suyo. */
+  private vigilarGesto(): void {
+    const marcar = () => {
+      this.conGesto = true;
+      for (const t of GESTOS) window.removeEventListener(t, marcar, true);
+    };
+    for (const t of GESTOS) window.addEventListener(t, marcar, { capture: true, passive: true });
   }
 
   /**
@@ -79,9 +104,8 @@ export class SmoothScroll {
     if (objetivo === null) return;
     const suave = !inmediato && !matchMedia('(prefers-reduced-motion: reduce)').matches;
     // Teléfono: las secciones empiezan arriba del todo (llevan dentro el
-    // hueco de la barra) y el scroll encaja en ellas con CSS. Se va con el
-    // scroll nativo: Lenis anima la posición paso a paso y el encaje
-    // obligatorio lo devolvería a la sección de partida en cada paso.
+    // hueco de la barra), así que se va a su borde con el scroll nativo,
+    // que es el que el dedo ya usa ahí.
     if (MOVIL.matches) {
       const top = typeof objetivo === 'number' ? objetivo : objetivo.getBoundingClientRect().top + window.scrollY;
       window.scrollTo({ top, behavior: suave ? 'smooth' : 'instant' });
