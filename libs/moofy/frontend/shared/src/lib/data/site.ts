@@ -144,7 +144,7 @@ export const LINEAS = {
       productos: ['Palmeritas', 'Costilla con guayaba', 'Empanadas'],
       ideal: 'Cafeterías · Hoteles',
       imagen: 'img/productos/palmeritas.webp',
-      alt: 'Palmerita azucarada de hojaldre.',
+      alt: 'Palmerita azucarada de hojaldre, delante de su bolsa Moofy.',
     },
     {
       id: 'gatos',
@@ -153,7 +153,7 @@ export const LINEAS = {
       productos: ['Choco gatos', 'Gatos de piña', 'Gatos de guayaba'],
       ideal: 'Supermercados · Conveniencia',
       imagen: 'img/productos/choco-gatos.webp',
-      alt: 'Choco gato relleno de dulce de leche.',
+      alt: 'Choco gato relleno de dulce de leche, delante de su bolsa Moofy.',
     },
     {
       id: 'pasteleria',
@@ -162,7 +162,7 @@ export const LINEAS = {
       productos: ['Arrollado', 'Torta chilena', 'Quequito'],
       ideal: 'Cafeterías · Catering',
       imagen: 'img/productos/torta-chilena.webp',
-      alt: 'Porción de torta chilena con dulce de leche.',
+      alt: 'Porción de torta chilena con dulce de leche, delante de su empaque Moofy.',
     },
     {
       id: 'panaderia-dulce',
@@ -171,7 +171,7 @@ export const LINEAS = {
       productos: ['Rollitos de canela', 'Media luna'],
       ideal: 'Hoteles · Cafeterías',
       imagen: 'img/productos/rollitos-canela.webp',
-      alt: 'Rollito de canela glaseado.',
+      alt: 'Rollito de canela glaseado, delante de su caja Moofy.',
     },
     {
       id: 'galleteria',
@@ -180,7 +180,7 @@ export const LINEAS = {
       productos: ['Julietas', 'Choco chip y avena', 'Galletas Pan', 'Bizcotela'],
       ideal: 'Supermercados · Vending',
       imagen: 'img/productos/julietas.webp',
-      alt: 'Galleta dulce tipo Julieta con su punto de guayaba.',
+      alt: 'Galleta dulce tipo Julieta con su punto de guayaba, delante de su bolsa Moofy.',
     },
     {
       id: 'salados',
@@ -189,7 +189,7 @@ export const LINEAS = {
       productos: ['Palitos de queso', 'Rosquillas', 'Grissines', 'Bizcochos de maíz', 'Bizcochos de guayaba'],
       ideal: 'Conveniencia · Vending',
       imagen: 'img/productos/palitos-queso.webp',
-      alt: 'Palito casero con queso.',
+      alt: 'Palito casero con queso, delante de su bolsa Moofy.',
     },
   ],
 } as const;
@@ -205,7 +205,7 @@ export interface Producto {
   /** Resumen de la ficha del catálogo; null si la del catálogo no sirve. */
   readonly descripcion: string | null;
   readonly atributos: readonly string[];
-  /** La pieza sola, sin fondo; null si el catálogo no trae foto. */
+  /** La pieza delante de su empaque, sin fondo; null si el catálogo no trae foto. */
   readonly imagen: string | null;
   /** El empaque, en miniatura, para reconocerlo en la góndola; null si
    *  no hay foto de él o si la foto principal ya es el empaque. */
@@ -228,7 +228,7 @@ export const PRODUCTOS: readonly Producto[] = [
     atributos: ['Crujiente y ligera', 'Capas hojaldradas'],
     imagen: 'img/productos/palmeritas.webp',
     empaque: 'img/productos/palmeritas-empaque.webp',
-    alt: 'Palmerita azucarada.',
+    alt: 'Palmerita azucarada, delante de su bolsa Moofy.',
   },
   {
     id: 'costilla-guayaba',
@@ -239,7 +239,7 @@ export const PRODUCTOS: readonly Producto[] = [
     atributos: ['Crocante', 'Centro suave'],
     imagen: 'img/productos/costilla-guayaba.webp',
     empaque: 'img/productos/costilla-guayaba-empaque.webp',
-    alt: 'Costilla de hojaldre rellena de guayaba.',
+    alt: 'Costilla de hojaldre rellena de guayaba, delante de su bolsa Moofy.',
   },
   {
     id: 'empanadas',
@@ -261,7 +261,7 @@ export const PRODUCTOS: readonly Producto[] = [
     atributos: ['Suave y esponjoso', 'Relleno cremoso'],
     imagen: 'img/productos/choco-gatos.webp',
     empaque: 'img/productos/choco-gatos-empaque.webp',
-    alt: 'Choco gato relleno de dulce de leche.',
+    alt: 'Choco gato relleno de dulce de leche, delante de su bolsa Moofy.',
   },
   {
     id: 'gatos-pina',
@@ -272,7 +272,7 @@ export const PRODUCTOS: readonly Producto[] = [
     atributos: ['Suave y esponjoso', 'Relleno frutal'],
     imagen: 'img/productos/gatos-pina.webp',
     empaque: 'img/productos/gatos-pina-empaque.webp',
-    alt: 'Gato relleno de piña.',
+    alt: 'Gato relleno de piña, delante de su bolsa Moofy.',
   },
   {
     id: 'gatos-guayaba',
@@ -283,7 +283,7 @@ export const PRODUCTOS: readonly Producto[] = [
     atributos: ['Suave y ligero', 'Sabor tropical'],
     imagen: 'img/productos/gatos-guayaba.webp',
     empaque: 'img/productos/gatos-guayaba-empaque.webp',
-    alt: 'Gato relleno de guayaba.',
+    alt: 'Gato relleno de guayaba, delante de su bolsa Moofy.',
   },
   {
     id: 'arrollado',
@@ -294,7 +294,7 @@ export const PRODUCTOS: readonly Producto[] = [
     atributos: ['Ligero y esponjoso', 'Relleno dulce'],
     imagen: 'img/productos/arrollado.webp',
     empaque: 'img/productos/arrollado-empaque.webp',
-    alt: 'Rodaja de arrollado con dulce de leche.',
+    alt: 'Rodaja de arrollado con dulce de leche, delante de su bolsa Moofy.',
   },
   {
     id: 'torta-chilena',
@@ -305,7 +305,7 @@ export const PRODUCTOS: readonly Producto[] = [
     atributos: ['Capas finas', 'Relleno abundante'],
     imagen: 'img/productos/torta-chilena.webp',
     empaque: 'img/productos/torta-chilena-empaque.webp',
-    alt: 'Porción de torta chilena.',
+    alt: 'Porción de torta chilena, delante de su empaque Moofy.',
   },
   {
     id: 'quequito',
@@ -316,7 +316,7 @@ export const PRODUCTOS: readonly Producto[] = [
     atributos: ['Esponjoso', 'Dulce'],
     imagen: 'img/productos/quequito.webp',
     empaque: 'img/productos/quequito-empaque.webp',
-    alt: 'Quequito de vainilla.',
+    alt: 'Quequito de vainilla, delante de su bolsa Moofy.',
   },
   {
     id: 'rollitos-canela',
@@ -327,7 +327,7 @@ export const PRODUCTOS: readonly Producto[] = [
     atributos: ['Suave', 'Dulce'],
     imagen: 'img/productos/rollitos-canela.webp',
     empaque: 'img/productos/rollitos-canela-empaque.webp',
-    alt: 'Rollito de canela glaseado.',
+    alt: 'Rollito de canela glaseado, delante de su caja Moofy.',
   },
   {
     id: 'media-luna',
@@ -349,7 +349,7 @@ export const PRODUCTOS: readonly Producto[] = [
     atributos: ['Dulzor suave', 'Toque frutal'],
     imagen: 'img/productos/julietas.webp',
     empaque: 'img/productos/julietas-empaque.webp',
-    alt: 'Galleta tipo Julieta.',
+    alt: 'Galleta tipo Julieta, delante de su bolsa Moofy.',
   },
   {
     id: 'choco-chip-avena',
@@ -393,7 +393,7 @@ export const PRODUCTOS: readonly Producto[] = [
     atributos: ['Crocante', 'Ligero'],
     imagen: 'img/productos/palitos-queso.webp',
     empaque: 'img/productos/palitos-queso-empaque.webp',
-    alt: 'Palito casero con queso.',
+    alt: 'Palito casero con queso, delante de su bolsa Moofy.',
   },
   {
     id: 'rosquillas',
@@ -437,7 +437,7 @@ export const PRODUCTOS: readonly Producto[] = [
     atributos: ['Suave', 'Relleno dulce'],
     imagen: 'img/productos/bizcochos-guayaba.webp',
     empaque: 'img/productos/bizcochos-guayaba-empaque.webp',
-    alt: 'Bizcocho relleno de guayaba.',
+    alt: 'Bizcocho relleno de guayaba, delante de su caja Moofy.',
   },
 ];
 

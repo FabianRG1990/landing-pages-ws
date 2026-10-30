@@ -128,7 +128,7 @@
   /* En absoluto: con la imagen en el flujo, su alto intrínseco (vertical,
      2:3) gana al aspect-ratio del marco, porque overflow: clip no anula
      el min-height: auto. */
-  /* La foto es la pieza sola, sin fondo y con su sombra de estudio: se
+  /* La foto es la pieza delante de su empaque, sin fondo: se
      ve entera en cualquier proporción del marco, sobre el papel del
      estudio y por debajo de las insignias. */
   img {
