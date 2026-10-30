@@ -123,13 +123,14 @@
      lo que no ocupa el cuerpo. */
   flex: 1 1 auto;
   overflow: clip;
-  background: var(--azul-50);
+  background: var(--estudio);
 
   /* En absoluto: con la imagen en el flujo, su alto intrínseco (vertical,
      2:3) gana al aspect-ratio del marco, porque overflow: clip no anula
      el min-height: auto. */
-  /* La foto es la pieza con su empaque, sin fondo: se ve entera en
-     cualquier proporción del marco, por debajo de las insignias. */
+  /* La foto es la pieza sola, sin fondo y con su sombra de estudio: se
+     ve entera en cualquier proporción del marco, sobre el papel del
+     estudio y por debajo de las insignias. */
   img {
     position: absolute;
     inset: 3.5rem 1.25rem 1rem;

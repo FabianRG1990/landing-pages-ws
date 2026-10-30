@@ -25,6 +25,15 @@
   --azul-100: #e2edf9; /* panel más marcado, bordes de matiz */
   --rojo-50: #fdeff1; /* toque rosado */
 
+  /* --- Estudio: el fondo de las fotos de producto ---
+     No es un color de la interfaz sino el papel del estudio donde se
+     fotografió cada pieza: un blanco apenas cálido, más claro donde cae
+     la luz. La comida se antoja sobre cálido; sobre el azul frío se veía
+     de plástico, y su sombra de estudio solo es natural sobre blanco. */
+  --estudio-luz: #fffdf9;
+  --estudio-sombra: #f2ece3;
+  --estudio: radial-gradient(farthest-corner at 50% 42%, var(--estudio-luz), var(--estudio-sombra));
+
   /* --- Tinta: el azul del logo llevado casi a negro --- */
   --tinta-rgb: 11 31 58;
   --tinta: #0b1f3a; /* 16.52 · 15.20 · 13.93 */
