@@ -144,7 +144,7 @@ export const LINEAS = {
       productos: ['Palmeritas', 'Costilla con guayaba', 'Empanadas'],
       ideal: 'Cafeterías · Hoteles',
       imagen: 'img/productos/palmeritas.webp',
-      alt: 'Palmerita azucarada de hojaldre, delante de su bolsa Moofy.',
+      alt: 'Palmerita azucarada de hojaldre, junto a su bolsa Moofy.',
     },
     {
       id: 'gatos',
@@ -153,7 +153,7 @@ export const LINEAS = {
       productos: ['Choco gatos', 'Gatos de piña', 'Gatos de guayaba'],
       ideal: 'Supermercados · Conveniencia',
       imagen: 'img/productos/choco-gatos.webp',
-      alt: 'Choco gato relleno de dulce de leche, delante de su bolsa Moofy.',
+      alt: 'Choco gato relleno de dulce de leche, junto a su bolsa Moofy.',
     },
     {
       id: 'pasteleria',
@@ -162,7 +162,7 @@ export const LINEAS = {
       productos: ['Arrollado', 'Torta chilena', 'Quequito'],
       ideal: 'Cafeterías · Catering',
       imagen: 'img/productos/torta-chilena.webp',
-      alt: 'Porción de torta chilena con dulce de leche, delante de su empaque Moofy.',
+      alt: 'Porción de torta chilena con dulce de leche, junto a su empaque Moofy.',
     },
     {
       id: 'panaderia-dulce',
@@ -171,7 +171,7 @@ export const LINEAS = {
       productos: ['Rollitos de canela', 'Media luna'],
       ideal: 'Hoteles · Cafeterías',
       imagen: 'img/productos/rollitos-canela.webp',
-      alt: 'Rollito de canela glaseado, delante de su caja Moofy.',
+      alt: 'Rollito de canela glaseado, junto a su caja Moofy.',
     },
     {
       id: 'galleteria',
@@ -180,7 +180,7 @@ export const LINEAS = {
       productos: ['Julietas', 'Choco chip y avena', 'Galletas Pan', 'Bizcotela'],
       ideal: 'Supermercados · Vending',
       imagen: 'img/productos/julietas.webp',
-      alt: 'Galleta dulce tipo Julieta con su punto de guayaba, delante de su bolsa Moofy.',
+      alt: 'Galleta dulce tipo Julieta con su punto de guayaba, junto a su bolsa Moofy.',
     },
     {
       id: 'salados',
@@ -189,7 +189,7 @@ export const LINEAS = {
       productos: ['Palitos de queso', 'Rosquillas', 'Grissines', 'Bizcochos de maíz', 'Bizcochos de guayaba'],
       ideal: 'Conveniencia · Vending',
       imagen: 'img/productos/palitos-queso.webp',
-      alt: 'Palito casero con queso, delante de su bolsa Moofy.',
+      alt: 'Palito casero con queso, junto a su bolsa Moofy.',
     },
   ],
 } as const;
@@ -205,7 +205,7 @@ export interface Producto {
   /** Resumen de la ficha del catálogo; null si la del catálogo no sirve. */
   readonly descripcion: string | null;
   readonly atributos: readonly string[];
-  /** La pieza delante de su empaque, sin fondo; null si el catálogo no trae foto. */
+  /** La pieza junto a su empaque, sin fondo; null si el catálogo no trae foto. */
   readonly imagen: string | null;
   readonly alt: string;
 }
@@ -224,7 +224,7 @@ export const PRODUCTOS: readonly Producto[] = [
     descripcion: 'Crujientes y doraditas, de capas hojaldradas ligeras con el toque dulce justo.',
     atributos: ['Crujiente y ligera', 'Capas hojaldradas'],
     imagen: 'img/productos/palmeritas.webp',
-    alt: 'Palmerita azucarada, delante de su bolsa Moofy.',
+    alt: 'Palmerita azucarada, junto a su bolsa Moofy.',
   },
   {
     id: 'costilla-guayaba',
@@ -234,7 +234,7 @@ export const PRODUCTOS: readonly Producto[] = [
     descripcion: 'Dorada y crujiente, con un toque de azúcar y un relleno generoso de guayaba.',
     atributos: ['Crocante', 'Centro suave'],
     imagen: 'img/productos/costilla-guayaba.webp',
-    alt: 'Costilla de hojaldre rellena de guayaba, delante de su bolsa Moofy.',
+    alt: 'Costilla de hojaldre rellena de guayaba, junto a su bolsa Moofy.',
   },
   {
     id: 'empanadas',
@@ -254,7 +254,7 @@ export const PRODUCTOS: readonly Producto[] = [
     descripcion: 'Suaves, con aroma a chocolate y un relleno de dulce de leche.',
     atributos: ['Suave y esponjoso', 'Relleno cremoso'],
     imagen: 'img/productos/choco-gatos.webp',
-    alt: 'Choco gato relleno de dulce de leche, delante de su bolsa Moofy.',
+    alt: 'Choco gato relleno de dulce de leche, junto a su bolsa Moofy.',
   },
   {
     id: 'gatos-pina',
@@ -264,7 +264,7 @@ export const PRODUCTOS: readonly Producto[] = [
     descripcion: 'Suaves y esponjosos, con un relleno de piña de sabor fresco.',
     atributos: ['Suave y esponjoso', 'Relleno frutal'],
     imagen: 'img/productos/gatos-pina.webp',
-    alt: 'Gato relleno de piña, delante de su bolsa Moofy.',
+    alt: 'Gato relleno de piña, junto a su bolsa Moofy.',
   },
   {
     id: 'gatos-guayaba',
@@ -274,7 +274,7 @@ export const PRODUCTOS: readonly Producto[] = [
     descripcion: 'Tiernos y suaves, con un relleno de guayaba de sabor intenso.',
     atributos: ['Suave y ligero', 'Sabor tropical'],
     imagen: 'img/productos/gatos-guayaba.webp',
-    alt: 'Gato relleno de guayaba, delante de su bolsa Moofy.',
+    alt: 'Gato relleno de guayaba, junto a su bolsa Moofy.',
   },
   {
     id: 'arrollado',
@@ -284,7 +284,7 @@ export const PRODUCTOS: readonly Producto[] = [
     descripcion: 'Esponjoso y ligero, con una generosa capa de dulce de leche.',
     atributos: ['Ligero y esponjoso', 'Relleno dulce'],
     imagen: 'img/productos/arrollado.webp',
-    alt: 'Rodaja de arrollado con dulce de leche, delante de su bolsa Moofy.',
+    alt: 'Rodaja de arrollado con dulce de leche, junto a su bolsa Moofy.',
   },
   {
     id: 'torta-chilena',
@@ -294,7 +294,7 @@ export const PRODUCTOS: readonly Producto[] = [
     descripcion: 'Capas finas con un relleno generoso de dulce de leche.',
     atributos: ['Capas finas', 'Relleno abundante'],
     imagen: 'img/productos/torta-chilena.webp',
-    alt: 'Porción de torta chilena, delante de su empaque Moofy.',
+    alt: 'Porción de torta chilena, junto a su empaque Moofy.',
   },
   {
     id: 'quequito',
@@ -304,7 +304,7 @@ export const PRODUCTOS: readonly Producto[] = [
     descripcion: null,
     atributos: ['Esponjoso', 'Dulce'],
     imagen: 'img/productos/quequito.webp',
-    alt: 'Quequito de vainilla, delante de su bolsa Moofy.',
+    alt: 'Quequito de vainilla, junto a su bolsa Moofy.',
   },
   {
     id: 'rollitos-canela',
@@ -314,7 +314,7 @@ export const PRODUCTOS: readonly Producto[] = [
     descripcion: 'Doraditos y suaves, con ese aroma a canela que despierta el antojo.',
     atributos: ['Suave', 'Dulce'],
     imagen: 'img/productos/rollitos-canela.webp',
-    alt: 'Rollito de canela glaseado, delante de su caja Moofy.',
+    alt: 'Rollito de canela glaseado, junto a su caja Moofy.',
   },
   {
     id: 'media-luna',
@@ -334,7 +334,7 @@ export const PRODUCTOS: readonly Producto[] = [
     descripcion: 'Crujientes por fuera, se deshacen en la boca y llevan un punto de guayaba.',
     atributos: ['Dulzor suave', 'Toque frutal'],
     imagen: 'img/productos/julietas.webp',
-    alt: 'Galleta tipo Julieta, delante de su bolsa Moofy.',
+    alt: 'Galleta tipo Julieta, junto a su bolsa Moofy.',
   },
   {
     id: 'choco-chip-avena',
@@ -374,7 +374,7 @@ export const PRODUCTOS: readonly Producto[] = [
     descripcion: 'Crujientes y ligeros, con el sabor del queso en cada mordida.',
     atributos: ['Crocante', 'Ligero'],
     imagen: 'img/productos/palitos-queso.webp',
-    alt: 'Palito casero con queso, delante de su bolsa Moofy.',
+    alt: 'Palito casero con queso, junto a su bolsa Moofy.',
   },
   {
     id: 'rosquillas',
@@ -414,7 +414,7 @@ export const PRODUCTOS: readonly Producto[] = [
     descripcion: 'Suaves y dulces, con un relleno de guayaba.',
     atributos: ['Suave', 'Relleno dulce'],
     imagen: 'img/productos/bizcochos-guayaba.webp',
-    alt: 'Bizcocho relleno de guayaba, delante de su caja Moofy.',
+    alt: 'Bizcocho relleno de guayaba, junto a su caja Moofy.',
   },
 ];
 
