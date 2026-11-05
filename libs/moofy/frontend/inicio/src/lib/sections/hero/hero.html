@@ -34,13 +34,13 @@
           <li class="pieza" [style.--col]="i % 3">
             <img
               [src]="foto800(item.imagen)"
-              [alt]="item.alt"
+              alt=""
               width="800"
-              height="1200"
+              height="600"
               [attr.fetchpriority]="i < 3 ? 'high' : null"
               decoding="async"
             />
-            <span class="pieza__nombre">{{ item.nombre }}</span>
+            <span class="pieza__nombre">{{ item.corto }}</span>
           </li>
         }
       </ul>

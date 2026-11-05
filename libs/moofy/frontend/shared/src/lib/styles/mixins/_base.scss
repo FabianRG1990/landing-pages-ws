@@ -143,38 +143,21 @@ section[id] {
 
 /* ---------- Móvil: una sección, una pantalla ----------
    En el teléfono cada sección mide exactamente el alto visible (lo
-   ajusta cada componente) y el scroll encaja en ellas: no hay que
-   tantear para dejar una sección entera a la vista. Empiezan arriba del
-   todo, con su propio hueco para la barra, así que el margen de ancla
-   sobra.
+   ajusta cada componente). Empiezan arriba del todo, con su propio hueco
+   para la barra, así que el margen de ancla sobra.
 
-   El encaje solo con el dedo: con ratón el scroll lo suaviza Lenis y los
-   dos pelearían. Obligatorio y no por proximidad, que deja la página a
-   medias entre dos secciones; si una sección mide más que la pantalla
-   (letra agrandada, teléfonos muy pequeños), el navegador deja recorrerla
-   por dentro. El pie encaja por abajo: es el final de la página. */
+   El scroll es libre: no encaja en las secciones. Se probó con encaje
+   obligatorio (devolvía a la sección de partida cualquier deslizamiento
+   corto, no dejaba ver la parte de arriba del pie y en iPhone mandaba la
+   recarga al catálogo) y por proximidad (dejaba la página a medias), y en
+   los dos casos se sentía como no dejar hacer scroll. */
 @media (max-width: 899.98px), (orientation: landscape) and (max-height: 520px) {
   section[id] {
     scroll-margin-top: 0;
   }
 
-  main section {
-    scroll-snap-align: start;
-  }
-
-  .pie {
-    scroll-snap-align: end;
-  }
-
   .capitulo {
     margin-bottom: 0.625rem;
-  }
-}
-
-@media (max-width: 899.98px) and (hover: none) and (pointer: coarse),
-  (orientation: landscape) and (max-height: 520px) and (hover: none) and (pointer: coarse) {
-  html {
-    scroll-snap-type: y mandatory;
   }
 }
 

@@ -10,14 +10,21 @@ import {
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { HERO, LINEAS, SITE, enlaceWhatsapp, foto800 } from '@moofy-ui-shared/data/site';
 import { RevelarDirective } from '@moofy-ui-shared/motion/revelar.directive';
 import { RenglonesComponent } from '@moofy-ui-shared/tipografia/renglones';
 import { IconoComponent } from '@moofy-ui-shared/marca/icono';
 import { SmoothScroll } from '@moofy-ui-shared/motion/smooth-scroll.service';
-import { montarEscena } from '@moofy-ui-shared/motion/escena';
+import { ESCRITORIO, MOVIL } from '@moofy-ui-shared/motion/escena';
 
 type Ref = ElementRef<HTMLElement>;
+
+/**
+ * Teléfono en vertical hasta 520 px: el sello va junto al titular y se
+ * coloca respecto del shell (hero.scss). La misma condición que allí.
+ */
+const SELLO_JUNTO_AL_TITULAR = '(max-width: 519.98px) and (orientation: portrait)';
 
 /**
  * Hero de Moofy de día: titular a la izquierda y, a la derecha, los dos
@@ -70,7 +77,16 @@ export class HeroComponent {
         const tl = this.entrar();
         destroyRef.onDestroy(() => tl.kill());
       }
-      montarEscena(destroyRef, ({ escritorio }) => this.alBajar(escritorio));
+      // Con su propio matchMedia y no con montarEscena: la escena tiene
+      // que rehacerse también al cruzar SELLO_JUNTO_AL_TITULAR (al girar
+      // el teléfono), que montarEscena no vigila.
+      gsap.registerPlugin(ScrollTrigger);
+      const mm = gsap.matchMedia();
+      mm.add({ escritorio: ESCRITORIO, movil: MOVIL, junto: SELLO_JUNTO_AL_TITULAR }, (ctx) => {
+        const { escritorio, movil, junto } = ctx.conditions as Record<string, boolean>;
+        if (escritorio || movil) this.alBajar(escritorio, movil && junto);
+      });
+      destroyRef.onDestroy(() => mm.revert());
     });
   }
 
@@ -124,8 +140,14 @@ export class HeroComponent {
    * del mosaico se aplana y la pegatina gira. Se animan variables CSS
    * (`--giro`, `--deriva`) y no los transform de GSAP, que son los que
    * usa la entrada.
+   *
+   * Con el sello junto al titular la escena no se desplaza: un transform
+   * la convertiría en el bloque de referencia del sello, que dejaría de
+   * colocarse respecto del shell y saltaría encima de las fotos (y ahí se
+   * quedaba al volver arriba, porque GSAP deja el transform puesto a 0).
+   * El sello sube entonces con el titular, que es donde está.
    */
-  private alBajar(escritorio: boolean): void {
+  private alBajar(escritorio: boolean, junto: boolean): void {
     const k = escritorio ? 1 : 0.5;
     const scrollTrigger = {
       trigger: this.escena().nativeElement.closest('section'),
@@ -136,7 +158,7 @@ export class HeroComponent {
     gsap
       .timeline({ scrollTrigger, defaults: { ease: 'none' } })
       .to(this.texto().nativeElement, { y: -140 * k }, 0)
-      .to(this.escena().nativeElement, { y: -50 * k }, 0)
+      .to(junto ? this.pegatina().nativeElement : this.escena().nativeElement, { y: (junto ? -140 : -50) * k }, 0)
       .to(this.forma().nativeElement, { yPercent: 12 * k }, 0)
       .fromTo(this.mosaico().nativeElement, { '--deriva': '0px' }, { '--deriva': `${-34 * k}px` }, 0)
       .fromTo(this.pegatina().nativeElement, { '--giro': '0deg' }, { '--giro': '70deg' }, 0);

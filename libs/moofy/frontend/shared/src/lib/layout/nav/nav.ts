@@ -6,6 +6,7 @@ import {
   PLATFORM_ID,
   afterNextRender,
   inject,
+  input,
   signal,
   viewChild,
 } from '@angular/core';
@@ -22,6 +23,9 @@ import { SmoothScroll } from '../../motion/smooth-scroll.service';
  * Por debajo de 900 px los enlaces pasan a un menú a pantalla completa,
  * que se comporta como un diálogo modal: atrapa el foco, se cierra con
  * Escape y devuelve el foco al botón que lo abrió.
+ *
+ * Fuera de la portada (`enInicio` en falso) los enlaces llevan a
+ * `/#seccion` y el navegador carga la portada en esa sección.
  */
 @Component({
   selector: 'app-nav',
@@ -37,6 +41,9 @@ export class NavComponent {
   private readonly smooth = inject(SmoothScroll);
   private readonly destroyRef = inject(DestroyRef);
   private readonly esNavegador = isPlatformBrowser(inject(PLATFORM_ID));
+
+  /** En falso, los enlaces van a la portada en vez de desplazarse aquí. */
+  readonly enInicio = input(true);
 
   protected readonly nav = NAV;
   protected readonly site = SITE;
@@ -60,7 +67,12 @@ export class NavComponent {
     });
   }
 
+  protected enlace(ancla: string): string {
+    return this.enInicio() ? ancla : '/' + ancla;
+  }
+
   protected ir(evento: Event, ancla: string): void {
+    if (!this.enInicio()) return;
     evento.preventDefault();
     this.cerrar(false);
     this.smooth.scrollTo(ancla);

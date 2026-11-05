@@ -1,0 +1,375 @@
+:host {
+  display: block;
+  /* Lo que ocupa el índice pegado bajo la barra: los títulos de línea
+     tienen que caer por debajo de los dos al saltar a ellos. */
+  --indice-h: 4.25rem;
+}
+
+main:focus {
+  outline: none;
+}
+
+/* ---------- Cabecera ---------- */
+
+.catalogo {
+  padding-top: calc(var(--nav-h) + clamp(1.5rem, 1rem + 2vw, 3rem));
+}
+
+.catalogo__cabeza {
+  display: grid;
+  justify-items: start;
+  gap: 1.25rem;
+  padding-bottom: clamp(1.75rem, 1.25rem + 1.5vw, 2.75rem);
+}
+
+.catalogo__volver {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 44px;
+  color: var(--azul);
+
+  app-icono {
+    transform: scaleX(-1);
+    transition: transform var(--dur-base) var(--ease-fluid);
+  }
+
+  &:hover app-icono {
+    transform: scaleX(-1) translateX(3px);
+  }
+}
+
+.catalogo__titulo {
+  font-size: clamp(2.5rem, 1.6rem + 3.6vw, 4.5rem);
+  line-height: 1;
+}
+
+.catalogo__entrada {
+  max-width: 52ch;
+}
+
+/* ---------- Índice de líneas ----------
+   Pegado bajo la barra, sobre un velo del color de la página para que
+   las tarjetas no se lean por detrás. En pantallas estrechas es una
+   fila que se desliza; el borde derecho se desvanece para que se note
+   que hay más. */
+
+.indice {
+  position: sticky;
+  top: var(--nav-h);
+  z-index: 5;
+  background: rgb(247 250 254 / 0.88);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-block: 1px solid var(--line-soft);
+}
+
+.indice__lista {
+  display: flex;
+  gap: 0.5rem;
+  padding-block: 0.75rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+  overscroll-behavior-x: contain;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  li {
+    flex-shrink: 0;
+  }
+
+  @media (max-width: 1023.98px) {
+    mask-image: linear-gradient(90deg, #000 calc(100% - 3rem), transparent);
+  }
+}
+
+.indice__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: 44px;
+  padding: 0 0.5rem 0 1rem;
+  font-size: var(--fs-small);
+  font-weight: var(--w-emph);
+  color: var(--tinta);
+  white-space: nowrap;
+  background: var(--blanco);
+  border: 1px solid var(--line-azul);
+  border-radius: var(--r-pill);
+  transition:
+    border-color var(--dur-fast) var(--ease-out),
+    background var(--dur-fast) var(--ease-out);
+
+  &:hover,
+  &:focus-visible {
+    background: var(--azul-50);
+    border-color: var(--azul);
+  }
+}
+
+.indice__cuenta {
+  display: grid;
+  place-items: center;
+  min-width: 1.75rem;
+  height: 1.75rem;
+  padding-inline: 0.375rem;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--azul);
+  background: var(--azul-50);
+  border-radius: var(--r-pill);
+}
+
+/* ---------- Líneas ---------- */
+
+.grupo {
+  --tinte: var(--azul-50);
+
+  padding-block: clamp(2.25rem, 1.75rem + 2vw, 3.5rem) 0;
+  /* El aire de arriba de la sección queda bajo el índice al saltar */
+  scroll-margin-top: calc(var(--nav-h) + var(--indice-h) - 1rem);
+
+  /* Una de cada dos líneas, en el rosado del logo */
+  &--rojo {
+    --tinte: var(--rojo-50);
+  }
+}
+
+.grupo__cabeza {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem 1rem;
+  margin-bottom: clamp(1.25rem, 1rem + 1vw, 1.75rem);
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--line);
+
+  /* «Línea 01» encima; el nombre y la cuenta, en la misma fila */
+  > p:first-child {
+    flex-basis: 100%;
+  }
+}
+
+.grupo__num {
+  color: var(--rojo);
+}
+
+.grupo__nombre {
+  font-size: clamp(1.75rem, 1.3rem + 1.6vw, 2.5rem);
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+
+  &:focus {
+    outline: none;
+  }
+}
+
+.grupo__cuenta {
+  margin-left: auto;
+}
+
+.grupo__lista {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(1rem, 0.75rem + 1vw, 1.75rem);
+}
+
+/* ---------- Tarjeta de producto ---------- */
+
+.producto {
+  display: flex;
+  flex-direction: column;
+  overflow: clip;
+  background: var(--blanco);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-md);
+  transition:
+    box-shadow var(--dur-base) var(--ease-out),
+    border-color var(--dur-base) var(--ease-out);
+
+  &:hover {
+    border-color: var(--line-azul);
+    box-shadow: var(--shadow-lg);
+  }
+}
+
+.producto__foto {
+  position: relative;
+  margin: 0;
+  aspect-ratio: 4 / 3;
+  background: var(--estudio);
+
+  img {
+    position: absolute;
+    inset: 0.75rem;
+    width: calc(100% - 1.5rem);
+    height: calc(100% - 1.5rem);
+    object-fit: contain;
+  }
+}
+
+/* Sin foto: la «M» de Moofy en pequeño y, debajo, la nota que dice
+   que la foto llega; sin ella parecía una imagen que no cargó. */
+.producto__foto--marca {
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 0.75rem;
+
+  .producto__marca {
+    position: static;
+    width: clamp(3.5rem, 22%, 6rem);
+    height: auto;
+  }
+}
+
+.producto__pendiente {
+  color: var(--tinta-2);
+}
+
+.producto__cuerpo {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding: 1.125rem 1.25rem 0.5rem;
+}
+
+.producto__categoria {
+  color: var(--azul);
+}
+
+.producto__nombre {
+  font-size: var(--fs-h3);
+  font-weight: var(--w-display);
+  line-height: 1.2;
+  letter-spacing: -0.015em;
+}
+
+.producto__texto {
+  color: var(--tinta-2);
+  line-height: 1.5;
+}
+
+.producto__atributos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  margin-top: 0.25rem;
+
+  li {
+    padding: 0.25rem 0.625rem;
+    font-size: 0.8125rem;
+    font-weight: var(--w-emph);
+    color: var(--tinta-2);
+    background: var(--tinte);
+    border-radius: var(--r-pill);
+  }
+}
+
+/* La acción: una fila entera al pie de la tarjeta, 48 px para el dedo */
+.producto__muestras {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  align-self: stretch;
+  min-height: 48px;
+  margin-top: auto;
+  padding-top: 0.75rem;
+  font-weight: var(--w-emph);
+  color: var(--azul);
+  border-top: 1px solid var(--line-soft);
+  transition: color var(--dur-fast) var(--ease-out);
+
+  app-icono {
+    transition: transform var(--dur-base) var(--ease-fluid);
+  }
+
+  &:hover,
+  &:focus-visible {
+    color: var(--rojo);
+
+    app-icono {
+      transform: translate(2px, -2px);
+    }
+  }
+}
+
+/* ---------- Cierre ---------- */
+
+.cierre {
+  padding-block: clamp(3rem, 2rem + 3vw, 5rem);
+}
+
+.cierre__caja {
+  --cursiva: var(--blanco);
+
+  display: grid;
+  justify-items: start;
+  gap: 1.25rem;
+  padding: clamp(1.75rem, 1rem + 3vw, 3.5rem);
+}
+
+.cierre__titulo {
+  font-size: var(--fs-h2);
+  line-height: 1.02;
+}
+
+.cierre__texto {
+  max-width: 46ch;
+  font-size: var(--fs-lead);
+  color: rgb(var(--blanco-rgb) / 0.92);
+}
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 1023.98px) {
+  .grupo__lista {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Teléfono: una columna con la foto más baja (2:1). Con la foto en una
+   columna estrecha a la izquierda el producto quedaba diminuto y el
+   texto, apretado, alargaba la tarjeta igual. */
+@media (max-width: 599.98px) {
+  :host {
+    --indice-h: 3.75rem;
+  }
+
+  .indice__lista {
+    padding-block: 0.5rem;
+  }
+
+  .grupo__lista {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.875rem;
+  }
+
+  .producto__foto {
+    aspect-ratio: 2 / 1;
+  }
+
+  .producto__cuerpo {
+    gap: 0.375rem;
+    padding: 0.875rem 1rem 0.25rem;
+  }
+
+  .producto__nombre {
+    font-size: 1.125rem;
+  }
+
+  .producto__texto {
+    font-size: 0.9375rem;
+  }
+
+  .producto__muestras {
+    min-height: 44px;
+    padding-top: 0.5rem;
+  }
+}

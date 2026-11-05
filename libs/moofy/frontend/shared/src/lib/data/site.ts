@@ -3,12 +3,14 @@
    Todo el copy y todos los datos de contacto viven aquí: cambiar
    un teléfono o una frase no obliga a tocar ninguna plantilla.
    ------------------------------------------------------------
-   Datos tomados de las fuentes públicas de Moofy (sept. 2026):
-   · moofycr.com — teléfono, planta en Grecia, líneas de producto.
+   Datos tomados de las fuentes de Moofy:
+   · moofycr.com — teléfono, planta en Grecia.
    · facebook.com/PanificadoraMoofyPanrico — WhatsApp Business,
      correo, San Roque de Grecia, «repostería fina empacada».
-   Nada de años, toneladas ni certificaciones: no están publicados
-   y no se inventan.
+   · El catálogo oficial (oct. 2026) — los productos, su categoría,
+     su descripción y sus fotos.
+   Nada de toneladas ni certificaciones: no están publicados y no se
+   inventan.
    ============================================================ */
 
 /** Un tramo de titular. `em` lo pinta en cursiva dorada. */
@@ -71,8 +73,8 @@ export const HERO = {
   ctaSecundario: 'Ver catálogo',
   pegatina: ['Hecho en', 'Costa Rica'],
   // La leyenda que da la vuelta al sello; termina en separador porque
-  // el final se une con el principio.
-  selloVuelta: 'Planta propia · Grecia · Alajuela · ',
+  // el final se une con el principio. «Desde 1997» lo publica la marca.
+  selloVuelta: 'Desde 1997 · Planta propia · Grecia · ',
   // Las dos cifras del hero, que son los dos mensajes de la página: el
   // catálogo y la cobertura. Solo hechos publicados.
   cifras: [
@@ -87,8 +89,9 @@ export const FABRICA = {
   titulo: [[{ t: 'No revendemos. ' }, { t: 'Fabricamos.', em: true }]] as readonly Renglon[],
   entrada:
     'Cada pieza sale de nuestra planta en Grecia. La receta, el horno, el empaque y el camión que la lleva son nuestros.',
-  imagen: 'img/planta-linea.webp',
-  alt: 'Operarios con bata y redecilla revisan una línea de horneado en la planta.',
+  // Foto real de la planta, recortada de una publicación de Moofy
+  imagen: 'img/planta-manos.webp',
+  alt: 'Manos dando forma, una por una, a los bizcochos de maíz sobre la mesa de la planta.',
   pilares: [
     {
       icono: 'espiga',
@@ -108,8 +111,9 @@ export const FABRICA = {
   ],
 } as const;
 
-/* Capítulo 02. Solo hechos ya publicados en el sitio: siete provincias,
-   flota propia, entrega programada y la planta en San Roque de Grecia. */
+/* Capítulo 02. Solo hechos ya publicados: siete provincias, flota
+   propia, entrega programada, la planta en San Roque de Grecia y el
+   año en que empezó (1997, de las publicaciones de la marca). */
 export const COBERTURA = {
   num: '02',
   nombre: 'Cobertura',
@@ -118,67 +122,301 @@ export const COBERTURA = {
   origen: 'Planta · Grecia',
   datos: [
     { valor: '7', titulo: 'Provincias', detalle: 'Despacho a todo el país' },
-    { valor: '1', titulo: 'Planta propia', detalle: 'San Roque de Grecia' },
+    { valor: '1', titulo: 'Planta propia', detalle: 'San Roque de Grecia, desde 1997' },
   ],
   notas: ['Flota propia', 'Entrega programada'],
 } as const;
 
+/** Las seis líneas de la portada. Los productos de cada una están en
+ *  PRODUCTOS; aquí va su nombre corto, que es lo que cabe en la tarjeta. */
 export const LINEAS = {
   num: '01',
   nombre: 'Catálogo',
   titulo: [[{ t: 'Seis líneas. ' }, { t: 'Un mismo estándar.', em: true }]] as readonly Renglon[],
-  entrada: 'Todo sale de la misma planta. Pida muestras de la línea que encaja con su operación.',
+  entrada: 'Veinte productos, todos de la misma planta. Pida muestras de la línea que encaja con su operación.',
+  verTodo: 'Catálogo completo',
   items: [
     {
       id: 'hojaldre',
       nombre: 'Hojaldre',
-      productos: ['Pañuelos de hojaldre'],
-      ideal: 'Hoteles · Cafeterías',
-      imagen: 'img/lineas/hojaldre.webp',
-      alt: 'Pañuelos de hojaldre dorados con capas visibles.',
+      /** El nombre en los cuadros pequeños del hero, en un renglón. */
+      corto: 'Hojaldre',
+      productos: ['Palmeritas', 'Costilla con guayaba', 'Empanadas'],
+      ideal: 'Cafeterías · Hoteles',
+      imagen: 'img/productos/palmeritas.webp',
+      alt: 'Palmerita azucarada de hojaldre, junto a su bolsa Moofy.',
     },
     {
-      id: 'queques',
-      nombre: 'Queques',
-      productos: ['Queques', 'Bizcochos'],
+      id: 'gatos',
+      nombre: 'Gatos rellenos',
+      corto: 'Gatos',
+      productos: ['Choco gatos', 'Gatos de piña', 'Gatos de guayaba'],
+      ideal: 'Supermercados · Conveniencia',
+      imagen: 'img/productos/choco-gatos.webp',
+      alt: 'Choco gato relleno de dulce de leche, junto a su bolsa Moofy.',
+    },
+    {
+      id: 'pasteleria',
+      nombre: 'Pastelería',
+      corto: 'Pastelería',
+      productos: ['Arrollado', 'Torta chilena', 'Quequito'],
       ideal: 'Cafeterías · Catering',
-      imagen: 'img/lineas/queques.webp',
-      alt: 'Queque en rebanadas sobre tabla de madera oscura.',
+      imagen: 'img/productos/torta-chilena.webp',
+      alt: 'Porción de torta chilena con dulce de leche, junto a su empaque Moofy.',
     },
     {
-      id: 'empanadas',
-      nombre: 'Empanadas',
-      productos: ['Empanadas', 'Empanaditas'],
-      ideal: 'Conveniencia · Instituciones',
-      imagen: 'img/lineas/empanadas.webp',
-      alt: 'Empanadas horneadas con el repulgue dorado.',
+      id: 'panaderia-dulce',
+      nombre: 'Panadería dulce',
+      corto: 'Panadería',
+      productos: ['Rollitos de canela', 'Media luna'],
+      ideal: 'Hoteles · Cafeterías',
+      imagen: 'img/productos/rollitos-canela.webp',
+      alt: 'Rollito de canela glaseado, junto a su caja Moofy.',
     },
     {
-      id: 'galletas',
-      nombre: 'Galletas y alfajores',
-      productos: ['Galletas', 'Alfajores'],
+      id: 'galleteria',
+      nombre: 'Galletería',
+      corto: 'Galletería',
+      productos: ['Julietas', 'Choco chip y avena', 'Galletas Pan', 'Bizcotela'],
       ideal: 'Supermercados · Vending',
-      imagen: 'img/lineas/galletas.webp',
-      alt: 'Alfajores y galletas apilados con luz lateral cálida.',
+      imagen: 'img/productos/julietas.webp',
+      alt: 'Galleta dulce tipo Julieta con su punto de guayaba, junto a su bolsa Moofy.',
     },
     {
       id: 'salados',
-      nombre: 'Salados',
-      productos: ['Palitos de queso', 'Grisines'],
+      nombre: 'Salados y tradicionales',
+      corto: 'Salados',
+      productos: ['Palitos de queso', 'Rosquillas', 'Grissines', 'Bizcochos de maíz', 'Bizcochos de guayaba'],
       ideal: 'Conveniencia · Vending',
-      imagen: 'img/lineas/salados.webp',
-      alt: 'Palitos de queso y grisines horneados en un haz.',
-    },
-    {
-      id: 'pan-dulce',
-      nombre: 'Pan dulce',
-      productos: ['Trenzas', 'Roscas'],
-      ideal: 'Supermercados · Hoteles',
-      imagen: 'img/lineas/pan-dulce.webp',
-      alt: 'Trenza y rosca de pan dulce con brillo de horneado.',
+      imagen: 'img/productos/palitos-queso.webp',
+      alt: 'Palito casero con queso, junto a su bolsa Moofy.',
     },
   ],
 } as const;
+
+/** El id de una línea, para agrupar los productos. */
+export type LineaId = (typeof LINEAS.items)[number]['id'];
+
+export interface Producto {
+  readonly id: string;
+  readonly nombre: string;
+  readonly categoria: string;
+  readonly linea: LineaId;
+  /** Resumen de la ficha del catálogo; null si la del catálogo no sirve. */
+  readonly descripcion: string | null;
+  readonly atributos: readonly string[];
+  /** La pieza junto a su empaque, sin fondo; null si el catálogo no trae foto. */
+  readonly imagen: string | null;
+  readonly alt: string;
+}
+
+/* Los veinte productos del catálogo oficial, con la categoría y los
+   atributos tal como los publica Moofy. Las descripciones son la idea
+   principal de cada ficha, recortada para una tarjeta. El quequito va
+   sin descripción: en el catálogo trae, por error, la de la torta
+   chilena. Siete productos aún no tienen foto. */
+export const PRODUCTOS: readonly Producto[] = [
+  {
+    id: 'palmeritas',
+    nombre: 'Palmeritas azucaradas',
+    categoria: 'Repostería hojaldrada',
+    linea: 'hojaldre',
+    descripcion: 'Crujientes y doraditas, de capas hojaldradas ligeras con el toque dulce justo.',
+    atributos: ['Crujiente y ligera', 'Capas hojaldradas'],
+    imagen: 'img/productos/palmeritas.webp',
+    alt: 'Palmerita azucarada, junto a su bolsa Moofy.',
+  },
+  {
+    id: 'costilla-guayaba',
+    nombre: 'Costilla con guayaba',
+    categoria: 'Hojaldre relleno',
+    linea: 'hojaldre',
+    descripcion: 'Dorada y crujiente, con un toque de azúcar y un relleno generoso de guayaba.',
+    atributos: ['Crocante', 'Centro suave'],
+    imagen: 'img/productos/costilla-guayaba.webp',
+    alt: 'Costilla de hojaldre rellena de guayaba, junto a su bolsa Moofy.',
+  },
+  {
+    id: 'empanadas',
+    nombre: 'Empanadas de piña y de guayaba',
+    categoria: 'Repostería rellena horneada',
+    linea: 'hojaldre',
+    descripcion: 'Doraditas y crujientes por fuera, suaves por dentro y con un relleno generoso.',
+    atributos: ['Crujiente', 'Relleno dulce'],
+    imagen: null,
+    alt: '',
+  },
+  {
+    id: 'choco-gatos',
+    nombre: 'Choco gatos con dulce de leche',
+    categoria: 'Pan dulce relleno',
+    linea: 'gatos',
+    descripcion: 'Suaves, con aroma a chocolate y un relleno de dulce de leche.',
+    atributos: ['Suave y esponjoso', 'Relleno cremoso'],
+    imagen: 'img/productos/choco-gatos.webp',
+    alt: 'Choco gato relleno de dulce de leche, junto a su bolsa Moofy.',
+  },
+  {
+    id: 'gatos-pina',
+    nombre: 'Gatos con piña',
+    categoria: 'Pan dulce relleno',
+    linea: 'gatos',
+    descripcion: 'Suaves y esponjosos, con un relleno de piña de sabor fresco.',
+    atributos: ['Suave y esponjoso', 'Relleno frutal'],
+    imagen: 'img/productos/gatos-pina.webp',
+    alt: 'Gato relleno de piña, junto a su bolsa Moofy.',
+  },
+  {
+    id: 'gatos-guayaba',
+    nombre: 'Gatos con guayaba',
+    categoria: 'Pan dulce relleno',
+    linea: 'gatos',
+    descripcion: 'Tiernos y suaves, con un relleno de guayaba de sabor intenso.',
+    atributos: ['Suave y ligero', 'Sabor tropical'],
+    imagen: 'img/productos/gatos-guayaba.webp',
+    alt: 'Gato relleno de guayaba, junto a su bolsa Moofy.',
+  },
+  {
+    id: 'arrollado',
+    nombre: 'Arrollado con dulce de leche',
+    categoria: 'Pastelería enrollada',
+    linea: 'pasteleria',
+    descripcion: 'Esponjoso y ligero, con una generosa capa de dulce de leche.',
+    atributos: ['Ligero y esponjoso', 'Relleno dulce'],
+    imagen: 'img/productos/arrollado.webp',
+    alt: 'Rodaja de arrollado con dulce de leche, junto a su bolsa Moofy.',
+  },
+  {
+    id: 'torta-chilena',
+    nombre: 'Torta chilena',
+    categoria: 'Pastelería de capas',
+    linea: 'pasteleria',
+    descripcion: 'Capas finas con un relleno generoso de dulce de leche.',
+    atributos: ['Capas finas', 'Relleno abundante'],
+    imagen: 'img/productos/torta-chilena.webp',
+    alt: 'Porción de torta chilena, junto a su empaque Moofy.',
+  },
+  {
+    id: 'quequito',
+    nombre: 'Quequito de vainilla',
+    categoria: 'Repostería',
+    linea: 'pasteleria',
+    descripcion: null,
+    atributos: ['Esponjoso', 'Dulce'],
+    imagen: 'img/productos/quequito.webp',
+    alt: 'Quequito de vainilla, junto a su bolsa Moofy.',
+  },
+  {
+    id: 'rollitos-canela',
+    nombre: 'Rollitos de canela',
+    categoria: 'Panadería dulce especiada',
+    linea: 'panaderia-dulce',
+    descripcion: 'Doraditos y suaves, con ese aroma a canela que despierta el antojo.',
+    atributos: ['Suave', 'Dulce'],
+    imagen: 'img/productos/rollitos-canela.webp',
+    alt: 'Rollito de canela glaseado, junto a su caja Moofy.',
+  },
+  {
+    id: 'media-luna',
+    nombre: 'Media luna',
+    categoria: 'Panadería dulce',
+    linea: 'panaderia-dulce',
+    descripcion: 'Doradita, suave y ligera, de sabor delicado para acompañar un café.',
+    atributos: ['Suave', 'Ligero'],
+    imagen: null,
+    alt: '',
+  },
+  {
+    id: 'julietas',
+    nombre: 'Galletas dulces tipo Julieta',
+    categoria: 'Galleta rellena tradicional',
+    linea: 'galleteria',
+    descripcion: 'Crujientes por fuera, se deshacen en la boca y llevan un punto de guayaba.',
+    atributos: ['Dulzor suave', 'Toque frutal'],
+    imagen: 'img/productos/julietas.webp',
+    alt: 'Galleta tipo Julieta, junto a su bolsa Moofy.',
+  },
+  {
+    id: 'choco-chip-avena',
+    nombre: 'Galletas choco chip y de avena',
+    categoria: 'Galletería artesanal',
+    linea: 'galleteria',
+    descripcion: 'Doraditas y crujientes, con sabor casero y un toque de avena.',
+    atributos: ['Crujiente', 'Sabor casero'],
+    imagen: null,
+    alt: '',
+  },
+  {
+    id: 'galletas-pan',
+    nombre: 'Galletas Pan',
+    categoria: 'Galletería artesanal',
+    linea: 'galleteria',
+    descripcion: 'Crujientes y doraditas, de textura ligera y dulzor suave.',
+    atributos: ['Crujiente', 'Ligero'],
+    imagen: null,
+    alt: '',
+  },
+  {
+    id: 'bizcotela',
+    nombre: 'Bizcotela azucarada',
+    categoria: 'Repostería azucarada',
+    linea: 'galleteria',
+    descripcion: 'Delgada y doradita, ligera y crocante, con un toque de azúcar.',
+    atributos: ['Ligera', 'Toque dulce'],
+    imagen: null,
+    alt: '',
+  },
+  {
+    id: 'palitos-queso',
+    nombre: 'Palitos caseros con queso',
+    categoria: 'Panadería salada',
+    linea: 'salados',
+    descripcion: 'Crujientes y ligeros, con el sabor del queso en cada mordida.',
+    atributos: ['Crocante', 'Ligero'],
+    imagen: 'img/productos/palitos-queso.webp',
+    alt: 'Palito casero con queso, junto a su bolsa Moofy.',
+  },
+  {
+    id: 'rosquillas',
+    nombre: 'Rosquillas tostadas con queso',
+    categoria: 'Panadería tostada',
+    linea: 'salados',
+    descripcion: 'Doraditas y bien tostadas, con queso por encima.',
+    atributos: ['Crocante', 'Toque salado'],
+    imagen: null,
+    alt: '',
+  },
+  {
+    id: 'grissines',
+    nombre: 'Grissines',
+    categoria: 'Panadería italiana',
+    linea: 'salados',
+    descripcion: 'Crujientes y de textura firme, para picar o acompañar.',
+    atributos: ['Crocante', 'Firme'],
+    imagen: null,
+    alt: '',
+  },
+  {
+    id: 'bizcochos-maiz',
+    nombre: 'Bizcochos de maíz',
+    categoria: 'Repostería tradicional',
+    linea: 'salados',
+    descripcion: 'Firmes y doraditos, con el toque de maíz de siempre.',
+    atributos: ['Tradicional', 'Sabor casero'],
+    imagen: 'img/productos/bizcochos-maiz.webp',
+    alt: 'Bolsa Moofy de bizcochos de maíz.',
+  },
+  {
+    id: 'bizcochos-guayaba',
+    nombre: 'Bizcochos de guayaba',
+    categoria: 'Bizcocho relleno',
+    linea: 'salados',
+    descripcion: 'Suaves y dulces, con un relleno de guayaba.',
+    atributos: ['Suave', 'Relleno dulce'],
+    imagen: 'img/productos/bizcochos-guayaba.webp',
+    alt: 'Bizcocho relleno de guayaba, junto a su caja Moofy.',
+  },
+];
 
 export interface Canal {
   readonly id: string;
@@ -206,7 +444,7 @@ export const CANALES = {
       alt: 'Buffet de desayuno de hotel con repostería dorada.',
       datos: [
         { k: 'Su necesidad', v: 'Buffet, room service y coffee breaks' },
-        { k: 'Líneas', v: 'Hojaldre · Queques · Pan dulce' },
+        { k: 'Líneas', v: 'Hojaldre · Pastelería · Panadería dulce' },
         { k: 'Entrega', v: 'Programada con flota propia' },
       ],
     },
@@ -218,7 +456,7 @@ export const CANALES = {
       alt: 'Barra de cafetería con repostería junto a una taza de café.',
       datos: [
         { k: 'Su necesidad', v: 'Vitrina constante, pieza a pieza' },
-        { k: 'Líneas', v: 'Hojaldre · Queques · Galletas' },
+        { k: 'Líneas', v: 'Hojaldre · Pastelería · Galletería' },
         { k: 'Entrega', v: 'Programada con flota propia' },
       ],
     },
@@ -230,7 +468,7 @@ export const CANALES = {
       alt: 'Góndola ordenada con repostería empacada.',
       datos: [
         { k: 'Su necesidad', v: 'Rotación y presentación en anaquel' },
-        { k: 'Líneas', v: 'Galletas · Pan dulce · Queques' },
+        { k: 'Líneas', v: 'Galletería · Gatos rellenos · Salados' },
         { k: 'Entrega', v: 'Programada con flota propia' },
       ],
     },
@@ -242,7 +480,7 @@ export const CANALES = {
       alt: 'Exhibidor de tienda de conveniencia con snacks horneados.',
       datos: [
         { k: 'Su necesidad', v: 'Snack individual de compra rápida' },
-        { k: 'Líneas', v: 'Empanadas · Salados · Galletas' },
+        { k: 'Líneas', v: 'Gatos rellenos · Salados · Galletería' },
         { k: 'Entrega', v: 'Programada con flota propia' },
       ],
     },
@@ -254,7 +492,7 @@ export const CANALES = {
       alt: 'Mesa de catering corporativo con bandejas de repostería.',
       datos: [
         { k: 'Su necesidad', v: 'Volumen puntual con calidad constante' },
-        { k: 'Líneas', v: 'Queques · Hojaldre · Salados' },
+        { k: 'Líneas', v: 'Pastelería · Hojaldre · Salados' },
         { k: 'Entrega', v: 'Coordinada por evento' },
       ],
     },
@@ -266,7 +504,7 @@ export const CANALES = {
       alt: 'Bandejas de repostería listas para servicio institucional.',
       datos: [
         { k: 'Su necesidad', v: 'Abastecimiento diario y previsible' },
-        { k: 'Líneas', v: 'Empanadas · Pan dulce · Queques' },
+        { k: 'Líneas', v: 'Gatos rellenos · Panadería dulce · Pastelería' },
         { k: 'Entrega', v: 'Programada con flota propia' },
       ],
     },
@@ -302,7 +540,7 @@ export const CANALES = {
       alt: 'Snacks horneados en empaque individual.',
       datos: [
         { k: 'Su necesidad', v: 'Empaque individual y vida útil' },
-        { k: 'Líneas', v: 'Galletas · Salados' },
+        { k: 'Líneas', v: 'Galletería · Salados' },
         { k: 'Entrega', v: 'Programada con flota propia' },
       ],
     },
@@ -343,6 +581,31 @@ export const PIE = {
   legal: `© 2026 ${SITE.razonSocial}`,
   nota: 'Fotografías ilustrativas.',
 } as const;
+
+/* La página del catálogo completo (/catalogo): los veinte productos
+   agrupados por línea, cada uno con su botón para pedir muestras. */
+export const CATALOGO = {
+  descripcionPagina:
+    'Los veinte productos de Moofy en seis líneas: hojaldre, gatos rellenos, pastelería, panadería dulce, galletería y salados. Repostería fina empacada, fabricada en Grecia, Costa Rica.',
+  insignia: 'Catálogo completo',
+  titulo: [[{ t: 'Todo lo que ' }, { t: 'horneamos.', em: true }]] as readonly Renglon[],
+  entrada:
+    'Veinte productos en seis líneas, todos de nuestra planta en Grecia. Pida muestras de los que encajan con su operación.',
+  volver: 'Volver al inicio',
+  indice: 'Líneas del catálogo',
+  muestras: 'Pedir muestras',
+  sinFoto: 'Foto en preparación',
+  cierre: {
+    titulo: [[{ t: '¿Armamos su ' }, { t: 'surtido?', em: true }]] as readonly Renglon[],
+    texto: 'Le ayudamos a elegir los productos y las cantidades que encajan con su canal.',
+    cta: 'Agendar reunión comercial',
+  },
+} as const;
+
+/** El mensaje de WhatsApp para pedir muestras de un producto. */
+export function mensajeProducto(producto: string): string {
+  return `Hola, Moofy. Me interesa recibir muestras de «${producto}» para mi empresa.`;
+}
 
 /** El mensaje de WhatsApp para pedir muestras de una línea. */
 export function mensajeMuestras(linea: string): string {

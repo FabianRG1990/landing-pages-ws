@@ -401,3 +401,13 @@ nav.pie__col {
     overflow-wrap: anywhere;
   }
 }
+
+/* Teléfono: el aire de arriba libra la barra fija (la marca quedaba
+   debajo de ella) y cubre lo que asoma del pie al final del contacto
+   cuando Safari esconde su barra y la pantalla crece de 100svh a 100lvh:
+   ahí se veía la marca cortada. Así lo que asoma es solo el azul. */
+@media (max-width: 899.98px), (orientation: landscape) and (max-height: 520px) {
+  .pie__rejilla {
+    padding-top: max(calc(var(--nav-h) + 1.5rem), calc(100lvh - 100svh + 1.25rem));
+  }
+}

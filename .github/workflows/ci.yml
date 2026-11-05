@@ -12,7 +12,9 @@ permissions:
 
 jobs:
   main:
-    runs-on: ubuntu-latest
+    # Fijado a 24.04: ubuntu-latest pasó a 26.04 y Playwright no tiene
+    # navegadores para esa versión (falla `playwright install`).
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
         with:

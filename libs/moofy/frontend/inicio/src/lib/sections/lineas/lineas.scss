@@ -16,6 +16,56 @@
   }
 }
 
+/* La salida al catálogo completo, a la altura del rótulo */
+.lineas__rotulo {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem 1.5rem;
+}
+
+.lineas__todo {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 0.5rem;
+  /* 44 px para el dedo sin mover el rótulo */
+  margin-block: -0.875rem;
+  padding-block: 0.875rem;
+  font-size: 0.9375rem;
+  font-weight: var(--w-emph);
+  line-height: 1.2;
+  color: var(--azul);
+  white-space: nowrap;
+  text-decoration: underline;
+  text-decoration-color: var(--line-azul);
+  text-underline-offset: 0.3em;
+  transition:
+    color var(--dur-fast) var(--ease-out),
+    text-decoration-color var(--dur-fast) var(--ease-out);
+
+  app-icono {
+    transition: transform var(--dur-base) var(--ease-fluid);
+  }
+
+  &:hover,
+  &:focus-visible {
+    color: var(--rojo);
+    text-decoration-color: currentColor;
+
+    app-icono {
+      transform: translateX(3px);
+    }
+  }
+}
+
+/* En los teléfonos más estrechos la flecha no cabe junto al rótulo */
+@media (max-width: 379.98px) {
+  .lineas__todo app-icono {
+    display: none;
+  }
+}
+
 .lineas__pista:focus-visible {
   outline-offset: -2px;
 }
@@ -73,18 +123,26 @@
      lo que no ocupa el cuerpo. */
   flex: 1 1 auto;
   overflow: clip;
-  background: var(--azul-50);
+  background: var(--estudio);
 
   /* En absoluto: con la imagen en el flujo, su alto intrínseco (vertical,
      2:3) gana al aspect-ratio del marco, porque overflow: clip no anula
      el min-height: auto. */
+  /* La foto es la pieza junto a su empaque, sin fondo: se
+     ve entera en cualquier proporción del marco, sobre el papel del
+     estudio y por debajo de las insignias. */
   img {
     position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
+    inset: 3.5rem 1.25rem 1rem;
+    width: calc(100% - 2.5rem);
+    height: calc(100% - 4.5rem);
+    object-fit: contain;
     transition: transform 1.2s var(--ease-fluid);
+    /* La foto no se arrastra: en iOS, con el dedo quieto un instante, se
+       «levantaba» para arrastrarla y el carril dejaba de responder */
+    -webkit-user-drag: none;
+    -webkit-touch-callout: none;
+    user-select: none;
   }
 }
 
@@ -232,8 +290,11 @@
   padding-block: calc(var(--nav-h) + 1.25rem) 4.5rem;
   overflow: clip;
 
-  /* Titular a la izquierda y entrada a la derecha, en una sola fila */
+  /* Titular a la izquierda y entrada a la derecha, en una sola fila.
+     La salida al catálogo completo, arriba a la derecha, en el margen
+     de la página y a la altura del rótulo. */
   .lineas__cabeza {
+    position: relative;
     display: flex;
     align-items: end;
     justify-content: space-between;
@@ -243,6 +304,12 @@
 
     .titular {
       font-size: clamp(2rem, 1.1rem + 2.2vw, 3rem);
+    }
+
+    .lineas__todo {
+      position: absolute;
+      top: 0;
+      right: 0;
     }
 
     .lead {
@@ -345,8 +412,14 @@
     }
   }
 
+  /* Solo en horizontal. Con overflow-x: auto el eje vertical pasa a auto
+     también, y las tarjetas que aún no se han visto esperan su entrada
+     18 px más abajo: el carril quedaba 10 px más alto por dentro y el
+     primer deslizamiento vertical que empezaba en él movía el carril, con
+     la foto pegada al dedo, en vez de la página. */
   .lineas__pista {
     overflow-x: auto;
+    overflow-y: hidden;
     overscroll-behavior-x: contain;
     scroll-snap-type: x mandatory;
     scroll-padding-inline: var(--gutter);
@@ -440,8 +513,10 @@
     }
   }
 
+  /* Solo en horizontal: ver el carril del teléfono en vertical */
   .lineas__pista {
     overflow-x: auto;
+    overflow-y: hidden;
     overscroll-behavior-x: contain;
     scroll-snap-type: x mandatory;
     scroll-padding-inline: max(var(--gutter), env(safe-area-inset-left));
