@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <title>Tunneller — De una idea a una app que funciona</title>
+    <base href="/" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <meta
+      name="description"
+      content="Tunneller es un agente de IA que convierte una idea en una app publicada: pregunta, especifica, planifica y construye con pruebas, y tú apruebas cada paso."
+    />
+    <meta name="robots" content="noindex" />
+    <meta name="theme-color" content="#ecebe7" />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+
+    <!-- El estado inicial de las entradas tiene que existir ANTES del
+         primer pintado; si lo pusiera Angular al hidratar, el contenido
+         se vería, desaparecería y volvería a entrar. Si la app no arranca
+         en 4 s, la clase se retira y todo queda visible. -->
+    <script>
+      (function () {
+        var html = document.documentElement;
+        try {
+          var guardado = localStorage.getItem('tunneller-idioma');
+          var idioma =
+            guardado ||
+            ((navigator.language || 'es').toLowerCase().indexOf('es') === 0
+              ? 'es'
+              : 'en');
+          // El HTML prerenderizado está en español: si toca inglés, el
+          // contenido espera oculto a que la app ponga el texto correcto.
+          if (idioma === 'en') html.classList.add('cambiando-idioma');
+        } catch (e) {}
+        setTimeout(function () {
+          html.classList.remove('cambiando-idioma');
+          if (!html.classList.contains('movimiento-listo'))
+            html.classList.remove('con-movimiento');
+        }, 4000);
+        if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        html.classList.add('con-movimiento');
+      })();
+    </script>
+
+    <!-- Inter Tight para titulares, Inter para texto, JetBrains Mono para
+         etiquetas y la consola del producto. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@500;600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <app-root></app-root>
+  </body>
+</html>

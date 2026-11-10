@@ -75,6 +75,10 @@ export default [
               sourceTag: 'scope:bolleria-v2',
               onlyDependOnLibsWithTags: ['scope:bolleria-v2', 'scope:shared'],
             },
+            {
+              sourceTag: 'scope:tunneller',
+              onlyDependOnLibsWithTags: ['scope:tunneller', 'scope:shared'],
+            },
           ],
         },
       ],
