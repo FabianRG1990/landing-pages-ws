@@ -1,10 +1,12 @@
 import { ChangeDetectionStrategy, Component, afterNextRender, inject } from '@angular/core';
 import { Idioma } from '../i18n/idioma';
 import { Metal } from '../metal/metal';
+import { Cabecera } from './cabecera';
 import { Hero } from './hero';
 import { Metodo } from './metodo';
 import { Pie } from './pie';
 import { Resultados } from './resultados';
+import { Riel } from './riel';
 import { Servicios } from './servicios';
 
 /**
@@ -14,11 +16,13 @@ import { Servicios } from './servicios';
  */
 @Component({
   selector: 'app-inicio',
-  imports: [Metal, Hero, Servicios, Metodo, Resultados, Pie],
+  imports: [Metal, Cabecera, Riel, Hero, Servicios, Metodo, Resultados, Pie],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <a class="saltar" href="#contenido">{{ i18n.t().ui.saltar }}</a>
     <app-metal />
+    <app-cabecera />
+    <app-riel />
     <main id="contenido">
       <app-hero />
       <app-servicios />

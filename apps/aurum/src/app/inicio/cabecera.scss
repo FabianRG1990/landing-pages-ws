@@ -1,0 +1,118 @@
+.cabecera {
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 50;
+  height: var(--nav-alto);
+  color: var(--texto);
+  transition: color 0.45s var(--ease-suave);
+
+  // El fondo es un degradado del color de la sección: aparece al bajar.
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 -1.5rem;
+    z-index: -1;
+    background: linear-gradient(
+      to bottom,
+      var(--fondo) 0%,
+      var(--fondo) 55%,
+      transparent 100%
+    );
+    opacity: 0;
+    transition:
+      opacity 0.45s var(--ease-suave),
+      background 0.45s var(--ease-suave);
+    pointer-events: none;
+  }
+}
+
+.cabecera--desplazada::before {
+  opacity: 0.94;
+}
+
+.cabecera__fila {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  height: 100%;
+}
+
+.marca {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.625rem;
+  color: var(--texto);
+}
+
+.marca__simbolo {
+  width: 1.75rem;
+  height: 1.75rem;
+}
+
+.marca__nombre {
+  font-family: var(--fuente-display);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  letter-spacing: 0.32em;
+}
+
+.cabecera__nav {
+  display: none;
+  gap: 2.25rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+
+  a {
+    position: relative;
+    padding-block: 0.5rem;
+    color: var(--texto-2);
+    transition: color 0.3s var(--ease-suave);
+
+    // Subrayado de latón que crece desde el centro.
+    &::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0.2rem;
+      height: 1px;
+      background: var(--oro);
+      transform: scaleX(0);
+      transition: transform 0.45s var(--ease-salida);
+    }
+
+    &:hover {
+      color: var(--texto);
+
+      &::after {
+        transform: scaleX(1);
+      }
+    }
+  }
+
+  @media (min-width: 60rem) {
+    display: flex;
+  }
+}
+
+.cabecera__acciones {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+
+  @media (min-width: 40rem) {
+    gap: 0.875rem;
+  }
+}
+
+.cabecera__cta {
+  display: none;
+  min-height: 2.5rem;
+  padding: 0 1.125rem;
+  font-size: 0.875rem;
+
+  @media (min-width: 40rem) {
+    display: inline-flex;
+  }
+}
