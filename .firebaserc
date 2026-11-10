@@ -40,6 +40,9 @@
         ],
         "moofy": [
           "moofy"
+        ],
+        "aurum": [
+          "aurum-agente"
         ]
       }
     }

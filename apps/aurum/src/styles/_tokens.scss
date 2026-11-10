@@ -1,0 +1,71 @@
+// Fichas de Aurum. El metal vive en la superficie (el shader); el texto
+// es plano y siempre cumple AA. El champán es el único color.
+
+:root {
+  // Grafito: el mundo oscuro.
+  --ink-950: #0b0c0e;
+  --ink-900: #141518;
+  --ink-800: #1c1e22;
+  // Acero: texto en oscuro y el mundo claro.
+  --steel-50: #f2f2f0; //   17,5:1 sobre ink-950
+  --steel-200: #c9cbce; //  12,0:1
+  --steel-400: #9a9da3; //   7,2:1
+  --steel-100: #ecece9; //  fondo claro
+  --graphite-700: #3a3c41; // 9,3:1 sobre steel-100
+  --graphite-500: #595c63; // 5,7:1 sobre steel-100
+  // Champán y latón.
+  --champagne-200: #e6d3ae;
+  --champagne-300: #d9be8c; // 10,9:1 sobre ink-950
+  --champagne-500: #c8a46a;
+  --brass-600: #b08d57;
+  --brass-800: #8a6d40;
+  --brass-900: #6f5530; //    5,9:1 sobre steel-100
+
+  --oro-oscuro: linear-gradient(100deg, #9c7a47 0%, #c8a46a 30%, #efe0c0 50%, #c8a46a 70%, #a8854f 100%);
+  --oro-claro: linear-gradient(100deg, #5e4520 0%, #7f6031 30%, #977641 50%, #7f6031 70%, #5e4520 100%);
+  --boton-oro: linear-gradient(180deg, #ecdcba 0%, #d4b47e 48%, #b8935a 100%);
+
+  --fuente-display: 'Inter Tight', 'Inter Tight Fallback', system-ui, sans-serif;
+  --fuente-texto: 'Inter', 'Inter Fallback', system-ui, sans-serif;
+  --fuente-mono: 'JetBrains Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+
+  // Escala fluida: 1,25 en móvil, ~1,333 en escritorio.
+  --t-display: clamp(2.75rem, 1.55rem + 5.1vw, 6.25rem);
+  --t-h2: clamp(2.25rem, 1.45rem + 3.1vw, 4.25rem);
+  --t-h3: clamp(1.25rem, 1.12rem + 0.55vw, 1.625rem);
+  --t-lead: clamp(1.0625rem, 0.99rem + 0.36vw, 1.3125rem);
+  --t-texto: 1.0625rem;
+  --t-etiqueta: 0.75rem;
+
+  --ancho: 77.5rem;
+  --margen: clamp(1rem, 4vw, 3rem);
+  --nav-alto: 4.5rem;
+
+  --ease-salida: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --ease-suave: cubic-bezier(0.45, 0, 0.2, 1);
+}
+
+// Cada sección declara su mundo; todo lo de dentro hereda estas variables.
+[data-tema='oscuro'] {
+  --fondo: var(--ink-950);
+  --texto: var(--steel-50);
+  --texto-2: var(--steel-200);
+  --texto-3: var(--steel-400);
+  --linea: rgb(242 242 240 / 0.12);
+  --linea-fuerte: rgb(242 242 240 / 0.24);
+  --acento: var(--champagne-300);
+  --oro: var(--oro-oscuro);
+  color-scheme: dark;
+}
+
+[data-tema='claro'] {
+  --fondo: var(--steel-100);
+  --texto: var(--ink-900);
+  --texto-2: var(--graphite-700);
+  --texto-3: var(--graphite-500);
+  --linea: rgb(20 21 24 / 0.12);
+  --linea-fuerte: rgb(20 21 24 / 0.26);
+  --acento: var(--brass-900);
+  --oro: var(--oro-claro);
+  color-scheme: light;
+}
