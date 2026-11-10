@@ -329,6 +329,37 @@ html:not(.metal-listo) .seccion[data-tema='claro'] {
     transform 1s var(--ease-salida) calc(var(--i, 0) * 90ms + 60ms);
 }
 
+// El hero no espera a la app: entra con CSS en cuanto hay pintado, así el
+// titular (el LCP) no depende de que llegue el JavaScript.
+.con-movimiento [data-seccion='hero'] [data-r] {
+  animation: entrar 1s var(--ease-salida) calc(var(--i, 0) * 90ms + 140ms) both;
+}
+
+.con-movimiento [data-seccion='hero'] .linea > [data-r] {
+  animation-name: subir;
+  animation-duration: 1.1s;
+}
+
+@keyframes entrar {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 1.5rem, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes subir {
+  from {
+    transform: translate3d(0, 108%, 0);
+  }
+  to {
+    transform: none;
+  }
+}
+
 // Al entrar la sección, el oro de su titular se pule una sola vez.
 .con-movimiento .entra .oro {
   animation: pulir 2.6s var(--ease-suave) 0.5s both;
