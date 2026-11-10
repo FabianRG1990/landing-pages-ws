@@ -1,0 +1,160 @@
+// Escritorio: dos columnas, texto que baja y ventana fija. La altura de la
+// ventana manda: 32rem cabe en una pantalla de 768 px de alto.
+.recorrido {
+  --alto-ventana: min(32rem, calc(100svh - var(--nav-alto) - 3rem));
+
+  @media (min-width: 64rem) {
+    display: grid;
+    grid-template-columns: minmax(0, 0.78fr) minmax(0, 1.22fr);
+    gap: clamp(2.5rem, 5vw, 5rem);
+  }
+}
+
+.etapas {
+  display: grid;
+
+  @media (max-width: 63.99rem) {
+    gap: 4.5rem;
+  }
+}
+
+.etapa {
+  display: grid;
+  align-content: center;
+  gap: 0.875rem;
+
+  @media (min-width: 64rem) {
+    min-height: 72svh;
+    padding-block: 2rem;
+    opacity: 0.38;
+    transition: opacity 0.5s var(--ease-suave);
+
+    &:first-child {
+      min-height: 60svh;
+      align-content: start;
+      padding-top: 4rem;
+    }
+
+    &:last-child {
+      min-height: 60svh;
+      align-content: end;
+      padding-bottom: 4rem;
+    }
+  }
+}
+
+// La etapa actual se lee a pleno tono; las demás quedan en segundo plano.
+.etapa--actual {
+  @media (min-width: 64rem) {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) and (min-width: 64rem) {
+  .etapa {
+    transition: none;
+  }
+}
+
+.etapa__num {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  font-family: var(--fuente-mono);
+  font-size: var(--t-etiqueta);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--tinta-3);
+
+  span {
+    color: var(--laton-900);
+  }
+}
+
+.etapa__titulo {
+  font-family: var(--fuente-display);
+  font-size: var(--t-h3);
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+.etapa__texto {
+  max-width: 28rem;
+  color: var(--tinta-2);
+  text-wrap: pretty;
+}
+
+// Móvil: cada etapa con su escena, en un marco de cromo pintado.
+.etapa__escena {
+  margin-top: 0.75rem;
+  padding: 7px;
+  border-radius: 18px;
+  background:
+    linear-gradient(180deg, rgb(255 255 255 / 0.55), rgb(255 255 255 / 0) 30%),
+    linear-gradient(
+      115deg,
+      #c9c9c5 0%,
+      #f1f0ec 22%,
+      #b9b9b5 46%,
+      #e9e8e3 68%,
+      #d3c4a6 86%,
+      #c4c4c0 100%
+    );
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.85),
+    inset 0 -1px 0 rgb(0 0 0 / 0.14),
+    0 30px 60px -36px rgb(23 24 27 / 0.45);
+
+  > .app {
+    border-radius: 12px;
+    box-shadow: 0 0 0 1px rgb(23 24 27 / 0.16);
+  }
+
+  @media (min-width: 64rem) {
+    display: none;
+  }
+}
+
+.recorrido__fijo {
+  display: none;
+
+  @media (min-width: 64rem) {
+    display: block;
+    position: sticky;
+    top: calc(
+      var(--nav-alto) + (100svh - var(--nav-alto) - var(--alto-ventana)) / 2
+    );
+    align-self: start;
+    height: var(--alto-ventana);
+  }
+}
+
+.marco-metal {
+  position: relative;
+  height: 100%;
+  padding: 10px;
+  border-radius: 22px;
+  background: linear-gradient(
+    115deg,
+    #c9c9c5 0%,
+    #f1f0ec 22%,
+    #b9b9b5 46%,
+    #e9e8e3 68%,
+    #d3c4a6 86%,
+    #c4c4c0 100%
+  );
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.85),
+    inset 0 -1px 0 rgb(0 0 0 / 0.14),
+    0 2px 6px rgb(23 24 27 / 0.08),
+    0 50px 100px -50px rgb(23 24 27 / 0.5);
+}
+
+.marco-metal__pantalla {
+  height: 100%;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 0 0 1px rgb(23 24 27 / 0.16);
+}

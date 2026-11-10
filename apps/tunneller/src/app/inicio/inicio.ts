@@ -9,17 +9,19 @@ import { Escenario } from '../escenario/escenario';
 import { Idioma } from '../i18n/idioma';
 import { Cabecera } from './cabecera';
 import { Hero } from './hero';
+import { Recorrido } from './recorrido';
 
-/** La landing: cabecera y hero; el resto llega en los commits siguientes. */
+/** La landing: cabecera, hero y recorrido; el resto llega después. */
 @Component({
   selector: 'app-inicio',
-  imports: [Cabecera, Hero],
+  imports: [Cabecera, Hero, Recorrido],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <a class="saltar" href="#contenido">{{ i18n.t().ui.saltar }}</a>
     <app-cabecera />
     <main id="contenido">
       <app-hero />
+      <app-recorrido />
     </main>
   `,
 })
