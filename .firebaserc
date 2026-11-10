@@ -40,6 +40,9 @@
         ],
         "moofy": [
           "moofy"
+        ],
+        "tunneller": [
+          "tunneller-landing"
         ]
       }
     }
