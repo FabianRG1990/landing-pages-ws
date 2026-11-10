@@ -1,0 +1,83 @@
+{
+  "name": "aurum",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "prefix": "app",
+  "sourceRoot": "apps/aurum/src",
+  "tags": ["scope:aurum"],
+  "targets": {
+    "build": {
+      "executor": "@angular/build:application",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/apps/aurum",
+        "browser": "apps/aurum/src/main.ts",
+        "tsConfig": "apps/aurum/tsconfig.app.json",
+        "inlineStyleLanguage": "scss",
+        "assets": [
+          {
+            "glob": "**/*",
+            "input": "apps/aurum/public"
+          }
+        ],
+        "styles": ["apps/aurum/src/styles.scss"],
+        "server": "apps/aurum/src/main.server.ts",
+        "ssr": {
+          "entry": "apps/aurum/src/server.ts"
+        },
+        "outputMode": "server",
+        "stylePreprocessorOptions": {
+          "includePaths": ["apps/aurum/src/styles"]
+        }
+      },
+      "configurations": {
+        "production": {
+          "budgets": [
+            {
+              "type": "initial",
+              "maximumWarning": "500kb",
+              "maximumError": "1mb"
+            },
+            {
+              "type": "anyComponentStyle",
+              "maximumWarning": "8kb",
+              "maximumError": "12kb"
+            }
+          ],
+          "outputHashing": "all"
+        },
+        "development": {
+          "optimization": false,
+          "extractLicenses": false,
+          "sourceMap": true
+        }
+      },
+      "defaultConfiguration": "production"
+    },
+    "serve": {
+      "continuous": true,
+      "executor": "@angular/build:dev-server",
+      "configurations": {
+        "production": {
+          "buildTarget": "aurum:build:production"
+        },
+        "development": {
+          "buildTarget": "aurum:build:development"
+        }
+      },
+      "defaultConfiguration": "development"
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    },
+    "serve-static": {
+      "continuous": true,
+      "executor": "@nx/web:file-server",
+      "options": {
+        "buildTarget": "aurum:build",
+        "staticFilePath": "dist/apps/aurum/browser",
+        "spa": true
+      }
+    }
+  }
+}
