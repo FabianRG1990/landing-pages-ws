@@ -7,7 +7,6 @@ import {
   inject,
   signal,
 } from '@angular/core';
-import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { montarEscena } from '../escena/escena';
 import { Idioma } from '../i18n/idioma';
@@ -101,19 +100,12 @@ export class Recorrido {
   ]);
 
   /**
-   * Cada etapa nueva lanza una onda en el metal desde la ventana de la app
-   * y la ventana gira un instante, como si recibiera la escena nueva.
+   * Cada etapa nueva lanza una onda en el metal desde la ventana de la app.
+   * La ventana no se mueve: solo cambia su escena.
    */
   private ondear(etapa: HTMLElement): void {
     const fijo = this.host.nativeElement.querySelector<HTMLElement>('.recorrido__fijo');
     const ref = fijo && fijo.offsetParent ? fijo : etapa;
-    const marco = fijo?.querySelector('.marco-metal');
-    if (marco && fijo?.offsetParent && !matchMedia('(prefers-reduced-motion: reduce)').matches)
-      gsap.fromTo(
-        marco,
-        { rotationY: -7, transformPerspective: 1400 },
-        { rotationY: 0, duration: 0.9, ease: 'power3.out' },
-      );
     const b = ref.getBoundingClientRect();
     dispatchEvent(
       new CustomEvent('tunneller:onda', {
