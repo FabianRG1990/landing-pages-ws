@@ -13,7 +13,7 @@ import { Titular } from './titular';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @let p = i18n.t().proyectos;
-    <section class="seccion" id="proyectos" data-seccion="proyectos">
+    <section class="seccion seccion--oscura" id="proyectos" data-seccion="proyectos">
       <div class="contenedor">
         <header class="cabeza-seccion">
           <p class="etiqueta" data-r style="--i: 0">{{ p.etiqueta }}</p>

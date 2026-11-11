@@ -15,7 +15,7 @@ const DESTINOS = [
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @let p = i18n.t().pie;
-    <footer class="seccion pie" id="demo" data-seccion="pie">
+    <footer class="seccion seccion--oscura pie" id="demo" data-seccion="pie">
       <div class="contenedor">
         <div class="pie__llamada">
           <h2 class="display pie__titulo" data-r style="--i: 0">

@@ -325,6 +325,80 @@ canvas {
   }
 }
 
+// Con el metal en marcha, el body no pinta color: lo taparía (el fondo
+// del body se pinta encima de las capas con z-index negativo).
+.con-metal body {
+  background: transparent;
+}
+
+// Sin WebGL: el mismo recorrido de tonos, en degradados planos por
+// segmento (los extremos de cada uno casan con el siguiente).
+.sin-metal {
+  #inicio {
+    background: linear-gradient(#cccccc, #c6c6c6);
+  }
+
+  #recorrido {
+    background: linear-gradient(#c6c6c6, #b3b3b3);
+  }
+
+  #control {
+    background: linear-gradient(#454546, #363637);
+  }
+
+  #proyectos {
+    background: linear-gradient(#363637, #222224);
+  }
+
+  #demo {
+    background: linear-gradient(#222224, #0f1011);
+  }
+}
+
+// Segmento sobre metal oscuro: las mismas piezas con el texto claro. Solo
+// se redefinen variables; cada componente sigue leyendo las suyas.
+.seccion--oscura {
+  --tinta: #f2f1ed;
+  --tinta-2: #cfd0d3; // texto sobre los grises hondos del metal
+  --tinta-3: #bcbdc1; // texto pequeño sobre los grises hondos
+  --linea: rgb(242 241 237 / 0.08);
+  --linea-fuerte: rgb(242 241 237 / 0.18);
+  --laton-900: #d9be8c;
+  --laton-700: #c9a66b;
+  --oro-texto: linear-gradient(
+    100deg,
+    #b8955a 0%,
+    #e4cc9d 36%,
+    #f3e3c2 50%,
+    #c9a66b 68%,
+    #b8955a 100%
+  );
+
+  color: var(--tinta);
+}
+
+// «Cómo trabaja» va sobre la plata más gris de la página: su texto
+// secundario baja un tono (medido).
+#recorrido {
+  --tinta-2: #2e2f33;
+  --tinta-3: #393a3f;
+  --laton-900: #5a4426;
+}
+
+// Las tarjetas claras conservan su texto oscuro aunque el segmento que las
+// rodea lleve texto claro.
+.tarjeta,
+.proyecto {
+  --tinta: #17181b;
+  --tinta-2: #45464b;
+  --tinta-3: #4d4e53;
+  --linea: rgb(23 24 27 / 0.09);
+  --linea-fuerte: rgb(23 24 27 / 0.16);
+  --laton-900: #6f5530;
+  --laton-700: #8a6a3a;
+  color: var(--tinta);
+}
+
 // ---------- Coreografía ----------
 // El estado oculto solo existe con .con-movimiento, que pone un script en
 // <head> antes del primer pintado y que se retira si la app no arranca.

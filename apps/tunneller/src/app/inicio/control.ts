@@ -15,7 +15,7 @@ import { Titular } from './titular';
   template: `
     @let c = i18n.t().control;
     @let e = i18n.t().pantallas.especificacion;
-    <section class="seccion" id="control" data-seccion="control">
+    <section class="seccion seccion--oscura" id="control" data-seccion="control">
       <div class="contenedor">
         <header class="cabeza-seccion">
           <p class="etiqueta" data-r style="--i: 0">{{ c.etiqueta }}</p>
