@@ -16,7 +16,7 @@ import { Escenario } from '../escenario/escenario';
  * nunca se queda plano y nunca cae de golpe (ver perfilDeTono).
  */
 const TONO_ARRIBA = 0.8;
-const TONO_ABAJO = 0.06;
+const TONO_ABAJO = 0.015;
 /**
  * El texto pasa de oscuro a claro entre el último texto de «Cómo trabaja»
  * y la cabecera de Control. Bajo el primero el tono no baja de
@@ -50,7 +50,13 @@ function perfilDeTono(alto: number, a: number, b: number): Float32Array {
       const x = Math.min(1, Math.max(0, ((i + 0.5) * paso - (c - w)) / (2 * w)));
       acc += (1 + k * x * x * (3 - 2 * x)) * paso;
     }
-    for (let i = 0; i < MUESTRAS; i++) t[i] = TONO_ARRIBA - (TONO_ARRIBA - TONO_ABAJO) * (t[i] / acc);
+    for (let i = 0; i < MUESTRAS; i++) {
+      t[i] = TONO_ARRIBA - (TONO_ARRIBA - TONO_ABAJO) * (t[i] / acc);
+      // Pasado el cambio de texto el gris se hunde algo más, poco a poco,
+      // para que el pie llegue a negro de verdad.
+      const x = Math.min(1, Math.max(0, ((i + 0.5) * paso - b) / Math.max(1, alto - b)));
+      t[i] *= 1 - 0.5 * x * x * (3 - 2 * x);
+    }
     return t;
   };
   let lo = 0, hi = 4;
@@ -182,7 +188,9 @@ float estudio(vec2 r) {
 // en el tono de esa altura y los reflejos suben o bajan alrededor.
 float metal(float lum, float tono) {
   float d = lum - 0.12;
-  float sube = mix(0.5, 0.2, tono);
+  // Cerca del negro los reflejos se apagan: el pie se lee negro, con un
+  // brillo tenue.
+  float sube = mix(0.5, 0.2, tono) * mix(0.3, 1.0, smoothstep(0.02, 0.3, tono));
   float baja = mix(0.08, 0.2, tono);
   return tono + (d > 0.0 ? sube * (1.0 - exp(-d * 1.4)) : baja * d / 0.12);
 }
