@@ -32,24 +32,22 @@
     #8c6c3b 68%,
     #6f5530 100%
   );
-  // Oro vivo y limpio: amarillo cálido de oro fino, con la luz arriba
-  // como un reflejo suave (sin bandas) y un poco más de cuerpo abajo.
+  // Oro metálico: base honda y saturada, luz arriba y un destello en
+  // diagonal, para que el botón sea el punto de color de la página.
   --oro-boton:
-    radial-gradient(
-      120% 90% at 50% 0%,
-      rgb(255 250 228 / 0.5),
+    linear-gradient(
+      112deg,
+      transparent 18%,
+      rgb(255 246 214 / 0.42) 42%,
       transparent 62%
     ),
     linear-gradient(
       180deg,
-      #f3d77e 0%,
-      #e5bf52 42%,
-      #d4a537 78%,
-      #c6962c 100%
+      #f4dd96 0%,
+      #dcb04c 36%,
+      #bc8c2d 68%,
+      #9a6f1e 100%
     );
-
-  // Botones: rectángulo con esquinas suaves, no cápsula.
-  --radio-boton: 10px;
 
   // Producto (la app real, en marino)
   --app-fondo: #121726;
