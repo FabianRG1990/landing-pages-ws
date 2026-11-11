@@ -23,7 +23,7 @@ import { Proceso } from './proceso';
     <div class="app app--ventana">
       <header class="app-barra">
         <span class="app-barra__repo">{{
-          etapa() === 4 ? 'Tunneller-Demo/ajedrez' : 'Tunneller-Demo/Ruleta'
+          etapa() === 4 ? 'ContextDev-Demo/ajedrez' : 'ContextDev-Demo/Ruleta'
         }}</span>
         <span class="app-barra__pestana" data-texto>{{
           a.pestanas[etapa()]

@@ -49,7 +49,7 @@ const DESTINOS = [
         </div>
 
         <p class="pie__gigante" aria-hidden="true">
-          TUNNELLER
+          CONTEXT DEV
         </p>
 
         <div class="pie__base">

@@ -1,4 +1,4 @@
-// Textos de la landing de Tunneller en español e inglés. Los dos
+// Textos de la landing de Context Dev en español e inglés. Los dos
 // diccionarios comparten el tipo Textos: si a uno le falta una clave, no
 // compila. Las cifras de los proyectos salen de la demo grabada del
 // producto; no hay ninguna inventada.
@@ -153,15 +153,15 @@ export interface Textos {
 
 const ES: Textos = {
   meta: {
-    titulo: 'Tunneller — De una idea a una app que funciona',
+    titulo: 'Context Dev — De una idea a una app que funciona',
     descripcion:
-      'Tunneller es un agente de IA que convierte una idea en una app publicada: pregunta, especifica, planifica y construye con pruebas, y tú apruebas cada paso.',
+      'Context Dev es un agente de IA que convierte una idea en una app publicada: pregunta, especifica, planifica y construye con pruebas, y tú apruebas cada paso.',
   },
   ui: {
     saltar: 'Saltar al contenido',
     grupoIdioma: 'Idioma',
     navegacion: 'Principal',
-    inicio: 'Tunneller, inicio',
+    inicio: 'Context Dev, inicio',
   },
   nav: {
     recorrido: 'Cómo trabaja',
@@ -172,7 +172,7 @@ const ES: Textos = {
   hero: {
     etiqueta: 'Agente de software con IA',
     titulo: ['De una idea a una app que ', { oro: 'funciona.' }],
-    lead: 'Cuéntale tu idea. Tunneller pregunta, especifica, planifica y la construye con pruebas. Tú apruebas cada paso y recibes una app publicada.',
+    lead: 'Cuéntale tu idea. Context Dev pregunta, especifica, planifica y la construye con pruebas. Tú apruebas cada paso y recibes una app publicada.',
     cta: 'Agenda una demo',
     ctaSecundario: 'Ver cómo trabaja',
   },
@@ -203,7 +203,7 @@ const ES: Textos = {
   recorrido: {
     etiqueta: '01 — Cómo trabaja',
     titulo: ['Cinco etapas. ', { oro: 'Ninguna' }, ' caja negra.'],
-    lead: 'Tunneller no salta al código. Primero entiende, luego escribe lo que va a hacer, lo divide en tareas y lo construye con pruebas. Ves cada paso y decides cuándo avanzar.',
+    lead: 'Context Dev no salta al código. Primero entiende, luego escribe lo que va a hacer, lo divide en tareas y lo construye con pruebas. Ves cada paso y decides cuándo avanzar.',
     etapas: [
       {
         nombre: 'Destino',
@@ -323,7 +323,7 @@ const ES: Textos = {
   control: {
     etiqueta: '02 — Control',
     titulo: ['Automático cuando quieras. ', { oro: 'Tuyo' }, ' siempre.'],
-    lead: 'Tunneller avanza solo hasta donde le dejes. Cada decisión queda escrita, cada cambio pasa por tu GitHub y nada se fusiona sin ti.',
+    lead: 'Context Dev avanza solo hasta donde le dejes. Cada decisión queda escrita, cada cambio pasa por tu GitHub y nada se fusiona sin ti.',
     piloto: {
       titulo: 'Piloto automático',
       texto:
@@ -357,62 +357,62 @@ const ES: Textos = {
   proyectos: {
     etiqueta: '03 — Proyectos',
     titulo: ['No es una promesa. ', { oro: 'Ya' }, ' está construido.'],
-    lead: 'Apps reales que Tunneller llevó de una frase a una vista previa funcionando, con sus issues, sus pruebas y su pull request.',
+    lead: 'Apps reales que Context Dev llevó de una frase a una vista previa funcionando, con sus issues, sus pruebas y su pull request.',
     items: [
       {
         nombre: 'Ruleta para decidir',
-        repo: 'Tunneller-Demo/Ruleta',
+        repo: 'ContextDev-Demo/Ruleta',
         texto:
           'Escribes las opciones, giras y la rueda elige. Recuerda la lista en el móvil.',
         datos: ['38 historias de usuario', '18 pruebas'],
       },
       {
         nombre: 'Ajedrez web',
-        repo: 'Tunneller-Demo/ajedrez',
+        repo: 'ContextDev-Demo/ajedrez',
         texto:
           'Partidas entre dos personas o contra la máquina con niveles de dificultad.',
         datos: ['9 de 9 decisiones', '17 de 17 tareas'],
       },
       {
         nombre: 'Tablero kanban',
-        repo: 'Tunneller-Demo/kanban',
+        repo: 'ContextDev-Demo/kanban',
         texto: 'Columnas y tarjetas para organizar el trabajo de un equipo.',
         datos: ['Repositorio público'],
       },
       {
         nombre: 'Contador de macros',
-        repo: 'Tunneller-Demo/macros',
+        repo: 'ContextDev-Demo/macros',
         texto:
           'Registro de comidas con proteínas, carbohidratos y grasas del día.',
         datos: ['Repositorio público'],
       },
     ],
-    nota: 'Repositorios de demostración en GitHub, construidos con Tunneller.',
+    nota: 'Repositorios de demostración en GitHub, construidos con Context Dev.',
   },
   pie: {
     titulo: ['¿Qué quieres ', { oro: 'construir?' }],
-    lead: 'Cuéntanos tu idea y te enseñamos a Tunneller llevándola de una frase a una app publicada.',
+    lead: 'Cuéntanos tu idea y te enseñamos a Context Dev llevándola de una frase a una app publicada.',
     cta: 'Agenda una demo',
     correo: 'hola@tunneller.app',
     columnas: [
       { titulo: 'Producto', enlaces: ['Cómo trabaja', 'Control', 'Proyectos'] },
       { titulo: 'Empresa', enlaces: ['Contacto', 'Agenda una demo'] },
     ],
-    derechos: '© 2026 Tunneller. Todos los derechos reservados.',
+    derechos: '© 2026 Context Dev. Todos los derechos reservados.',
   },
 };
 
 const EN: Textos = {
   meta: {
-    titulo: 'Tunneller — From an idea to an app that works',
+    titulo: 'Context Dev — From an idea to an app that works',
     descripcion:
-      'Tunneller is an AI agent that turns an idea into a published app: it asks, specifies, plans and builds with tests, and you approve every step.',
+      'Context Dev is an AI agent that turns an idea into a published app: it asks, specifies, plans and builds with tests, and you approve every step.',
   },
   ui: {
     saltar: 'Skip to content',
     grupoIdioma: 'Language',
     navegacion: 'Main',
-    inicio: 'Tunneller, home',
+    inicio: 'Context Dev, home',
   },
   nav: {
     recorrido: 'How it works',
@@ -423,7 +423,7 @@ const EN: Textos = {
   hero: {
     etiqueta: 'AI software agent',
     titulo: ['From an idea to an app that ', { oro: 'works.' }],
-    lead: 'Tell it your idea. Tunneller asks, specifies, plans and builds it with tests. You approve every step and get a published app.',
+    lead: 'Tell it your idea. Context Dev asks, specifies, plans and builds it with tests. You approve every step and get a published app.',
     cta: 'Book a demo',
     ctaSecundario: 'See how it works',
   },
@@ -454,7 +454,7 @@ const EN: Textos = {
   recorrido: {
     etiqueta: '01 — How it works',
     titulo: ['Five stages. ', { oro: 'No' }, ' black box.'],
-    lead: 'Tunneller doesn’t jump into code. It understands first, writes down what it will do, splits it into tasks and builds it with tests. You see every step and decide when to move on.',
+    lead: 'Context Dev doesn’t jump into code. It understands first, writes down what it will do, splits it into tasks and builds it with tests. You see every step and decide when to move on.',
     etapas: [
       {
         nombre: 'Destination',
@@ -570,7 +570,7 @@ const EN: Textos = {
   control: {
     etiqueta: '02 — Control',
     titulo: ['Automatic when you want. ', { oro: 'Yours' }, ' always.'],
-    lead: 'Tunneller moves on its own only as far as you let it. Every decision is written down, every change goes through your GitHub and nothing is merged without you.',
+    lead: 'Context Dev moves on its own only as far as you let it. Every decision is written down, every change goes through your GitHub and nothing is merged without you.',
     piloto: {
       titulo: 'Autopilot',
       texto:
@@ -604,47 +604,47 @@ const EN: Textos = {
   proyectos: {
     etiqueta: '03 — Projects',
     titulo: ['Not a promise. ', { oro: 'Already' }, ' built.'],
-    lead: 'Real apps Tunneller took from one sentence to a working preview, with their issues, their tests and their pull request.',
+    lead: 'Real apps Context Dev took from one sentence to a working preview, with their issues, their tests and their pull request.',
     items: [
       {
         nombre: 'Decision roulette',
-        repo: 'Tunneller-Demo/Ruleta',
+        repo: 'ContextDev-Demo/Ruleta',
         texto:
           'Type the options, spin, and the wheel picks. It remembers the list on your phone.',
         datos: ['38 user stories', '18 tests'],
       },
       {
         nombre: 'Web chess',
-        repo: 'Tunneller-Demo/ajedrez',
+        repo: 'ContextDev-Demo/ajedrez',
         texto:
           'Games between two people or against the computer with difficulty levels.',
         datos: ['9 of 9 decisions', '17 of 17 tasks'],
       },
       {
         nombre: 'Kanban board',
-        repo: 'Tunneller-Demo/kanban',
+        repo: 'ContextDev-Demo/kanban',
         texto: 'Columns and cards to organise a team’s work.',
         datos: ['Public repository'],
       },
       {
         nombre: 'Macro tracker',
-        repo: 'Tunneller-Demo/macros',
+        repo: 'ContextDev-Demo/macros',
         texto: 'A food log with the day’s protein, carbs and fat.',
         datos: ['Public repository'],
       },
     ],
-    nota: 'Demo repositories on GitHub, built with Tunneller.',
+    nota: 'Demo repositories on GitHub, built with Context Dev.',
   },
   pie: {
     titulo: ['What do you want to ', { oro: 'build?' }],
-    lead: 'Tell us your idea and we’ll show you Tunneller taking it from one sentence to a published app.',
+    lead: 'Tell us your idea and we’ll show you Context Dev taking it from one sentence to a published app.',
     cta: 'Book a demo',
     correo: 'hola@tunneller.app',
     columnas: [
       { titulo: 'Product', enlaces: ['How it works', 'Control', 'Projects'] },
       { titulo: 'Company', enlaces: ['Contact', 'Book a demo'] },
     ],
-    derechos: '© 2026 Tunneller. All rights reserved.',
+    derechos: '© 2026 Context Dev. All rights reserved.',
   },
 };
 

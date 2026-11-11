@@ -38,7 +38,7 @@ import { SelectorIdioma } from './selector-idioma';
               opacity=".5"
             />
           </svg>
-          <span>TUNNELLER</span>
+          <span>CONTEXT DEV</span>
         </a>
         <nav
           class="cabecera__nav"

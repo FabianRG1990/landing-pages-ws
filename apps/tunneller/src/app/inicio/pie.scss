@@ -48,7 +48,9 @@
 .pie__gigante {
   margin-top: clamp(4.5rem, 12vh, 7.5rem);
   font-family: var(--fuente-display);
-  font-size: clamp(3.5rem, 15.4vw, 13.5rem);
+  // «CONTEXT DEV» mide 1,22 veces «TUNNELLER»: la escala se reduce en esa
+  // proporción para que la marca ocupe el mismo ancho que antes.
+  font-size: clamp(2.85rem, 12.6vw, 11rem);
   font-weight: 600;
   line-height: 0.82;
   letter-spacing: -0.045em;
