@@ -30,6 +30,29 @@ const ARISTAS = [
 
 const LETRAS = 'abc';
 
+// La entrega es el ajedrez: unas piezas en su sitio y la dama blanca, que
+// sale de d1 a h5 y da jaque al rey negro por la diagonal. Columna y fila
+// en casillas desde arriba a la izquierda (a8). Se usan las figuras rellenas
+// para los dos bandos (el color va por CSS) y el selector de texto U+FE0E,
+// para que ningún sistema las pinte como emoji.
+const T = '︎';
+const PIEZAS = [
+  { g: '♜' + T, x: 0, y: 0, lado: 'negra' },
+  { g: '♝' + T, x: 2, y: 0, lado: 'negra' },
+  { g: '♚' + T, x: 4, y: 0, lado: 'negra' },
+  { g: '♞' + T, x: 6, y: 0, lado: 'negra' },
+  { g: '♜' + T, x: 0, y: 7, lado: 'blanca' },
+  { g: '♝' + T, x: 2, y: 7, lado: 'blanca' },
+  { g: '♚' + T, x: 4, y: 7, lado: 'blanca' },
+] as const;
+const DAMA = '♛' + T;
+
+const CASILLAS = Array.from({ length: 64 }, (_, i) => {
+  const col = i % 8;
+  const fila = Math.floor(i / 8);
+  return { x: col * 12, y: fila * 12, oscura: (col + fila) % 2 === 1 };
+});
+
 /**
  * Una escena de la app para cada etapa del recorrido. Su contenido entra
  * escalonado cuando la escena se activa ([data-p] con --d), y queda así.
@@ -159,7 +182,7 @@ const LETRAS = 'abc';
           <div class="p-pr" data-p style="--d: 0">
             <p class="p-pr__titulo">
               <span class="p-pr__abierto">Open</span>{{ p.entrega.pr }}
-              <span class="p-pr__num">#7</span>
+              <span class="p-pr__num">#29</span>
             </p>
             <p class="p-pr__fila">
               <span class="p-check" aria-hidden="true">✓</span
@@ -178,31 +201,36 @@ const LETRAS = 'abc';
             </p>
           </div>
           <div class="p-demo" data-p style="--d: 2">
-            <p class="p-demo__titulo">{{ p.entrega.ruleta }}</p>
+            <p class="p-demo__titulo">{{ p.entrega.app }}</p>
             <div class="p-demo__cuerpo">
-              <svg class="p-rueda" viewBox="-50 -50 100 100" aria-hidden="true">
-                <g class="p-rueda__giro">
-                  <path
-                    d="M0 0 L0 -46 A46 46 0 0 1 39.84 23 Z"
-                    fill="#c98a5e"
+              <svg class="p-tablero" viewBox="0 0 96 96" aria-hidden="true">
+                @for (c of casillas; track $index) {
+                  <rect
+                    [attr.x]="c.x"
+                    [attr.y]="c.y"
+                    width="12"
+                    height="12"
+                    [attr.fill]="c.oscura ? '#8c6c3b' : '#ecdcbc'"
                   />
-                  <path
-                    d="M0 0 L39.84 23 A46 46 0 0 1 -39.84 23 Z"
-                    fill="#5f9e88"
-                  />
-                  <path
-                    d="M0 0 L-39.84 23 A46 46 0 0 1 0 -46 Z"
-                    fill="#8a7fb8"
-                  />
-                  <circle r="5" fill="#f4f3ef" />
-                </g>
-                <path d="M-4 -49 L4 -49 L0 -41 Z" fill="#17181b" />
+                }
+                <rect class="p-tablero__jaque" x="48" y="0" width="12" height="12" />
+                @for (f of piezas; track $index) {
+                  <text
+                    [class]="'p-pieza p-pieza--' + f.lado"
+                    [attr.x]="f.x * 12 + 6"
+                    [attr.y]="f.y * 12 + 6.6"
+                    >{{ f.g }}</text
+                  >
+                }
+                <text class="p-pieza p-pieza--blanca p-pieza--dama" x="42" y="90.6">{{
+                  dama
+                }}</text>
               </svg>
               <ul class="p-demo__opciones">
                 @for (o of p.entrega.opciones; track $index) {
                   <li>{{ o }}</li>
                 }
-                <li class="p-demo__girar">{{ p.entrega.girar }}</li>
+                <li class="p-demo__boton">{{ p.entrega.boton }}</li>
               </ul>
             </div>
           </div>
@@ -216,6 +244,9 @@ export class Pantalla {
   protected readonly nodos = NODOS;
   protected readonly aristas = ARISTAS;
   protected readonly letras = LETRAS;
+  protected readonly casillas = CASILLAS;
+  protected readonly piezas = PIEZAS;
+  protected readonly dama = DAMA;
   readonly etapa = input(0);
   readonly activa = input(false);
 }

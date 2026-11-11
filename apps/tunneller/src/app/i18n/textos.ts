@@ -103,9 +103,9 @@ export interface Textos {
       readonly checksTexto: string;
       readonly vista: string;
       readonly conflictos: string;
-      readonly ruleta: string;
+      readonly app: string;
       readonly opciones: readonly string[];
-      readonly girar: string;
+      readonly boton: string;
     };
   };
   readonly control: {
@@ -310,14 +310,14 @@ const ES: Textos = {
       progreso: 'Implementación',
     },
     entrega: {
-      pr: 'Ruleta para tomar decisiones',
+      pr: 'Ajedrez web',
       checks: 'Todos los checks pasaron',
       checksTexto: 'Pruebas y compilación correctas',
       vista: 'Vista previa publicada',
       conflictos: 'Sin conflictos con la rama base',
-      ruleta: 'Ruleta',
-      opciones: ['Comer', 'Cocinar', 'Pedir'],
-      girar: 'Girar',
+      app: 'Ajedrez',
+      opciones: ['Dos personas', 'Contra la máquina', 'Dificultad'],
+      boton: 'Nueva partida',
     },
   },
   control: {
@@ -557,14 +557,14 @@ const EN: Textos = {
       progreso: 'Implementation',
     },
     entrega: {
-      pr: 'Roulette to make decisions',
+      pr: 'Web chess',
       checks: 'All checks have passed',
       checksTexto: 'Tests and build succeeded',
       vista: 'Preview published',
       conflictos: 'No conflicts with the base branch',
-      ruleta: 'Roulette',
-      opciones: ['Eat out', 'Cook', 'Order in'],
-      girar: 'Spin',
+      app: 'Chess',
+      opciones: ['Two players', 'Against the computer', 'Difficulty'],
+      boton: 'New game',
     },
   },
   control: {
