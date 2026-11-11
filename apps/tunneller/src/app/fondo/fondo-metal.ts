@@ -91,6 +91,8 @@ const MAX_CAJAS = 12;
 // especular fino y un desdoblamiento prismático casi imperceptible.
 const FRAG = /* glsl */ `
 precision highp float;
+#define RELIEVE_ESCALA 2600.0
+#define RELIEVE_ALTO 0.6
 uniform vec2 uRes;
 uniform float uEsc;
 uniform float uT;
@@ -149,12 +151,12 @@ float tonoEn(float y) {
 // Relieve: pliegues anchos con el dominio deformado, que fluyen despacio,
 // más el dedo del cursor y las ondas que lanzan las secciones.
 float altura(vec2 q, float relieve) {
-  vec2 p = (q + uDesp) / 1900.0;
-  float f = uT * 0.05;
+  vec2 p = (q + uDesp) / RELIEVE_ESCALA;
+  float f = uT * 0.035;
   vec2 w = vec2(snoise(p * 0.55 + vec2(f, 0.0)), snoise(p * 0.55 + vec2(7.3, -f * 0.9)));
   vec2 pw = p + w * 0.85;
   float h = snoise(pw + vec2(0.0, f * 0.6)) + 0.14 * snoise(pw * 2.05 + vec2(3.1, -f));
-  h *= relieve * (1.0 + uAgita);
+  h *= relieve * RELIEVE_ALTO * (1.0 + uAgita);
   vec2 d = q - uCursor;
   float estela = gauss(q - (uCursor - uEstela * 0.22), 150.0 + length(uEstela) * 0.12);
   h += uPresencia * (-0.6 * gauss(d, 170.0) - 0.3 * estela * min(1.0, length(uEstela) / 500.0));
@@ -190,8 +192,8 @@ float metal(float lum, float tono) {
   float d = lum - 0.12;
   // Cerca del negro los reflejos se apagan: el pie se lee negro, con un
   // brillo tenue.
-  float sube = mix(0.5, 0.2, tono) * mix(0.3, 1.0, smoothstep(0.02, 0.3, tono));
-  float baja = mix(0.08, 0.2, tono);
+  float sube = mix(0.2, 0.08, tono) * mix(0.3, 1.0, smoothstep(0.02, 0.3, tono));
+  float baja = mix(0.05, 0.12, tono);
   return tono + (d > 0.0 ? sube * (1.0 - exp(-d * 1.4)) : baja * d / 0.12);
 }
 
@@ -210,12 +212,12 @@ void main() {
     if (float(i) >= uNCajas) break;
     vec4 b = uCajas[i];
     float d = caja(q - (b.xy + b.zw * 0.5), b.zw * 0.5);
-    float c = 1.0 - smoothstep(-10.0, 140.0, d);
+    float c = 1.0 - smoothstep(-10.0, 280.0, d);
     calma = max(calma, c);
     signo += c * uSigno[i];
   }
   signo = clamp(signo, -1.0, 1.0);
-  float relieve = 1.0 - 0.88 * calma;
+  float relieve = 1.0 - 0.6 * calma;
 
   float e = 2.0;
   float h = altura(q, relieve);
@@ -226,7 +228,7 @@ void main() {
 
   // Brillo especular fino de una luz alta a la izquierda.
   vec3 H = normalize(vec3(-0.35, 0.55, 1.0));
-  float esp = pow(max(dot(n, H), 0.0), 220.0) * 0.9;
+  float esp = pow(max(dot(n, H), 0.0), 220.0) * 0.35;
 
   float lumG = estudio(R.xy) + esp;
   // Desdoblamiento prismático: el azul mira el estudio un poco girado y el
@@ -240,8 +242,8 @@ void main() {
   // punto más lejos del color del texto. El sentido lo da el texto, no el
   // tono: así no hay ningún umbral de gris en el que el fondo salte.
   // En los grises medios (donde cambia el texto) el halo se separa más.
-  float halo = mix(0.04, 0.12, 1.0 - smoothstep(0.08, 0.25, abs(tono - 0.46)));
-  col = mix(col, vec3(tono), calma * 0.7) + signo * halo * 0.7;
+  float halo = mix(0.015, 0.12, 1.0 - smoothstep(0.08, 0.25, abs(tono - 0.46)));
+  col = mix(col, vec3(tono), calma * 0.45) + signo * halo * 0.85;
   col += 0.02 * (1.0 - q.y / (uRes.y / uEsc));
   col += (fract(sin(dot(gl_FragCoord.xy, vec2(12.9898, 78.233))) * 43758.5453) - 0.5) / 255.0;
   gl_FragColor = vec4(clamp(col, 0.0, 1.0), 1.0);
