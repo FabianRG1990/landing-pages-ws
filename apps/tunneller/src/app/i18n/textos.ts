@@ -39,8 +39,6 @@ export interface Textos {
   readonly ui: {
     readonly saltar: string;
     readonly grupoIdioma: string;
-    readonly pausar: string;
-    readonly reanudar: string;
     readonly navegacion: string;
     readonly inicio: string;
   };
@@ -162,8 +160,6 @@ const ES: Textos = {
   ui: {
     saltar: 'Saltar al contenido',
     grupoIdioma: 'Idioma',
-    pausar: 'Pausar el movimiento',
-    reanudar: 'Reanudar el movimiento',
     navegacion: 'Principal',
     inicio: 'Tunneller, inicio',
   },
@@ -415,8 +411,6 @@ const EN: Textos = {
   ui: {
     saltar: 'Skip to content',
     grupoIdioma: 'Language',
-    pausar: 'Pause motion',
-    reanudar: 'Resume motion',
     navegacion: 'Main',
     inicio: 'Tunneller, home',
   },

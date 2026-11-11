@@ -4,11 +4,9 @@ import {
   DestroyRef,
   ElementRef,
   afterNextRender,
-  effect,
   inject,
   input,
   output,
-  untracked,
   viewChild,
 } from '@angular/core';
 import { Escenario } from '../escenario/escenario';
@@ -24,7 +22,7 @@ const suave = (t: number) => t * t * t * (t * (t * 6 - 15) + 10);
  * Pieza de metal líquido que viste un dispositivo. Ocupa todo su padre
  * (que pone el radio exterior y recorta) y deja el hueco de la pantalla.
  *
- * Solo anima mientras se ve y no está en pausa. Con movimiento reducido
+ * Solo anima mientras se ve. Con movimiento reducido
  * pinta un único fotograma ya revelado.
  */
 @Component({
@@ -92,7 +90,6 @@ export class Metal {
         return;
       }
       this.motor = motor;
-      this.escenario.conMetal.set(true);
       this.progreso = this.revelar() && !this.escenario.reducido() ? 0 : 1;
 
       const ajuste = new ResizeObserver(() => {
@@ -130,27 +127,18 @@ export class Metal {
       });
     });
 
-    effect(() => {
-      this.escenario.pausado();
-      untracked(() => this.decidir());
-    });
   }
 
   private decidir(): void {
     if (!this.motor) return;
     const debe =
-      this.visible && !this.escenario.pausado() && !this.escenario.reducido();
+      this.visible && !this.escenario.reducido();
     if (debe && !this.corriendo) {
       this.corriendo = true;
       this.ultimo = performance.now();
       requestAnimationFrame(this.cuadro);
     } else if (!debe) {
       this.corriendo = false;
-      // En pausa el metal queda revelado y quieto: la pantalla no se tapa.
-      if (this.escenario.pausado() && this.progreso < 1) {
-        this.progreso = 1;
-        this.avisarRevelado();
-      }
       this.pintar();
     }
   }

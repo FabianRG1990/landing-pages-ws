@@ -68,31 +68,3 @@
     display: none;
   }
 }
-
-.pausa {
-  display: grid;
-  place-items: center;
-  width: 2.25rem;
-  height: 2.25rem;
-  padding: 0;
-  border: 0;
-  border-radius: 50%;
-  background: transparent;
-  box-shadow: inset 0 0 0 1px var(--linea-fuerte);
-  color: var(--tinta-3);
-  cursor: pointer;
-  transition:
-    color 0.3s var(--ease-suave),
-    box-shadow 0.3s var(--ease-suave);
-
-  svg {
-    width: 0.8125rem;
-    height: 0.8125rem;
-  }
-
-  &:hover,
-  &:focus-visible {
-    color: var(--tinta);
-    box-shadow: inset 0 0 0 1px var(--laton-700);
-  }
-}

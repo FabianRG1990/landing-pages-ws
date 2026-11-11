@@ -66,10 +66,6 @@
   }
 }
 
-:host-context(.en-pausa) .hero__bajar i {
-  animation-play-state: paused;
-}
-
 @media (prefers-reduced-motion: reduce) {
   .hero__bajar i {
     animation: none;

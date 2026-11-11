@@ -5,14 +5,12 @@ import {
   signal,
 } from '@angular/core';
 import { afterNextRender } from '@angular/core';
-import { Escenario } from '../escenario/escenario';
 import { Idioma } from '../i18n/idioma';
 import { SelectorIdioma } from './selector-idioma';
 
 /**
  * Cabecera fija. Al bajar gana un fondo de platino translúcido para que el
- * contenido que pasa por debajo no se mezcle con los enlaces. La pausa del
- * metal vive aquí: está siempre a mano y no tapa nada.
+ * contenido que pasa por debajo no se mezcle con los enlaces.
  */
 @Component({
   selector: 'app-cabecera',
@@ -52,27 +50,6 @@ import { SelectorIdioma } from './selector-idioma';
           <a href="#proyectos">{{ t.nav.proyectos }}</a>
         </nav>
         <div class="cabecera__acciones">
-          @if (escenario.conMetal()) {
-            @let etiqueta = escenario.pausado() ? t.ui.reanudar : t.ui.pausar;
-            <button
-              type="button"
-              class="pausa"
-              [attr.aria-pressed]="escenario.pausado()"
-              [attr.aria-label]="etiqueta"
-              [attr.title]="etiqueta"
-              (click)="escenario.alternarPausa()"
-            >
-              @if (escenario.pausado()) {
-                <svg viewBox="0 0 16 16" aria-hidden="true">
-                  <path d="M5 3.5v9l7-4.5z" fill="currentColor" />
-                </svg>
-              } @else {
-                <svg viewBox="0 0 16 16" aria-hidden="true">
-                  <path d="M5 3.5h2v9H5zM9 3.5h2v9H9z" fill="currentColor" />
-                </svg>
-              }
-            </button>
-          }
           <app-selector-idioma />
           <a
             class="boton boton--oro boton--chico cabecera__demo"
@@ -88,7 +65,6 @@ import { SelectorIdioma } from './selector-idioma';
 })
 export class Cabecera {
   protected readonly i18n = inject(Idioma);
-  protected readonly escenario = inject(Escenario);
   protected readonly desplazado = signal(false);
 
   constructor() {

@@ -198,8 +198,8 @@ const VERT = 'attribute vec2 a; void main(){ gl_Position = vec4(a, 0.0, 1.0); }'
  * lanzar una onda suave con `tunneller:onda` ({x, y} en px de pantalla).
  *
  * Un solo triángulo a pantalla completa, a menos píxeles que la pantalla
- * (el metal es de baja frecuencia) y con calidad adaptable. Se detiene con
- * la pausa; con movimiento reducido se dibuja solo al desplazarse.
+ * (el metal es de baja frecuencia) y con calidad adaptable. Con
+ * movimiento reducido se dibuja solo al desplazarse.
  */
 @Component({
   selector: 'app-fondo-metal',
@@ -268,7 +268,6 @@ export class FondoMetal {
     };
     gl.uniform1fv(U.refT, REFERENCIAS.map((r) => r.tono));
     html.classList.add('con-metal');
-    this.escenario.conMetal.set(true);
 
     const tactil = matchMedia('(pointer: coarse)').matches;
     const reducido = this.escenario.reducido();
@@ -416,10 +415,6 @@ export class FondoMetal {
           sucio = false;
           pintar(0);
         }
-        return;
-      }
-      if (this.escenario.pausado()) {
-        pintar(0);
         return;
       }
       t += dt;
