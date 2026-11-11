@@ -201,7 +201,7 @@ canvas {
   font-size: var(--t-lead);
   line-height: 1.6;
   color: var(--tinta-2);
-  max-width: 34rem;
+  max-width: 38rem;
   text-wrap: pretty;
 }
 
@@ -224,12 +224,12 @@ canvas {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  min-height: 2.875rem;
-  padding: 0 1.25rem;
+  min-height: 3.125rem;
+  padding: 0 1.5rem;
   border: 0;
   border-radius: 999px;
   font-family: var(--fuente-texto);
-  font-size: 0.9375rem;
+  font-size: 1.0625rem;
   font-weight: 600;
   white-space: nowrap;
   cursor: pointer;
@@ -306,9 +306,9 @@ canvas {
 }
 
 .boton--chico {
-  min-height: 2.375rem;
-  padding: 0 1rem;
-  font-size: 0.875rem;
+  min-height: 2.625rem;
+  padding: 0 1.125rem;
+  font-size: 0.9375rem;
 }
 
 // ---------- Secciones ----------
