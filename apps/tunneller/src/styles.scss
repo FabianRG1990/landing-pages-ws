@@ -345,9 +345,15 @@ canvas {
   background: transparent;
 }
 
-// Sin WebGL: el mismo recorrido de tonos, en degradados planos por
-// segmento (los extremos de cada uno casan con el siguiente).
-.sin-metal {
+// Mientras no hay metal (antes de que arranque, o sin WebGL): el mismo
+// recorrido de tonos en degradados planos por segmento (los extremos de
+// cada uno casan con el siguiente). Es lo primero que se pinta, y el
+// primer cuadro del metal es este mismo gris: el relevo no se nota.
+html:not(.con-metal) {
+  body {
+    background: #cccccc;
+  }
+
   #inicio {
     background: linear-gradient(#cccccc, #c6c6c6);
   }

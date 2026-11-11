@@ -99,6 +99,7 @@ uniform vec2 uRes;
 uniform float uEsc;
 uniform float uT;
 uniform vec2 uDesp;
+uniform float uAparece;
 uniform float uAgita;
 uniform float uFilas[${FILAS}];
 uniform float uSigno[${MAX_CAJAS}];
@@ -251,6 +252,10 @@ void main() {
   float halo = mix(0.015, 0.12, 1.0 - smoothstep(0.08, 0.25, abs(tono - 0.46)));
   col = mix(col, vec3(tono), calma * 0.45) + signo * halo * 0.85;
   col += 0.02 * (1.0 - q.y / (uRes.y / uEsc));
+  // Al cargar, el metal despierta: el primer cuadro es el gris plano del
+  // tono (el mismo que pinta la página antes de que haya WebGL) y el
+  // relieve crece desde ahí, sin ningún salto de color.
+  col = mix(vec3(tono) + 0.02 * (1.0 - q.y / (uRes.y / uEsc)), col, uAparece);
   col += (fract(sin(dot(gl_FragCoord.xy, vec2(12.9898, 78.233))) * 43758.5453) - 0.5) / 255.0;
   gl_FragColor = vec4(clamp(col, 0.0, 1.0), 1.0);
 }`;
@@ -334,12 +339,11 @@ export class FondoMetal {
     gl.vertexAttribPointer(a, 2, gl.FLOAT, false, 0, 0);
     const u = (n: string) => gl.getUniformLocation(prog, n);
     const U = {
-      res: u('uRes'), esc: u('uEsc'), t: u('uT'), desp: u('uDesp'), agita: u('uAgita'),
+      aparece: u('uAparece'), res: u('uRes'), esc: u('uEsc'), t: u('uT'), desp: u('uDesp'), agita: u('uAgita'),
       filas: u('uFilas'), ondas: u('uOndas'), prisma: u('uPrisma'),
       cajas: u('uCajas'), nCajas: u('uNCajas'), signo: u('uSigno'),
       agua: u('uAgua'), aguaPaso: u('uAguaPaso'), hayAgua: u('uHayAgua'),
     };
-    html.classList.add('con-metal');
 
     const tactil = matchMedia('(pointer: coarse)').matches;
     const reducido = this.escenario.reducido();
@@ -425,6 +429,7 @@ export class FondoMetal {
     let lentos = 0, cuadros = 0;
     let bucle = 0;
     let sucio = true;
+    let aparece = 0;
 
     const pintar = (dt: number) => {
       const w = Math.max(1, Math.round(innerWidth * escala));
@@ -504,7 +509,13 @@ export class FondoMetal {
         gl.uniform2f(U.aguaPaso, ...agua.paso);
       }
       gl.uniform1f(U.hayAgua, agua ? 1 : 0);
+      // El despertar: 1,6 s con salida suave; con movimiento reducido, ya.
+      aparece = reducido ? 1 : Math.min(1, aparece + dt / 1.6);
+      gl.uniform1f(U.aparece, 1 - Math.pow(1 - aparece, 3));
       gl.drawArrays(gl.TRIANGLES, 0, 3);
+      // Hasta el primer cuadro la página pinta el gris plano por su cuenta;
+      // con él ya en el lienzo, el lienzo toma el relevo.
+      if (!html.classList.contains('con-metal')) html.classList.add('con-metal');
     };
 
     const cuadro = (ahora: number) => {
@@ -521,6 +532,12 @@ export class FondoMetal {
       }
       t += dt;
       // Calidad adaptable: si el equipo no llega, menos píxeles.
+      // Durante el arranque la página aún se está montando: esos cuadros
+      // lentos no dicen nada del equipo y no bajan la calidad.
+      if (t < 1.5) {
+        pintar(dt);
+        return;
+      }
       cuadros++;
       if (dt > 0.021) lentos++;
       if (cuadros === 45) {
