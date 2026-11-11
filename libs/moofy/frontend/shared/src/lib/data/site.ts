@@ -243,8 +243,8 @@ export const PRODUCTOS: readonly Producto[] = [
     linea: 'hojaldre',
     descripcion: 'Doraditas y crujientes por fuera, suaves por dentro y con un relleno generoso.',
     atributos: ['Crujiente', 'Relleno dulce'],
-    imagen: null,
-    alt: '',
+    imagen: 'img/productos/empanadas.webp',
+    alt: 'Bolsa Moofy de empanaditas de piña.',
   },
   {
     id: 'choco-gatos',
@@ -393,8 +393,8 @@ export const PRODUCTOS: readonly Producto[] = [
     linea: 'salados',
     descripcion: 'Crujientes y de textura firme, para picar o acompañar.',
     atributos: ['Crocante', 'Firme'],
-    imagen: null,
-    alt: '',
+    imagen: 'img/productos/grissines.webp',
+    alt: 'Bolsa Moofy de grissines.',
   },
   {
     id: 'bizcochos-maiz',
