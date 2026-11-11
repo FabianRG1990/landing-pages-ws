@@ -1,9 +1,14 @@
 /**
- * El agua sobre el metal: una simulación de ondas en una textura pequeña
- * (un texel cada PX_TEXEL px de pantalla). El cursor arrastra un trazo por
- * ella y la ecuación de ondas hace el resto: detrás del dedo se abre la
- * estela, las ondas se alejan hacia los lados, se cruzan y se apagan, como
- * un dedo que cruza el agua. Quieto, el cursor no hace nada.
+ * El mercurio sobre el metal: una simulación de ondas en una textura
+ * pequeña (un texel cada PX_TEXEL px de pantalla). El cursor arrastra un
+ * trazo por ella y la ecuación de ondas hace el resto: detrás del dedo se
+ * abre la estela y las ondas se alejan hacia los lados y se apagan.
+ *
+ * No es agua: el metal líquido es denso, así que las ondas son lentas
+ * (RIGIDEZ baja y pocos pasos por segundo), el dedo empuja con inercia
+ * (cambia la velocidad, no el alto) y la tensión superficial (TENSION)
+ * borra los rizos finos y deja ondulaciones anchas y redondeadas. Quieto,
+ * el cursor no hace nada.
  *
  * Alto y velocidad viven en una textura de coma flotante (media precisión
  * si se puede) que se alterna entre dos búferes. Si el equipo no puede
@@ -13,14 +18,18 @@
 /** Píxeles de pantalla por texel: cuanto más, más gruesas las ondas. */
 const PX_TEXEL = 12;
 /** Pasos de simulación por segundo: la velocidad de las ondas no depende de los fps. */
-const PASOS_POR_S = 60;
+const PASOS_POR_S = 40;
+/** Rigidez de la superficie: más baja, ondas más lentas (máximo estable, 2). */
+const RIGIDEZ = 0.7;
+/** Tensión superficial: cuánto se alisa el alto hacia sus vecinos en cada paso. */
+const TENSION = 0.12;
 /**
  * Cuánto se conserva de la velocidad en cada paso: la estela se abre y se
- * apaga en ~1 s, sin ir y venir.
+ * apaga despacio, en ~2,5 s, sin ir y venir.
  */
-const AMORTIGUA = 0.955;
-/** Radio del dedo, en texels (~36 px). */
-const RADIO = 3.0;
+const AMORTIGUA = 0.976;
+/** Radio del dedo, en texels (~42 px). */
+const RADIO = 3.5;
 /** Franja de los bordes, en texels, donde el agua se traga las ondas. */
 const ORILLA = 6.0;
 
@@ -41,21 +50,24 @@ void main() {
     texture2D(uTex, uv - vec2(uPaso.x, 0.0)).r +
     texture2D(uTex, uv + vec2(0.0, uPaso.y)).r +
     texture2D(uTex, uv - vec2(0.0, uPaso.y)).r);
-  i.g += (media - i.r) * 2.0;
+  i.g += (media - i.r) * ${RIGIDEZ.toFixed(2)};
   // En los bordes de la pantalla el agua absorbe: las ondas no rebotan.
   vec2 lado = min(gl_FragCoord.xy, 1.0 / uPaso - gl_FragCoord.xy);
   float orilla = smoothstep(0.0, ${ORILLA.toFixed(1)}, min(lado.x, lado.y));
   i.g *= ${AMORTIGUA} * mix(0.8, 1.0, orilla);
   i.r += i.g;
-  // El alto también se asienta, para que el agua vuelva a quedar plana.
-  i.r *= 0.992;
+  // Tensión superficial: el alto se alisa hacia sus vecinos.
+  i.r = mix(i.r, media, ${TENSION.toFixed(2)});
+  // Y se asienta, para que la superficie vuelva a quedar plana.
+  i.r *= 0.994;
 
-  // El dedo: el tramo que recorrió desde el paso anterior hunde el agua.
+  // El dedo: el tramo que recorrió desde el paso anterior empuja hacia
+  // abajo; como cambia la velocidad, el metal cede con inercia.
   vec2 p = gl_FragCoord.xy;
   vec2 ab = uTrazo.zw - uTrazo.xy;
   float s = clamp(dot(p - uTrazo.xy, ab) / max(dot(ab, ab), 1e-4), 0.0, 1.0);
   float d = length(p - uTrazo.xy - ab * s);
-  i.r -= uFuerza * (1.0 - smoothstep(0.0, ${RADIO.toFixed(2)}, d));
+  i.g -= uFuerza * 0.35 * (1.0 - smoothstep(0.0, ${RADIO.toFixed(2)}, d));
   gl_FragColor = i;
 }`;
 
