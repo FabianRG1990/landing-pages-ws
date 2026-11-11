@@ -201,6 +201,9 @@ void main() {
 
   // Calma detrás del texto, y hacia dónde alejar el gris: +1 si el texto
   // es oscuro (se aclara), -1 si es claro (se oscurece), 0 en las tarjetas.
+  // El sentido se suma bloque a bloque, ponderado por su calma: si se
+  // eligiera el del bloque más cercano, donde dos bloques empatan el halo
+  // saltaría y dibujaría una recta de lado a lado.
   float calma = 0.0;
   float signo = 0.0;
   for (int i = 0; i < ${MAX_CAJAS}; i++) {
@@ -208,11 +211,10 @@ void main() {
     vec4 b = uCajas[i];
     float d = caja(q - (b.xy + b.zw * 0.5), b.zw * 0.5);
     float c = 1.0 - smoothstep(-10.0, 140.0, d);
-    if (c > calma) {
-      calma = c;
-      signo = uSigno[i];
-    }
+    calma = max(calma, c);
+    signo += c * uSigno[i];
   }
+  signo = clamp(signo, -1.0, 1.0);
   float relieve = 1.0 - 0.88 * calma;
 
   float e = 2.0;
@@ -239,7 +241,7 @@ void main() {
   // tono: así no hay ningún umbral de gris en el que el fondo salte.
   // En los grises medios (donde cambia el texto) el halo se separa más.
   float halo = mix(0.04, 0.12, 1.0 - smoothstep(0.08, 0.25, abs(tono - 0.46)));
-  col = mix(col, vec3(tono + signo * halo), calma * 0.7);
+  col = mix(col, vec3(tono), calma * 0.7) + signo * halo * 0.7;
   col += 0.02 * (1.0 - q.y / (uRes.y / uEsc));
   col += (fract(sin(dot(gl_FragCoord.xy, vec2(12.9898, 78.233))) * 43758.5453) - 0.5) / 255.0;
   gl_FragColor = vec4(clamp(col, 0.0, 1.0), 1.0);
@@ -387,6 +389,7 @@ export class FondoMetal {
     let perfil: Float32Array | null = null;
     let clavePerfil = '';
     const filas = new Float32Array(FILAS);
+    let grisCabecera = -1;
     const marca = (sel: string, borde: 'top' | 'bottom', ultimo: boolean) => {
       const els = this.doc.querySelectorAll<HTMLElement>(sel);
       const el = ultimo ? els[els.length - 1] : els[0];
@@ -454,6 +457,17 @@ export class FondoMetal {
       if (clave !== clavePerfil || !perfil) {
         clavePerfil = clave;
         perfil = perfilDeTono(altoDoc, a, b);
+      }
+      // La cabecera toma el gris del metal a su altura, un punto más lejos
+      // del color de su texto, y el texto pasa a claro sobre el metal hondo
+      // (con margen, para que no parpadee).
+      const tc = leerPerfil(perfil, altoDoc, scrollY + 36);
+      const oscura = html.classList.contains('cabecera-oscura') ? tc < 0.5 : tc < 0.44;
+      html.classList.toggle('cabecera-oscura', oscura);
+      const gris = Math.round(Math.min(0.93, Math.max(0.04, oscura ? tc - 0.14 : tc + 0.2)) * 255);
+      if (gris !== grisCabecera) {
+        grisCabecera = gris;
+        html.style.setProperty('--gris-cabecera', `${gris} ${gris} ${gris}`);
       }
       const altoLienzo = canvas.clientHeight;
       for (let i = 0; i < FILAS; i++)
@@ -526,7 +540,8 @@ export class FondoMetal {
       removeEventListener('resize', alRedimensionar);
       this.doc.documentElement.removeEventListener('pointerleave', alSalir);
       mo.disconnect();
-      html.classList.remove('con-metal');
+      html.classList.remove('con-metal', 'cabecera-oscura');
+      html.style.removeProperty('--gris-cabecera');
     });
   }
 }

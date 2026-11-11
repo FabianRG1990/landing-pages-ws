@@ -83,7 +83,6 @@
   gap: 2.5rem;
   margin-top: clamp(2.5rem, 7vh, 4rem);
   padding-top: 2.5rem;
-  border-top: 1px solid var(--linea);
 
   @media (min-width: 56rem) {
     grid-template-columns: 1fr 1fr;
