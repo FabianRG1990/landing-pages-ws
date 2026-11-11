@@ -11,28 +11,68 @@ import { DOCUMENT } from '@angular/common';
 import { Escenario } from '../escenario/escenario';
 
 /**
- * El tono de la página baja de forma continua de arriba abajo: plata suave
- * (no blanco) en el hero, grises cada vez más hondos y negro en el pie,
- * sin ningún punto en el que se note el cambio. Cada referencia es un
- * punto de la página (leído en vivo) con su tono (0 negro, 1 blanco).
- * El paso de texto oscuro a texto claro cae entre «Cómo trabaja» y
- * Control, en el espacio sin texto; ahí el gris baja algo más deprisa.
+ * El tono de la página (0 negro, 1 blanco) baja sin pausas de la plata
+ * suave del hero al negro del pie: cada tramo de scroll oscurece un poco,
+ * nunca se queda plano y nunca cae de golpe (ver perfilDeTono).
  */
-const REFERENCIAS: readonly { sel: string; borde: 'top' | 'bottom'; tono: number }[] = [
-  { sel: '#inicio', borde: 'top', tono: 0.8 },
-  { sel: '#recorrido', borde: 'top', tono: 0.78 },
-  { sel: '.recorrido', borde: 'bottom', tono: 0.7 },
-  { sel: '#control .cabeza-seccion', borde: 'top', tono: 0.27 },
-  { sel: '#proyectos', borde: 'top', tono: 0.21 },
-  { sel: '#demo', borde: 'top', tono: 0.13 },
-  { sel: '#demo', borde: 'bottom', tono: 0.06 },
-];
+const TONO_ARRIBA = 0.8;
+const TONO_ABAJO = 0.06;
+/**
+ * El texto pasa de oscuro a claro entre el último texto de «Cómo trabaja»
+ * y la cabecera de Control. Bajo el primero el tono no baja de
+ * TONO_OSCURO_MIN; el halo de calma de los grises medios (ver FRAG) hace
+ * el resto para que todo se lea a 4.5:1 o más.
+ */
+const ULTIMO_OSCURO = '#recorrido .etapa__texto';
+const PRIMERO_CLARO = '#control .cabeza-seccion';
+const TONO_OSCURO_MIN = 0.48;
+/** Filas de pantalla en las que se manda el tono al sombreador. */
+const FILAS = 48;
+/** Muestras del perfil a lo largo del documento. */
+const MUESTRAS = 512;
+
+/**
+ * Perfil del tono a lo largo del documento, de 0 a `alto` px. Arriba el
+ * gris baja algo más despacio y abajo algo más deprisa; el paso de un
+ * ritmo al otro se reparte en media página (una rampa suave, nunca un
+ * escalón), centrado en el cambio de texto [a, b]. La proporción entre los
+ * dos ritmos es la justa para que bajo `a` el tono siga en TONO_OSCURO_MIN.
+ */
+function perfilDeTono(alto: number, a: number, b: number): Float32Array {
+  const paso = alto / (MUESTRAS - 1);
+  const c = (a + b) / 2;
+  const w = alto * 0.25;
+  const construir = (k: number) => {
+    const t = new Float32Array(MUESTRAS);
+    let acc = 0;
+    for (let i = 0; i < MUESTRAS; i++) {
+      t[i] = acc;
+      const x = Math.min(1, Math.max(0, ((i + 0.5) * paso - (c - w)) / (2 * w)));
+      acc += (1 + k * x * x * (3 - 2 * x)) * paso;
+    }
+    for (let i = 0; i < MUESTRAS; i++) t[i] = TONO_ARRIBA - (TONO_ARRIBA - TONO_ABAJO) * (t[i] / acc);
+    return t;
+  };
+  let lo = 0, hi = 4;
+  if (leerPerfil(construir(0), alto, a) >= TONO_OSCURO_MIN) return construir(0);
+  for (let i = 0; i < 24; i++) {
+    const m = (lo + hi) / 2;
+    if (leerPerfil(construir(m), alto, a) >= TONO_OSCURO_MIN) hi = m;
+    else lo = m;
+  }
+  return construir(hi);
+}
+
+function leerPerfil(t: Float32Array, alto: number, y: number): number {
+  const f = Math.min(MUESTRAS - 1, Math.max(0, (y / alto) * (MUESTRAS - 1)));
+  const i = Math.min(MUESTRAS - 2, Math.floor(f));
+  return t[i] + (t[i + 1] - t[i]) * (f - i);
+}
 
 /** Bloques de texto: detrás de ellos el metal se aplana para que se lean. */
 const CALMA =
   '.hero__texto, .cabeza-seccion, .etapa, .tarjeta, .proyecto, .nota, .pie__llamada';
 
-const N = REFERENCIAS.length;
 const MAX_ONDAS = 4;
 const MAX_CAJAS = 12;
 
@@ -50,8 +90,8 @@ uniform float uEsc;
 uniform float uT;
 uniform vec2 uDesp;
 uniform float uAgita;
-uniform float uRefY[${N}];
-uniform float uRefT[${N}];
+uniform float uFilas[${FILAS}];
+uniform float uSigno[${MAX_CAJAS}];
 uniform vec4 uOndas[${MAX_ONDAS}];
 uniform vec4 uCajas[${MAX_CAJAS}];
 uniform float uNCajas;
@@ -88,11 +128,14 @@ float caja(vec2 p, vec2 b) {
 }
 float gauss(vec2 d, float r) { return exp(-dot(d, d) / (r * r)); }
 
-// Tono de cada fila: interpolación suave entre las referencias.
+// Tono de cada fila: interpolación lineal entre las filas que manda la
+// página (cada ${FILAS}-ava parte de la pantalla), tomadas de un perfil
+// suave; entre fila y fila hay muy pocos píxeles.
 float tonoEn(float y) {
-  float t = uRefT[0];
-  for (int i = 1; i < ${N}; i++) {
-    t = mix(t, uRefT[i], smoothstep(uRefY[i - 1], uRefY[i], y));
+  float f = clamp(y / (uRes.y / uEsc) * ${FILAS - 1}.0, 0.0, ${FILAS - 1}.0);
+  float t = uFilas[0];
+  for (int i = 1; i < ${FILAS}; i++) {
+    t = mix(t, uFilas[i], clamp(f - float(i - 1), 0.0, 1.0));
   }
   return t;
 }
@@ -148,12 +191,19 @@ void main() {
   vec2 q = vec2(gl_FragCoord.x, uRes.y - gl_FragCoord.y) / uEsc;
   float tono = tonoEn(q.y);
 
+  // Calma detrás del texto, y hacia dónde alejar el gris: +1 si el texto
+  // es oscuro (se aclara), -1 si es claro (se oscurece), 0 en las tarjetas.
   float calma = 0.0;
+  float signo = 0.0;
   for (int i = 0; i < ${MAX_CAJAS}; i++) {
     if (float(i) >= uNCajas) break;
     vec4 b = uCajas[i];
     float d = caja(q - (b.xy + b.zw * 0.5), b.zw * 0.5);
-    calma = max(calma, 1.0 - smoothstep(-10.0, 140.0, d));
+    float c = 1.0 - smoothstep(-10.0, 140.0, d);
+    if (c > calma) {
+      calma = c;
+      signo = uSigno[i];
+    }
   }
   float relieve = 1.0 - 0.88 * calma;
 
@@ -176,10 +226,12 @@ void main() {
   float lumR = 2.0 * lumG - lumB;
 
   vec3 col = vec3(metal(lumR, tono), metal(lumG, tono), metal(lumB, tono));
-  // Detrás del texto el metal se funde con el tono de esa altura (un punto
-  // más lejos del color del texto): con pliegues tan grandes, aplanar no
-  // bastaba y en el teléfono una franja de luz cruzaba bajo las letras.
-  col = mix(col, vec3(tono + (tono > 0.5 ? 0.04 : -0.03)), calma * 0.7);
+  // Detrás del texto el metal se funde con el tono de esa altura, un
+  // punto más lejos del color del texto. El sentido lo da el texto, no el
+  // tono: así no hay ningún umbral de gris en el que el fondo salte.
+  // En los grises medios (donde cambia el texto) el halo se separa más.
+  float halo = mix(0.04, 0.12, 1.0 - smoothstep(0.08, 0.25, abs(tono - 0.46)));
+  col = mix(col, vec3(tono + signo * halo), calma * 0.7);
   col += 0.02 * (1.0 - q.y / (uRes.y / uEsc));
   col += (fract(sin(dot(gl_FragCoord.xy, vec2(12.9898, 78.233))) * 43758.5453) - 0.5) / 255.0;
   gl_FragColor = vec4(clamp(col, 0.0, 1.0), 1.0);
@@ -190,7 +242,7 @@ const VERT = 'attribute vec2 a; void main(){ gl_Position = vec4(a, 0.0, 1.0); }'
 /**
  * El fondo de toda la página: una lámina de metal líquido en escala de
  * grises que refleja un estudio de luz. Su tono baja de forma continua de
- * la plata del hero al negro del pie (ver REFERENCIAS).
+ * la plata del hero al negro del pie (ver perfilDeTono).
  *
  * El cursor (o el dedo al arrastrar) empuja el metal con inercia: hunde la
  * superficie y deja una estela que se cierra sola; su fuerza está acotada,
@@ -262,11 +314,10 @@ export class FondoMetal {
     const u = (n: string) => gl.getUniformLocation(prog, n);
     const U = {
       res: u('uRes'), esc: u('uEsc'), t: u('uT'), desp: u('uDesp'), agita: u('uAgita'),
-      refY: u('uRefY'), refT: u('uRefT'), ondas: u('uOndas'), prisma: u('uPrisma'),
-      cajas: u('uCajas'), nCajas: u('uNCajas'),
+      filas: u('uFilas'), ondas: u('uOndas'), prisma: u('uPrisma'),
+      cajas: u('uCajas'), nCajas: u('uNCajas'), signo: u('uSigno'),
       cursor: u('uCursor'), estela: u('uEstela'), presencia: u('uPresencia'),
     };
-    gl.uniform1fv(U.refT, REFERENCIAS.map((r) => r.tono));
     html.classList.add('con-metal');
 
     const tactil = matchMedia('(pointer: coarse)').matches;
@@ -315,8 +366,25 @@ export class FondoMetal {
     addEventListener('tunneller:onda', alOndear);
 
     // ---- Medidas de la página ----
-    const refs = REFERENCIAS.map((r) => ({ el: this.doc.querySelector<HTMLElement>(r.sel), borde: r.borde }));
     let cajasEl: HTMLElement[] = [];
+    let signos: number[] = [];
+    // El sentido del halo de cada bloque sale del color de su texto.
+    const signoDe = (el: HTMLElement) => {
+      if (el.matches('.tarjeta, .proyecto')) return 0;
+      const [r, g, b] = (getComputedStyle(el).color.match(/[\d.]+/g) ?? ['0', '0', '0']).map(Number);
+      return 0.2126 * r + 0.7152 * g + 0.0722 * b < 128 ? 1 : -1;
+    };
+    // El perfil de tono se rehace solo si cambia la página (alto o las dos
+    // marcas del cambio de texto, en coordenadas de documento).
+    let perfil: Float32Array | null = null;
+    let clavePerfil = '';
+    const filas = new Float32Array(FILAS);
+    const marca = (sel: string, borde: 'top' | 'bottom', ultimo: boolean) => {
+      const els = this.doc.querySelectorAll<HTMLElement>(sel);
+      const el = ultimo ? els[els.length - 1] : els[0];
+      const r = el?.getBoundingClientRect();
+      return r ? Math.round((borde === 'top' ? r.top : r.bottom) + scrollY) : null;
+    };
     // Las clases cambian a menudo (la etapa actual, los revelados): se
     // vuelve a buscar una sola vez, en el siguiente fotograma.
     let rebuscar = true;
@@ -369,31 +437,39 @@ export class FondoMetal {
       if (rebuscar) {
         rebuscar = false;
         cajasEl = Array.from(this.doc.querySelectorAll<HTMLElement>(CALMA));
+        signos = cajasEl.map(signoDe);
       }
-      // Las referencias en coordenadas de pantalla, siempre crecientes.
-      let previo = -1e6;
-      const refY = refs.map(({ el, borde }) => {
-        const b = el?.getBoundingClientRect();
-        const y = b ? (borde === 'top' ? b.top : b.bottom) : previo + 1;
-        previo = Math.max(previo + 1, y);
-        return previo;
-      });
+      const altoDoc = this.doc.documentElement.scrollHeight;
+      const a = marca(ULTIMO_OSCURO, 'bottom', true) ?? altoDoc * 0.55;
+      const b = Math.max(a + 1, marca(PRIMERO_CLARO, 'top', false) ?? altoDoc * 0.6);
+      const clave = `${altoDoc}|${a}|${b}`;
+      if (clave !== clavePerfil || !perfil) {
+        clavePerfil = clave;
+        perfil = perfilDeTono(altoDoc, a, b);
+      }
+      const altoLienzo = canvas.clientHeight;
+      for (let i = 0; i < FILAS; i++)
+        filas[i] = leerPerfil(perfil, altoDoc, scrollY + (i / (FILAS - 1)) * altoLienzo);
       const cajas: number[] = [];
-      for (const el of cajasEl) {
-        const b = el.getBoundingClientRect();
-        if (b.width === 0 || b.bottom < -80 || b.top > vh + 80) continue;
-        cajas.push(b.left, b.top, b.width, b.height);
-        if (cajas.length === MAX_CAJAS * 4) break;
-      }
+      const signo: number[] = [];
+      cajasEl.forEach((el, i) => {
+        if (cajas.length === MAX_CAJAS * 4) return;
+        const r = el.getBoundingClientRect();
+        if (r.width === 0 || r.bottom < -80 || r.top > vh + 80) return;
+        cajas.push(r.left, r.top, r.width, r.height);
+        signo.push(signos[i] ?? 0);
+      });
       const nCajas = cajas.length / 4;
       while (cajas.length < MAX_CAJAS * 4) cajas.push(0, 0, 0, 0);
+      while (signo.length < MAX_CAJAS) signo.push(0);
 
       gl.uniform2f(U.res, w, h);
       gl.uniform1f(U.esc, escala);
       gl.uniform1f(U.t, t);
       gl.uniform2f(U.desp, 0, dy);
       gl.uniform1f(U.agita, reducido ? 0 : agita);
-      gl.uniform1fv(U.refY, refY);
+      gl.uniform1fv(U.filas, filas);
+      gl.uniform1fv(U.signo, signo);
       // El prisma solo con ratón: en el teléfono los tres canales iguales.
       gl.uniform1f(U.prisma, tactil ? 0 : 0.011);
       gl.uniform4fv(U.ondas, ondas.flat());

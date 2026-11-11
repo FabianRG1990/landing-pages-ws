@@ -362,8 +362,10 @@ canvas {
 // se redefinen variables; cada componente sigue leyendo las suyas.
 .seccion--oscura {
   --tinta: #f2f1ed;
-  --tinta-2: #cfd0d3; // texto sobre los grises hondos del metal
-  --tinta-3: #bcbdc1; // texto pequeño sobre los grises hondos
+  // Claros de sobra: el primer texto claro de la página va sobre un gris
+  // medio (ver perfilDeTono en fondo-metal.ts).
+  --tinta-2: #dcdddf;
+  --tinta-3: #d8d9dc;
   --linea: rgb(242 241 237 / 0.08);
   --linea-fuerte: rgb(242 241 237 / 0.18);
   --laton-900: #d9be8c;
@@ -380,11 +382,11 @@ canvas {
   color: var(--tinta);
 }
 
-// «Cómo trabaja» va sobre la plata más gris de la página: su texto
-// secundario baja un tono (medido).
+// «Cómo trabaja» termina sobre un gris medio (ver TONO_OSCURO_MIN en
+// fondo-metal.ts): su texto secundario va casi tan oscuro como el principal.
 #recorrido {
-  --tinta-2: #2e2f33;
-  --tinta-3: #393a3f;
+  --tinta-2: #25262a;
+  --tinta-3: #27282c;
   --laton-900: #5a4426;
 }
 
