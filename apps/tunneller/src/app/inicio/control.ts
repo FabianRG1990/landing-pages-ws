@@ -1,4 +1,11 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  ElementRef,
+  afterNextRender,
+  inject,
+} from '@angular/core';
 import { Idioma } from '../i18n/idioma';
 import { Titular } from './titular';
 
@@ -18,15 +25,15 @@ import { Titular } from './titular';
     <section class="seccion seccion--oscura" id="control" data-seccion="control">
       <div class="contenedor">
         <header class="cabeza-seccion">
-          <p class="etiqueta" data-r style="--i: 0">{{ c.etiqueta }}</p>
-          <h2 class="titulo" data-r style="--i: 1">
+          <p class="etiqueta">{{ c.etiqueta }}</p>
+          <h2 class="titulo">
             <app-titular [linea]="c.titulo" />
           </h2>
-          <p class="lead" data-r style="--i: 2">{{ c.lead }}</p>
+          <p class="lead">{{ c.lead }}</p>
         </header>
 
         <ul class="rejilla">
-          <li class="tarjeta" data-r style="--i: 3">
+          <li class="tarjeta">
             <div class="muestra" aria-hidden="true">
               <p class="interruptor">
                 <span class="interruptor__riel"><i></i></span
@@ -38,7 +45,7 @@ import { Titular } from './titular';
             <p class="tarjeta__texto">{{ c.piloto.texto }}</p>
           </li>
 
-          <li class="tarjeta" data-r style="--i: 4">
+          <li class="tarjeta">
             <div class="muestra" aria-hidden="true">
               <p class="botones">
                 <span class="b b--si">✓ {{ e.aprobar }}</span>
@@ -50,7 +57,7 @@ import { Titular } from './titular';
             <p class="tarjeta__texto">{{ c.aprobar.texto }}</p>
           </li>
 
-          <li class="tarjeta" data-r style="--i: 5">
+          <li class="tarjeta">
             <div class="muestra muestra--texto" aria-hidden="true">
               <p>{{ c.revertir.ejemplo }}</p>
               <p class="revertir">{{ c.revertir.accion }}</p>
@@ -59,7 +66,7 @@ import { Titular } from './titular';
             <p class="tarjeta__texto">{{ c.revertir.texto }}</p>
           </li>
 
-          <li class="tarjeta" data-r style="--i: 6">
+          <li class="tarjeta">
             <div class="muestra muestra--lista" aria-hidden="true">
               @for (x of c.github.items; track $index) {
                 <p>
@@ -87,4 +94,36 @@ import { Titular } from './titular';
 })
 export class Control {
   protected readonly i18n = inject(Idioma);
+  private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
+
+  constructor() {
+    const destruir = inject(DestroyRef);
+    // Cuando el piloto automático se enciende (0.9 s después de entrar la
+    // sección), sale una onda del interruptor en el metal del fondo.
+    afterNextRender(() => {
+      const riel = this.host.nativeElement.querySelector<HTMLElement>('.interruptor__riel');
+      if (!riel) return;
+      let espera = 0;
+      const io = new IntersectionObserver(
+        (e) => {
+          if (!e[0].isIntersecting) return;
+          io.disconnect();
+          espera = window.setTimeout(() => {
+            const b = riel.getBoundingClientRect();
+            dispatchEvent(
+              new CustomEvent('tunneller:onda', {
+                detail: { x: b.left + b.width / 2, y: b.top + b.height / 2, fuerza: 1.1 },
+              }),
+            );
+          }, 1000);
+        },
+        { rootMargin: '0px 0px -20% 0px' },
+      );
+      io.observe(riel);
+      destruir.onDestroy(() => {
+        io.disconnect();
+        clearTimeout(espera);
+      });
+    });
+  }
 }

@@ -8,21 +8,25 @@ const DESTINOS = [
   ['mailto:', '#demo'],
 ] as const;
 
-/** Cierre: la llamada a la acción y la base con marca y enlaces. */
+/** Cierre sobre el metal negro: la llamada a la acción y la base con marca y enlaces. */
 @Component({
   selector: 'app-pie',
   imports: [Titular],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @let p = i18n.t().pie;
-    <footer class="seccion seccion--oscura pie" id="demo" data-seccion="pie">
+    <footer
+      class="seccion seccion--oscura pie"
+      id="demo"
+      data-seccion="pie"
+    >
       <div class="contenedor">
         <div class="pie__llamada">
-          <h2 class="display pie__titulo" data-r style="--i: 0">
+          <h2 class="display pie__titulo">
             <app-titular [linea]="p.titulo" />
           </h2>
-          <p class="lead pie__lead" data-r style="--i: 1">{{ p.lead }}</p>
-          <div class="pie__acciones" data-r style="--i: 2">
+          <p class="lead pie__lead">{{ p.lead }}</p>
+          <div class="pie__acciones">
             <a class="boton boton--oro" [href]="'mailto:' + p.correo">
               {{ p.cta }}
               <svg

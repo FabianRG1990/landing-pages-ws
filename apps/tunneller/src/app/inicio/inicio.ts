@@ -6,6 +6,7 @@ import {
   inject,
 } from '@angular/core';
 import { Escenario } from '../escenario/escenario';
+import { Coreografia } from '../escena/coreografia';
 import { FondoMetal } from '../fondo/fondo-metal';
 import { Idioma } from '../i18n/idioma';
 import { Cabecera } from './cabecera';
@@ -30,6 +31,7 @@ import { Recorrido } from './recorrido';
     Proyectos,
     Pie,
     FondoMetal,
+    Coreografia,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -43,6 +45,7 @@ import { Recorrido } from './recorrido';
       <app-proyectos />
     </main>
     <app-pie />
+    <app-coreografia />
   `,
 })
 export class Inicio {

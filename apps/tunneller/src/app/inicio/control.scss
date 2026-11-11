@@ -10,11 +10,25 @@
 // Tarjeta de platino más clara que el fondo, con canto de luz arriba: una
 // placa mecanizada, no una caja con sombra genérica.
 .tarjeta {
+  --relleno: 1;
+  position: relative;
+  isolation: isolate;
   display: grid;
   align-content: start;
   gap: 0.625rem;
   padding: clamp(1.5rem, 3vw, 2rem);
   border-radius: 20px;
+}
+
+// El fondo de la placa en su propia capa: la coreografía lo rellena
+// (--relleno de 0 a 1) después de dibujar el contorno.
+.tarjeta::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  opacity: var(--relleno);
   background: linear-gradient(
     180deg,
     var(--platino-50) 0%,
@@ -81,8 +95,10 @@
   }
 }
 
-// Al entrar la sección, el piloto automático se enciende.
-.entra .interruptor__riel {
+// El piloto automático se enciende: al entrar la sección o, con la
+// coreografía, cuando la tarjeta termina de armarse.
+:root:not(.escena-viva) .entra .interruptor__riel,
+.escena-viva .activo .interruptor__riel {
   background: var(--app-azul);
 
   i {
@@ -167,6 +183,51 @@
   color: var(--app-fondo);
   font-size: 0.625rem;
   font-weight: 700;
+}
+
+// Al armarse cada tarjeta, su control se activa: Aprobar se pulsa, la
+// línea Revertir se escribe y las comprobaciones se marcan una a una.
+.escena-viva .activo .b--si {
+  animation: pulsar 0.7s var(--ease-salida) 0.15s both;
+}
+
+@keyframes pulsar {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgb(108 180 214 / 0.6);
+  }
+  35% {
+    transform: scale(0.93);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 10px rgb(108 180 214 / 0);
+  }
+}
+
+.revertir {
+  transition: clip-path 0.9s var(--ease-suave) 0.2s;
+}
+
+.escena-viva .tarjeta:not(.activo) .revertir {
+  clip-path: inset(0 100% 0 0);
+}
+
+.ok {
+  transition: transform 0.45s cubic-bezier(0.34, 1.4, 0.5, 1);
+}
+
+.muestra--lista p:nth-child(2) .ok {
+  transition-delay: 0.25s;
+}
+
+.muestra--lista p:nth-child(3) .ok {
+  transition-delay: 0.55s;
+}
+
+.escena-viva .tarjeta:not(.activo) .ok {
+  transform: scale(0);
+  transition-delay: 0s;
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -7,6 +7,9 @@ import {
   inject,
   signal,
 } from '@angular/core';
+import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { montarEscena } from '../escena/escena';
 import { Idioma } from '../i18n/idioma';
 import { Metal } from '../metal/metal';
 import { Pantalla } from '../producto/pantalla';
@@ -19,6 +22,9 @@ import { Titular } from './titular';
  * escena cuando una etapa cruza el centro de la pantalla. No se secuestra
  * el scroll: se lee a la velocidad de cada quien.
  *
+ * A la izquierda, un trazo une las etapas y se llena con el scroll; cada
+ * etapa enciende su nodo al pasar.
+ *
  * En móvil no cabe una ventana fija: cada etapa lleva su escena debajo, y
  * la escena se anima al asomar.
  */
@@ -28,14 +34,18 @@ import { Titular } from './titular';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @let r = i18n.t().recorrido;
-    <section class="seccion" id="recorrido" data-seccion="recorrido">
+    <section
+      class="seccion"
+      id="recorrido"
+      data-seccion="recorrido"
+    >
       <div class="contenedor">
         <header class="cabeza-seccion">
-          <p class="etiqueta" data-r style="--i: 0">{{ r.etiqueta }}</p>
-          <h2 class="titulo" data-r style="--i: 1">
+          <p class="etiqueta">{{ r.etiqueta }}</p>
+          <h2 class="titulo">
             <app-titular [linea]="r.titulo" />
           </h2>
-          <p class="lead" data-r style="--i: 2">{{ r.lead }}</p>
+          <p class="lead">{{ r.lead }}</p>
         </header>
 
         <div class="recorrido">
@@ -44,6 +54,7 @@ import { Titular } from './titular';
               <li
                 class="etapa"
                 [class.etapa--actual]="actual() === i"
+                [class.etapa--pasada]="actual() >= i"
                 [attr.data-etapa]="i"
               >
                 <p class="etapa__num">
@@ -89,6 +100,28 @@ export class Recorrido {
     false,
   ]);
 
+  /**
+   * Cada etapa nueva lanza una onda en el metal desde la ventana de la app
+   * y la ventana gira un instante, como si recibiera la escena nueva.
+   */
+  private ondear(etapa: HTMLElement): void {
+    const fijo = this.host.nativeElement.querySelector<HTMLElement>('.recorrido__fijo');
+    const ref = fijo && fijo.offsetParent ? fijo : etapa;
+    const marco = fijo?.querySelector('.marco-metal');
+    if (marco && fijo?.offsetParent && !matchMedia('(prefers-reduced-motion: reduce)').matches)
+      gsap.fromTo(
+        marco,
+        { rotationY: -7, transformPerspective: 1400 },
+        { rotationY: 0, duration: 0.9, ease: 'power3.out' },
+      );
+    const b = ref.getBoundingClientRect();
+    dispatchEvent(
+      new CustomEvent('tunneller:onda', {
+        detail: { x: b.left + b.width / 2, y: b.top + b.height / 2, fuerza: 1.2 },
+      }),
+    );
+  }
+
   constructor() {
     const destruir = inject(DestroyRef);
     afterNextRender(() => {
@@ -101,7 +134,10 @@ export class Recorrido {
         (entradas) => {
           for (const e of entradas) {
             if (!e.isIntersecting) continue;
-            this.actual.set(Number((e.target as HTMLElement).dataset['etapa']));
+            const i = Number((e.target as HTMLElement).dataset['etapa']);
+            if (i === this.actual()) continue;
+            this.actual.set(i);
+            this.ondear(e.target as HTMLElement);
           }
         },
         { rootMargin: '-48% 0px -48% 0px', threshold: 0 },
@@ -124,6 +160,22 @@ export class Recorrido {
       destruir.onDestroy(() => {
         centro.disconnect();
         asomo.disconnect();
+      });
+
+      // El trazo de avance: se llena con el scroll entre la primera y la
+      // última etapa. Sin movimiento queda lleno (--avance vale 1).
+      const lista = this.host.nativeElement.querySelector<HTMLElement>('.etapas');
+      if (!lista) return;
+      montarEscena(destruir, () => {
+        const poner = (p: number) => lista.style.setProperty('--avance', p.toFixed(4));
+        const st = ScrollTrigger.create({
+          trigger: lista,
+          start: 'top 50%',
+          end: 'bottom 50%',
+          onUpdate: (s) => poner(s.progress),
+        });
+        poner(st.progress);
+        return () => lista.style.removeProperty('--avance');
       });
     });
   }

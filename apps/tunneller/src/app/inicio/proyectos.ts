@@ -3,8 +3,10 @@ import { Idioma } from '../i18n/idioma';
 import { Titular } from './titular';
 
 /**
- * Proyectos ya construidos con Tunneller. Cada tarjeta lleva una vista de
- * la app dibujada en SVG (no capturas del vídeo, que van a 720p) y las
+ * Proyectos ya construidos con Tunneller. Las tarjetas se arman con el
+ * scroll (ver Coreografia): contorno, relleno, la miniatura dibujándose
+ * pieza a pieza y el texto. Cada tarjeta lleva una vista de la app
+ * dibujada en SVG (no capturas del vídeo, que van a 720p) y las
  * cifras reales que muestra la demo; donde no hay cifras, no se inventan.
  */
 @Component({
@@ -13,19 +15,23 @@ import { Titular } from './titular';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @let p = i18n.t().proyectos;
-    <section class="seccion seccion--oscura" id="proyectos" data-seccion="proyectos">
+    <section
+      class="seccion seccion--oscura"
+      id="proyectos"
+      data-seccion="proyectos"
+    >
       <div class="contenedor">
         <header class="cabeza-seccion">
-          <p class="etiqueta" data-r style="--i: 0">{{ p.etiqueta }}</p>
-          <h2 class="titulo" data-r style="--i: 1">
+          <p class="etiqueta">{{ p.etiqueta }}</p>
+          <h2 class="titulo">
             <app-titular [linea]="p.titulo" />
           </h2>
-          <p class="lead" data-r style="--i: 2">{{ p.lead }}</p>
+          <p class="lead">{{ p.lead }}</p>
         </header>
 
         <ul class="proyectos">
           @for (x of p.items; track x.repo; let i = $index) {
-            <li class="proyecto" data-r [style.--i]="3 + i">
+            <li class="proyecto">
               <div class="vista" aria-hidden="true">
                 @switch (i) {
                   @case (0) {
@@ -182,7 +188,7 @@ import { Titular } from './titular';
             </li>
           }
         </ul>
-        <p class="nota" data-r style="--i: 7">{{ p.nota }}</p>
+        <p class="nota">{{ p.nota }}</p>
       </div>
     </section>
   `,
