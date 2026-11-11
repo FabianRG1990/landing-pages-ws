@@ -33,21 +33,22 @@
     #6f5530 100%
   );
   // Oro metálico: base honda y saturada, luz arriba y un destello en
-  // diagonal, para que el botón sea el punto de color de la página.
+  // diagonal, para que el botón sea el punto de color de la página. Sobre
+  // la plata el canto de abajo se queda en oro (#b3862a): si baja a
+  // marrón se lee como un contorno oscuro. Sobre el negro del pie sí baja
+  // a fondo (--oro-boton-hondo), que es donde luce.
+  --oro-brillo: linear-gradient(
+    112deg,
+    transparent 18%,
+    rgb(255 246 214 / 0.42) 42%,
+    transparent 62%
+  );
   --oro-boton:
-    linear-gradient(
-      112deg,
-      transparent 18%,
-      rgb(255 246 214 / 0.42) 42%,
-      transparent 62%
-    ),
-    linear-gradient(
-      180deg,
-      #f4dd96 0%,
-      #dcb04c 36%,
-      #bc8c2d 68%,
-      #9a6f1e 100%
-    );
+    var(--oro-brillo),
+    linear-gradient(180deg, #f4dd96 0%, #dcb04c 38%, #c4952f 72%, #b3862a 100%);
+  --oro-boton-hondo:
+    var(--oro-brillo),
+    linear-gradient(180deg, #f4dd96 0%, #dcb04c 36%, #bc8c2d 68%, #9a6f1e 100%);
 
   // Producto (la app real, en marino)
   --app-fondo: #121726;

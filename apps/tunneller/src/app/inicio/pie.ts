@@ -30,7 +30,7 @@ const DESTINOS = [
           </h2>
           <p class="lead pie__lead">{{ p.lead }}</p>
           <div class="pie__acciones">
-            <a class="boton boton--oro" [href]="'mailto:' + p.correo">
+            <a class="boton boton--oro boton--oro-hondo" [href]="'mailto:' + p.correo">
               {{ p.cta }}
               <svg
                 viewBox="0 0 16 16"

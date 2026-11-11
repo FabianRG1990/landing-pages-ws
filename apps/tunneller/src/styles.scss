@@ -253,6 +253,17 @@ canvas {
 .boton--oro {
   background: var(--oro-boton);
   color: #1a1206;
+  // Sobre fondo claro: canto y sombra cercana tenues, la sombra larga en oro.
+  box-shadow:
+    inset 0 1px 0 rgb(255 248 220 / 0.8),
+    inset 0 -1px 0 rgb(150 106 28 / 0.2),
+    0 1px 2px rgb(120 84 20 / 0.1),
+    0 10px 24px -12px rgb(176 126 36 / 0.5);
+}
+
+// Sobre negro: el oro baja a fondo y el canto se marca, que ahí luce.
+.boton--oro-hondo {
+  background: var(--oro-boton-hondo);
   box-shadow:
     inset 0 1px 0 rgb(255 248 220 / 0.8),
     inset 0 -1px 0 rgb(92 60 10 / 0.45),
