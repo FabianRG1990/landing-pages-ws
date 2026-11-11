@@ -252,12 +252,12 @@ canvas {
 
 .boton--oro {
   background: var(--oro-boton);
-  color: #1d160b;
+  color: #1a1206;
   box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.75),
-    inset 0 -1px 0 rgb(110 74 20 / 0.35),
-    0 1px 2px rgb(110 74 20 / 0.22),
-    0 10px 26px -10px rgb(176 128 52 / 0.6);
+    inset 0 1px 0 rgb(255 248 220 / 0.8),
+    inset 0 -1px 0 rgb(92 60 10 / 0.45),
+    0 1px 2px rgb(92 60 10 / 0.25),
+    0 10px 26px -10px rgb(166 114 28 / 0.7);
 }
 
 // Brillo que cruza el botón al pasar el cursor: el metal reacciona.
