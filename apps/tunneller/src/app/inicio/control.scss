@@ -80,8 +80,8 @@
   width: 2.25rem;
   height: 1.25rem;
   border-radius: 999px;
-  background: rgb(148 163 196 / 0.22);
-  transition: background 0.5s var(--ease-suave) 0.9s;
+  background: var(--app-azul);
+  transition: background 0.4s var(--ease-suave) 0.15s;
 
   i {
     position: absolute;
@@ -91,18 +91,22 @@
     height: calc(1.25rem - 4px);
     border-radius: 50%;
     background: var(--app-texto);
-    transition: transform 0.5s cubic-bezier(0.34, 1.3, 0.5, 1) 0.9s;
+    transform: translateX(1rem);
+    transition: transform 0.5s cubic-bezier(0.34, 1.3, 0.5, 1) 0.15s;
   }
 }
 
-// El piloto automático se enciende: al entrar la sección o, con la
-// coreografía, cuando la tarjeta termina de armarse.
-:root:not(.escena-viva) .entra .interruptor__riel,
-.escena-viva .activo .interruptor__riel {
-  background: var(--app-azul);
+// Con la coreografía, cada tarjeta está «apagada» mientras se arma y se
+// enciende al terminar (clase activo). Sin ella se ve ya funcionando.
+// :host-context y no `.escena-viva` a secas: Angular le pondría a <html>
+// el atributo del componente y la regla no coincidiría nunca.
+:host-context(.escena-viva) .tarjeta:not(.activo) .interruptor__riel {
+  background: rgb(148 163 196 / 0.22);
+  transition-delay: 0s;
 
   i {
-    transform: translateX(1rem);
+    transform: none;
+    transition-delay: 0s;
   }
 }
 
@@ -187,7 +191,7 @@
 
 // Al armarse cada tarjeta, su control se activa: Aprobar se pulsa, la
 // línea Revertir se escribe y las comprobaciones se marcan una a una.
-.escena-viva .activo .b--si {
+:host-context(.escena-viva) .activo .b--si {
   animation: pulsar 0.7s var(--ease-salida) 0.15s both;
 }
 
@@ -209,7 +213,7 @@
   transition: clip-path 0.9s var(--ease-suave) 0.2s;
 }
 
-.escena-viva .tarjeta:not(.activo) .revertir {
+:host-context(.escena-viva) .tarjeta:not(.activo) .revertir {
   clip-path: inset(0 100% 0 0);
 }
 
@@ -225,7 +229,7 @@
   transition-delay: 0.55s;
 }
 
-.escena-viva .tarjeta:not(.activo) .ok {
+:host-context(.escena-viva) .tarjeta:not(.activo) .ok {
   transform: scale(0);
   transition-delay: 0s;
 }
