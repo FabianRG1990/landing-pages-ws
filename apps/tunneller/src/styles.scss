@@ -227,7 +227,7 @@ canvas {
   min-height: 2.875rem;
   padding: 0 1.25rem;
   border: 0;
-  border-radius: 999px;
+  border-radius: var(--radio-boton);
   font-family: var(--fuente-texto);
   font-size: 0.9375rem;
   font-weight: 600;
@@ -253,11 +253,12 @@ canvas {
 .boton--oro {
   background: var(--oro-boton);
   color: #1a1206;
+  // Un filo fino de oro más hondo dibuja el canto; la sombra, cálida.
   box-shadow:
-    inset 0 1px 0 rgb(255 248 220 / 0.8),
-    inset 0 -1px 0 rgb(92 60 10 / 0.45),
-    0 1px 2px rgb(92 60 10 / 0.25),
-    0 10px 26px -10px rgb(166 114 28 / 0.7);
+    inset 0 0 0 1px rgb(150 104 18 / 0.32),
+    inset 0 1px 0 rgb(255 250 228 / 0.85),
+    0 1px 2px rgb(120 84 16 / 0.2),
+    0 10px 24px -12px rgb(190 140 40 / 0.65);
 }
 
 // Brillo que cruza el botón al pasar el cursor: el metal reacciona.
@@ -297,6 +298,7 @@ canvas {
 .boton--chico {
   min-height: 2.375rem;
   padding: 0 1rem;
+  border-radius: 8px;
   font-size: 0.875rem;
 }
 
