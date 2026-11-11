@@ -11,7 +11,7 @@
  */
 
 /** Píxeles de pantalla por texel: cuanto más, más gruesas las ondas. */
-const PX_TEXEL = 9;
+const PX_TEXEL = 12;
 /** Pasos de simulación por segundo: la velocidad de las ondas no depende de los fps. */
 const PASOS_POR_S = 60;
 /**
@@ -19,10 +19,10 @@ const PASOS_POR_S = 60;
  * apaga en ~1 s, sin ir y venir.
  */
 const AMORTIGUA = 0.955;
-/** Radio del dedo, en texels (~30 px). */
-const RADIO = 3.3;
+/** Radio del dedo, en texels (~36 px). */
+const RADIO = 3.0;
 /** Franja de los bordes, en texels, donde el agua se traga las ondas. */
-const ORILLA = 8.0;
+const ORILLA = 6.0;
 
 const VERT = 'attribute vec2 a; void main(){ gl_Position = vec4(a, 0.0, 1.0); }';
 
