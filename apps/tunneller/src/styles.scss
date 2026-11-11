@@ -432,6 +432,20 @@ html:not(.con-metal) {
   pointer-events: none;
 }
 
+// Lo primero en verse no entra hasta que está su tipografía: si entrara
+// con la del sistema, al llegar la buena el titular cambiaría de líneas y
+// todo se recolocaría. Lo marca .fuentes-listas (script en <head>, con
+// tope de espera).
+.con-movimiento:not(.fuentes-listas) .cabecera {
+  opacity: 0;
+}
+
+.con-movimiento .cabecera {
+  transition:
+    opacity 0.9s var(--ease-suave),
+    color 0.4s var(--ease-suave);
+}
+
 // El estado oculto solo existe con .con-movimiento, que pone un script en
 // <head> antes del primer pintado y que se retira si la app no arranca.
 // Sin JS o con movimiento reducido, todo se ve desde el principio.
@@ -450,7 +464,7 @@ html:not(.con-metal) {
 
 // El hero no espera a la app: entra con CSS en cuanto hay pintado, así el
 // titular (el LCP) no depende de que llegue el JavaScript.
-.con-movimiento [data-seccion='hero'] [data-r] {
+.con-movimiento.fuentes-listas [data-seccion='hero'] [data-r] {
   animation: entrar 1s var(--ease-salida) calc(var(--i, 0) * 90ms + 120ms) both;
 }
 
