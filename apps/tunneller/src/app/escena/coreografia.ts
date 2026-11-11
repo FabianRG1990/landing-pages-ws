@@ -103,11 +103,17 @@ export class Coreografia {
       });
     }
 
+    // Cada pieza se arma en la zona donde se mira: empieza cuando su borde
+    // superior pasa el 85 % de la pantalla y termina al quedar centrada.
+    // Antes se armaba entre el 96 % y la mitad, casi todo en el tercio de
+    // abajo, y apenas se veía.
+    const ARMA = { start: 'top 85%', end: 'center 50%' };
+
     // ---- Cabeceras de sección: etiqueta, título tras su máscara, texto ----
     for (const cab of $('.seccion .cabeza-seccion, .pie__llamada')) {
       const tl = gsap.timeline({
         defaults: { ease: 'power2.out' },
-        scrollTrigger: { trigger: cab, start: 'top 90%', end: 'top 42%', scrub: 0.6 },
+        scrollTrigger: { trigger: cab, ...ARMA, scrub: 0.6 },
       });
       const [etq] = $('.etiqueta', cab);
       const [tit] = $('.titulo, .pie__titulo', cab);
@@ -132,7 +138,7 @@ export class Coreografia {
       quitar.push(t.quitar);
       const tl = gsap.timeline({
         defaults: { ease: 'power2.out' },
-        scrollTrigger: { trigger: '.recorrido', start: 'top 92%', end: 'top 22%', scrub: 0.6 },
+        scrollTrigger: { trigger: '.recorrido', start: 'top 85%', end: 'top 20%', scrub: 0.6 },
       });
       tl.fromTo(t.rect, { attr: { 'stroke-dashoffset': 1 } }, { attr: { 'stroke-dashoffset': 0 }, duration: 0.35 }, 0)
         .from(marco, { opacity: 0, scale: 0.94, duration: 0.3 }, 0.25)
@@ -142,25 +148,31 @@ export class Coreografia {
         .to(t.rect, { opacity: 0, duration: 0.15 }, 0.85);
     }
     for (const etapa of $('.etapa')) {
-      const tl = gsap.timeline({
-        defaults: { ease: 'power2.out' },
-        scrollTrigger: { trigger: etapa, start: 'top 85%', end: 'top 50%', scrub: 0.6 },
-      });
-      tl.from($('.etapa__num, .etapa__titulo, .etapa__texto', etapa), {
+      // La etapa es más alta que la pantalla en el teléfono: manda su texto,
+      // que va arriba, y termina de entrar al llegar al tercio superior.
+      gsap.from($('.etapa__num, .etapa__titulo, .etapa__texto', etapa), {
         x: -34,
         opacity: 0,
         duration: 0.5,
         stagger: 0.12,
+        ease: 'power2.out',
+        scrollTrigger: { trigger: etapa, start: 'top 85%', end: 'top 35%', scrub: 0.6 },
       });
-      // En el teléfono cada etapa trae su escena: se arma igual que la ventana.
+      // En el teléfono cada etapa trae su escena: se arma igual que la
+      // ventana, y termina centrada.
       const escena = !escritorio ? etapa.querySelector<HTMLElement>('.etapa__escena') : null;
       if (escena) {
         const t = trazo(escena, 18, 'rgb(23 24 27 / 0.4)');
         quitar.push(t.quitar);
-        tl.fromTo(t.rect, { attr: { 'stroke-dashoffset': 1 } }, { attr: { 'stroke-dashoffset': 0 }, duration: 0.4 }, 0.2)
-          .from(escena, { '--relleno': 0, duration: 0.3 }, 0.45)
-          .from(escena.querySelector('.app'), { opacity: 0, y: 16, duration: 0.3 }, 0.6)
-          .to(t.rect, { opacity: 0, duration: 0.15 }, 0.9);
+        gsap
+          .timeline({
+            defaults: { ease: 'power2.out' },
+            scrollTrigger: { trigger: escena, ...ARMA, scrub: 0.6 },
+          })
+          .fromTo(t.rect, { attr: { 'stroke-dashoffset': 1 } }, { attr: { 'stroke-dashoffset': 0 }, duration: 0.4 }, 0)
+          .from(escena, { '--relleno': 0, duration: 0.3 }, 0.3)
+          .from(escena.querySelector('.app'), { opacity: 0, y: 16, duration: 0.3 }, 0.5)
+          .to(t.rect, { opacity: 0, duration: 0.15 }, 0.85);
       }
     }
 
@@ -174,8 +186,7 @@ export class Coreografia {
           defaults: { ease: 'power2.out' },
           scrollTrigger: {
             trigger: tarjeta,
-            start: 'top 96%',
-            end: 'top 48%',
+            ...ARMA,
             scrub: 0.6,
             // Al terminar de encajar, la pieza se enciende.
             onUpdate: (st) => tarjeta.classList.toggle('activo', st.progress > 0.88),
@@ -218,7 +229,8 @@ export class Coreografia {
       gsap
         .timeline({
           defaults: { ease: 'none' },
-          scrollTrigger: { trigger: marca, start: 'top 98%', end: 'top 50%', scrub: 0.8 },
+          // Termina al 62 %: más arriba no llega en el teléfono, donde es lo último.
+          scrollTrigger: { trigger: marca, start: 'top 95%', end: 'top 62%', scrub: 0.8 },
         })
         .fromTo(
           marca,
