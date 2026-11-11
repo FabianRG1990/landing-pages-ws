@@ -212,6 +212,23 @@ export class Coreografia {
     armarTarjetas('#control .tarjeta', 20, escritorio);
     armarTarjetas('#proyectos .proyecto', 20, false);
 
+    // ---- Pie: las letras de la marca se juntan y el cromo las recorre ----
+    const marca = d.querySelector<HTMLElement>('.pie__gigante');
+    if (marca) {
+      gsap
+        .timeline({
+          defaults: { ease: 'none' },
+          scrollTrigger: { trigger: marca, start: 'top 98%', end: 'top 50%', scrub: 0.8 },
+        })
+        .fromTo(
+          marca,
+          { clipPath: 'inset(100% 0% 0% 0%)', letterSpacing: '0.14em', y: 40 },
+          { clipPath: 'inset(-10% 0% -10% 0%)', letterSpacing: '-0.045em', y: 0, duration: 0.7 },
+          0,
+        )
+        .fromTo(marca, { backgroundPosition: '120% 0, 0 0' }, { backgroundPosition: '-20% 0, 0 0', duration: 0.6 }, 0.4);
+    }
+
     ScrollTrigger.refresh();
     return () => {
       d.documentElement.classList.remove('escena-viva');

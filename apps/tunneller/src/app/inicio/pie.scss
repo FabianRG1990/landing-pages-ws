@@ -43,25 +43,56 @@
   }
 }
 
+// La marca a sangre: cromo en grises (luz arriba, banda oscura, reflejo
+// champán abajo). La coreografía junta sus letras y pasa el brillo.
+.pie__gigante {
+  margin-top: clamp(4.5rem, 12vh, 7.5rem);
+  font-family: var(--fuente-display);
+  font-size: clamp(3.5rem, 15.4vw, 13.5rem);
+  font-weight: 600;
+  line-height: 0.82;
+  letter-spacing: -0.045em;
+  text-align: center;
+  white-space: nowrap;
+  background:
+    linear-gradient(
+        105deg,
+        transparent 38%,
+        rgb(255 255 255 / 0.55) 50%,
+        transparent 62%
+      )
+      0 0 / 260% 100% no-repeat,
+    linear-gradient(
+      180deg,
+      #f7f6f3 0%,
+      #c9cacd 30%,
+      #5b5c61 52%,
+      #2e2f33 60%,
+      #8d8e93 76%,
+      #d9be8c 100%
+    );
+  background-position: 120% 0, 0 0;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+}
+
 .pie__base {
   display: grid;
   gap: 2.5rem;
-  margin-top: clamp(5rem, 14vh, 8rem);
+  margin-top: clamp(2.5rem, 7vh, 4rem);
   padding-top: 2.5rem;
   border-top: 1px solid var(--linea);
 
   @media (min-width: 56rem) {
     grid-template-columns: 1fr 1fr;
     align-items: start;
-  }
-}
 
-.pie__marca {
-  font-family: var(--fuente-display);
-  font-size: 0.8125rem;
-  font-weight: 600;
-  letter-spacing: 0.28em;
-  color: var(--tinta-2);
+    .pie__columnas {
+      grid-column: 2;
+    }
+  }
 }
 
 .pie__columnas {

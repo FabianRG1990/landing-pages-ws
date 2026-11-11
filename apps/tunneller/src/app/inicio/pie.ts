@@ -8,7 +8,10 @@ const DESTINOS = [
   ['mailto:', '#demo'],
 ] as const;
 
-/** Cierre sobre el metal negro: la llamada a la acción y la base con marca y enlaces. */
+/**
+ * Cierre sobre el metal negro: la llamada a la acción, la marca a sangre en metal
+ * pulido y la base con los enlaces.
+ */
 @Component({
   selector: 'app-pie',
   imports: [Titular],
@@ -45,8 +48,11 @@ const DESTINOS = [
           </div>
         </div>
 
+        <p class="pie__gigante" aria-hidden="true">
+          TUNNELLER
+        </p>
+
         <div class="pie__base">
-          <p class="pie__marca">TUNNELLER</p>
           <div class="pie__columnas">
             @for (col of p.columnas; track $index; let c = $index) {
               <div>
