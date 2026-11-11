@@ -32,7 +32,15 @@
     #8c6c3b 68%,
     #6f5530 100%
   );
-  --oro-boton: linear-gradient(180deg, #e6cfa2 0%, #d0b07a 50%, #b8955a 100%);
+  // Champán dorado: luminoso arriba, con cuerpo abajo, para que el botón
+  // sea el punto de color de la página.
+  --oro-boton: linear-gradient(
+    180deg,
+    #f8e8c4 0%,
+    #ecd08f 30%,
+    #d9b264 62%,
+    #bf9443 100%
+  );
 
   // Producto (la app real, en marino)
   --app-fondo: #121726;
