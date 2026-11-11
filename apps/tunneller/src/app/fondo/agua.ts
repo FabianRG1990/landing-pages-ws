@@ -10,14 +10,19 @@
  * dibujar en una, no hay agua y el metal sigue igual.
  */
 
-/** Píxeles de pantalla por texel: las ondas son anchas, no hace falta más. */
-const PX_TEXEL = 6;
+/** Píxeles de pantalla por texel: cuanto más, más gruesas las ondas. */
+const PX_TEXEL = 9;
 /** Pasos de simulación por segundo: la velocidad de las ondas no depende de los fps. */
 const PASOS_POR_S = 60;
-/** Cuánto se conserva de la velocidad en cada paso: las ondas viven ~2 s. */
-const AMORTIGUA = 0.982;
-/** Radio del dedo, en texels. */
-const RADIO = 3.4;
+/**
+ * Cuánto se conserva de la velocidad en cada paso: la estela se abre y se
+ * apaga en ~1 s, sin ir y venir.
+ */
+const AMORTIGUA = 0.955;
+/** Radio del dedo, en texels (~30 px). */
+const RADIO = 3.3;
+/** Franja de los bordes, en texels, donde el agua se traga las ondas. */
+const ORILLA = 8.0;
 
 const VERT = 'attribute vec2 a; void main(){ gl_Position = vec4(a, 0.0, 1.0); }';
 
@@ -37,8 +42,13 @@ void main() {
     texture2D(uTex, uv + vec2(0.0, uPaso.y)).r +
     texture2D(uTex, uv - vec2(0.0, uPaso.y)).r);
   i.g += (media - i.r) * 2.0;
-  i.g *= ${AMORTIGUA};
+  // En los bordes de la pantalla el agua absorbe: las ondas no rebotan.
+  vec2 lado = min(gl_FragCoord.xy, 1.0 / uPaso - gl_FragCoord.xy);
+  float orilla = smoothstep(0.0, ${ORILLA.toFixed(1)}, min(lado.x, lado.y));
+  i.g *= ${AMORTIGUA} * mix(0.8, 1.0, orilla);
   i.r += i.g;
+  // El alto también se asienta, para que el agua vuelva a quedar plana.
+  i.r *= 0.992;
 
   // El dedo: el tramo que recorrió desde el paso anterior hunde el agua.
   vec2 p = gl_FragCoord.xy;

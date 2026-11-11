@@ -94,7 +94,7 @@ const FRAG = /* glsl */ `
 precision highp float;
 #define RELIEVE_ESCALA 2600.0
 #define RELIEVE_ALTO 0.6
-#define AGUA_RELIEVE 1.8
+#define AGUA_RELIEVE 1.1
 uniform vec2 uRes;
 uniform float uEsc;
 uniform float uT;
