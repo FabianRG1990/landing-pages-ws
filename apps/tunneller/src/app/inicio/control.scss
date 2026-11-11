@@ -10,7 +10,6 @@
 // Tarjeta de platino más clara que el fondo, con canto de luz arriba: una
 // placa mecanizada, no una caja con sombra genérica.
 .tarjeta {
-  --relleno: 1;
   position: relative;
   isolation: isolate;
   display: grid;
@@ -20,15 +19,16 @@
   border-radius: 20px;
 }
 
-// El fondo de la placa en su propia capa: la coreografía lo rellena
-// (--relleno de 0 a 1) después de dibujar el contorno.
+// El fondo de la placa en su propia capa: la coreografía la llena después
+// de juntar sus esquinas.
 .tarjeta::before {
   content: '';
   position: absolute;
   inset: 0;
   z-index: -1;
   border-radius: inherit;
-  opacity: var(--relleno);
+  // La coreografía la llena de abajo arriba (--llena de 0 a 1).
+  clip-path: inset(calc((1 - var(--llena, 1)) * 100%) 0 0 0 round 20px);
   background: linear-gradient(
     180deg,
     var(--platino-50) 0%,

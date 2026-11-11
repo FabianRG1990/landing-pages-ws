@@ -9,59 +9,170 @@ import { DOCUMENT } from '@angular/common';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { montarEscena, refrescarConFuentes } from './escena';
+import {
+  $$,
+  contar,
+  dibujarMiniatura,
+  encender,
+  escribir,
+  esquinas,
+  juntar,
+  llenar,
+  retirar,
+} from './armado';
 
-const SVG = 'http://www.w3.org/2000/svg';
+/** Una pieza que se arma: su línea de tiempo y cuándo queda «funcionando». */
+interface Pieza {
+  readonly tl: gsap.core.Timeline;
+  readonly fin: number;
+  readonly pieza: HTMLElement;
+}
+
+const CLARO = 'rgb(242 241 237 / 0.7)';
 
 /**
- * El contorno de una pieza, dibujado en un SVG encima de ella. Se mide en
- * píxeles (y se vuelve a medir si la pieza cambia de tamaño) para que el
- * trazo tenga siempre 1 px y la esquina el mismo radio que la pieza.
+ * Una tarjeta de Control, en cinco tiempos que se pisan: las esquinas se
+ * juntan, la placa se llena, su pantalla se enciende, el control se monta
+ * pieza a pieza (cada una desde su lado) y entra el texto. Al terminar, la
+ * tarjeta queda «funcionando» (clase activo: el interruptor se enciende,
+ * Aprobar late, las comprobaciones se marcan).
  */
-function trazo(pieza: HTMLElement, radio: number, color: string) {
-  const svg = document.createElementNS(SVG, 'svg');
-  svg.setAttribute('class', 'trazo');
-  svg.setAttribute('aria-hidden', 'true');
-  const rect = document.createElementNS(SVG, 'rect');
-  rect.setAttribute('pathLength', '1');
-  rect.setAttribute('rx', String(radio));
-  rect.setAttribute('fill', 'none');
-  rect.setAttribute('stroke', color);
-  rect.setAttribute('stroke-width', '1');
-  rect.setAttribute('stroke-dasharray', '1');
-  rect.setAttribute('stroke-dashoffset', '1');
-  svg.appendChild(rect);
-  pieza.appendChild(svg);
-  const medir = () => {
-    const w = pieza.offsetWidth, h = pieza.offsetHeight;
-    svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
-    rect.setAttribute('x', '0.5');
-    rect.setAttribute('y', '0.5');
-    rect.setAttribute('width', String(Math.max(0, w - 1)));
-    rect.setAttribute('height', String(Math.max(0, h - 1)));
-  };
-  medir();
-  const ro = new ResizeObserver(medir);
-  ro.observe(pieza);
-  return {
-    rect,
-    quitar: () => {
-      ro.disconnect();
-      svg.remove();
-    },
-  };
+function armarControl(t: HTMLElement, i: number, quitar: (() => void)[]): Pieza {
+  const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+  const e = esquinas(t, 20, CLARO);
+  quitar.push(e.quitar, () => t.classList.remove('activo'));
+  juntar(tl, e, 0);
+  llenar(tl, t, 0.3);
+  const muestra = t.querySelector('.muestra');
+  if (muestra) encender(tl, muestra, 0.5);
+  const p = 0.82;
+  if (i === 0) {
+    tl.from($$('.interruptor__riel', t), { scaleX: 0, transformOrigin: '0% 50%', duration: 0.3 }, p)
+      .from($$('.interruptor', t), { x: -22, opacity: 0, duration: 0.3 }, p)
+      .from($$('.contador', t), { x: 22, opacity: 0, duration: 0.3 }, p + 0.12);
+  } else if (i === 1) {
+    const [si, cambio, no] = $$('.b', t);
+    tl.from(si, { x: -28, opacity: 0, duration: 0.3, ease: 'back.out(1.8)' }, p)
+      .from(cambio, { y: 18, opacity: 0, duration: 0.3, ease: 'back.out(1.8)' }, p + 0.08)
+      .from(no, { x: 28, opacity: 0, duration: 0.3, ease: 'back.out(1.8)' }, p + 0.16);
+  } else if (i === 2) {
+    tl.from($$('.muestra--texto p:first-child', t), { y: 12, opacity: 0, duration: 0.3 }, p);
+  } else {
+    tl.from($$('.muestra--lista p', t), { x: -22, opacity: 0, duration: 0.26, stagger: 0.09 }, p);
+  }
+  retirar(tl, e, 0.8);
+  escribir(tl, $$('.tarjeta__titulo, .tarjeta__texto', t), 1.0);
+  return { tl, fin: tl.duration(), pieza: t };
 }
 
 /**
- * La página se arma con el scroll. Cada segmento se construye en tres
- * tiempos, siempre ligados a la posición (si se sube, se desarma):
- * primero la estructura (contornos que se dibujan), luego las piezas (los
- * paneles encajan y se rellenan) y por último el contenido (el texto
- * llega y lo interactivo se enciende).
+ * Una tarjeta de Proyectos: las esquinas se juntan, la placa se llena, la
+ * pantalla se enciende y la app se dibuja pieza a pieza; luego el nombre,
+ * el repositorio que se teclea, el texto y las cifras reales que cuentan.
+ */
+function armarProyecto(t: HTMLElement, i: number, quitar: (() => void)[]): Pieza {
+  const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+  const e = esquinas(t, 20, CLARO);
+  quitar.push(e.quitar);
+  juntar(tl, e, 0);
+  llenar(tl, t, 0.3);
+  const vista = t.querySelector('.vista');
+  if (vista) encender(tl, vista, 0.5);
+  const svg = vista?.querySelector('svg');
+  if (svg) dibujarMiniatura(tl, svg, i, 0.72);
+  retirar(tl, e, 0.8);
+  escribir(tl, $$('.proyecto__nombre', t), 1.05);
+  const repo = t.querySelector<HTMLElement>('.proyecto__repo');
+  if (repo)
+    tl.fromTo(
+      repo,
+      { clipPath: 'inset(0% 100% 0% 0%)' },
+      { clipPath: 'inset(0% 0% 0% 0%)', duration: 0.45, ease: `steps(${repo.textContent?.length || 20})` },
+      1.15,
+    );
+  escribir(tl, $$('.proyecto__texto', t), 1.3);
+  const datos = $$('.proyecto__datos li', t);
+  tl.from(datos, { scale: 0.7, opacity: 0, duration: 0.28, stagger: 0.09, ease: 'back.out(2)' }, 1.45);
+  quitar.push(contar(tl, datos, 1.47));
+  return { tl, fin: tl.duration(), pieza: t };
+}
+
+/**
+ * Escritorio: la rejilla se queda quieta en pantalla (unos 135 vh de
+ * scroll) mientras sus tarjetas se arman una tras otra, solapadas. El
+ * armado empieza con la rejilla aún subiendo, para que la pausa sea corta.
+ * Si la rejilla no cabe en la pantalla, no se detiene: se arma al pasar.
+ */
+function armarFijo(rejilla: HTMLElement | null, piezas: Pieza[], paso: number): void {
+  if (!rejilla || !piezas.length) return;
+  // Cada tarjeta queda «funcionando» al terminar su propio armado. Se mira
+  // en la propia línea de tiempo y no en el scroll: con scrub la animación
+  // llega después que el scroll y el último aviso del scroll se adelanta.
+  const total = gsap.timeline({
+    onUpdate: () => {
+      const t = total.time();
+      piezas.forEach((p, k) => p.pieza.classList.toggle('activo', t >= k * paso + p.fin - 0.05));
+    },
+  });
+  piezas.forEach((p, k) => total.add(p.tl, k * paso));
+  const cabe = rejilla.offsetHeight < innerHeight - 140;
+  const fija = cabe
+    ? ScrollTrigger.create({
+        trigger: rejilla,
+        start: 'center 55%',
+        end: () => `+=${Math.round(innerHeight * 1.35)}`,
+        pin: true,
+      })
+    : null;
+  ScrollTrigger.create({
+    trigger: rejilla,
+    start: 'top 80%',
+    end: fija ? () => fija.end : 'bottom 55%',
+    animation: total,
+    scrub: 0.5,
+  });
+}
+
+/**
+ * Teléfono: sin pausa (se sentiría como que la página se trabó). Cada pieza
+ * hace su armado entero, cronometrado, al entrar a la vista; al salir del
+ * todo se desarma, para poder verlo otra vez al volver.
+ */
+function alEntrar(p: Pieza): void {
+  p.tl.pause(0);
+  p.tl.eventCallback('onComplete', () => p.pieza.classList.add('activo'));
+  const reiniciar = () => {
+    p.tl.pause(0);
+    p.pieza.classList.remove('activo');
+  };
+  ScrollTrigger.create({
+    trigger: p.pieza,
+    start: 'top 85%',
+    onEnter: () => {
+      if (p.tl.progress() === 0) p.tl.play(0);
+    },
+  });
+  ScrollTrigger.create({
+    trigger: p.pieza,
+    start: 'top bottom',
+    end: 'bottom top',
+    onLeave: reiniciar,
+    onLeaveBack: reiniciar,
+    onEnterBack: () => p.tl.play(0),
+  });
+}
+
+/**
+ * La página se arma con el scroll, como Tunneller arma una app: cada
+ * componente se construye por partes hasta quedar funcionando. Las
+ * esquinas se juntan, la placa se llena, la pantalla se enciende, sus
+ * piezas llegan cada una desde su lado y al final algo «funciona» (un
+ * interruptor, un check, una cifra que llega a su valor). Ver armado.ts.
  *
- * Todo vive aquí para leer la historia de corrido. No se toca ningún nodo
- * de texto de Angular (el cambio de idioma los reescribe): los títulos
- * suben tras una máscara de recorte y los contornos son SVG añadidos.
- * Con movimiento reducido no se monta nada y la página está armada.
+ * Todo vive aquí para leer la historia de corrido. Solo se escribe en un
+ * nodo de texto para contar cifras, y sin pelear con el cambio de idioma
+ * (ver contar). Con movimiento reducido no se monta nada y la página está
+ * armada.
  */
 @Component({
   selector: 'app-coreografia',
@@ -103,10 +214,8 @@ export class Coreografia {
       });
     }
 
-    // Cada pieza se arma en la zona donde se mira: empieza cuando su borde
-    // superior pasa el 85 % de la pantalla y termina al quedar centrada.
-    // Antes se armaba entre el 96 % y la mitad, casi todo en el tercio de
-    // abajo, y apenas se veía.
+    // Las cabeceras se arman en la zona donde se mira: empiezan cuando su
+    // borde superior pasa el 85 % de la pantalla y terminan centradas.
     const ARMA = { start: 'top 85%', end: 'center 50%' };
 
     // ---- Cabeceras de sección: etiqueta, título tras su máscara, texto ----
@@ -129,23 +238,24 @@ export class Coreografia {
       if (resto.length) tl.from(resto, { y: 26, opacity: 0, duration: 0.45, stagger: 0.12 }, 0.4);
     }
 
-    // ---- Cómo trabaja: el trazo, la ventana pieza a pieza, cada etapa ----
+    // ---- Cómo trabaja: la ventana se arma y cada etapa entra ----
     const fijo = d.querySelector<HTMLElement>('.recorrido__fijo');
     const marco = fijo?.querySelector<HTMLElement>('.marco-metal');
     if (escritorio && fijo && marco) {
-      // El contorno va en el contenedor: el marco empieza transparente.
-      const t = trazo(fijo, 22, 'rgb(23 24 27 / 0.4)');
-      quitar.push(t.quitar);
+      // Las esquinas se juntan, la pantalla se enciende, baja la barra y el
+      // panel «Proceso» se llena paso a paso.
+      const e = esquinas(fijo, 22, 'rgb(23 24 27 / 0.45)');
+      quitar.push(e.quitar);
       const tl = gsap.timeline({
-        defaults: { ease: 'power2.out' },
-        scrollTrigger: { trigger: '.recorrido', start: 'top 85%', end: 'top 20%', scrub: 0.6 },
+        defaults: { ease: 'power3.out' },
+        scrollTrigger: { trigger: '.recorrido', start: 'top 85%', end: 'top 15%', scrub: 0.5 },
       });
-      tl.fromTo(t.rect, { attr: { 'stroke-dashoffset': 1 } }, { attr: { 'stroke-dashoffset': 0 }, duration: 0.35 }, 0)
-        .from(marco, { opacity: 0, scale: 0.94, duration: 0.3 }, 0.25)
-        .from($('.app-barra', marco), { y: -14, opacity: 0, duration: 0.2 }, 0.5)
-        .from($('.app-proceso', marco), { x: 26, opacity: 0, duration: 0.2 }, 0.6)
-        .from($('.app-escenas', marco), { opacity: 0, scale: 0.98, duration: 0.25 }, 0.7)
-        .to(t.rect, { opacity: 0, duration: 0.15 }, 0.85);
+      juntar(tl, e, 0);
+      encender(tl, marco, 0.4);
+      tl.from($('.app-barra', marco), { y: -16, opacity: 0, duration: 0.25 }, 0.78)
+        .from($('.app-proceso__t, .app-proceso li', marco), { x: 18, opacity: 0, duration: 0.22, stagger: 0.07 }, 0.86)
+        .from($('.app-escenas', marco), { opacity: 0, y: 10, duration: 0.3 }, 0.95);
+      retirar(tl, e, 1.25);
     }
     for (const etapa of $('.etapa')) {
       // La etapa es más alta que la pantalla en el teléfono: manda su texto,
@@ -158,70 +268,31 @@ export class Coreografia {
         ease: 'power2.out',
         scrollTrigger: { trigger: etapa, start: 'top 85%', end: 'top 35%', scrub: 0.6 },
       });
-      // En el teléfono cada etapa trae su escena: se arma igual que la
-      // ventana, y termina centrada.
+      // En el teléfono cada etapa trae su escena, que se arma igual que la
+      // ventana, en cuanto entra a la vista.
       const escena = !escritorio ? etapa.querySelector<HTMLElement>('.etapa__escena') : null;
-      if (escena) {
-        const t = trazo(escena, 18, 'rgb(23 24 27 / 0.4)');
-        quitar.push(t.quitar);
-        gsap
-          .timeline({
-            defaults: { ease: 'power2.out' },
-            scrollTrigger: { trigger: escena, ...ARMA, scrub: 0.6 },
-          })
-          .fromTo(t.rect, { attr: { 'stroke-dashoffset': 1 } }, { attr: { 'stroke-dashoffset': 0 }, duration: 0.4 }, 0)
-          .from(escena, { '--relleno': 0, duration: 0.3 }, 0.3)
-          .from(escena.querySelector('.app'), { opacity: 0, y: 16, duration: 0.3 }, 0.5)
-          .to(t.rect, { opacity: 0, duration: 0.15 }, 0.85);
+      const app = escena?.querySelector('.app');
+      if (escena && app) {
+        const e = esquinas(escena, 18, 'rgb(23 24 27 / 0.45)');
+        quitar.push(e.quitar);
+        const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+        juntar(tl, e, 0);
+        tl.from(escena, { '--relleno': 0, duration: 0.3 }, 0.3);
+        encender(tl, app, 0.42);
+        retirar(tl, e, 0.95);
+        alEntrar({ tl, fin: tl.duration(), pieza: escena });
       }
     }
 
-    // ---- Control y Proyectos: contorno, relleno, contenido, encendido ----
-    const armarTarjetas = (sel: string, radio: number, desdeLados: boolean) => {
-      $(sel).forEach((tarjeta, i) => {
-        const t = trazo(tarjeta, radio, 'rgb(242 241 237 / 0.55)');
-        quitar.push(t.quitar);
-        const lado = desdeLados ? (i % 2 ? 1 : -1) : 0;
-        const tl = gsap.timeline({
-          defaults: { ease: 'power2.out' },
-          scrollTrigger: {
-            trigger: tarjeta,
-            ...ARMA,
-            scrub: 0.6,
-            // Al terminar de encajar, la pieza se enciende.
-            onUpdate: (st) => tarjeta.classList.toggle('activo', st.progress > 0.88),
-          },
-        });
-        tl.fromTo(t.rect, { attr: { 'stroke-dashoffset': 1 } }, { attr: { 'stroke-dashoffset': 0 }, duration: 0.35 }, 0)
-          .from(
-            tarjeta,
-            desdeLados
-              ? { x: 70 * lado, y: 30, rotation: 1.2 * lado, duration: 0.55 }
-              : { y: 60, rotationX: 10, transformPerspective: 900, duration: 0.55 },
-            0,
-          )
-          .from(tarjeta, { '--relleno': 0, duration: 0.3 }, 0.3)
-          .from($('.muestra, .vista', tarjeta), { opacity: 0, scale: 0.97, duration: 0.25 }, 0.45);
-        // Las miniaturas de Proyectos se dibujan pieza a pieza.
-        const formas = $<SVGElement>('.vista svg :is(rect, path, circle)', tarjeta);
-        if (formas.length)
-          tl.from(
-            formas,
-            { opacity: 0, scale: 0.4, transformOrigin: '50% 50%', duration: 0.3, stagger: { amount: 0.25 } },
-            0.55,
-          );
-        tl.from(
-          $('.tarjeta__titulo, .tarjeta__texto, .proyecto__nombre, .proyecto__repo, .proyecto__texto, .proyecto__datos', tarjeta),
-          { y: 14, opacity: 0, duration: 0.25, stagger: 0.06 },
-          0.62,
-        ).to(t.rect, { opacity: 0.35, duration: 0.15 }, 0.9);
-        quitar.push(() => tarjeta.classList.remove('activo'));
-      });
-    };
-    // En el teléfono las tarjetas suben desde abajo: entrando de lado
-    // desbordaban la pantalla y el navegador ensanchaba la página.
-    armarTarjetas('#control .tarjeta', 20, escritorio);
-    armarTarjetas('#proyectos .proyecto', 20, false);
+    // ---- Control y Proyectos: cada tarjeta se arma por partes ----
+    const control = $('#control .tarjeta').map((t, i) => armarControl(t, i, quitar));
+    const proyectos = $('#proyectos .proyecto').map((t, i) => armarProyecto(t, i, quitar));
+    if (escritorio) {
+      armarFijo(d.querySelector<HTMLElement>('#control .rejilla'), control, 0.55);
+      armarFijo(d.querySelector<HTMLElement>('#proyectos .proyectos'), proyectos, 0.45);
+    } else {
+      for (const a of [...control, ...proyectos]) alEntrar(a);
+    }
 
     // ---- Pie: las letras de la marca se juntan y el cromo las recorre ----
     const marca = d.querySelector<HTMLElement>('.pie__gigante');
