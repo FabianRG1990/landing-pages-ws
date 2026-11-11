@@ -56,20 +56,10 @@ export interface Textos {
     readonly lead: string;
     readonly cta: string;
     readonly ctaSecundario: string;
-    readonly nota: string;
   };
   /** La interfaz de la app, tal como se ve en el producto. */
   readonly app: {
-    readonly nuevoChat: string;
-    readonly canvas: string;
-    readonly orquestador: string;
-    readonly hoy: string;
-    readonly saludo: string;
     readonly idea: string;
-    readonly permisos: string;
-    readonly repositorios: string;
-    readonly crear: string;
-    readonly publico: string;
     readonly proceso: string;
     readonly etapas: readonly string[];
     readonly hecho: string;
@@ -189,19 +179,9 @@ const ES: Textos = {
     lead: 'Cuéntale tu idea. Tunneller pregunta, especifica, planifica y la construye con pruebas. Tú apruebas cada paso y recibes una app publicada.',
     cta: 'Agenda una demo',
     ctaSecundario: 'Ver cómo trabaja',
-    nota: 'Trabaja sobre tu GitHub · issues, pull requests y vista previa en cada proyecto',
   },
   app: {
-    nuevoChat: 'Nuevo chat',
-    canvas: 'Canvas',
-    orquestador: 'Orquestador',
-    hoy: 'Hoy',
-    saludo: 'Hola. ¿En qué repositorio trabajamos hoy?',
     idea: 'Quiero una app sencilla tipo ruleta para tomar decisiones: escribo algunas opciones y la giro.',
-    permisos: 'Permisos totales',
-    repositorios: 'Repositorios',
-    crear: 'Crear repositorio',
-    publico: 'Público',
     proceso: 'Proceso',
     etapas: [
       'Destino',
@@ -452,19 +432,9 @@ const EN: Textos = {
     lead: 'Tell it your idea. Tunneller asks, specifies, plans and builds it with tests. You approve every step and get a published app.',
     cta: 'Book a demo',
     ctaSecundario: 'See how it works',
-    nota: 'Works on your GitHub · issues, pull requests and a preview for every project',
   },
   app: {
-    nuevoChat: 'New chat',
-    canvas: 'Canvas',
-    orquestador: 'Orchestrator',
-    hoy: 'Today',
-    saludo: 'Hi. Which repository are we working on today?',
     idea: 'I want a simple roulette app to make decisions: I type a few options and spin it.',
-    permisos: 'Full permissions',
-    repositorios: 'Repositories',
-    crear: 'Create repository',
-    publico: 'Public',
     proceso: 'Process',
     etapas: [
       'Destination',

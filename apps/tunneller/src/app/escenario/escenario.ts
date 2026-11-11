@@ -46,6 +46,8 @@ export class Escenario {
 
   alternarPausa(): void {
     this.pausado.update((p) => !p);
+    // Las animaciones CSS que se repiten también se detienen.
+    this.doc.documentElement.classList.toggle('en-pausa', this.pausado());
   }
 
   detener(): void {
