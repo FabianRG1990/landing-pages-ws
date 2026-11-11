@@ -9,6 +9,7 @@ import {
 } from '@angular/core';
 import { DOCUMENT } from '@angular/common';
 import { Escenario } from '../escenario/escenario';
+import { Agua } from './agua';
 
 /**
  * El tono de la página (0 negro, 1 blanco) baja sin pausas de la plata
@@ -93,6 +94,7 @@ const FRAG = /* glsl */ `
 precision highp float;
 #define RELIEVE_ESCALA 2600.0
 #define RELIEVE_ALTO 0.6
+#define AGUA_RELIEVE 1.8
 uniform vec2 uRes;
 uniform float uEsc;
 uniform float uT;
@@ -103,9 +105,9 @@ uniform float uSigno[${MAX_CAJAS}];
 uniform vec4 uOndas[${MAX_ONDAS}];
 uniform vec4 uCajas[${MAX_CAJAS}];
 uniform float uNCajas;
-uniform vec2 uCursor;
-uniform vec2 uEstela;
-uniform float uPresencia;
+uniform sampler2D uAgua;
+uniform vec2 uAguaPaso;
+uniform float uHayAgua;
 uniform float uPrisma;
 
 vec3 permute(vec3 x) { return mod(((x * 34.0) + 1.0) * x, 289.0); }
@@ -134,7 +136,6 @@ float caja(vec2 p, vec2 b) {
   vec2 q = abs(p) - b;
   return length(max(q, 0.0)) + min(max(q.x, q.y), 0.0);
 }
-float gauss(vec2 d, float r) { return exp(-dot(d, d) / (r * r)); }
 
 // Tono de cada fila: interpolación lineal entre las filas que manda la
 // página (cada ${FILAS}-ava parte de la pantalla), tomadas de un perfil
@@ -149,7 +150,7 @@ float tonoEn(float y) {
 }
 
 // Relieve: pliegues anchos con el dominio deformado, que fluyen despacio,
-// más el dedo del cursor y las ondas que lanzan las secciones.
+// más las ondas que lanzan las secciones (el agua del cursor va aparte).
 float altura(vec2 q, float relieve) {
   vec2 p = (q + uDesp) / RELIEVE_ESCALA;
   float f = uT * 0.035;
@@ -157,9 +158,6 @@ float altura(vec2 q, float relieve) {
   vec2 pw = p + w * 0.85;
   float h = snoise(pw + vec2(0.0, f * 0.6)) + 0.14 * snoise(pw * 2.05 + vec2(3.1, -f));
   h *= relieve * RELIEVE_ALTO * (1.0 + uAgita);
-  vec2 d = q - uCursor;
-  float estela = gauss(q - (uCursor - uEstela * 0.22), 150.0 + length(uEstela) * 0.12);
-  h += uPresencia * (-0.6 * gauss(d, 170.0) - 0.3 * estela * min(1.0, length(uEstela) / 500.0));
   for (int i = 0; i < ${MAX_ONDAS}; i++) {
     vec4 o = uOndas[i];
     float dt = uT - o.z;
@@ -224,6 +222,14 @@ void main() {
   float gx = (altura(q + vec2(e, 0.0), relieve) - h) / e * 1900.0;
   float gy = (altura(q + vec2(0.0, e), relieve) - h) / e * 1900.0;
   vec3 n = normalize(vec3(-gx * 0.17, gy * 0.17, 1.0));
+  // El agua del cursor inclina la superficie con su pendiente; detrás del
+  // texto se calma como el resto.
+  if (uHayAgua > 0.5) {
+    vec2 uv = gl_FragCoord.xy / uRes;
+    float ax = texture2D(uAgua, uv + vec2(uAguaPaso.x, 0.0)).r - texture2D(uAgua, uv - vec2(uAguaPaso.x, 0.0)).r;
+    float ay = texture2D(uAgua, uv + vec2(0.0, uAguaPaso.y)).r - texture2D(uAgua, uv - vec2(0.0, uAguaPaso.y)).r;
+    n = normalize(n + vec3(-ax, -ay, 0.0) * AGUA_RELIEVE * relieve);
+  }
   vec3 R = reflect(vec3(0.0, 0.0, -1.0), n);
 
   // Brillo especular fino de una luz alta a la izquierda.
@@ -256,9 +262,10 @@ const VERT = 'attribute vec2 a; void main(){ gl_Position = vec4(a, 0.0, 1.0); }'
  * grises que refleja un estudio de luz. Su tono baja de forma continua de
  * la plata del hero al negro del pie (ver perfilDeTono).
  *
- * El cursor (o el dedo al arrastrar) empuja el metal con inercia: hunde la
- * superficie y deja una estela que se cierra sola; su fuerza está acotada,
- * así que un movimiento rápido no la vuelve caótica. Las secciones pueden
+ * El cursor (o el dedo al arrastrar) ondula el metal como un dedo que
+ * cruza el agua: detrás deja una estela de ondas que se abren hacia los
+ * lados y se apagan; la fuerza sigue a la velocidad, acotada, así que un
+ * movimiento rápido no la vuelve caótica. Las secciones pueden
  * lanzar una onda suave con `tunneller:onda` ({x, y} en px de pantalla).
  *
  * Un solo triángulo a pantalla completa, a menos píxeles que la pantalla
@@ -311,6 +318,8 @@ export class FondoMetal {
     if (prog && vs && fs) {
       gl.attachShader(prog, vs);
       gl.attachShader(prog, fs);
+      // El agua usa el mismo triángulo: el atributo va en la misma posición.
+      gl.bindAttribLocation(prog, 0, 'a');
       gl.linkProgram(prog);
     }
     if (!prog || !gl.getProgramParameter(prog, gl.LINK_STATUS)) {
@@ -328,7 +337,7 @@ export class FondoMetal {
       res: u('uRes'), esc: u('uEsc'), t: u('uT'), desp: u('uDesp'), agita: u('uAgita'),
       filas: u('uFilas'), ondas: u('uOndas'), prisma: u('uPrisma'),
       cajas: u('uCajas'), nCajas: u('uNCajas'), signo: u('uSigno'),
-      cursor: u('uCursor'), estela: u('uEstela'), presencia: u('uPresencia'),
+      agua: u('uAgua'), aguaPaso: u('uAguaPaso'), hayAgua: u('uHayAgua'),
     };
     html.classList.add('con-metal');
 
@@ -337,18 +346,23 @@ export class FondoMetal {
     // Píxeles de búfer por píxel CSS: el metal es de baja frecuencia.
     let escala = tactil ? 0.55 : 0.7;
 
-    // ---- El cursor: posición con inercia y velocidad acotada ----
-    let ox = innerWidth / 2, oy = innerHeight / 2; // objetivo
-    let cx = ox, cy = oy; // posición suavizada
-    let vx = 0, vy = 0; // estela suavizada (px/s)
-    let presencia = 0, quiere = 0;
-    let quietoDesde = 0;
+    let t = 0;
+
+    // ---- El cursor: arrastra el dedo por el agua ----
+    const agua = reducido ? null : Agua.crear(gl);
+    gl.useProgram(prog);
+    let px = NaN, py = NaN; // la última posición del puntero
     const apuntar = (x: number, y: number) => {
-      ox = x;
-      oy = y;
-      quiere = 1;
-      quietoDesde = 0;
+      if (agua && !Number.isNaN(px)) {
+        // Más deprisa, más ola; acotada para que un tirón no lo vuelva caos.
+        const d = Math.hypot(x - px, y - py);
+        agua.arrastrar(px, py, x, y, Math.min(1, d / 40) * 0.5);
+      }
+      px = x;
+      py = y;
     };
+    // Al salir o levantar el dedo, el siguiente trazo empieza de cero.
+    const cortar = () => (px = NaN);
     // Ratón y lápiz por puntero; el dedo por touchmove, porque al hacer
     // scroll el navegador se queda el gesto y deja de mandar pointermove.
     const alMover = (e: PointerEvent) => {
@@ -358,7 +372,7 @@ export class FondoMetal {
       const d = e.touches[0];
       if (d) apuntar(d.clientX, d.clientY);
     };
-    const alSalir = () => (quiere = 0);
+    const alSalir = cortar;
     addEventListener('pointermove', alMover, { passive: true });
     addEventListener('touchstart', alArrastrar, { passive: true });
     addEventListener('touchmove', alArrastrar, { passive: true });
@@ -368,7 +382,6 @@ export class FondoMetal {
     // ---- Ondas suaves que lanzan las secciones ----
     const ondas = Array.from({ length: MAX_ONDAS }, () => [0, 0, -99, 0]);
     let siguiente = 0;
-    let t = 0;
     const alOndear = (e: Event) => {
       if (reducido) return;
       const d = (e as CustomEvent<{ x: number; y: number; fuerza?: number }>).detail;
@@ -419,32 +432,17 @@ export class FondoMetal {
       if (w !== ancho || h !== alto) {
         canvas.width = ancho = w;
         canvas.height = alto = h;
-        gl.viewport(0, 0, w, h);
       }
+      if (agua) {
+        agua.avanzar(dt, innerWidth, canvas.clientHeight);
+        gl.useProgram(prog);
+      }
+      gl.viewport(0, 0, w, h);
       // El metal va unido a la página, a media velocidad (profundidad).
       const ds = scrollY - ultimoScroll;
       ultimoScroll = scrollY;
       dy += ds * 0.4;
       agita += (Math.min(0.5, Math.abs(ds) / 120) - agita) * Math.min(1, dt * 2);
-
-      // Inercia del cursor: la posición sigue al puntero con retraso y la
-      // estela es su velocidad suavizada y acotada.
-      if (dt > 0) {
-        const k = 1 - Math.exp(-dt * 7);
-        const px = cx, py = cy;
-        cx += (ox - cx) * k;
-        cy += (oy - cy) * k;
-        const lim = 900;
-        const nvx = Math.max(-lim, Math.min(lim, (cx - px) / dt));
-        const nvy = Math.max(-lim, Math.min(lim, (cy - py) / dt));
-        const kv = 1 - Math.exp(-dt * 5);
-        vx += (nvx - vx) * kv;
-        vy += (nvy - vy) * kv;
-        // Si el puntero se queda quieto mucho rato, el hueco se cierra.
-        quietoDesde += dt;
-        const objetivo = quiere * (quietoDesde > 2.5 ? 0.35 : 1);
-        presencia += (objetivo - presencia) * (1 - Math.exp(-dt * 2.5));
-      }
 
       const vh = innerHeight;
       if (rebuscar) {
@@ -499,9 +497,13 @@ export class FondoMetal {
       gl.uniform4fv(U.ondas, ondas.flat());
       gl.uniform4fv(U.cajas, cajas);
       gl.uniform1f(U.nCajas, nCajas);
-      gl.uniform2f(U.cursor, cx, cy);
-      gl.uniform2f(U.estela, vx, vy);
-      gl.uniform1f(U.presencia, reducido ? 0 : presencia);
+      if (agua) {
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, agua.textura);
+        gl.uniform1i(U.agua, 0);
+        gl.uniform2f(U.aguaPaso, ...agua.paso);
+      }
+      gl.uniform1f(U.hayAgua, agua ? 1 : 0);
       gl.drawArrays(gl.TRIANGLES, 0, 3);
     };
 
@@ -542,6 +544,7 @@ export class FondoMetal {
       removeEventListener('resize', alRedimensionar);
       this.doc.documentElement.removeEventListener('pointerleave', alSalir);
       mo.disconnect();
+      agua?.liberar();
       html.classList.remove('con-metal', 'cabecera-oscura');
       html.style.removeProperty('--gris-cabecera');
     });
