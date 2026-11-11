@@ -1,7 +1,7 @@
 // Escritorio: dos columnas, texto que baja y ventana fija. La altura de la
-// ventana manda: 32rem cabe en una pantalla de 768 px de alto.
+// ventana manda: 40rem cabe en una pantalla de 768 px de alto.
 .recorrido {
-  --alto-ventana: min(32rem, calc(100svh - var(--nav-alto) - 3rem));
+  --alto-ventana: min(40rem, calc(100svh - var(--nav-alto) - 3rem));
 
   @media (min-width: 64rem) {
     display: grid;

@@ -9,23 +9,25 @@ import { Idioma } from '../i18n/idioma';
 // Posición de cada nodo del Canvas, en % del área: centro horizontal y
 // borde superior. Es el grafo real de la Ruleta: proyecto → especificación
 // → lista → (recordar | rueda) → girar.
+// Los nodos solos en su fila son anchos: así su título cabe en una línea.
 const NODOS = [
-  { x: 50, y: 2, estado: 'curso' },
-  { x: 50, y: 22, estado: 'hecho' },
-  { x: 50, y: 42, estado: 'libre' },
-  { x: 25, y: 64, estado: 'bloqueado' },
-  { x: 75, y: 64, estado: 'bloqueado' },
-  { x: 75, y: 84, estado: 'bloqueado' },
+  { x: 50, y: 2, estado: 'curso', ancho: true },
+  { x: 50, y: 21, estado: 'hecho', ancho: true },
+  { x: 50, y: 40, estado: 'libre', ancho: true },
+  { x: 25, y: 60, estado: 'bloqueado', ancho: false },
+  { x: 75, y: 60, estado: 'bloqueado', ancho: false },
+  { x: 75, y: 80, estado: 'bloqueado', ancho: false },
 ] as const;
 
-// Aristas en coordenadas del área (0..100), de la base de un nodo a la
-// cima del siguiente.
+// Aristas en coordenadas del área (0..100), de dentro de un nodo a la
+// cima del siguiente: el alto del nodo depende de la letra, así que la
+// arista nace tapada por él (las tarjetas son opacas).
 const ARISTAS = [
-  'M50 15 L50 22',
-  'M50 35 L50 42',
-  'M50 55 C50 60 25 59 25 64',
-  'M50 55 C50 60 75 59 75 64',
-  'M75 77 L75 84',
+  'M50 10 L50 21',
+  'M50 29 L50 40',
+  'M50 48 C50 55 25 54 25 60',
+  'M50 48 C50 55 75 54 75 60',
+  'M75 68 L75 80',
 ] as const;
 
 const LETRAS = 'abc';
@@ -133,6 +135,7 @@ const CASILLAS = Array.from({ length: 64 }, (_, i) => {
             <div
               data-p
               [class]="'p-nodo p-nodo--' + pos.estado"
+              [class.p-nodo--ancho]="pos.ancho"
               [style.left.%]="pos.x"
               [style.top.%]="pos.y"
               [style.--d]="i"
