@@ -243,8 +243,8 @@ export const PRODUCTOS: readonly Producto[] = [
     linea: 'hojaldre',
     descripcion: 'Doraditas y crujientes por fuera, suaves por dentro y con un relleno generoso.',
     atributos: ['Crujiente', 'Relleno dulce'],
-    imagen: null,
-    alt: '',
+    imagen: 'img/productos/empanadas.webp',
+    alt: 'Empanadita de piña, junto a su bolsa Moofy.',
   },
   {
     id: 'choco-gatos',
@@ -323,8 +323,8 @@ export const PRODUCTOS: readonly Producto[] = [
     linea: 'panaderia-dulce',
     descripcion: 'Doradita, suave y ligera, de sabor delicado para acompañar un café.',
     atributos: ['Suave', 'Ligero'],
-    imagen: null,
-    alt: '',
+    imagen: 'img/productos/media-luna.webp',
+    alt: 'Media luna dorada, junto a su caja Moofy.',
   },
   {
     id: 'julietas',
@@ -353,8 +353,8 @@ export const PRODUCTOS: readonly Producto[] = [
     linea: 'galleteria',
     descripcion: 'Crujientes y doraditas, de textura ligera y dulzor suave.',
     atributos: ['Crujiente', 'Ligero'],
-    imagen: null,
-    alt: '',
+    imagen: 'img/productos/galletas-pan.webp',
+    alt: 'Galleta dulce de panadería, junto a su caja Panjosé.',
   },
   {
     id: 'bizcotela',
@@ -383,8 +383,8 @@ export const PRODUCTOS: readonly Producto[] = [
     linea: 'salados',
     descripcion: 'Doraditas y bien tostadas, con queso por encima.',
     atributos: ['Crocante', 'Toque salado'],
-    imagen: null,
-    alt: '',
+    imagen: 'img/productos/rosquillas.webp',
+    alt: 'Rosquilla tostada con queso, junto a su caja Moofy.',
   },
   {
     id: 'grissines',
@@ -393,8 +393,8 @@ export const PRODUCTOS: readonly Producto[] = [
     linea: 'salados',
     descripcion: 'Crujientes y de textura firme, para picar o acompañar.',
     atributos: ['Crocante', 'Firme'],
-    imagen: null,
-    alt: '',
+    imagen: 'img/productos/grissines.webp',
+    alt: 'Grissin casero, junto a su bolsa Moofy.',
   },
   {
     id: 'bizcochos-maiz',
@@ -404,7 +404,7 @@ export const PRODUCTOS: readonly Producto[] = [
     descripcion: 'Firmes y doraditos, con el toque de maíz de siempre.',
     atributos: ['Tradicional', 'Sabor casero'],
     imagen: 'img/productos/bizcochos-maiz.webp',
-    alt: 'Bolsa Moofy de bizcochos de maíz.',
+    alt: 'Bizcocho de maíz, junto a su bolsa Moofy.',
   },
   {
     id: 'bizcochos-guayaba',

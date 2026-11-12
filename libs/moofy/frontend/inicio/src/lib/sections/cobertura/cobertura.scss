@@ -5,11 +5,20 @@
 /* El relevo (escritorio, lo activa cobertura.ts): la sección sube una
    pantalla más la cola del catálogo (RELEVO, 0.4 pantallas) y queda
    montada sobre su final; empieza recortada a un círculo de radio cero
-   y se abre sobre él. Por encima del catálogo, que sigue fijo debajo. */
+   y se abre sobre él. Por encima del catálogo, que sigue fijo debajo.
+   Montada encima, su envoltura (y el pin-spacer de GSAP, que hereda) es
+   transparente pero recibía los toques: con la última tarjeta a la vista,
+   «Catálogo completo» no respondía. Solo toca la sección, y el círculo
+   que la recorta limita el toque a lo que ya se ve en azul. */
 :host(.cobertura-relevo) {
   position: relative;
   z-index: 2;
   margin-top: -140svh;
+  pointer-events: none;
+}
+
+:host(.cobertura-relevo) .cobertura {
+  pointer-events: auto;
 }
 
 /* ---------- La sección ----------
