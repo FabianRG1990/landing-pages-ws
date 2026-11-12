@@ -9,7 +9,7 @@ import { Idioma } from '../i18n/idioma';
 import { SelectorIdioma } from './selector-idioma';
 
 /**
- * Cabecera fija. Al bajar gana un fondo de platino translúcido para que el
+ * Cabecera fija. Al bajar gana un velo gris translúcido para que el
  * contenido que pasa por debajo no se mezcle con los enlaces.
  */
 @Component({

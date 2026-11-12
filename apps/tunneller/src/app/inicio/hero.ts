@@ -15,7 +15,7 @@ import { Titular } from './titular';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @let h = i18n.t().hero;
-    <section class="hero" id="inicio" data-seccion="hero">
+    <section class="hero seccion--oscura" id="inicio" data-seccion="hero">
       <div class="contenedor hero__texto">
         <p class="etiqueta" data-r style="--i: 0">{{ h.etiqueta }}</p>
         <h1 class="display hero__titulo" data-r style="--i: 1">
