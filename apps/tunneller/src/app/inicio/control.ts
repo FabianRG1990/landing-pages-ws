@@ -1,11 +1,4 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  DestroyRef,
-  ElementRef,
-  afterNextRender,
-  inject,
-} from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { Idioma } from '../i18n/idioma';
 import { Titular } from './titular';
 
@@ -94,36 +87,4 @@ import { Titular } from './titular';
 })
 export class Control {
   protected readonly i18n = inject(Idioma);
-  private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
-
-  constructor() {
-    const destruir = inject(DestroyRef);
-    // Cuando el piloto automático se enciende (0.9 s después de entrar la
-    // sección), sale una onda del interruptor en el metal del fondo.
-    afterNextRender(() => {
-      const riel = this.host.nativeElement.querySelector<HTMLElement>('.interruptor__riel');
-      if (!riel) return;
-      let espera = 0;
-      const io = new IntersectionObserver(
-        (e) => {
-          if (!e[0].isIntersecting) return;
-          io.disconnect();
-          espera = window.setTimeout(() => {
-            const b = riel.getBoundingClientRect();
-            dispatchEvent(
-              new CustomEvent('tunneller:onda', {
-                detail: { x: b.left + b.width / 2, y: b.top + b.height / 2, fuerza: 1.1 },
-              }),
-            );
-          }, 1000);
-        },
-        { rootMargin: '0px 0px -20% 0px' },
-      );
-      io.observe(riel);
-      destruir.onDestroy(() => {
-        io.disconnect();
-        clearTimeout(espera);
-      });
-    });
-  }
 }

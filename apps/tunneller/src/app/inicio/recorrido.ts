@@ -34,7 +34,7 @@ import { Titular } from './titular';
   template: `
     @let r = i18n.t().recorrido;
     <section
-      class="seccion"
+      class="seccion seccion--oscura"
       id="recorrido"
       data-seccion="recorrido"
     >
@@ -99,21 +99,6 @@ export class Recorrido {
     false,
   ]);
 
-  /**
-   * Cada etapa nueva lanza una onda en el metal desde la ventana de la app.
-   * La ventana no se mueve: solo cambia su escena.
-   */
-  private ondear(etapa: HTMLElement): void {
-    const fijo = this.host.nativeElement.querySelector<HTMLElement>('.recorrido__fijo');
-    const ref = fijo && fijo.offsetParent ? fijo : etapa;
-    const b = ref.getBoundingClientRect();
-    dispatchEvent(
-      new CustomEvent('tunneller:onda', {
-        detail: { x: b.left + b.width / 2, y: b.top + b.height / 2, fuerza: 1.2 },
-      }),
-    );
-  }
-
   constructor() {
     const destruir = inject(DestroyRef);
     afterNextRender(() => {
@@ -129,7 +114,6 @@ export class Recorrido {
             const i = Number((e.target as HTMLElement).dataset['etapa']);
             if (i === this.actual()) continue;
             this.actual.set(i);
-            this.ondear(e.target as HTMLElement);
           }
         },
         { rootMargin: '-48% 0px -48% 0px', threshold: 0 },
