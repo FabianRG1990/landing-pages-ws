@@ -1,0 +1,88 @@
+{
+  "name": "tunneller",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "prefix": "app",
+  "sourceRoot": "apps/tunneller/src",
+  "tags": ["scope:tunneller"],
+  "targets": {
+    "build": {
+      "executor": "@angular/build:application",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/apps/tunneller",
+        "browser": "apps/tunneller/src/main.ts",
+        "tsConfig": "apps/tunneller/tsconfig.app.json",
+        "inlineStyleLanguage": "scss",
+        "assets": [
+          {
+            "glob": "**/*",
+            "input": "apps/tunneller/public"
+          }
+        ],
+        "styles": ["apps/tunneller/src/styles.scss"],
+        "server": "apps/tunneller/src/main.server.ts",
+        "ssr": {
+          "entry": "apps/tunneller/src/server.ts"
+        },
+        "outputMode": "server",
+        "stylePreprocessorOptions": {
+          "includePaths": ["apps/tunneller/src/styles"]
+        }
+      },
+      "configurations": {
+        "production": {
+          "optimization": {
+            "scripts": true,
+            "styles": { "minify": true, "inlineCritical": false },
+            "fonts": true
+          },
+          "budgets": [
+            {
+              "type": "initial",
+              "maximumWarning": "500kb",
+              "maximumError": "1mb"
+            },
+            {
+              "type": "anyComponentStyle",
+              "maximumWarning": "8kb",
+              "maximumError": "12kb"
+            }
+          ],
+          "outputHashing": "all"
+        },
+        "development": {
+          "optimization": false,
+          "extractLicenses": false,
+          "sourceMap": true
+        }
+      },
+      "defaultConfiguration": "production"
+    },
+    "serve": {
+      "continuous": true,
+      "executor": "@angular/build:dev-server",
+      "configurations": {
+        "production": {
+          "buildTarget": "tunneller:build:production"
+        },
+        "development": {
+          "buildTarget": "tunneller:build:development"
+        }
+      },
+      "defaultConfiguration": "development"
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint"
+    },
+    "serve-static": {
+      "continuous": true,
+      "executor": "@nx/web:file-server",
+      "options": {
+        "buildTarget": "tunneller:build",
+        "staticFilePath": "dist/apps/tunneller/browser",
+        "spa": true
+      }
+    }
+  }
+}

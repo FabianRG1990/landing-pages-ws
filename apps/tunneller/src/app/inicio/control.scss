@@ -1,0 +1,242 @@
+.rejilla {
+  display: grid;
+  gap: 1rem;
+
+  @media (min-width: 48rem) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+// Tarjeta de platino más clara que el fondo, con canto de luz arriba: una
+// placa mecanizada, no una caja con sombra genérica.
+.tarjeta {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  align-content: start;
+  gap: 0.625rem;
+  padding: clamp(1.5rem, 3vw, 2rem);
+  border-radius: 20px;
+}
+
+// El fondo de la placa en su propia capa: la coreografía la llena después
+// de juntar sus esquinas.
+.tarjeta::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  // La coreografía la llena de abajo arriba (--llena de 0 a 1).
+  clip-path: inset(calc((1 - var(--llena, 1)) * 100%) 0 0 0 round 20px);
+  background: linear-gradient(
+    180deg,
+    var(--platino-50) 0%,
+    var(--platino-100) 100%
+  );
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.9),
+    0 0 0 1px var(--linea),
+    0 18px 40px -30px rgb(23 24 27 / 0.35);
+}
+
+.tarjeta__titulo {
+  font-family: var(--fuente-display);
+  font-size: var(--t-h3);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+
+.tarjeta__texto {
+  max-width: 30rem;
+  color: var(--tinta-2);
+  text-wrap: pretty;
+}
+
+// La muestra: el control tal como aparece en la app, en su marino.
+.muestra {
+  display: grid;
+  align-content: center;
+  gap: 0.75rem;
+  min-height: 8.5rem;
+  margin-bottom: 0.75rem;
+  padding: 1.25rem;
+  border-radius: 12px;
+  background: var(--app-fondo);
+  box-shadow: 0 0 0 1px rgb(23 24 27 / 0.2);
+  color: var(--app-texto);
+  font-size: 0.9375rem;
+}
+
+.interruptor {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-weight: 500;
+}
+
+.interruptor__riel {
+  position: relative;
+  width: 2.25rem;
+  height: 1.25rem;
+  border-radius: 999px;
+  background: var(--app-azul);
+  transition: background 0.4s var(--ease-suave) 0.15s;
+
+  i {
+    position: absolute;
+    top: 2px;
+    left: 2px;
+    width: calc(1.25rem - 4px);
+    height: calc(1.25rem - 4px);
+    border-radius: 50%;
+    background: var(--app-texto);
+    transform: translateX(1rem);
+    transition: transform 0.5s cubic-bezier(0.34, 1.3, 0.5, 1) 0.15s;
+  }
+}
+
+// Con la coreografía, cada tarjeta está «apagada» mientras se arma y se
+// enciende al terminar (clase activo). Sin ella se ve ya funcionando.
+// :host-context y no `.escena-viva` a secas: Angular le pondría a <html>
+// el atributo del componente y la regla no coincidiría nunca.
+:host-context(.escena-viva) .tarjeta:not(.activo) .interruptor__riel {
+  background: rgb(148 163 196 / 0.22);
+  transition-delay: 0s;
+
+  i {
+    transform: none;
+    transition-delay: 0s;
+  }
+}
+
+.contador {
+  color: var(--app-texto-2);
+
+  b {
+    display: inline-grid;
+    place-items: center;
+    min-width: 1.5rem;
+    height: 1.5rem;
+    margin-left: 0.375rem;
+    border-radius: 999px;
+    background: rgb(216 166 78 / 0.16);
+    color: var(--app-ambar);
+    font-size: 0.8125rem;
+  }
+}
+
+.botones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.b {
+  padding: 0.375rem 0.75rem;
+  border-radius: 6px;
+  box-shadow: inset 0 0 0 1px var(--app-linea);
+  color: var(--app-texto-2);
+}
+
+.b--si {
+  background: var(--app-azul);
+  box-shadow: none;
+  color: var(--app-fondo);
+  font-weight: 600;
+}
+
+.b--no {
+  color: var(--app-rojo);
+}
+
+.muestra--texto {
+  color: var(--app-texto-2);
+}
+
+.revertir {
+  font-family: var(--fuente-mono);
+  font-size: 0.875rem;
+  color: var(--app-ambar);
+}
+
+.muestra--lista {
+  gap: 0.5rem;
+
+  p {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+  }
+
+  svg {
+    width: 0.9375rem;
+    height: 0.9375rem;
+    color: var(--app-texto-2);
+  }
+}
+
+.ok {
+  display: inline-grid;
+  place-items: center;
+  width: 1.125rem;
+  height: 1.125rem;
+  margin-left: auto;
+  border-radius: 50%;
+  background: var(--app-verde);
+  color: var(--app-fondo);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+// Al armarse cada tarjeta, su control se activa: Aprobar se pulsa, la
+// línea Revertir se escribe y las comprobaciones se marcan una a una.
+:host-context(.escena-viva) .activo .b--si {
+  animation: pulsar 0.7s var(--ease-salida) 0.15s both;
+}
+
+@keyframes pulsar {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgb(108 180 214 / 0.6);
+  }
+  35% {
+    transform: scale(0.93);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 10px rgb(108 180 214 / 0);
+  }
+}
+
+.revertir {
+  transition: clip-path 0.9s var(--ease-suave) 0.2s;
+}
+
+:host-context(.escena-viva) .tarjeta:not(.activo) .revertir {
+  clip-path: inset(0 100% 0 0);
+}
+
+.ok {
+  transition: transform 0.45s cubic-bezier(0.34, 1.4, 0.5, 1);
+}
+
+.muestra--lista p:nth-child(2) .ok {
+  transition-delay: 0.25s;
+}
+
+.muestra--lista p:nth-child(3) .ok {
+  transition-delay: 0.55s;
+}
+
+:host-context(.escena-viva) .tarjeta:not(.activo) .ok {
+  transform: scale(0);
+  transition-delay: 0s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .interruptor__riel,
+  .interruptor__riel i {
+    transition: none;
+  }
+}

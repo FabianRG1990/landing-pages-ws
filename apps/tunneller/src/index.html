@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <title>Context Dev — De una idea a una app que funciona</title>
+    <base href="/" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <meta
+      name="description"
+      content="Context Dev es un agente de IA que convierte una idea en una app publicada: pregunta, especifica, planifica y construye con pruebas, y tú apruebas cada paso."
+    />
+    <meta name="robots" content="noindex" />
+    <meta name="theme-color" content="#252525" />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+
+    <!-- El estado inicial de las entradas tiene que existir ANTES del
+         primer pintado; si lo pusiera Angular al hidratar, el contenido
+         se vería, desaparecería y volvería a entrar. Si la app no arranca
+         en 4 s, la clase se retira y todo queda visible. -->
+    <script>
+      (function () {
+        var html = document.documentElement;
+        try {
+          var guardado = localStorage.getItem('tunneller-idioma');
+          var idioma =
+            guardado ||
+            ((navigator.language || 'es').toLowerCase().indexOf('es') === 0
+              ? 'es'
+              : 'en');
+          // El HTML prerenderizado está en español: si toca inglés, el
+          // contenido espera oculto a que la app ponga el texto correcto.
+          if (idioma === 'en') html.classList.add('cambiando-idioma');
+        } catch (e) {}
+        setTimeout(function () {
+          html.classList.remove('cambiando-idioma');
+          if (!html.classList.contains('movimiento-listo'))
+            html.classList.remove('con-movimiento');
+        }, 4000);
+        // La primera pantalla espera a su tipografía (ver .fuentes-listas en
+        // styles.scss), como mucho 2,5 s; las pide el script que sigue a las
+        // @font-face.
+        setTimeout(function () {
+          html.classList.add('fuentes-listas');
+        }, 2500);
+        if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        html.classList.add('con-movimiento');
+      })();
+    </script>
+
+    <!-- Inter Tight para titulares, Inter para texto, JetBrains Mono para
+         etiquetas y la consola del producto. Servidas desde el propio
+         sitio y precargadas: desde Google cada una esperaba a abrir otra
+         conexión, y la primera pantalla tardaba en poder entrar. Son las
+         variables de Google Fonts (juego latino), con licencia OFL. -->
+    <link rel="preload" href="fuentes/inter-tight.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="fuentes/inter.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="fuentes/jetbrains-mono.woff2" as="font" type="font/woff2" crossorigin />
+    <style>
+      @font-face {
+        font-family: 'Inter Tight';
+        font-style: normal;
+        font-weight: 500 600;
+        font-display: swap;
+        src: url('fuentes/inter-tight.woff2') format('woff2');
+        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+      }
+      @font-face {
+        font-family: 'Inter';
+        font-style: normal;
+        font-weight: 400 600;
+        font-display: swap;
+        src: url('fuentes/inter.woff2') format('woff2');
+        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+      }
+      @font-face {
+        font-family: 'JetBrains Mono';
+        font-style: normal;
+        font-weight: 400 500;
+        font-display: swap;
+        src: url('fuentes/jetbrains-mono.woff2') format('woff2');
+        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+      }
+    </style>
+    <!-- Justo después de las @font-face: pide ya las tres caras de la
+         primera pantalla, sin esperar a que el documento termine de
+         cargar (en el teléfono eso tarda lo que tarda el JavaScript). -->
+    <script>
+      (function () {
+        var html = document.documentElement;
+        var listas = function () {
+          html.classList.add('fuentes-listas');
+        };
+        if (!document.fonts || !document.fonts.load) return listas();
+        Promise.all([
+          document.fonts.load('600 1em "Inter Tight"'),
+          document.fonts.load('400 1em Inter'),
+          document.fonts.load('500 1em "JetBrains Mono"'),
+        ]).then(listas, listas);
+      })();
+    </script>
+  </head>
+  <body>
+    <app-root></app-root>
+  </body>
+</html>

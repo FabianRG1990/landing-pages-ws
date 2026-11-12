@@ -1,0 +1,762 @@
+// La interfaz de la app, recreada en HTML: marino oscuro como el producto
+// real. Es global porque la comparten el hero, la ventana del recorrido y
+// las escenas en móvil.
+
+.app {
+  --t: 0.9375rem;
+  height: 100%;
+  background: var(--app-fondo);
+  color: var(--app-texto);
+  font-family: var(--fuente-texto);
+  font-size: var(--t);
+  line-height: 1.5;
+  text-align: left;
+  overflow: hidden;
+}
+
+// ---------- Ventana del recorrido ----------
+.app--ventana {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+.app-barra {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  height: 2.625rem;
+  padding-inline: 1rem;
+  border-bottom: 1px solid var(--app-linea);
+  font-size: 0.875rem;
+  color: var(--app-texto-2);
+}
+
+.app-barra__repo {
+  font-weight: 600;
+  color: var(--app-texto);
+}
+
+.app-barra__pestana {
+  padding: 0.1875rem 0.5rem;
+  border-radius: 5px;
+  background: rgb(148 163 196 / 0.08);
+}
+
+.app-estado {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  margin-left: auto;
+  padding: 0.1875rem 0.5625rem;
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 1px rgb(216 166 78 / 0.4);
+  color: var(--app-ambar);
+  font-size: 0.8125rem;
+  transition:
+    color 0.5s,
+    box-shadow 0.5s;
+
+  i {
+    width: 0.375rem;
+    height: 0.375rem;
+    border-radius: 50%;
+    background: currentColor;
+  }
+}
+
+.app-estado--hecho {
+  box-shadow: inset 0 0 0 1px rgb(95 191 138 / 0.45);
+  color: var(--app-verde);
+}
+
+.app-cuerpo {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 13.5rem;
+  min-height: 0;
+}
+
+.app-escenas {
+  position: relative;
+  min-height: 0;
+}
+
+.app-escenas > .pantalla {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  visibility: hidden;
+  transform: translate3d(0, 0.5rem, 0);
+  transition:
+    opacity 0.45s var(--ease-suave),
+    transform 0.6s var(--ease-salida),
+    visibility 0s linear 0.45s;
+}
+
+.app-escenas > .pantalla.actual {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+  transition-delay: 0.12s, 0.12s, 0s;
+}
+
+.app-proceso {
+  padding: 1rem 0.875rem;
+  border-left: 1px solid var(--app-linea);
+  background: var(--app-panel);
+
+  ol {
+    display: grid;
+    gap: 0.75rem;
+    margin-top: 0.875rem;
+  }
+
+  li {
+    display: grid;
+    grid-template-columns: 1.125rem 1fr;
+    gap: 0.5rem;
+    align-items: start;
+    color: var(--app-texto-3);
+    font-size: 0.875rem;
+    line-height: 1.3;
+    transition: color 0.5s;
+  }
+
+  small {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--app-texto-3);
+  }
+
+  li.hecho,
+  li.actual {
+    color: var(--app-texto);
+  }
+
+  li.actual small {
+    color: var(--app-ambar);
+  }
+}
+
+.app-proceso__t {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--app-texto-3);
+}
+
+.app-proceso__icono {
+  display: grid;
+  place-items: center;
+  width: 1.125rem;
+  height: 1.125rem;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1px rgb(148 163 196 / 0.3);
+  transition:
+    background 0.5s,
+    box-shadow 0.5s;
+
+  svg {
+    width: 0.75rem;
+    height: 0.75rem;
+  }
+}
+
+.hecho .app-proceso__icono {
+  background: var(--app-verde);
+  box-shadow: none;
+  color: var(--app-fondo);
+}
+
+.actual .app-proceso__icono {
+  box-shadow: inset 0 0 0 1.5px var(--app-ambar);
+}
+
+// ---------- Escenas ----------
+.pantalla {
+  display: block;
+  padding: 1.125rem 1.25rem;
+  overflow: hidden;
+}
+
+// Cada pieza entra escalonada al activarse la escena y queda así.
+.pantalla [data-p] {
+  opacity: 0;
+  transform: translate3d(0, 0.5rem, 0);
+  transition:
+    opacity 0.55s var(--ease-salida) calc(var(--d, 0) * 260ms + 250ms),
+    transform 0.7s var(--ease-salida) calc(var(--d, 0) * 260ms + 250ms);
+}
+
+.pantalla.activa [data-p] {
+  opacity: 1;
+  transform: none;
+}
+
+// Sin movimiento todo se ve desde el principio.
+@media (prefers-reduced-motion: reduce) {
+  .pantalla [data-p] {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+.p-hilo {
+  display: grid;
+  gap: 0.75rem;
+}
+
+// En los portátiles bajos la ventana mide menos: el chat se compacta para
+// que la última respuesta no se corte.
+@media (max-height: 760px) and (min-width: 64rem) {
+  .pantalla {
+    padding-block: 0.75rem;
+  }
+
+  .p-hilo {
+    gap: 0.5rem;
+  }
+}
+
+.p-quien {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--app-texto-3);
+}
+
+.p-tu {
+  justify-self: end;
+  max-width: 82%;
+  text-align: right;
+}
+
+.p-burbuja {
+  padding: 0.5rem 0.75rem;
+  border-radius: 10px;
+  background: rgb(108 180 214 / 0.14);
+  text-align: left;
+}
+
+.p-ia {
+  color: var(--app-texto);
+}
+
+.p-pregunta {
+  display: grid;
+  gap: 0.375rem;
+}
+
+.p-pregunta__q b {
+  margin-right: 0.25rem;
+  color: var(--app-ambar);
+}
+
+.p-opciones {
+  display: grid;
+  gap: 0.125rem;
+  padding-left: 0.75rem;
+  color: var(--app-texto-2);
+}
+
+.p-reco {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.4375rem 0.625rem;
+  border-radius: 6px;
+  background: rgb(108 180 214 / 0.08);
+  color: var(--app-texto);
+}
+
+.p-flecha {
+  color: var(--app-azul);
+}
+
+.p-puntos {
+  display: grid;
+  gap: 0.375rem;
+
+  li {
+    position: relative;
+    padding-left: 0.875rem;
+    color: var(--app-texto-2);
+
+    &::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0.6em;
+      width: 0.3125rem;
+      height: 0.3125rem;
+      border-radius: 50%;
+      background: var(--app-texto-3);
+    }
+  }
+}
+
+.p-decision {
+  padding: 0.625rem 0.75rem;
+  border-radius: 8px;
+  box-shadow: inset 0 0 0 1px var(--app-linea);
+  color: var(--app-texto-2);
+}
+
+.p-revertir {
+  margin-top: 0.25rem;
+  font-family: var(--fuente-mono);
+  font-size: 0.8125rem;
+  color: var(--app-texto-3);
+}
+
+.p-revision {
+  padding: 0.75rem;
+  border-radius: 8px;
+  background: rgb(216 166 78 / 0.07);
+  box-shadow: inset 3px 0 0 var(--app-ambar);
+}
+
+.p-revision__t {
+  font-weight: 600;
+  color: var(--app-ambar);
+}
+
+.p-botones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  margin-top: 0.625rem;
+}
+
+.p-boton {
+  padding: 0.25rem 0.625rem;
+  border-radius: 5px;
+  box-shadow: inset 0 0 0 1px var(--app-linea);
+  font-size: 0.875rem;
+  color: var(--app-texto-2);
+}
+
+.p-boton--aprobar {
+  background: var(--app-azul);
+  box-shadow: none;
+  color: var(--app-fondo);
+  font-weight: 600;
+}
+
+.p-boton--detener {
+  color: var(--app-rojo);
+}
+
+// El clic de Aprobar: un pulso al final de la escena.
+.pantalla.activa .p-boton--aprobar {
+  animation: aprobar 0.6s var(--ease-salida) 2.4s both;
+}
+
+@keyframes aprobar {
+  40% {
+    transform: scale(0.94);
+    box-shadow: 0 0 0 0 rgb(108 180 214 / 0.5);
+  }
+  100% {
+    transform: none;
+    box-shadow: 0 0 0 6px rgb(108 180 214 / 0);
+  }
+}
+
+// Canvas: grafo de tareas.
+.p-canvas {
+  position: relative;
+  height: 100%;
+  min-height: 22rem;
+  background-image: radial-gradient(
+    rgb(148 163 196 / 0.14) 1px,
+    transparent 1px
+  );
+  background-size: 14px 14px;
+  border-radius: 6px;
+
+  @media (max-width: 63.99rem) {
+    min-height: 30rem;
+  }
+
+  // En los teléfonos estrechos los títulos ocupan más líneas.
+  @media (max-width: 400px) {
+    min-height: 35rem;
+  }
+}
+
+.p-aristas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+
+  path {
+    fill: none;
+    stroke: rgb(95 191 138 / 0.85);
+    stroke-width: 1.5;
+    vector-effect: non-scaling-stroke;
+    transform: scaleY(0);
+    transform-box: fill-box;
+    transform-origin: 50% 0;
+    transition: transform 0.7s var(--ease-salida)
+      calc(var(--d, 0) * 260ms + 250ms);
+  }
+}
+
+.pantalla.activa .p-aristas path {
+  transform: none;
+}
+
+.p-nodo {
+  position: absolute;
+  translate: -50% 0;
+  display: grid;
+  gap: 0.125rem;
+  width: min(46%, 14rem);
+  padding: 0.4375rem 0.5625rem;
+  border-radius: 7px;
+  background: var(--app-tarjeta);
+  box-shadow:
+    inset 0 0 0 1px var(--app-linea),
+    0 6px 16px -8px rgb(0 0 0 / 0.6);
+  font-size: 0.8125rem;
+}
+
+.p-nodo--ancho {
+  width: min(78%, 18rem);
+}
+
+.p-nodo__tipo {
+  color: var(--app-texto-3);
+  font-size: 0.75rem;
+}
+
+// Con letra legible el título no siempre cabe en una línea: se parte.
+.p-nodo__titulo {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  line-height: 1.3;
+  font-weight: 600;
+  color: var(--app-texto);
+}
+
+.p-nodo__estado {
+  justify-self: start;
+  margin-top: 0.125rem;
+  padding: 0 0.375rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  line-height: 1.6;
+  color: var(--app-texto-2);
+  background: rgb(148 163 196 / 0.1);
+}
+
+.p-nodo--hecho {
+  box-shadow:
+    inset 0 0 0 1px rgb(95 191 138 / 0.5),
+    0 6px 16px -8px rgb(0 0 0 / 0.6);
+
+  .p-nodo__estado {
+    color: var(--app-verde);
+    background: rgb(95 191 138 / 0.12);
+  }
+}
+
+.p-nodo--curso .p-nodo__estado {
+  color: var(--app-ambar);
+  background: rgb(216 166 78 / 0.12);
+}
+
+.p-nodo--libre {
+  box-shadow:
+    inset 0 0 0 1px rgb(108 180 214 / 0.55),
+    0 6px 16px -8px rgb(0 0 0 / 0.6);
+
+  .p-nodo__estado {
+    color: var(--app-azul);
+    background: rgb(108 180 214 / 0.12);
+  }
+}
+
+.p-nodo--bloqueado .p-nodo__estado {
+  color: var(--app-rojo);
+  background: rgb(212 106 106 / 0.12);
+}
+
+// Consola.
+.p-consola {
+  display: grid;
+  align-content: start;
+  gap: 0.625rem;
+}
+
+.p-linea {
+  display: flex;
+  gap: 0.625rem;
+  align-items: baseline;
+  color: var(--app-texto);
+}
+
+.p-punto {
+  flex: none;
+  width: 0.4375rem;
+  height: 0.4375rem;
+  border-radius: 50%;
+  background: var(--app-verde);
+  transform: translateY(-0.05em);
+}
+
+.p-punto--rojo {
+  background: var(--app-rojo);
+}
+
+.p-pruebas {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  background: rgb(95 191 138 / 0.08);
+  box-shadow: inset 0 0 0 1px rgb(95 191 138 / 0.3);
+
+  code {
+    font-family: var(--fuente-mono);
+    font-size: 0.875rem;
+    color: var(--app-texto);
+  }
+}
+
+.p-check {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 1rem;
+  height: 1rem;
+  border-radius: 50%;
+  background: var(--app-verde);
+  color: var(--app-fondo);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.p-progreso {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 0.75rem;
+  align-items: center;
+  margin-top: 0.375rem;
+  font-size: 0.8125rem;
+  color: var(--app-texto-2);
+}
+
+.p-barra {
+  height: 4px;
+  border-radius: 2px;
+  background: rgb(148 163 196 / 0.15);
+  overflow: hidden;
+
+  i {
+    display: block;
+    height: 100%;
+    background: var(--app-verde);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 1.4s var(--ease-salida) 1.7s;
+  }
+}
+
+.pantalla.activa .p-barra i {
+  transform: none;
+}
+
+// Entrega: el pull request y la app funcionando.
+.p-entrega {
+  display: grid;
+  gap: 0.875rem;
+}
+
+.p-pr {
+  display: grid;
+  gap: 0.375rem;
+  padding: 0.75rem 0.875rem;
+  border-radius: 8px;
+  background: var(--app-tarjeta);
+  box-shadow: inset 0 0 0 1px var(--app-linea);
+}
+
+.p-pr__titulo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+  font-weight: 600;
+}
+
+.p-pr__abierto {
+  padding: 0.0625rem 0.4375rem;
+  border-radius: 999px;
+  background: var(--app-verde);
+  color: var(--app-fondo);
+  font-size: 0.75rem;
+}
+
+.p-pr__num {
+  font-weight: 400;
+  color: var(--app-texto-3);
+}
+
+.p-pr__fila {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--app-texto-2);
+
+  b {
+    color: var(--app-texto);
+    font-weight: 600;
+  }
+
+  small {
+    display: block;
+    font-size: 0.8125rem;
+    color: var(--app-texto-3);
+  }
+}
+
+.p-demo {
+  padding: 0.75rem 0.875rem 0.875rem;
+  border-radius: 8px;
+  background: #f4f3ef;
+  color: #17181b;
+}
+
+.p-demo__titulo {
+  font-weight: 600;
+}
+
+.p-demo__cuerpo {
+  display: grid;
+  grid-template-columns: 7.5rem 1fr;
+  gap: 1rem;
+  align-items: center;
+  margin-top: 0.5rem;
+
+  // En el teléfono el tablero cede un poco para que las opciones quepan en una línea.
+  @media (max-width: 440px) {
+    grid-template-columns: 6.25rem 1fr;
+    gap: 0.75rem;
+  }
+}
+
+// Las figuras: rellenas en los dos bandos, con un canto que las separa de
+// la casilla. Fuentes de símbolos de cada sistema, para no caer en emoji.
+.p-pieza {
+  font-family: 'Segoe UI Symbol', 'Apple Symbols', 'Noto Sans Symbols 2', 'DejaVu Sans', serif;
+  font-size: 12.5px;
+  text-anchor: middle;
+  dominant-baseline: central;
+  stroke-width: 0.5px;
+  paint-order: stroke;
+}
+
+.p-pieza--negra {
+  fill: #17181b;
+  stroke: #f4f3ef;
+}
+
+.p-pieza--blanca {
+  fill: #fbfaf6;
+  stroke: #17181b;
+}
+
+// La casilla del rey se enciende cuando la dama le da jaque.
+.p-tablero__jaque {
+  fill: #c8442f;
+  opacity: 0;
+}
+
+// La dama sale de d1 a h5 en diagonal y da jaque: la app ya funciona.
+.pantalla.activa .p-pieza--dama {
+  animation: jugada 0.9s cubic-bezier(0.55, 0, 0.2, 1) 1.1s both;
+}
+
+.pantalla.activa .p-tablero__jaque {
+  animation: jaque 1.4s ease-out 1.9s both;
+}
+
+@keyframes jugada {
+  from {
+    transform: translate(0, 0);
+  }
+  to {
+    transform: translate(48px, -48px);
+  }
+}
+
+@keyframes jaque {
+  0% {
+    opacity: 0;
+  }
+  18% {
+    opacity: 0.85;
+  }
+  100% {
+    opacity: 0.55;
+  }
+}
+
+.p-demo__opciones {
+  display: grid;
+  gap: 0.25rem;
+  font-size: 0.8125rem;
+
+  li {
+    padding: 0.25rem 0.5rem;
+    border-radius: 5px;
+    box-shadow: inset 0 0 0 1px rgb(23 24 27 / 0.12);
+  }
+}
+
+.p-demo__boton {
+  margin-top: 0.125rem;
+  background: #b9533a;
+  box-shadow: none !important;
+  color: #fff;
+  font-weight: 600;
+  text-align: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pantalla.activa .p-boton--aprobar {
+    animation: none;
+  }
+
+  // Sin movimiento, el tablero ya enseña la jugada hecha.
+  .pantalla.activa .p-pieza--dama {
+    animation: none;
+    transform: translate(48px, -48px);
+  }
+
+  .pantalla.activa .p-tablero__jaque {
+    animation: none;
+    opacity: 0.55;
+  }
+
+  .p-aristas path {
+    transform: none;
+    transition: none;
+  }
+
+  .p-barra i {
+    transform: none;
+    transition: none;
+  }
+}
